@@ -44,6 +44,14 @@ A GitHub Actions workflow automatikusan buildeli az alkalmazást minden push ut�
 3. Csomagold ki
 4. A buildelt alkalmazás a `bundle/` mappában van
 
+### macOS Gatekeeper probléma
+
+Ha macOS-en letöltött alkalmazást megnyitod és ezt a hibát kapod: **"sérült és nem nyitható meg"**, ez azért van, mert az alkalmazás nincs code signing-al aláírva (normális GitHub Actions build esetén).
+
+**Gyors megoldás:**
+1. Jobb klikk az alkalmazáson → **"Megnyitás"** (Open)
+2. Vagy Terminal-ban: `xattr -cr /path/to/3DPrinterCalcApp.app`
+
 ### Artifact tárolás
 
 - Az artifactok **30 napig** elérhetők (retention-days: 30)

@@ -53,7 +53,27 @@ src-tauri/target/release/bundle/
 **macOS:**
 1. Nyisd meg a `.dmg` fájlt
 2. Húzd az alkalmazást az Applications mappába
-3. Futtathatod dupla kattintással
+3. **Ha hibát kapsz: "sérült és nem nyitható meg"** (Gatekeeper blokkolás):
+   
+   **Megoldás 1 - Jobb klikk → Megnyitás:**
+   1. Keressd meg az alkalmazást a Finder-ben
+   2. Jobb klikk az `3DPrinterCalcApp.app`-ra
+   3. Kattints a **"Megnyitás"** (Open) menüpontra
+   4. A rendszer kérni fog megerősítést, kattints **"Megnyitás"** újra
+   
+   **Megoldás 2 - Terminal parancs (quarantine megszüntetése):**
+   ```bash
+   xattr -cr /Applications/3DPrinterCalcApp.app
+   ```
+   
+   **Megoldás 3 - System Settings:**
+   1. System Settings → Privacy & Security
+   2. Görgess le az "Security" részhez
+   3. Ha látod a "3DPrinterCalcApp was blocked" üzenetet, kattints **"Megnyitás ennek ellenére"** (Open Anyway)
+   
+   **Miért van ez?**
+   Az alkalmazás nincs Apple Developer Certificate-tel aláírva (code signing). Ez normális, ha saját buildet használsz vagy GitHub Actions-ról töltesz le.
+4. Futtathatod dupla kattintással
 
 **Linux:**
 ```bash

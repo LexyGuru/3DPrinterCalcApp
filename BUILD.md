@@ -70,6 +70,27 @@ cargo tauri build --target aarch64-apple-darwin  # Apple Silicon Mac
 
 **Eredmény**: `src-tauri/target/release/bundle/macos/` - `.app` és `.dmg`
 
+### macOS Gatekeeper problémák (aláíratlan alkalmazás)
+
+Ha macOS-en ezt a hibát kapod: **"3DPrinterCalcApp sérült és nem nyitható meg"**, akkor az alkalmazás nincs code signing-al aláírva.
+
+**Megoldások:**
+
+1. **Jobb klikk → Megnyitás:**
+   - Jobb klikk az alkalmazáson → "Megnyitás" (Open)
+   - Kattints "Megnyitás" a biztonsági figyelmeztetésnél
+
+2. **Terminal paranccsal (quarantine megszüntetése):**
+   ```bash
+   xattr -cr /Applications/3DPrinterCalcApp.app
+   ```
+
+3. **System Settings → Privacy & Security:**
+   - System Settings → Privacy & Security
+   - Görgess le és kattints "Megnyitás ennek ellenére" (Open Anyway)
+
+**Megjegyzés:** Code signing-hoz Apple Developer Account kell ($99/év). Ha nem szeretnél fizetni, használd a fenti megoldásokat.
+
 ### Linux-ról buildelés
 
 ```bash
