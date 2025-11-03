@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         platform: [macos-latest, ubuntu-latest, windows-latest]
     
@@ -55,6 +56,14 @@ jobs:
           cd frontend
           pnpm build
           
+      - name: Verify frontend build
+        run: |
+          if [ ! -d "frontend/dist" ]; then
+            echo "Error: frontend/dist directory not found!"
+            exit 1
+          fi
+          echo "Frontend build verified"
+          
       - name: Setup Rust cache
         uses: actions/cache@v4
         with:
@@ -75,6 +84,7 @@ jobs:
         run: |
           cd src-tauri
           cargo tauri build
+        continue-on-error: false
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -82,4 +92,5 @@ jobs:
           name: ${{ matrix.platform }}
           path: src-tauri/target/release/bundle/
           if-no-files-found: error
+          retention-days: 30
 
