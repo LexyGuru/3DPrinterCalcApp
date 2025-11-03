@@ -1,0 +1,450 @@
+import React, { useState, useMemo } from "react";
+import type { Printer, Filament, Settings, Offer } from "../types";
+import { convertCurrency } from "../utils/currency";
+import { useTranslation } from "../utils/translations";
+import { commonStyles } from "../utils/styles";
+
+interface SelectedFilament {
+  filamentIndex: number;
+  usedGrams: number;
+  needsDrying?: boolean;
+  dryingTime?: number;
+  dryingPower?: number;
+}
+
+interface Props {
+  printers: Printer[];
+  filaments: Filament[];
+  settings: Settings;
+  onSaveOffer?: (offer: any) => void;
+}
+
+export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onSaveOffer }) => {
+  const t = useTranslation(settings.language);
+  const [selectedPrinterId, setSelectedPrinterId] = useState<number | "">("");
+  const [selectedFilaments, setSelectedFilaments] = useState<SelectedFilament[]>([]);
+  const [printTimeHours, setPrintTimeHours] = useState<number>(0);
+  const [printTimeMinutes, setPrintTimeMinutes] = useState<number>(0);
+  const [printTimeSeconds, setPrintTimeSeconds] = useState<number>(0);
+
+  const selectedPrinter = useMemo(() => {
+    if (selectedPrinterId === "") return null;
+    return printers.find(p => p.id === selectedPrinterId) || null;
+  }, [printers, selectedPrinterId]);
+
+  const maxFilaments = useMemo(() => {
+    if (!selectedPrinter) return 0;
+    return (selectedPrinter.amsCount || 0) * 4;
+  }, [selectedPrinter]);
+
+  const totalPrintTimeHours = useMemo(() => {
+    return printTimeHours + (printTimeMinutes / 60) + (printTimeSeconds / 3600);
+  }, [printTimeHours, printTimeMinutes, printTimeSeconds]);
+
+  const addFilament = () => {
+    if (selectedFilaments.length >= maxFilaments) return;
+    setSelectedFilaments([...selectedFilaments, { filamentIndex: -1, usedGrams: 0, needsDrying: false, dryingTime: 0, dryingPower: 0 }]);
+  };
+
+  const removeFilament = (index: number) => {
+    setSelectedFilaments(selectedFilaments.filter((_, i) => i !== index));
+  };
+
+  const updateFilament = (index: number, field: "filamentIndex" | "usedGrams" | "dryingTime" | "dryingPower" | "needsDrying", value: number | boolean) => {
+    const updated = [...selectedFilaments];
+    updated[index] = { ...updated[index], [field]: value };
+    setSelectedFilaments(updated);
+  };
+
+  // Számítások
+  const calculations = useMemo(() => {
+    if (!selectedPrinter || selectedFilaments.length === 0 || totalPrintTimeHours <= 0) {
+      return null;
+    }
+
+    // Ellenőrizzük hogy minden filament rendelkezik mennyiséggel
+    if (selectedFilaments.some(sf => sf.filamentIndex < 0 || sf.usedGrams <= 0)) {
+      return null;
+    }
+
+    // Filament költségek (összes kiválasztott filament)
+    let totalFilamentCostEUR = 0;
+    selectedFilaments.forEach(sf => {
+      const filament = filaments[sf.filamentIndex];
+      if (filament) {
+        totalFilamentCostEUR += (sf.usedGrams / 1000) * filament.pricePerKg;
+      }
+    });
+    const filamentCost = convertCurrency(totalFilamentCostEUR, settings.currency);
+
+    // Áram költség: nyomtató + AMS-ek
+    let totalPowerW = selectedPrinter.power;
+    if (selectedPrinter.ams && selectedPrinter.ams.length > 0) {
+      totalPowerW += selectedPrinter.ams.reduce((sum, ams) => sum + ams.power, 0);
+    }
+    const powerConsumedKWh = (totalPowerW / 1000) * totalPrintTimeHours;
+    // Az electricityPrice mindig Ft/kWh-ban van tárolva
+    // Ellenőrizzük hogy az electricityPrice érvényes érték-e
+    const electricityPrice = settings.electricityPrice || 0;
+    if (electricityPrice <= 0) {
+      console.warn("⚠️ Áram ár nincs beállítva vagy 0:", electricityPrice, "- Kérlek állíts be egy érvényes áramárat a Beállításokban!");
+    }
+    const electricityCostHUF = powerConsumedKWh * electricityPrice;
+    // Konvertáljuk EUR-ra (400 Ft = 1 EUR), majd a választott pénznemre
+    const electricityCostEUR = electricityCostHUF / 400;
+    const electricityCost = convertCurrency(electricityCostEUR, settings.currency);
+
+    // Szárítás költség minden filamentnél külön
+    let totalDryingCostEUR = 0;
+    selectedFilaments.forEach((sf) => {
+      if (sf.needsDrying && sf.dryingTime && sf.dryingTime > 0 && sf.dryingPower && sf.dryingPower > 0) {
+        // Szárítás teljesítmény felhasználás kWh-ban
+        const dryingPowerConsumedKWh = (sf.dryingPower / 1000) * sf.dryingTime;
+        // Az electricityPrice mindig Ft/kWh-ban van tárolva
+        const dryingCostHUF = dryingPowerConsumedKWh * electricityPrice;
+        // Konvertáljuk EUR-ra (400 Ft = 1 EUR)
+        const dryingCostEUR = dryingCostHUF / 400;
+        totalDryingCostEUR += dryingCostEUR;
+      }
+    });
+    // Konvertáljuk a választott pénznemre
+    const totalDryingCost = convertCurrency(totalDryingCostEUR, settings.currency);
+
+    // Használati költség (kopás)
+    const usageCost = convertCurrency(selectedPrinter.usageCost * totalPrintTimeHours, settings.currency);
+
+    // Összes költség
+    const totalCost = filamentCost + electricityCost + totalDryingCost + usageCost;
+
+    return {
+      filamentCost,
+      electricityCost,
+      totalDryingCost,
+      usageCost,
+      totalCost,
+    };
+  }, [selectedPrinter, selectedFilaments, filaments, totalPrintTimeHours, settings]);
+
+  return (
+    <div>
+      <h2 style={commonStyles.pageTitle}>{t("calculator.title")}</h2>
+      <p style={commonStyles.pageSubtitle}>3D nyomtatási költség számítás</p>
+      
+      <div style={{ ...commonStyles.card, marginBottom: "24px" }}>
+        <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+          ⚙️ {t("calculator.parameters")}
+        </h3>
+        
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: "#495057" }}>
+            🖨️ {t("calculator.printer")}
+          </label>
+          <select
+            value={selectedPrinterId}
+            onChange={e => {
+              setSelectedPrinterId(e.target.value === "" ? "" : Number(e.target.value));
+              setSelectedFilaments([]); // Reset filaments when printer changes
+            }}
+            onFocus={(e) => Object.assign(e.target.style, commonStyles.selectFocus)}
+            onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+            style={{ ...commonStyles.select, width: "100%", maxWidth: "500px" }}
+          >
+            <option value="">{t("calculator.selectPrinter")}</option>
+            {printers.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.name} ({p.type}) - {p.power}W {p.amsCount ? `- ${p.amsCount} AMS` : ""}
+              </option>
+            ))}
+          </select>
+          {selectedPrinter && (
+            <p style={{ marginTop: "5px", fontSize: "12px", color: "#666" }}>
+              {t("calculator.maxFilaments")} {maxFilaments} ({(selectedPrinter.amsCount || 0)} {t("printers.ams")} × 4)
+            </p>
+          )}
+        </div>
+
+        {/* Nyomtatási idő: óra, perc, másodperc */}
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: "#495057" }}>
+            ⏱️ {t("calculator.printTimeLabel")}
+          </label>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.hours")}</label>
+              <input
+                type="number"
+                min="0"
+                value={printTimeHours}
+                onChange={e => setPrintTimeHours(Math.max(0, Number(e.target.value)))}
+                onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                style={{ ...commonStyles.input, width: "100px" }}
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.minutes")}</label>
+              <input
+                type="number"
+                min="0"
+                max="59"
+                value={printTimeMinutes}
+                onChange={e => setPrintTimeMinutes(Math.min(59, Math.max(0, Number(e.target.value))))}
+                onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                style={{ ...commonStyles.input, width: "100px" }}
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.seconds")}</label>
+              <input
+                type="number"
+                min="0"
+                max="59"
+                value={printTimeSeconds}
+                onChange={e => setPrintTimeSeconds(Math.min(59, Math.max(0, Number(e.target.value))))}
+                onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                style={{ ...commonStyles.input, width: "100px" }}
+              />
+            </div>
+          </div>
+          <p style={{ marginTop: "5px", fontSize: "12px", color: "#666" }}>
+            {t("calculator.totalTime")} {totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
+          </p>
+        </div>
+
+        {/* Filamentek kiválasztása */}
+        <div style={{ marginBottom: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
+            <label style={{ fontWeight: "600", fontSize: "16px", color: "#495057" }}>
+              🧵 {t("calculator.filaments")} ({selectedFilaments.length}/{maxFilaments})
+            </label>
+            {maxFilaments > 0 && selectedFilaments.length < maxFilaments && (
+              <button 
+                onClick={addFilament}
+                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
+                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonPrimary.boxShadow; }}
+                style={{ 
+                  ...commonStyles.button,
+                  ...commonStyles.buttonPrimary,
+                  padding: "10px 20px",
+                  fontSize: "14px"
+                }}
+              >
+                ➕ {t("calculator.addFilament")}
+              </button>
+            )}
+          </div>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {selectedFilaments.map((sf, idx) => (
+              <div key={idx} style={{ ...commonStyles.card, width: "100%" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <strong style={{ fontSize: "16px", color: "#495057" }}>{t("calculator.filament")} {idx + 1}:</strong>
+                <button 
+                  onClick={() => removeFilament(idx)}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                  style={{ 
+                    ...commonStyles.button,
+                    ...commonStyles.buttonDanger,
+                    padding: "8px 16px",
+                    fontSize: "12px"
+                  }}
+                >
+                  {t("filaments.delete")}
+                </button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "16px", alignItems: "flex-end", marginBottom: "16px" }}>
+                <div>
+                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.filament")}:</label>
+                  <select
+                    value={sf.filamentIndex}
+                    onChange={e => updateFilament(idx, "filamentIndex", Number(e.target.value))}
+                    onFocus={(e) => Object.assign(e.target.style, commonStyles.selectFocus)}
+                    onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                    style={{ ...commonStyles.select, width: "100%" }}
+                  >
+                    <option value={-1}>{t("calculator.selectFilamentOption")}</option>
+                    {filaments.map((f, i) => (
+                      <option key={i} value={i}>
+                        {f.brand} {f.type} {f.color ? `(${f.color})` : ""} - {f.pricePerKg}€/kg
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.usedGrams")}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={sf.usedGrams || ""}
+                    onChange={e => updateFilament(idx, "usedGrams", Number(e.target.value))}
+                    onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                    onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                    style={{ ...commonStyles.input, width: "140px" }}
+                  />
+                </div>
+              </div>
+              {/* Szárítás opció minden filamentnél */}
+              <div style={{ ...commonStyles.card, padding: "16px", backgroundColor: "#f8f9fa", marginTop: "16px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", marginBottom: "12px", fontSize: "14px", color: "#495057" }}>
+                  <input
+                    type="checkbox"
+                    checked={sf.needsDrying || false}
+                    onChange={e => updateFilament(idx, "needsDrying", e.target.checked)}
+                    style={{ width: "20px", height: "20px", cursor: "pointer" }}
+                  />
+                  <span>🌡️ {t("calculator.dryingNeeded")}</span>
+                </label>
+                {sf.needsDrying && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px", marginTop: "12px" }}>
+                    <div>
+                      <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.dryingTime")}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={sf.dryingTime || ""}
+                        onChange={e => updateFilament(idx, "dryingTime", Number(e.target.value))}
+                        onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                        onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                        style={{ ...commonStyles.input, width: "100%" }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.dryingPower")}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={sf.dryingPower || ""}
+                        onChange={e => updateFilament(idx, "dryingPower", Number(e.target.value))}
+                        onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                        onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                        style={{ ...commonStyles.input, width: "100%" }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+              </div>
+            ))}
+          </div>
+          
+          {selectedFilaments.length === 0 && (
+            <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px", backgroundColor: "#f8f9fa" }}>
+              <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>{t("calculator.selectPrinter")}, {t("calculator.addFilament").toLowerCase()}.</p>
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      {calculations && (
+        <div style={{ 
+          ...commonStyles.card,
+          marginTop: "30px",
+          maxWidth: "600px"
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+              💰 {t("calculator.costBreakdown")} ({settings.currency})
+            </h3>
+            {onSaveOffer && (
+              <button
+                onClick={() => {
+                  if (!selectedPrinter) return;
+                  
+                  const offerFilaments = selectedFilaments.map(sf => {
+                    const filament = filaments[sf.filamentIndex];
+                    return {
+                      brand: filament.brand,
+                      type: filament.type,
+                      color: filament.color,
+                      usedGrams: sf.usedGrams,
+                      pricePerKg: filament.pricePerKg,
+                      needsDrying: sf.needsDrying || false,
+                      dryingTime: sf.dryingTime || 0,
+                      dryingPower: sf.dryingPower || 0,
+                    };
+                  });
+
+                  const offer: Offer = {
+                    id: Date.now(),
+                    date: new Date().toISOString(),
+                    printerName: selectedPrinter.name,
+                    printerType: selectedPrinter.type,
+                    printerPower: selectedPrinter.power,
+                    printTimeHours,
+                    printTimeMinutes,
+                    printTimeSeconds,
+                    totalPrintTimeHours,
+                    filaments: offerFilaments,
+                    costs: {
+                      filamentCost: calculations.filamentCost,
+                      electricityCost: calculations.electricityCost,
+                      dryingCost: calculations.totalDryingCost,
+                      usageCost: calculations.usageCost,
+                      totalCost: calculations.totalCost,
+                    },
+                    currency: settings.currency,
+                    profitPercentage: 30, // Alapértelmezett 30% profit
+                  };
+
+                  onSaveOffer(offer);
+                  alert(t("offers.save") + " - " + t("offers.title") + " #" + offer.id);
+                }}
+                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
+                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonSuccess.boxShadow; }}
+                style={{
+                  ...commonStyles.button,
+                  ...commonStyles.buttonSuccess
+                }}
+              >
+                {t("calculator.saveAsOffer")}
+              </button>
+            )}
+          </div>
+          <div style={{ marginTop: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #e9ecef" }}>
+              <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.filamentCost")}</span>
+              <strong style={{ fontSize: "16px", color: "#28a745" }}>{calculations.filamentCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #e9ecef" }}>
+              <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.electricityCost")}</span>
+              <strong style={{ fontSize: "16px", color: "#ffc107" }}>{calculations.electricityCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+            </div>
+            {selectedFilaments.some(sf => sf.needsDrying && sf.dryingTime && sf.dryingTime > 0 && sf.dryingPower && sf.dryingPower > 0) && (
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #e9ecef" }}>
+                <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.dryingCost")}</span>
+                <strong style={{ fontSize: "16px", color: "#17a2b8" }}>{calculations.totalDryingCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+              </div>
+            )}
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: "2px solid #dee2e6" }}>
+              <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.usageCost")}</span>
+              <strong style={{ fontSize: "16px", color: "#6c757d" }}>{calculations.usageCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: "#f8f9fa", padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
+              <span style={{ color: "#495057" }}>{t("calculator.totalCost")}</span>
+              <strong style={{ color: "#007bff" }}>{calculations.totalCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(!selectedPrinter || selectedFilaments.length === 0 || !calculations) && (
+        <div style={{ 
+          ...commonStyles.card,
+          marginTop: "30px",
+          textAlign: "center",
+          padding: "40px",
+          backgroundColor: "#f8f9fa"
+        }}>
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>📊</div>
+          <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>{t("calculator.fillFields")}</p>
+        </div>
+      )}
+    </div>
+  );
+};
