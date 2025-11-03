@@ -47,3 +47,6 @@ rw.*
 # build-frontend.sh
 # dev-frontend.sh
 
+GITHUB_ACTIONS_SETUP.md
+HOW_TO_BUILD_APP.md
+BUILD.md

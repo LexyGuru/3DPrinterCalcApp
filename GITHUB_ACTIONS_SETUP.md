@@ -13,14 +13,64 @@ A GitHub Actions workflow automatikusan buildeli az alkalmazást minden push ut�
 
 ## Build eredmények letöltése
 
-1. Menj a GitHub repository-dhoz: https://github.com/LexyGuru/3DPrinterCalcApp
-2. Kattints az **Actions** tabra
-3. Válassz egy befejezett workflow futtatást
-4. Görgess le az **Artifacts** részhez
-5. Letöltheted:
-   - `macos-latest` - macOS .app és .dmg fájlok
-   - `ubuntu-latest` - Linux .deb, .AppImage fájlok
-   - `windows-latest` - Windows .msi installer
+### Hol találod meg a kész fájlokat?
+
+1. **GitHub Repository → Actions tab**
+   - URL: https://github.com/LexyGuru/3DPrinterCalcApp/actions
+
+2. **Válassz egy befejezett workflow futtatást**
+   - Kattints egy futtatásra (zöld pipa jelölés = sikeres)
+   - Vagy a sárga kör jelölés = fut
+   - Vagy piros X = hibázott
+
+3. **Görgess le az Artifacts részhez**
+   - Az oldal alján találod az **Artifacts** szekciót
+   - Itt látszik mindhárom platform eredménye
+
+4. **Letöltheted a fájlokat**
+   - **`macos-latest`** - macOS .app és .dmg fájlok
+     - `3DPrinterCalcApp.app` - Futtatható alkalmazás
+     - `3DPrinterCalcApp_0.1.0_aarch64.dmg` - DMG installer
+   - **`ubuntu-latest`** - Linux fájlok
+     - `deb/` mappa - Debian/Ubuntu installer (.deb)
+     - `appimage/` mappa - AppImage fájl (portable)
+   - **`windows-latest`** - Windows fájlok
+     - `msi/` mappa - MSI installer (.msi)
+
+### Letöltés lépései
+
+1. Kattints a platform nevére (pl. `macos-latest`)
+2. A zip fájl letöltődik
+3. Csomagold ki
+4. A buildelt alkalmazás a `bundle/` mappában van
+
+### Artifact tárolás
+
+- Az artifactok **30 napig** elérhetők (retention-days: 30)
+- Ezután automatikusan törlődnek
+- Ha megtartod, letöltsd őket időben!
+
+### Példa mappa struktúra letöltés után
+
+```
+macos-latest.zip
+└── bundle/
+    └── macos/
+        ├── 3DPrinterCalcApp.app
+        └── 3DPrinterCalcApp_0.1.0_aarch64.dmg
+
+ubuntu-latest.zip
+└── bundle/
+    ├── deb/
+    │   └── 3DPrinterCalcApp_0.1.0_amd64.deb
+    └── appimage/
+        └── 3DPrinterCalcApp_0.1.0_amd64.AppImage
+
+windows-latest.zip
+└── bundle/
+    └── msi/
+        └── 3DPrinterCalcApp_0.1.0_x64_en-US.msi
+```
 
 ## Workflow fájl helye
 
