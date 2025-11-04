@@ -100,6 +100,8 @@ jobs:
         run: cargo install tauri-cli --locked --force
         
       - name: Build Tauri app
+        env:
+          VITE_IS_BETA: 'true'
         run: |
           cd src-tauri
           cargo tauri build
