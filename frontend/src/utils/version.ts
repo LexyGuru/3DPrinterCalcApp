@@ -33,8 +33,9 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
     }
 
     if (beta) {
-      // Beta esetén a legújabb release-t keresjük
+      // Beta esetén a legújabb pre-release verziót keresjük
       const releases: any[] = await response.json();
+      // Elsőként a pre-release verziókat keressük, ha nincs akkor az első release-t
       const latestRelease = releases.find(r => r.prerelease === true) || releases[0];
       
       if (!latestRelease) {
@@ -48,6 +49,8 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       }
 
       const latestVersion = latestRelease.tag_name.replace(/^v/, "");
+      // Beta verzió esetén: ha pre-release és újabb mint a jelenlegi, akkor mutassuk
+      // Ez lehetővé teszi, hogy main build-ről beta-ra frissítsen, ha van újabb beta verzió
       const isNewer = compareVersions(latestVersion, CURRENT_VERSION) > 0;
 
       return {

@@ -15,12 +15,18 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
   const beta = settings.checkForBetaUpdates || false;
 
   useEffect(() => {
-    // Ellenőrzés indításkor és 5 perc múlva
+    // Ellenőrzés indításkor, amikor a beta beállítás változik, és 5 perc múlva
     checkUpdates();
     const interval = setInterval(checkUpdates, 5 * 60 * 1000); // 5 perc
     
     return () => clearInterval(interval);
   }, [beta]);
+
+  // Ha a beta beállítás változik, azonnal újra ellenőrizzük és visszaállítjuk a dismissed-et
+  useEffect(() => {
+    setDismissed(false); // Visszaállítjuk, hogy az új verziókat lássa
+    checkUpdates();
+  }, [settings.checkForBetaUpdates]);
 
   const checkUpdates = async () => {
     const info = await checkForUpdates(beta);
