@@ -28,6 +28,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
   const [printTimeHours, setPrintTimeHours] = useState<number>(0);
   const [printTimeMinutes, setPrintTimeMinutes] = useState<number>(0);
   const [printTimeSeconds, setPrintTimeSeconds] = useState<number>(0);
+  const [showOfferDialog, setShowOfferDialog] = useState(false);
+  const [offerCustomerName, setOfferCustomerName] = useState("");
+  const [offerCustomerContact, setOfferCustomerContact] = useState("");
+  const [offerDescription, setOfferDescription] = useState("");
+  const [offerProfitPercentage, setOfferProfitPercentage] = useState<number>(30);
 
   const selectedPrinter = useMemo(() => {
     if (selectedPrinterId === "") return null;
@@ -374,45 +379,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               <button
                 onClick={() => {
                   if (!selectedPrinter) return;
-                  
-                  const offerFilaments = selectedFilaments.map(sf => {
-                    const filament = filaments[sf.filamentIndex];
-                    return {
-                      brand: filament.brand,
-                      type: filament.type,
-                      color: filament.color,
-                      usedGrams: sf.usedGrams,
-                      pricePerKg: filament.pricePerKg,
-                      needsDrying: sf.needsDrying || false,
-                      dryingTime: sf.dryingTime || 0,
-                      dryingPower: sf.dryingPower || 0,
-                    };
-                  });
-
-                  const offer: Offer = {
-                    id: Date.now(),
-                    date: new Date().toISOString(),
-                    printerName: selectedPrinter.name,
-                    printerType: selectedPrinter.type,
-                    printerPower: selectedPrinter.power,
-                    printTimeHours,
-                    printTimeMinutes,
-                    printTimeSeconds,
-                    totalPrintTimeHours,
-                    filaments: offerFilaments,
-                    costs: {
-                      filamentCost: calculations.filamentCost,
-                      electricityCost: calculations.electricityCost,
-                      dryingCost: calculations.totalDryingCost,
-                      usageCost: calculations.usageCost,
-                      totalCost: calculations.totalCost,
-                    },
-                    currency: settings.currency,
-                    profitPercentage: 30, // Alapértelmezett 30% profit
-                  };
-
-                  onSaveOffer(offer);
-                  showToast(t("common.offerSaved"), "success");
+                  setShowOfferDialog(true);
                 }}
                 onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
                 onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonSuccess.boxShadow; }}
@@ -462,6 +429,193 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
         }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>📊</div>
           <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>{t("calculator.fillFields")}</p>
+        </div>
+      )}
+
+      {/* Árajánlat mentése dialog */}
+      {showOfferDialog && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10000,
+          }}
+          onClick={() => setShowOfferDialog(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "12px",
+              padding: "24px",
+              maxWidth: "500px",
+              width: "90%",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: "0 0 20px 0", color: "#212529", fontSize: "20px", fontWeight: "600" }}>
+              💾 {t("calculator.saveAsOffer")}
+            </h3>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+                  {t("offers.customerName")} *
+                </label>
+                <input
+                  type="text"
+                  placeholder={t("offers.customerName")}
+                  value={offerCustomerName}
+                  onChange={e => setOfferCustomerName(e.target.value)}
+                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                  style={{ ...commonStyles.input, width: "100%" }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+                  {settings.language === "hu" ? "Elérhetőség (email/telefon)" : settings.language === "de" ? "Kontakt (E-Mail/Telefon)" : "Contact (email/phone)"}
+                </label>
+                <input
+                  type="text"
+                  placeholder={settings.language === "hu" ? "Email vagy telefon" : settings.language === "de" ? "E-Mail oder Telefon" : "Email or phone"}
+                  value={offerCustomerContact}
+                  onChange={e => setOfferCustomerContact(e.target.value)}
+                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                  style={{ ...commonStyles.input, width: "100%" }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+                  {t("offers.description")}
+                </label>
+                <textarea
+                  placeholder={t("offers.description")}
+                  value={offerDescription}
+                  onChange={e => setOfferDescription(e.target.value)}
+                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                  style={{ ...commonStyles.input, width: "100%", minHeight: "80px", resize: "vertical" }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+                  {t("offers.profitPercentage")} (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={offerProfitPercentage}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    if (val >= 0 && val <= 100) {
+                      setOfferProfitPercentage(val);
+                    }
+                  }}
+                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                  style={{ ...commonStyles.input, width: "100%" }}
+                />
+              </div>
+            </div>
+            
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px" }}>
+              <button
+                onClick={() => {
+                  setShowOfferDialog(false);
+                  setOfferCustomerName("");
+                  setOfferCustomerContact("");
+                  setOfferDescription("");
+                  setOfferProfitPercentage(30);
+                }}
+                style={{
+                  ...commonStyles.button,
+                  backgroundColor: "#6c757d",
+                  color: "#fff",
+                  padding: "10px 20px",
+                }}
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                onClick={() => {
+                  if (!offerCustomerName.trim()) {
+                    showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek add meg az ügyfél nevét!" : settings.language === "de" ? "Bitte geben Sie den Kundennamen ein!" : "Please enter customer name!"), "error");
+                    return;
+                  }
+                  
+                  if (!selectedPrinter) return;
+                  
+                  const offerFilaments = selectedFilaments.map(sf => {
+                    const filament = filaments[sf.filamentIndex];
+                    return {
+                      brand: filament.brand,
+                      type: filament.type,
+                      color: filament.color,
+                      usedGrams: sf.usedGrams,
+                      pricePerKg: filament.pricePerKg,
+                      needsDrying: sf.needsDrying || false,
+                      dryingTime: sf.dryingTime || 0,
+                      dryingPower: sf.dryingPower || 0,
+                    };
+                  });
+
+                  const offer: Offer = {
+                    id: Date.now(),
+                    date: new Date().toISOString(),
+                    printerName: selectedPrinter.name,
+                    printerType: selectedPrinter.type,
+                    printerPower: selectedPrinter.power,
+                    printTimeHours,
+                    printTimeMinutes,
+                    printTimeSeconds,
+                    totalPrintTimeHours,
+                    filaments: offerFilaments,
+                    costs: {
+                      filamentCost: calculations.filamentCost,
+                      electricityCost: calculations.electricityCost,
+                      dryingCost: calculations.totalDryingCost,
+                      usageCost: calculations.usageCost,
+                      totalCost: calculations.totalCost,
+                    },
+                    currency: settings.currency,
+                    profitPercentage: offerProfitPercentage,
+                    customerName: offerCustomerName.trim(),
+                    customerContact: offerCustomerContact.trim() || undefined,
+                    description: offerDescription.trim() || undefined,
+                  };
+
+                  onSaveOffer(offer);
+                  showToast(t("common.offerSaved"), "success");
+                  setShowOfferDialog(false);
+                  setOfferCustomerName("");
+                  setOfferCustomerContact("");
+                  setOfferDescription("");
+                  setOfferProfitPercentage(30);
+                }}
+                style={{
+                  ...commonStyles.button,
+                  ...commonStyles.buttonSuccess,
+                  padding: "10px 20px",
+                }}
+              >
+                {t("common.save") || t("offers.save")}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
