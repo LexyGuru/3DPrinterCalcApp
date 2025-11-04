@@ -5,13 +5,14 @@ import { commonStyles } from "../utils/styles";
 interface Props {
   settings: {
     language: "hu" | "en" | "de";
+    checkForBetaUpdates?: boolean;
   };
-  beta?: boolean;
 }
 
-export const UpdateChecker: React.FC<Props> = ({ settings, beta = false }) => {
+export const UpdateChecker: React.FC<Props> = ({ settings }) => {
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const beta = settings.checkForBetaUpdates || false;
 
   useEffect(() => {
     // Ellenőrzés indításkor és 5 perc múlva

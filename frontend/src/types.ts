@@ -28,12 +28,14 @@ export interface Settings {
   currency: "EUR" | "HUF" | "USD";
   electricityPrice: number; // Ft/kWh
   language: "hu" | "en" | "de";
+  checkForBetaUpdates?: boolean; // Beta release-ek ellenőrzése
 }
 
 export const defaultSettings: Settings = {
   currency: "EUR",
   electricityPrice: 70, // Ft/kWh alap
   language: "hu",
+  checkForBetaUpdates: false, // Alapértelmezetten nem ellenőrzi a beta release-eket
 };
 
 export interface OfferFilament {

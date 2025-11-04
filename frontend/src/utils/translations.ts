@@ -89,6 +89,8 @@ export type TranslationKey =
   | "settings.language"
   | "settings.currency"
   | "settings.electricityPrice"
+  | "settings.checkForBetaUpdates"
+  | "settings.checkForBetaUpdatesDescription"
   // Offers
   | "offers.title"
   | "offers.save"
@@ -218,6 +220,8 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.language": "Nyelv:",
     "settings.currency": "Pénznem:",
     "settings.electricityPrice": "Áram ára:",
+    "settings.checkForBetaUpdates": "Beta verziók ellenőrzése:",
+    "settings.checkForBetaUpdatesDescription": "Ha bekapcsolod, az alkalmazás beta release-eket is ellenőrizni fog, nem csak a stabil verziókat.",
     // Common
     "common.delete": "Törlés",
     "common.add": "Hozzáadás",
@@ -332,6 +336,8 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.language": "Language:",
     "settings.currency": "Currency:",
     "settings.electricityPrice": "Electricity Price:",
+    "settings.checkForBetaUpdates": "Check for beta updates:",
+    "settings.checkForBetaUpdatesDescription": "If enabled, the app will also check for beta releases, not just stable versions.",
     // Common
     "common.delete": "Delete",
     "common.add": "Add",
@@ -446,6 +452,8 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.language": "Sprache:",
     "settings.currency": "Währung:",
     "settings.electricityPrice": "Strompreis:",
+    "settings.checkForBetaUpdates": "Beta-Versionen prüfen:",
+    "settings.checkForBetaUpdatesDescription": "Wenn aktiviert, prüft die App auch Beta-Versionen, nicht nur stabile Versionen.",
     // Common
     "common.delete": "Löschen",
     "common.add": "Hinzufügen",

@@ -111,6 +111,21 @@ export const SettingsPage: React.FC<Props> = ({ settings, onChange }) => {
             Az áram ár mindig Ft/kWh-ban van tárolva, de a választott pénznemben jelenik meg.
           </p>
         </div>
+        
+        <div style={{ marginBottom: "24px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: "#495057", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={settings.checkForBetaUpdates || false}
+              onChange={e => onChange({ ...settings, checkForBetaUpdates: e.target.checked })}
+              style={{ width: "20px", height: "20px", cursor: "pointer" }}
+            />
+            <span>🔬 {t("settings.checkForBetaUpdates")}</span>
+          </label>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: "#6c757d" }}>
+            {t("settings.checkForBetaUpdatesDescription")}
+          </p>
+        </div>
       </div>
     </div>
   );
