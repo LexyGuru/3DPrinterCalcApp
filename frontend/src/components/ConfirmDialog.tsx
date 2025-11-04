@@ -1,4 +1,3 @@
-import React from "react";
 import { commonStyles } from "../utils/styles";
 
 interface ConfirmDialogProps {
