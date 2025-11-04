@@ -6,6 +6,7 @@ import { Printers } from "./components/Printers";
 import { Calculator } from "./components/Calculator";
 import { Offers } from "./components/Offers";
 import { SettingsPage } from "./components/Settings";
+import { UpdateChecker } from "./components/UpdateChecker";
 import type { Printer, Settings, Filament, Offer } from "./types";
 import { defaultSettings } from "./types";
 import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers } from "./utils/store";
@@ -102,6 +103,7 @@ export default function App() {
 
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
+      <UpdateChecker settings={settings} beta={false} />
       <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} />
       <main style={{ 
         padding: 20, 
