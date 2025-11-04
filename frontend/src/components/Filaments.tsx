@@ -23,6 +23,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const resetForm = () => {
     setBrand("");
@@ -31,6 +32,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
     setPricePerKg(0);
     setColor("");
     setEditingIndex(null);
+    setShowAddForm(false);
   };
 
   const addFilament = () => {
@@ -122,6 +124,27 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
         </div>
       )}
       
+      {/* Új filament hozzáadása gomb */}
+      {!showAddForm && editingIndex === null && (
+        <div style={{ marginBottom: "24px" }}>
+          <button
+            onClick={() => setShowAddForm(true)}
+            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = commonStyles.buttonPrimary.boxShadow; }}
+            style={{ 
+              ...commonStyles.button,
+              ...commonStyles.buttonPrimary,
+              fontSize: "16px",
+              padding: "14px 28px"
+            }}
+          >
+            ➕ {t("filaments.addTitle")}
+          </button>
+        </div>
+      )}
+      
+      {/* Új filament hozzáadása form */}
+      {(showAddForm || editingIndex !== null) && (
       <div style={{ ...commonStyles.card, marginBottom: "24px", backgroundColor: editingIndex !== null ? "#fff3cd" : "#f8f9fa", border: editingIndex !== null ? "2px solid #ffc107" : "1px solid #e9ecef" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
           <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: "#495057" }}>

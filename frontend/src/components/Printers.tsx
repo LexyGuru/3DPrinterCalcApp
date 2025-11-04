@@ -24,6 +24,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
   const [amsForms, setAmsForms] = useState<Record<number, { brand: string; name: string; power: number }[]>>({});
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const addPrinter = () => {
     if (!name || !type || !power) {
@@ -53,6 +54,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
     }
     showToast(t("common.printerAdded"), "success");
     setName(""); setType(""); setPower(0); setUsageCost(0); setAmsCount(0);
+    setShowAddForm(false);
   };
 
   const deletePrinter = (id: number) => {
@@ -127,6 +129,27 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
         </div>
       )}
       
+      {/* Új nyomtató hozzáadása gomb */}
+      {!showAddForm && (
+        <div style={{ marginBottom: "24px" }}>
+          <button
+            onClick={() => setShowAddForm(true)}
+            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = commonStyles.buttonPrimary.boxShadow; }}
+            style={{ 
+              ...commonStyles.button,
+              ...commonStyles.buttonPrimary,
+              fontSize: "16px",
+              padding: "14px 28px"
+            }}
+          >
+            ➕ {t("printers.addTitle")}
+          </button>
+        </div>
+      )}
+      
+      {/* Új nyomtató hozzáadása form */}
+      {showAddForm && (
       <div style={{ ...commonStyles.card, marginBottom: "24px", backgroundColor: "#f8f9fa", border: "1px solid #e9ecef" }}>
         <h3 style={{ marginTop: 0, marginBottom: "24px", fontSize: "20px", fontWeight: "600", color: "#495057" }}>
           ➕ {t("printers.addTitle")}
@@ -218,8 +241,23 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
           >
             ➕ {t("printers.add")}
           </button>
+          <button
+            onClick={() => setShowAddForm(false)}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+            style={{ 
+              ...commonStyles.button,
+              ...commonStyles.buttonSecondary,
+              padding: "8px 16px",
+              fontSize: "12px",
+              marginLeft: "10px"
+            }}
+          >
+            ✖️ {t("filaments.cancel")}
+          </button>
         </div>
       </div>
+      )}
 
       {filteredPrinters.length > 0 ? (
         <div style={{ ...commonStyles.card, overflow: "hidden", padding: 0 }}>
