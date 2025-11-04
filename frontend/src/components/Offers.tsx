@@ -469,13 +469,6 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                   </span>
                 </div>
 
-                {selectedOffer.description && (
-                  <div style={{ marginBottom: "12px" }}>
-                    <strong style={{ color: "#495057" }}>{t("offers.description")}:</strong> 
-                    <span style={{ marginLeft: "8px", color: "#212529" }}>{selectedOffer.description}</span>
-                  </div>
-                )}
-
                 <div style={{ marginBottom: "12px" }}>
                   <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#495057" }}>
                     📈 {t("offers.profitPercentage")}
