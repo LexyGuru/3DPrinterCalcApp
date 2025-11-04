@@ -101,10 +101,13 @@ export default function App() {
     default: PageComponent = <Home settings={settings} offers={offers} />;
   }
 
+  // Determine if this is a beta build from environment variable (set at build time)
+  const isBeta = import.meta.env.VITE_IS_BETA === 'true';
+
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
       <UpdateChecker settings={settings} />
-      <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} isBeta={false} />
+      <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} isBeta={isBeta} />
       <main style={{ 
         padding: 20, 
         backgroundColor: "#ffffff", 

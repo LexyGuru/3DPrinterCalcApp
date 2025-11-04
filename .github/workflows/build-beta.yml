@@ -68,6 +68,8 @@ jobs:
           pnpm install --no-frozen-lockfile
           
       - name: Build frontend
+        env:
+          VITE_IS_BETA: 'true'
         run: |
           cd frontend
           pnpm build
