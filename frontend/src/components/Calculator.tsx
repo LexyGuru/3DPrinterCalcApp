@@ -519,7 +519,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             </div>
             
             <div style={{ marginTop: "24px" }}>
-              <div style={{ width: "100%" }}>
+              <div style={{ width: "100%", maxWidth: "540px" }}>
                 <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
                   {t("offers.description")}
                 </label>
