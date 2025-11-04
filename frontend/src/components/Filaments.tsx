@@ -263,8 +263,25 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
           >
             {editingIndex !== null ? "💾 " + t("filaments.save") : "➕ " + t("filaments.add")}
           </button>
+          {showAddForm && editingIndex === null && (
+            <button
+              onClick={() => setShowAddForm(false)}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+              style={{ 
+                ...commonStyles.button,
+                ...commonStyles.buttonSecondary,
+                padding: "8px 16px",
+                fontSize: "12px",
+                marginLeft: "10px"
+              }}
+            >
+              ✖️ {t("filaments.cancel")}
+            </button>
+          )}
         </div>
       </div>
+      )}
 
       {filteredFilaments.length > 0 ? (
         <div style={{ ...commonStyles.card, overflow: "hidden", padding: 0 }}>
