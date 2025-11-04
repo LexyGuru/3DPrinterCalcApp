@@ -459,7 +459,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                 {selectedOffer.description && (
                   <div style={{ marginBottom: "12px" }}>
                     <strong style={{ color: "#495057" }}>{t("offers.description")}:</strong> 
-                    <span style={{ marginLeft: "8px", color: "#212529" }}>{selectedOffer.description}</span>
+                    <span style={{ marginLeft: "8px", color: "#212529", wordWrap: "break-word", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{selectedOffer.description}</span>
                   </div>
                 )}
                 <div style={{ marginBottom: "12px" }}>
