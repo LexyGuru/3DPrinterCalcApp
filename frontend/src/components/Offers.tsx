@@ -215,18 +215,13 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
             ${(() => {
               const profitPercentage = offer.profitPercentage !== undefined ? offer.profitPercentage : 30;
               const revenue = offer.costs.totalCost * (1 + profitPercentage / 100);
-              const profit = revenue - offer.costs.totalCost;
               return `
-            <tr style="border-top: 2px solid #333;">
-              <td><strong>Profit (${profitPercentage}%):</strong></td>
-              <td><strong style="color: #28a745;">${profit.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
-            </tr>
-            <tr class="total" style="background-color: #f0f8ff;">
-              <td><strong>Összes ár (Bevétel):</strong></td>
+            <tr class="total" style="background-color: #f0f8ff; border-top: 2px solid #333;">
+              <td><strong>Összes ár:</strong></td>
               <td><strong style="color: #007bff; font-size: 1.3em;">${revenue.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
             </tr>
-              `;
-            })()}
+                      `;
+                    })()}
           </table>
         </div>
       </body>
