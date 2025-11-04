@@ -218,13 +218,13 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
-### v0.1.56 (2024)
+### v0.1.56 (2025.11.4)
 - ✨ **Calculator layout javítások**: Filament kártyák túlcsordulás javítva, responsive flexbox layout
 - ✨ **Költség bontás responsive**: Most dinamikusan reagál az ablakméret változására
 - 🐛 **Bugfix**: Filament hozzáadásakor nem csúszik ki a tartalom az ablakból
 - 🐛 **Bugfix**: Minden Calculator elem megfelelően reagál az ablakméret változására
 
-### v0.1.55 (2024)
+### v0.1.55 (2025.11.4)
 - ✨ **Megerősítő dialógusok**: Törlés előtt megerősítés kérése (Filamentek, Nyomtatók, Árajánlatok)
 - ✨ **Toast értesítések**: Sikeres műveletek után értesítések (hozzáadás, frissítés, törlés)
 - ✨ **Input validáció**: Negatív számok eltiltása, maximum értékek beállítása
