@@ -442,6 +442,26 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
               </div>
 
               <div style={{ marginBottom: "20px", padding: "16px", backgroundColor: "#f8f9fa", borderRadius: "8px" }}>
+                {selectedOffer.customerName && (
+                  <div style={{ marginBottom: "12px" }}>
+                    <strong style={{ color: "#495057" }}>{t("offers.customerName")}:</strong> 
+                    <span style={{ marginLeft: "8px", color: "#212529" }}>{selectedOffer.customerName}</span>
+                  </div>
+                )}
+                {selectedOffer.customerContact && (
+                  <div style={{ marginBottom: "12px" }}>
+                    <strong style={{ color: "#495057" }}>
+                      {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}:
+                    </strong> 
+                    <span style={{ marginLeft: "8px", color: "#212529" }}>{selectedOffer.customerContact}</span>
+                  </div>
+                )}
+                {selectedOffer.description && (
+                  <div style={{ marginBottom: "12px" }}>
+                    <strong style={{ color: "#495057" }}>{t("offers.description")}:</strong> 
+                    <span style={{ marginLeft: "8px", color: "#212529" }}>{selectedOffer.description}</span>
+                  </div>
+                )}
                 <div style={{ marginBottom: "12px" }}>
                   <strong style={{ color: "#495057" }}>{t("offers.date")}:</strong> 
                   <span style={{ marginLeft: "8px", color: "#212529" }}>
