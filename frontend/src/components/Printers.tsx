@@ -94,10 +94,38 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
     setAmsForms({ ...amsForms, [printerId]: updated });
   };
 
+  // Szűrés a keresési kifejezés alapján
+  const filteredPrinters = printers.filter(p => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      p.name.toLowerCase().includes(term) ||
+      p.type.toLowerCase().includes(term)
+    );
+  });
+
   return (
     <div>
       <h2 style={commonStyles.pageTitle}>{t("printers.title")}</h2>
       <p style={commonStyles.pageSubtitle}>Nyomtatók és AMS rendszerek kezelése</p>
+      
+      {/* Kereső mező */}
+      {printers.length > 0 && (
+        <div style={{ ...commonStyles.card, marginBottom: "24px" }}>
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+            🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
+          </label>
+          <input
+            type="text"
+            placeholder={settings.language === "hu" ? "Keresés név vagy típus alapján..." : settings.language === "de" ? "Suche nach Name oder Typ..." : "Search by name or type..."}
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+            onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+            style={{ ...commonStyles.input, width: "100%", maxWidth: "400px" }}
+          />
+        </div>
+      )}
       
       <div style={{ ...commonStyles.card, marginBottom: "24px", backgroundColor: "#f8f9fa", border: "1px solid #e9ecef" }}>
         <h3 style={{ marginTop: 0, marginBottom: "24px", fontSize: "20px", fontWeight: "600", color: "#495057" }}>
