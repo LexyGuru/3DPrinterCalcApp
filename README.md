@@ -8,13 +8,18 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🧵 **Filament kezelés** - Hozzáadás, szerkesztés, törlés filamentekhez (márka, típus, szín, ár)
 - 🖨️ **Nyomtató kezelés** - Nyomtatók és AMS rendszerek kezelése
 - 💰 **Profit számítás** - Választható profit százalék (10%, 20%, 30%, 40%, 50%)
-- 📄 **Árajánlatok** - Mentés, kezelés és PDF export árajánlatokhoz
+- 📄 **Árajánlatok** - Mentés, kezelés és PDF export árajánlatokhoz (ügyfél név, elérhetőség, leírás)
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
 - 🌍 **Többnyelvű** - Magyar, Angol, Német nyelven
 - 💱 **Több pénznem** - EUR, HUF, USD
 - 🔄 **Automatikus frissítések** - Ellenőrzi a GitHub Releases-t új verziókért
 - 🧪 **Beta verziók** - Beta branch és beta buildelés támogatás
 - ⚙️ **Beta ellenőrzés** - Beállítható, hogy ellenőrizze-e a beta verziókat
+- 🎨 **Responsive layout** - Az alkalmazás minden eleme dinamikusan alkalmazkodik az ablakmérethez
+- ✅ **Megerősítő dialógusok** - Törlés előtt megerősítés kérése
+- 🔔 **Toast értesítések** - Sikeres műveletek után értesítések
+- 🔍 **Keresés és szűrés** - Filamentek, nyomtatók és árajánlatok keresése
+- 📋 **Duplikálás** - Árajánlatok könnyű duplikálása
 
 ## 📸 Képernyőképek
 
@@ -211,9 +216,30 @@ Lekszikov
 
 A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
+## 📋 Verziótörténet
+
+### v0.1.56 (2024)
+- ✨ **Calculator layout javítások**: Filament kártyák túlcsordulás javítva, responsive flexbox layout
+- ✨ **Költség bontás responsive**: Most dinamikusan reagál az ablakméret változására
+- 🐛 **Bugfix**: Filament hozzáadásakor nem csúszik ki a tartalom az ablakból
+- 🐛 **Bugfix**: Minden Calculator elem megfelelően reagál az ablakméret változására
+
+### v0.1.55 (2024)
+- ✨ **Megerősítő dialógusok**: Törlés előtt megerősítés kérése (Filamentek, Nyomtatók, Árajánlatok)
+- ✨ **Toast értesítések**: Sikeres műveletek után értesítések (hozzáadás, frissítés, törlés)
+- ✨ **Input validáció**: Negatív számok eltiltása, maximum értékek beállítása
+- ✨ **Loading states**: Betöltési spinner az alkalmazás indításakor
+- ✨ **Error Boundary**: Alkalmazás szintű hibakezelés
+- ✨ **Keresés és szűrés**: Filamentek, nyomtatók és árajánlatok keresése
+- ✨ **Duplikálás**: Árajánlatok könnyű duplikálása
+- ✨ **Collapsible formok**: Filament és nyomtató hozzáadási formok összecsukhatóak
+- ✨ **Árajánlat bővítések**: Ügyfél név, elérhetőség és leírás mezők hozzáadása
+- 🐛 **Console.log cleanup**: Production buildben nincsenek console.log-ok
+- 🐛 **Leírás mező javítás**: Hosszú szövegek helyesen tördelődnek
+
 ---
 
-**Verzió**: 0.1.0
+**Verzió**: 0.1.56
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 
