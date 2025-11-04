@@ -469,13 +469,6 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                   </span>
                 </div>
 
-                {selectedOffer.customerName && (
-                  <div style={{ marginBottom: "12px" }}>
-                    <strong style={{ color: "#495057" }}>{t("offers.customerName")}:</strong> 
-                    <span style={{ marginLeft: "8px", color: "#212529" }}>{selectedOffer.customerName}</span>
-                  </div>
-                )}
-
                 {selectedOffer.description && (
                   <div style={{ marginBottom: "12px" }}>
                     <strong style={{ color: "#495057" }}>{t("offers.description")}:</strong> 
