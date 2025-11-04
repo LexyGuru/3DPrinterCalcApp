@@ -264,32 +264,47 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
                             <strong style={{ display: "block", marginBottom: "12px", fontSize: "14px", color: "#495057" }}>
                               {t("printers.ams")} {idx + 1}:
                             </strong>
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px" }}>
-                              <input
-                                placeholder={t("printers.amsBrand")}
-                                value={ams.brand}
-                                onChange={e => updateAMSForm(p.id, idx, "brand", e.target.value)}
-                                onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                                onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                                style={{ ...commonStyles.input, width: "100%" }}
-                              />
-                              <input
-                                placeholder={t("printers.amsName")}
-                                value={ams.name}
-                                onChange={e => updateAMSForm(p.id, idx, "name", e.target.value)}
-                                onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                                onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                                style={{ ...commonStyles.input, width: "100%" }}
-                              />
-                              <input
-                                type="number"
-                                placeholder={t("printers.amsPower")}
-                                value={ams.power || ""}
-                                onChange={e => updateAMSForm(p.id, idx, "power", Number(e.target.value))}
-                                onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                                onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                                style={{ ...commonStyles.input, width: "100%" }}
-                              />
+                            <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
+                              <div style={{ width: "180px", flexShrink: 0 }}>
+                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                                  {t("printers.amsBrand")}
+                                </label>
+                                <input
+                                  placeholder={t("printers.amsBrand")}
+                                  value={ams.brand}
+                                  onChange={e => updateAMSForm(p.id, idx, "brand", e.target.value)}
+                                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                                  style={{ ...commonStyles.input, width: "100%" }}
+                                />
+                              </div>
+                              <div style={{ width: "180px", flexShrink: 0 }}>
+                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                                  {t("printers.amsName")}
+                                </label>
+                                <input
+                                  placeholder={t("printers.amsName")}
+                                  value={ams.name}
+                                  onChange={e => updateAMSForm(p.id, idx, "name", e.target.value)}
+                                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                                  style={{ ...commonStyles.input, width: "100%" }}
+                                />
+                              </div>
+                              <div style={{ width: "180px", flexShrink: 0 }}>
+                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                                  {t("printers.amsPower")}
+                                </label>
+                                <input
+                                  type="number"
+                                  placeholder={t("printers.amsPower")}
+                                  value={ams.power || ""}
+                                  onChange={e => updateAMSForm(p.id, idx, "power", Number(e.target.value))}
+                                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                                  style={{ ...commonStyles.input, width: "100%" }}
+                                />
+                              </div>
                             </div>
                           </div>
                         ))}
