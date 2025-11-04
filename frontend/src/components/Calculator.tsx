@@ -612,7 +612,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   padding: "10px 20px",
                 }}
               >
-                {t("common.save") || t("offers.save")}
+                {t("offers.save")}
               </button>
             </div>
           </div>

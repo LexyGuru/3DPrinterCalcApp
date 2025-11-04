@@ -342,12 +342,19 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                       <div>
-                        <strong style={{ fontSize: "16px" }}>Árajánlat #{offer.id}</strong>
+                        <strong style={{ fontSize: "16px" }}>
+                          {offer.customerName ? `${offer.customerName}` : `Árajánlat #${offer.id}`}
+                        </strong>
                         <p style={{ margin: "5px 0", color: "#666", fontSize: "14px" }}>
                           {date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
                         </p>
                         {offer.customerName && (
-                          <p style={{ margin: "5px 0", fontSize: "14px" }}><strong>Ügyfél:</strong> {offer.customerName}</p>
+                          <p style={{ margin: "5px 0", fontSize: "14px" }}><strong>{t("offers.customerName")}:</strong> {offer.customerName}</p>
+                        )}
+                        {offer.customerContact && (
+                          <p style={{ margin: "5px 0", fontSize: "14px" }}>
+                            <strong>{settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}:</strong> {offer.customerContact}
+                          </p>
                         )}
                         <p style={{ margin: "5px 0", fontSize: "14px" }}>
                           <strong>{offer.printerName}</strong> - {offer.totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
@@ -392,7 +399,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
             <div style={{ ...commonStyles.card, flex: "1", minWidth: "400px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
                 <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: "#495057" }}>
-                  📄 Árajánlat #{selectedOffer.id}
+                  📄 {selectedOffer.customerName ? `${selectedOffer.customerName}` : `Árajánlat #${selectedOffer.id}`}
                 </h3>
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                   <button

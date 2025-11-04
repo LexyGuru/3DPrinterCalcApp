@@ -69,6 +69,7 @@ export interface Offer {
   };
   currency: "EUR" | "HUF" | "USD";
   customerName?: string;
+  customerContact?: string; // Email vagy telefon
   description?: string;
   profitPercentage?: number; // Profit százalék (10, 20, 30, 40, 50), alapértelmezett 30%
 }
