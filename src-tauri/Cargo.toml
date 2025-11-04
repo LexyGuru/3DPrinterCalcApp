@@ -25,9 +25,9 @@ tauri = { version = "2.9.2", features = ["wry"] }
 
 # opcionális pluginok, ha kell
 
-tauri-plugin-fs = "2.0"
-tauri-plugin-shell = "2.0"
-tauri-plugin-dialog = "2.0"
-tauri-plugin-log = "2"
+tauri-plugin-fs = "2.0.0"
+tauri-plugin-shell = "2.0.0"
+tauri-plugin-dialog = "2.0.0"
+tauri-plugin-log = "2.0.0"
 tauri-plugin-store = "2.4.1"
 dirs = "6.0.0"
