@@ -7,6 +7,9 @@ import { Calculator } from "./components/Calculator";
 import { Offers } from "./components/Offers";
 import { SettingsPage } from "./components/Settings";
 import { UpdateChecker } from "./components/UpdateChecker";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ToastProvider } from "./components/Toast";
+import { LoadingSpinner } from "./components/LoadingSpinner";
 import type { Printer, Settings, Filament, Offer } from "./types";
 import { defaultSettings } from "./types";
 import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers } from "./utils/store";
@@ -39,7 +42,9 @@ export default function App() {
       if (loadedSettings) {
         // Ellenőrizzük hogy az electricityPrice érvényes érték-e
         if (!loadedSettings.electricityPrice || loadedSettings.electricityPrice <= 0) {
-          console.warn("Betöltött beállításokban az electricityPrice érvénytelen, alapértelmezett értéket használunk");
+          if (import.meta.env.DEV) {
+            console.warn("Betöltött beállításokban az electricityPrice érvénytelen, alapértelmezett értéket használunk");
+          }
           loadedSettings.electricityPrice = defaultSettings.electricityPrice;
         }
         setSettings(loadedSettings);
@@ -105,23 +110,31 @@ export default function App() {
   const isBeta = import.meta.env.VITE_IS_BETA === 'true';
 
   return (
-    <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
-      <UpdateChecker settings={settings} />
-      <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} isBeta={isBeta} />
-      <main style={{ 
-        padding: 20, 
-        backgroundColor: "#ffffff", 
-        color: "#111111",
-        overflowY: "auto",
-        overflowX: "hidden",
-        position: "relative",
-        left: "200px",
-        width: "calc(100vw - 200px)",
-        height: "100vh",
-        boxSizing: "border-box"
-      }}>
-        {PageComponent}
-      </main>
-    </div>
+    <ErrorBoundary>
+      <ToastProvider>
+        <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
+          <UpdateChecker settings={settings} />
+          <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} isBeta={isBeta} />
+          <main style={{ 
+            padding: 20, 
+            backgroundColor: "#ffffff", 
+            color: "#111111",
+            overflowY: "auto",
+            overflowX: "hidden",
+            position: "relative",
+            left: "200px",
+            width: "calc(100vw - 200px)",
+            height: "100vh",
+            boxSizing: "border-box"
+          }}>
+            {!isInitialized ? (
+              <LoadingSpinner message={settings.language === "hu" ? "Betöltés..." : settings.language === "de" ? "Laden..." : "Loading..."} />
+            ) : (
+              PageComponent
+            )}
+          </main>
+        </div>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }

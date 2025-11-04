@@ -3,6 +3,7 @@ import type { Printer, Filament, Settings, Offer } from "../types";
 import { convertCurrency } from "../utils/currency";
 import { useTranslation } from "../utils/translations";
 import { commonStyles } from "../utils/styles";
+import { useToast } from "./Toast";
 
 interface SelectedFilament {
   filamentIndex: number;
@@ -21,6 +22,7 @@ interface Props {
 
 export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onSaveOffer }) => {
   const t = useTranslation(settings.language);
+  const { showToast } = useToast();
   const [selectedPrinterId, setSelectedPrinterId] = useState<number | "">("");
   const [selectedFilaments, setSelectedFilaments] = useState<SelectedFilament[]>([]);
   const [printTimeHours, setPrintTimeHours] = useState<number>(0);
@@ -87,7 +89,9 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
     // Ellenőrizzük hogy az electricityPrice érvényes érték-e
     const electricityPrice = settings.electricityPrice || 0;
     if (electricityPrice <= 0) {
-      console.warn("⚠️ Áram ár nincs beállítva vagy 0:", electricityPrice, "- Kérlek állíts be egy érvényes áramárat a Beállításokban!");
+      if (import.meta.env.DEV) {
+        console.warn("⚠️ Áram ár nincs beállítva vagy 0:", electricityPrice, "- Kérlek állíts be egy érvényes áramárat a Beállításokban!");
+      }
     }
     const electricityCostHUF = powerConsumedKWh * electricityPrice;
     // Konvertáljuk EUR-ra (400 Ft = 1 EUR), majd a választott pénznemre
@@ -280,7 +284,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     min="0"
                     step="0.1"
                     value={sf.usedGrams || ""}
-                    onChange={e => updateFilament(idx, "usedGrams", Number(e.target.value))}
+                    onChange={e => {
+                      const val = Number(e.target.value);
+                      if (val >= 0 && val <= 100000) {
+                        updateFilament(idx, "usedGrams", val);
+                      }
+                    }}
                     onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
                     onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
                     style={{ ...commonStyles.input, width: "140px" }}
@@ -307,7 +316,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                         min="0"
                         step="0.1"
                         value={sf.dryingTime || ""}
-                        onChange={e => updateFilament(idx, "dryingTime", Number(e.target.value))}
+                        onChange={e => {
+                          const val = Number(e.target.value);
+                          if (val >= 0 && val <= 1000) {
+                            updateFilament(idx, "dryingTime", val);
+                          }
+                        }}
                         onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
                         onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
                         style={{ ...commonStyles.input, width: "100%" }}
@@ -319,7 +333,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                         type="number"
                         min="0"
                         value={sf.dryingPower || ""}
-                        onChange={e => updateFilament(idx, "dryingPower", Number(e.target.value))}
+                        onChange={e => {
+                          const val = Number(e.target.value);
+                          if (val >= 0 && val <= 5000) {
+                            updateFilament(idx, "dryingPower", val);
+                          }
+                        }}
                         onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
                         onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
                         style={{ ...commonStyles.input, width: "100%" }}
@@ -393,7 +412,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   };
 
                   onSaveOffer(offer);
-                  alert(t("offers.save") + " - " + t("offers.title") + " #" + offer.id);
+                  showToast(t("common.offerSaved"), "success");
                 }}
                 onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
                 onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonSuccess.boxShadow; }}

@@ -110,6 +110,27 @@ export type TranslationKey =
   // Common
   | "common.delete"
   | "common.add"
+  | "common.confirm"
+  | "common.cancel"
+  | "common.yes"
+  | "common.no"
+  | "common.confirmDelete"
+  | "common.confirmDeleteFilament"
+  | "common.confirmDeletePrinter"
+  | "common.confirmDeleteOffer"
+  | "common.success"
+  | "common.error"
+  | "common.filamentAdded"
+  | "common.filamentUpdated"
+  | "common.filamentDeleted"
+  | "common.printerAdded"
+  | "common.printerUpdated"
+  | "common.printerDeleted"
+  | "common.offerSaved"
+  | "common.offerDeleted"
+  | "common.loading"
+  | "common.duplicate"
+  | "common.offerDuplicated"
   // Sidebar
   | "sidebar.home"
   | "sidebar.filaments"
@@ -225,6 +246,27 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     // Common
     "common.delete": "Törlés",
     "common.add": "Hozzáadás",
+    "common.confirm": "Megerősítés",
+    "common.cancel": "Mégse",
+    "common.yes": "Igen",
+    "common.no": "Nem",
+    "common.confirmDelete": "Biztosan törölni szeretnéd?",
+    "common.confirmDeleteFilament": "Biztosan törölni szeretnéd ezt a filamentet?",
+    "common.confirmDeletePrinter": "Biztosan törölni szeretnéd ezt a nyomtatót?",
+    "common.confirmDeleteOffer": "Biztosan törölni szeretnéd ezt az árajánlatot?",
+    "common.success": "Sikeres",
+    "common.error": "Hiba",
+    "common.filamentAdded": "Filament sikeresen hozzáadva!",
+    "common.filamentUpdated": "Filament sikeresen frissítve!",
+    "common.filamentDeleted": "Filament sikeresen törölve!",
+    "common.printerAdded": "Nyomtató sikeresen hozzáadva!",
+    "common.printerUpdated": "Nyomtató sikeresen frissítve!",
+    "common.printerDeleted": "Nyomtató sikeresen törölve!",
+    "common.offerSaved": "Árajánlat sikeresen mentve!",
+    "common.offerDeleted": "Árajánlat sikeresen törölve!",
+    "common.loading": "Betöltés...",
+    "common.duplicate": "Duplikálás",
+    "common.offerDuplicated": "Árajánlat sikeresen duplikálva!",
     // Sidebar
     "sidebar.menu": "Menü",
     "sidebar.home": "Kezdőlap",
@@ -341,6 +383,27 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     // Common
     "common.delete": "Delete",
     "common.add": "Add",
+    "common.confirm": "Confirm",
+    "common.cancel": "Cancel",
+    "common.yes": "Yes",
+    "common.no": "No",
+    "common.confirmDelete": "Are you sure you want to delete?",
+    "common.confirmDeleteFilament": "Are you sure you want to delete this filament?",
+    "common.confirmDeletePrinter": "Are you sure you want to delete this printer?",
+    "common.confirmDeleteOffer": "Are you sure you want to delete this offer?",
+    "common.success": "Success",
+    "common.error": "Error",
+    "common.filamentAdded": "Filament added successfully!",
+    "common.filamentUpdated": "Filament updated successfully!",
+    "common.filamentDeleted": "Filament deleted successfully!",
+    "common.printerAdded": "Printer added successfully!",
+    "common.printerUpdated": "Printer updated successfully!",
+    "common.printerDeleted": "Printer deleted successfully!",
+    "common.offerSaved": "Offer saved successfully!",
+    "common.offerDeleted": "Offer deleted successfully!",
+    "common.loading": "Loading...",
+    "common.duplicate": "Duplicate",
+    "common.offerDuplicated": "Offer duplicated successfully!",
     // Sidebar
     "sidebar.menu": "Menu",
     "sidebar.home": "Home",
@@ -457,6 +520,27 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     // Common
     "common.delete": "Löschen",
     "common.add": "Hinzufügen",
+    "common.confirm": "Bestätigen",
+    "common.cancel": "Abbrechen",
+    "common.yes": "Ja",
+    "common.no": "Nein",
+    "common.confirmDelete": "Möchten Sie wirklich löschen?",
+    "common.confirmDeleteFilament": "Möchten Sie dieses Filament wirklich löschen?",
+    "common.confirmDeletePrinter": "Möchten Sie diesen Drucker wirklich löschen?",
+    "common.confirmDeleteOffer": "Möchten Sie dieses Angebot wirklich löschen?",
+    "common.success": "Erfolg",
+    "common.error": "Fehler",
+    "common.filamentAdded": "Filament erfolgreich hinzugefügt!",
+    "common.filamentUpdated": "Filament erfolgreich aktualisiert!",
+    "common.filamentDeleted": "Filament erfolgreich gelöscht!",
+    "common.printerAdded": "Drucker erfolgreich hinzugefügt!",
+    "common.printerUpdated": "Drucker erfolgreich aktualisiert!",
+    "common.printerDeleted": "Drucker erfolgreich gelöscht!",
+    "common.offerSaved": "Angebot erfolgreich gespeichert!",
+    "common.offerDeleted": "Angebot erfolgreich gelöscht!",
+    "common.loading": "Laden...",
+    "common.duplicate": "Duplizieren",
+    "common.offerDuplicated": "Angebot erfolgreich dupliziert!",
     // Sidebar
     "sidebar.menu": "Menü",
     "sidebar.home": "Home",

@@ -3,6 +3,8 @@ import type { Printer, Settings, AMS } from "../types";
 import { useTranslation } from "../utils/translations";
 import { convertCurrency } from "../utils/currency";
 import { commonStyles } from "../utils/styles";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { useToast } from "./Toast";
 
 interface Props {
   printers: Printer[];
@@ -12,6 +14,7 @@ interface Props {
 
 export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) => {
   const t = useTranslation(settings.language);
+  const { showToast } = useToast();
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [power, setPower] = useState<number>(0);
@@ -19,9 +22,20 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
   const [amsCount, setAmsCount] = useState<number>(0);
   const [editingPrinterId, setEditingPrinterId] = useState<number | null>(null);
   const [amsForms, setAmsForms] = useState<Record<number, { brand: string; name: string; power: number }[]>>({});
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const addPrinter = () => {
-    if (!name || !type || !power) return;
+    if (!name || !type || !power) {
+      showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek töltsd ki az összes kötelező mezőt!" : settings.language === "de" ? "Bitte füllen Sie alle Pflichtfelder aus!" : "Please fill in all required fields!"), "error");
+      return;
+    }
+    
+    if (power <= 0 || usageCost < 0) {
+      showToast(t("common.error") + ": " + (settings.language === "hu" ? "A teljesítmény pozitív szám kell legyen!" : settings.language === "de" ? "Die Leistung muss eine positive Zahl sein!" : "Power must be a positive number!"), "error");
+      return;
+    }
+    
     const newId = Date.now();
     const newPrinter: Printer = { 
       id: newId, 
@@ -37,15 +51,24 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
       setAmsForms({ ...amsForms, [newId]: Array(amsCount).fill(null).map(() => ({ brand: "", name: "", power: 0 })) });
       setEditingPrinterId(newId);
     }
+    showToast(t("common.printerAdded"), "success");
     setName(""); setType(""); setPower(0); setUsageCost(0); setAmsCount(0);
   };
 
   const deletePrinter = (id: number) => {
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmId === null) return;
+    const id = deleteConfirmId;
     setPrinters(printers.filter(p => p.id !== id));
     const newAmsForms = { ...amsForms };
     delete newAmsForms[id];
     setAmsForms(newAmsForms);
     if (editingPrinterId === id) setEditingPrinterId(null);
+    showToast(t("common.printerDeleted"), "success");
+    setDeleteConfirmId(null);
   };
 
   const saveAMS = (printerId: number) => {
@@ -170,7 +193,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
         </div>
       </div>
 
-      {printers.length > 0 ? (
+      {filteredPrinters.length > 0 ? (
         <div style={{ ...commonStyles.card, overflow: "hidden", padding: 0 }}>
           <table style={commonStyles.table}>
             <thead>
@@ -184,7 +207,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
               </tr>
             </thead>
             <tbody>
-              {printers.map(p => (
+              {filteredPrinters.map(p => (
                 <React.Fragment key={p.id}>
                   <tr style={{ transition: "background-color 0.2s" }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f8f9fa"}
@@ -329,12 +352,30 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
         </tbody>
           </table>
         </div>
+      ) : printers.length > 0 && searchTerm ? (
+        <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px" }}>
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
+          <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>
+            {settings.language === "hu" ? "Nincs találat a keresési kifejezésre." : settings.language === "de" ? "Keine Ergebnisse für den Suchbegriff." : "No results found for the search term."}
+          </p>
+        </div>
       ) : (
         <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🖨️</div>
           <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>{t("printers.empty")}</p>
         </div>
       )}
+      
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        title={t("common.confirm")}
+        message={t("common.confirmDeletePrinter")}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirmId(null)}
+        confirmText={t("common.yes")}
+        cancelText={t("common.cancel")}
+        type="danger"
+      />
     </div>
   );
 };

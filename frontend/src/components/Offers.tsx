@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import type { Offer, Settings } from "../types";
 import { useTranslation, type TranslationKey } from "../utils/translations";
 import { commonStyles } from "../utils/styles";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { useToast } from "./Toast";
 
 interface Props {
   offers: Offer[];
@@ -11,20 +13,44 @@ interface Props {
 
 export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
   const t = useTranslation(settings.language);
+  const { showToast } = useToast();
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [printContent, setPrintContent] = useState<string>("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const deleteOffer = (id: number) => {
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmId === null) return;
+    const id = deleteConfirmId;
     setOffers(offers.filter(o => o.id !== id));
     if (selectedOffer?.id === id) {
       setSelectedOffer(null);
     }
+    showToast(t("common.offerDeleted"), "success");
+    setDeleteConfirmId(null);
+  };
+
+  const duplicateOffer = (offer: Offer) => {
+    const duplicated: Offer = {
+      ...offer,
+      id: Date.now(),
+      date: new Date().toISOString(),
+    };
+    setOffers([...offers, duplicated]);
+    setSelectedOffer(duplicated);
+    showToast(t("common.offerDuplicated"), "success");
   };
 
   const exportToPDF = (offer: Offer) => {
     try {
-      console.log("PDF export started for offer:", offer.id);
+      if (import.meta.env.DEV) {
+        console.log("PDF export started for offer:", offer.id);
+      }
       
       // HTML tartalom generálása
       const htmlContent = generatePDFContent(offer, t, settings);
@@ -34,7 +60,9 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
       
       if (!printWindow || printWindow.closed || typeof printWindow.closed == 'undefined') {
         // Ha az ablak blokkolva van, mutassuk meg az előnézetet a jelenlegi oldalon
-        console.log("Window blocked, showing preview");
+        if (import.meta.env.DEV) {
+          console.log("Window blocked, showing preview");
+        }
         setPrintContent(htmlContent);
         setShowPrintPreview(true);
         return;
@@ -45,11 +73,15 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
       printWindow.document.write(htmlContent);
       printWindow.document.close();
       
-      console.log("PDF content written to window");
+      if (import.meta.env.DEV) {
+        console.log("PDF content written to window");
+      }
       
       // Várunk, hogy a tartalom betöltődjön
       printWindow.onload = () => {
-        console.log("Window loaded, calling print");
+        if (import.meta.env.DEV) {
+          console.log("Window loaded, calling print");
+        }
         setTimeout(() => {
           try {
             printWindow.focus();
@@ -65,7 +97,9 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
       setTimeout(() => {
         try {
           if (printWindow && !printWindow.closed) {
-            console.log("Fallback: calling print");
+            if (import.meta.env.DEV) {
+              console.log("Fallback: calling print");
+            }
             printWindow.focus();
             printWindow.print();
           }
@@ -86,7 +120,9 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
 
   const exportAsPDF = (offer: Offer) => {
     try {
-      console.log("PDF export started for offer:", offer.id);
+      if (import.meta.env.DEV) {
+        console.log("PDF export started for offer:", offer.id);
+      }
       
       // HTML tartalom generálása
       const htmlContent = generatePDFContent(offer, t, settings);
@@ -229,10 +265,42 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
     `;
   };
 
+  // Szűrés a keresési kifejezés alapján
+  const filteredOffers = offers.filter(o => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    const date = new Date(o.date).toLocaleDateString();
+    return (
+      o.printerName.toLowerCase().includes(term) ||
+      o.printerType.toLowerCase().includes(term) ||
+      (o.customerName && o.customerName.toLowerCase().includes(term)) ||
+      date.includes(term) ||
+      o.id.toString().includes(term)
+    );
+  });
+
   return (
     <div>
       <h2 style={commonStyles.pageTitle}>{t("offers.title")}</h2>
       <p style={commonStyles.pageSubtitle}>Mentett árajánlatok kezelése és exportálása</p>
+      
+      {/* Kereső mező */}
+      {offers.length > 0 && (
+        <div style={{ ...commonStyles.card, marginBottom: "24px" }}>
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+            🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
+          </label>
+          <input
+            type="text"
+            placeholder={settings.language === "hu" ? "Keresés nyomtató, ügyfél vagy dátum alapján..." : settings.language === "de" ? "Suche nach Drucker, Kunde oder Datum..." : "Search by printer, customer or date..."}
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+            onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+            style={{ ...commonStyles.input, width: "100%", maxWidth: "400px" }}
+          />
+        </div>
+      )}
       
       {offers.length === 0 ? (
         <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px" }}>
@@ -247,7 +315,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
               📋 Mentett árajánlatok
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {offers.map(offer => {
+              {filteredOffers.map(offer => {
                 const date = new Date(offer.date);
                 return (
                   <div
@@ -308,6 +376,14 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                   </div>
                 );
               })}
+              {filteredOffers.length === 0 && offers.length > 0 && (
+                <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px" }}>
+                  <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
+                  <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>
+                    {settings.language === "hu" ? "Nincs találat a keresési kifejezésre." : settings.language === "de" ? "Keine Ergebnisse für den Suchbegriff." : "No results found for the search term."}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -318,7 +394,21 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                 <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: "#495057" }}>
                   📄 Árajánlat #{selectedOffer.id}
                 </h3>
-                <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  <button
+                    onClick={() => duplicateOffer(selectedOffer)}
+                    onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
+                    onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = "#6c757d 0 2px 4px"; }}
+                    style={{
+                      ...commonStyles.button,
+                      backgroundColor: "#6c757d",
+                      color: "#fff",
+                      padding: "8px 16px",
+                      fontSize: "14px"
+                    }}
+                  >
+                    📋 {t("common.duplicate")}
+                  </button>
                   <button
                     onClick={() => exportToPDF(selectedOffer)}
                     onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
@@ -565,6 +655,17 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
           </div>
         </div>
       )}
+      
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        title={t("common.confirm")}
+        message={t("common.confirmDeleteOffer")}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirmId(null)}
+        confirmText={t("common.yes")}
+        cancelText={t("common.cancel")}
+        type="danger"
+      />
     </div>
   );
 };
