@@ -529,7 +529,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   onChange={e => setOfferDescription(e.target.value)}
                   onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
                   onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                  style={{ ...commonStyles.input, width: "100%", minHeight: "80px", resize: "vertical" }}
+                  style={{ ...commonStyles.input, width: "100%", height: "50px", minHeight: "50px", maxHeight: "100px", resize: "vertical" }}
                 />
               </div>
             </div>
