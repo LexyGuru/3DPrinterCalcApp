@@ -12,6 +12,9 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
 - 🌍 **Többnyelvű** - Magyar, Angol, Német nyelven
 - 💱 **Több pénznem** - EUR, HUF, USD
+- 🔄 **Automatikus frissítések** - Ellenőrzi a GitHub Releases-t új verziókért
+- 🧪 **Beta verziók** - Beta branch és beta buildelés támogatás
+- ⚙️ **Beta ellenőrzés** - Beállítható, hogy ellenőrizze-e a beta verziókat
 
 ## 📸 Képernyőképek
 
@@ -80,6 +83,24 @@ Az önálló alkalmazás a következő helyen lesz:
 - **Linux**: `src-tauri/target/release/bundle/deb/` vagy `appimage/`
 - **Windows**: `src-tauri/target/release/bundle/msi/`
 
+### Beta buildelés
+
+A projekt tartalmaz egy `beta` branch-et, ami külön buildelésre van konfigurálva:
+
+```bash
+# Beta branch-re váltás
+git checkout beta
+
+# Lokális beta build
+./build-frontend.sh
+cd src-tauri
+cargo tauri build
+```
+
+A beta build automatikusan beállítja a `VITE_IS_BETA=true` változót, így a menüben "BETA" jelzés jelenik meg.
+
+**GitHub Actions**: A `beta` branch pusholásakor automatikusan lefut a `.github/workflows/build-beta.yml` workflow, ami buildeli a beta verziót mindhárom platformra.
+
 Részletes útmutató: [BUILD.md](BUILD.md) és [HOW_TO_BUILD_APP.md](HOW_TO_BUILD_APP.md)
 
 ## 💻 Fejlesztés
@@ -128,6 +149,29 @@ pnpm dev
 3. **Költség számítás**: Kalkulátor menü → Válaszd ki a nyomtatót és a filamenteket
 4. **Árajánlat mentése**: A kalkulátorban kattints a "Mentés árajánlatként" gombra
 5. **PDF export**: Árajánlatok menü → Válassz egy árajánlatot → PDF export
+6. **Beta verziók ellenőrzése**: Beállítások menü → "Beta verziók ellenőrzése" opció bekapcsolása
+
+## 🔄 Verziókezelés és Frissítések
+
+Az alkalmazás automatikusan ellenőrzi a GitHub Releases-t új verziókért:
+
+- **Indításkor**: Automatikusan ellenőrzi a frissítéseket
+- **5 percenként**: Automatikusan újra ellenőrzi
+- **Értesítés**: Ha van új verzió, egy értesítés jelenik meg a jobb felső sarokban
+
+### Beta verziók ellenőrzése
+
+Ha beta verziókat szeretnél ellenőrizni:
+
+1. Menj a **Beállítások** menübe
+2. Kapcsold be a **"Beta verziók ellenőrzése"** opciót
+3. Az alkalmazás azonnal ellenőrzi a beta verziókat
+4. Ha van újabb beta verzió, megjelenik egy értesítés
+5. A "Letöltés" gombra kattintva a GitHub Release oldalra kerülsz
+
+**Példa**: Ha RELEASE verziót használsz (pl. 0.1.0) és bekapcsolod a beta ellenőrzést, az alkalmazás megkeresi a legújabb beta verziót (pl. 0.2.0-beta) és értesít, ha van újabb.
+
+Részletes útmutató: [VERSIONING.md](VERSIONING.md)
 
 ## 🛠️ Technológiai stack
 
@@ -136,6 +180,8 @@ pnpm dev
 - **Adattárolás**: Tauri Store Plugin (JSON fájlok)
 - **Styling**: Inline styles (commonStyles)
 - **i18n**: Saját translation rendszer
+- **CI/CD**: GitHub Actions (automatikus buildelés macOS, Linux, Windows)
+- **Verziókezelés**: GitHub Releases API integráció
 
 ## 📝 License
 
@@ -150,6 +196,20 @@ Lekszikov
 - [Tauri](https://tauri.app/) - A cross-platform desktop app framework
 - [React](https://react.dev/) - A frontend framework
 - [Vite](https://vitejs.dev/) - A build tool
+
+## 📚 További dokumentáció
+
+- [BUILD.md](BUILD.md) - Részletes build útmutató minden platformra
+- [HOW_TO_BUILD_APP.md](HOW_TO_BUILD_APP.md) - Standalone alkalmazás készítése
+- [VERSIONING.md](VERSIONING.md) - Verziókezelés és frissítések
+- [CREATE_FIRST_RELEASE.md](CREATE_FIRST_RELEASE.md) - Első GitHub Release létrehozása
+
+## 🌿 Branch struktúra
+
+- **`main`**: Stabil release verziók (RELEASE build)
+- **`beta`**: Beta verziók és fejlesztések (BETA build)
+
+A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
 ---
 
