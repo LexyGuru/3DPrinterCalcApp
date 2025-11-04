@@ -66,3 +66,29 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Fix macOS select és option elemek láthatósága */
+select {
+  color: #212529 !important;
+  background-color: #fff !important;
+}
+
+select option {
+  color: #212529 !important;
+  background-color: #fff !important;
+}
+
+/* Világos háttér minden szöveghez */
+body {
+  color: #212529 !important;
+  background-color: #ffffff !important;
+}
+
+/* Input mezők láthatósága */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"] {
+  color: #212529 !important;
+  background-color: #fff !important;
+}
