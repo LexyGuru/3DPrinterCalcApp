@@ -104,7 +104,7 @@ export default function App() {
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
       <UpdateChecker settings={settings} beta={false} />
-      <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} />
+      <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} isBeta={false} />
       <main style={{ 
         padding: 20, 
         backgroundColor: "#ffffff", 
