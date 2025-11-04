@@ -464,9 +464,9 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               💾 {t("calculator.saveAsOffer")}
             </h3>
             
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+            <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
+              <div style={{ width: "180px", flexShrink: 0 }}>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
                   {t("offers.customerName")} *
                 </label>
                 <input
@@ -480,13 +480,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 />
               </div>
               
-              <div>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
-                  {settings.language === "hu" ? "Elérhetőség (email/telefon)" : settings.language === "de" ? "Kontakt (E-Mail/Telefon)" : "Contact (email/phone)"}
+              <div style={{ width: "180px", flexShrink: 0 }}>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                  {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}
                 </label>
                 <input
                   type="text"
-                  placeholder={settings.language === "hu" ? "Email vagy telefon" : settings.language === "de" ? "E-Mail oder Telefon" : "Email or phone"}
+                  placeholder={settings.language === "hu" ? "Email/telefon" : settings.language === "de" ? "E-Mail/Telefon" : "Email/phone"}
                   value={offerCustomerContact}
                   onChange={e => setOfferCustomerContact(e.target.value)}
                   onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
@@ -495,22 +495,8 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 />
               </div>
               
-              <div>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
-                  {t("offers.description")}
-                </label>
-                <textarea
-                  placeholder={t("offers.description")}
-                  value={offerDescription}
-                  onChange={e => setOfferDescription(e.target.value)}
-                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                  style={{ ...commonStyles.input, width: "100%", minHeight: "80px", resize: "vertical" }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+              <div style={{ width: "180px", flexShrink: 0 }}>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
                   {t("offers.profitPercentage")} (%)
                 </label>
                 <input
@@ -528,6 +514,22 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
                   onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
                   style={{ ...commonStyles.input, width: "100%" }}
+                />
+              </div>
+            </div>
+            
+            <div style={{ marginTop: "24px" }}>
+              <div style={{ width: "100%" }}>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+                  {t("offers.description")}
+                </label>
+                <textarea
+                  placeholder={t("offers.description")}
+                  value={offerDescription}
+                  onChange={e => setOfferDescription(e.target.value)}
+                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
+                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
+                  style={{ ...commonStyles.input, width: "100%", minHeight: "80px", resize: "vertical" }}
                 />
               </div>
             </div>
