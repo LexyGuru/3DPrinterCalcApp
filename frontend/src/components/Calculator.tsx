@@ -559,7 +559,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     return;
                   }
                   
-                  if (!selectedPrinter) return;
+                  if (!selectedPrinter || !calculations || !onSaveOffer) return;
                   
                   const offerFilaments = selectedFilaments.map(sf => {
                     const filament = filaments[sf.filamentIndex];
