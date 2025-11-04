@@ -11,7 +11,6 @@ interface Props {
 
 export const UpdateChecker: React.FC<Props> = ({ settings, beta = false }) => {
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -23,10 +22,8 @@ export const UpdateChecker: React.FC<Props> = ({ settings, beta = false }) => {
   }, [beta]);
 
   const checkUpdates = async () => {
-    setIsChecking(true);
     const info = await checkForUpdates(beta);
     setVersionInfo(info);
-    setIsChecking(false);
   };
 
   const translations: Record<string, Record<string, string>> = {
