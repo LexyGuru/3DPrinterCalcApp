@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { checkForUpdates, type VersionInfo } from "../utils/version";
 import { commonStyles } from "../utils/styles";
+import { open } from "@tauri-apps/plugin-shell";
 
 interface Props {
   settings: {
@@ -69,10 +70,16 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
     return null;
   }
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (versionInfo?.releaseUrl) {
-      // Tauri alkalmazásban a window.open jobban működik
-      window.open(versionInfo.releaseUrl, '_blank', 'noopener,noreferrer');
+      try {
+        // Tauri shell plugin használata külső linkek megnyitásához
+        await open(versionInfo.releaseUrl);
+      } catch (error) {
+        console.error("Failed to open release URL:", error);
+        // Fallback: ha a Tauri shell nem működik, próbáljuk meg a window.open-t
+        window.open(versionInfo.releaseUrl, '_blank', 'noopener,noreferrer');
+      }
     }
   };
 
