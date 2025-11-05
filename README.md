@@ -231,9 +231,10 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 - 🎨 **Teljes téma integráció** - Minden komponens (Filaments, Printers, Calculator, Offers, Home, Settings, Sidebar) használja a témákat
 - 🎨 **Dinamikus színek** - Minden hard-coded szín lecserélve a téma színeire
 - 🎨 **Responsive téma** - Az árajánlatok és a Sidebar footer is használja a témákat
-- 🐛 **Pénznem kezelés javítás** - Az árajánlatok most az árajánlatban tárolt pénznemben jelennek meg (nem a jelenlegi beállítások pénznemében)
-- 🐛 **PDF pénznem javítás** - A PDF export most az árajánlat eredeti pénznemét használja
-- 🐛 **Filament ár konverzió** - A filament árát az árajánlat pénznemébe konvertáljuk mentéskor
+- 💱 **Dinamikus pénznem konverzió** - Az árajánlatok most a jelenlegi beállítások pénznemében jelennek meg (automatikus konverzió)
+- 💱 **Pénznem váltás** - A beállításokban megváltoztatott pénznem azonnal érvénybe lép az árajánlatok megjelenítésénél
+- 💱 **PDF pénznem konverzió** - A PDF export is a jelenlegi beállítások pénznemében készül
+- 💱 **Filament ár konverzió** - A filament árak is automatikusan konvertálva jelennek meg
 
 ### v0.1.85 (2025)
 - 🎨 **UI/UX Javítások**:
