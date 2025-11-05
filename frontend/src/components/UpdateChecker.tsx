@@ -69,6 +69,13 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
     return null;
   }
 
+  const handleDownload = () => {
+    if (versionInfo?.releaseUrl) {
+      // Tauri alkalmazásban a window.open jobban működik
+      window.open(versionInfo.releaseUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <div style={{
       position: "fixed",
@@ -80,7 +87,9 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
       padding: "16px 20px",
       boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
       border: "2px solid #007bff",
+      width: "min(400px, calc(100vw - 240px))",
       maxWidth: "400px",
+      boxSizing: "border-box",
       animation: "slideIn 0.3s ease-out",
     }}>
       <style>{`
@@ -129,21 +138,18 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
       </div>
       
       {versionInfo.releaseUrl && (
-        <a
-          href={versionInfo.releaseUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={handleDownload}
           style={{
             ...commonStyles.button,
             ...commonStyles.buttonPrimary,
-            display: "inline-block",
-            textDecoration: "none",
             width: "100%",
             textAlign: "center",
+            marginTop: "8px",
           }}
         >
           📥 {t.download}
-        </a>
+        </button>
       )}
     </div>
   );
