@@ -1,5 +1,6 @@
 import React from "react";
 import type { Settings } from "../types";
+import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { CURRENT_VERSION } from "../utils/version";
 
@@ -8,9 +9,10 @@ interface Props {
   setActivePage: (page: string) => void;
   settings: Settings;
   isBeta?: boolean;
+  theme: Theme;
 }
 
-export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, isBeta = false }) => {
+export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, isBeta = false, theme }) => {
   const t = useTranslation(settings.language);
   
   const pages = [
@@ -28,17 +30,17 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
       left: 0,
       top: 0,
       width: "200px",
-      backgroundColor: "#f5f5f5",
-      color: "#111111",
+      backgroundColor: theme.colors.sidebarBg,
+      color: theme.colors.sidebarText,
       height: "100vh",
-      boxShadow: "2px 0 5px rgba(0,0,0,0.1)",
+      boxShadow: `2px 0 5px ${theme.colors.shadow}`,
       zIndex: 1000,
       display: "flex",
       flexDirection: "column",
       boxSizing: "border-box"
     }}>
       <div style={{ padding: "20px", flex: "1", overflowY: "auto" }}>
-        <h3 style={{ color: "#111", marginTop: 0, marginBottom: "20px" }}>{t("sidebar.menu")}</h3>
+        <h3 style={{ color: theme.colors.sidebarText, marginTop: 0, marginBottom: "20px" }}>{t("sidebar.menu")}</h3>
         {pages.map(page => (
           <div
             key={page.key}
@@ -47,17 +49,20 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
               padding: "10px",
               cursor: "pointer",
               fontWeight: activePage === page.key ? "bold" : "normal",
-              color: activePage === page.key ? "#007bff" : "#111",
+              color: activePage === page.key ? theme.colors.sidebarActive : theme.colors.sidebarText,
+              backgroundColor: activePage === page.key ? theme.colors.sidebarActive + "20" : "transparent",
               borderRadius: "4px",
               transition: "background-color 0.2s",
             }}
             onMouseEnter={(e) => {
               if (activePage !== page.key) {
-                e.currentTarget.style.backgroundColor = "#e9ecef";
+                e.currentTarget.style.backgroundColor = theme.colors.sidebarHover;
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
+              if (activePage !== page.key) {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }
             }}
           >
             {page.label}
@@ -68,18 +73,18 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
       {/* Footer információ az alján */}
       <div style={{
         padding: "16px",
-        borderTop: "1px solid #dee2e6",
-        backgroundColor: "#f8f9fa",
+        borderTop: `1px solid ${theme.colors.border}`,
+        backgroundColor: theme.colors.surface,
         fontSize: "11px",
-        color: "#6c757d",
+        color: theme.colors.textMuted,
         textAlign: "center",
         flexShrink: 0
       }}>
-        <div style={{ marginBottom: "8px", fontWeight: "600", color: "#495057" }}>
+        <div style={{ marginBottom: "8px", fontWeight: "600", color: theme.colors.text }}>
           Készítő: LexyGuru
         </div>
         <div style={{ marginBottom: "4px" }}>
-          Verzió: <strong style={{ color: "#212529" }}>{CURRENT_VERSION}</strong>
+          Verzió: <strong style={{ color: theme.colors.text }}>{CURRENT_VERSION}</strong>
         </div>
         <div>
           {isBeta ? (
@@ -88,7 +93,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
               padding: "2px 6px",
               borderRadius: "4px",
               backgroundColor: "#ffc107",
-              color: "#000",
+              color: theme.colors.background === "#1a1a1a" ? theme.colors.text : "#000",
               fontWeight: "600",
               fontSize: "10px"
             }}>
@@ -99,7 +104,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
               display: "inline-block",
               padding: "2px 6px",
               borderRadius: "4px",
-              backgroundColor: "#28a745",
+              backgroundColor: theme.colors.success,
               color: "#fff",
               fontWeight: "600",
               fontSize: "10px"

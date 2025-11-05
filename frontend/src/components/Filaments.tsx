@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import type { Filament, Settings } from "../types";
+import type { Theme } from "../utils/themes";
 import { filamentPrice } from "../utils/filamentCalc";
 import { useTranslation } from "../utils/translations";
-import { commonStyles } from "../utils/styles";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 
@@ -10,9 +10,11 @@ interface Props {
   filaments: Filament[];
   setFilaments: (f: Filament[]) => void;
   settings: Settings;
+  theme: Theme;
+  themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
 
-export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }) => {
+export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, theme, themeStyles }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [brand, setBrand] = useState("");
@@ -103,13 +105,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
 
   return (
     <div>
-      <h2 style={commonStyles.pageTitle}>{t("filaments.title")}</h2>
-      <p style={commonStyles.pageSubtitle}>Filamentek kezelése és szerkesztése</p>
+      <h2 style={themeStyles.pageTitle}>{t("filaments.title")}</h2>
+      <p style={themeStyles.pageSubtitle}>Filamentek kezelése és szerkesztése</p>
       
       {/* Kereső mező */}
       {filaments.length > 0 && (
-        <div style={{ ...commonStyles.card, marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+        <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
             🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
           </label>
           <input
@@ -117,9 +119,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
             placeholder={settings.language === "hu" ? "Keresés márka, típus vagy szín alapján..." : settings.language === "de" ? "Suche nach Marke, Typ oder Farbe..." : "Search by brand, type or color..."}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-            onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-            style={{ ...commonStyles.input, width: "100%", maxWidth: "400px" }}
+            onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+            style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
           />
         </div>
       )}
@@ -129,11 +131,11 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
         <div style={{ marginBottom: "24px" }}>
           <button
             onClick={() => setShowAddForm(true)}
-            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = commonStyles.buttonPrimary.boxShadow; }}
+            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
             style={{ 
-              ...commonStyles.button,
-              ...commonStyles.buttonPrimary,
+              ...themeStyles.button,
+              ...themeStyles.buttonPrimary,
               fontSize: "16px",
               padding: "14px 28px"
             }}
@@ -145,9 +147,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
       
       {/* Új filament hozzáadása form */}
       {(showAddForm || editingIndex !== null) && (
-      <div style={{ ...commonStyles.card, marginBottom: "24px", backgroundColor: editingIndex !== null ? "#fff3cd" : "#f8f9fa", border: editingIndex !== null ? "2px solid #ffc107" : "1px solid #e9ecef" }}>
+      <div style={{ ...themeStyles.card, marginBottom: "24px", backgroundColor: editingIndex !== null ? theme.colors.primary + "20" : theme.colors.surfaceHover, border: editingIndex !== null ? `2px solid ${theme.colors.primary}` : `1px solid ${theme.colors.border}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-          <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+          <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
             {editingIndex !== null ? t("filaments.edit") : "➕ " + t("filaments.addTitle")}
           </h3>
           {editingIndex !== null && (
@@ -156,8 +158,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
               style={{ 
-                ...commonStyles.button,
-                ...commonStyles.buttonSecondary,
+                ...themeStyles.button,
+                ...themeStyles.buttonSecondary,
                 padding: "8px 16px",
                 fontSize: "12px"
               }}
@@ -168,33 +170,33 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
         </div>
         <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
               {t("filaments.brand")}
             </label>
             <input 
               placeholder={t("filaments.brand")} 
               value={brand} 
               onChange={e => setBrand(e.target.value)}
-              onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-              style={{ ...commonStyles.input, width: "100%" }}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
               {t("filaments.type")}
             </label>
             <input 
               placeholder={t("filaments.type")} 
               value={type} 
               onChange={e => setType(e.target.value)}
-              onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-              style={{ ...commonStyles.input, width: "100%" }}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
               {t("filaments.weight")}
             </label>
             <input 
@@ -209,13 +211,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
                   setWeight(val);
                 }
               }}
-              onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-              style={{ ...commonStyles.input, width: "100%" }}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
               {t("filaments.pricePerKg")}
             </label>
             <input 
@@ -230,33 +232,33 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
                   setPricePerKg(val);
                 }
               }}
-              onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-              style={{ ...commonStyles.input, width: "100%" }}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
               {t("filaments.color")}
             </label>
             <input 
               placeholder={t("filaments.color")} 
               value={color} 
               onChange={e => setColor(e.target.value)}
-              onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-              style={{ ...commonStyles.input, width: "100%" }}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
         </div>
-        <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: "2px solid #e9ecef" }}>
+        <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
           <button 
             onClick={addFilament}
-            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = editingIndex !== null ? commonStyles.buttonSuccess.boxShadow : commonStyles.buttonPrimary.boxShadow; }}
+            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = editingIndex !== null ? themeStyles.buttonSuccess.boxShadow : themeStyles.buttonPrimary.boxShadow; }}
             style={{ 
-              ...commonStyles.button, 
-              ...(editingIndex !== null ? commonStyles.buttonSuccess : commonStyles.buttonPrimary),
+              ...themeStyles.button, 
+              ...(editingIndex !== null ? themeStyles.buttonSuccess : themeStyles.buttonPrimary),
               fontSize: "16px",
               padding: "14px 28px"
             }}
@@ -269,8 +271,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
               style={{ 
-                ...commonStyles.button,
-                ...commonStyles.buttonSecondary,
+                ...themeStyles.button,
+                ...themeStyles.buttonSecondary,
                 padding: "8px 16px",
                 fontSize: "12px",
                 marginLeft: "10px"
@@ -284,16 +286,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
       )}
 
       {filteredFilaments.length > 0 ? (
-        <div style={{ ...commonStyles.card, overflow: "hidden", padding: 0 }}>
-          <table style={commonStyles.table}>
+        <div style={{ ...themeStyles.card, overflow: "hidden", padding: 0 }}>
+          <table style={themeStyles.table}>
             <thead>
               <tr>
-                <th style={commonStyles.tableHeader}>{t("filaments.brand")}</th>
-                <th style={commonStyles.tableHeader}>{t("filaments.type")}</th>
-                <th style={commonStyles.tableHeader}>{t("filaments.color")}</th>
-                <th style={commonStyles.tableHeader}>{t("filaments.weight")}</th>
-                <th style={commonStyles.tableHeader}>{t("filaments.pricePerKg").replace("€", settings.currency)}</th>
-                <th style={commonStyles.tableHeader}>{t("filaments.action")}</th>
+                <th style={themeStyles.tableHeader}>{t("filaments.brand")}</th>
+                <th style={themeStyles.tableHeader}>{t("filaments.type")}</th>
+                <th style={themeStyles.tableHeader}>{t("filaments.color")}</th>
+                <th style={themeStyles.tableHeader}>{t("filaments.weight")}</th>
+                <th style={themeStyles.tableHeader}>{t("filaments.pricePerKg").replace("€", settings.currency)}</th>
+                <th style={themeStyles.tableHeader}>{t("filaments.action")}</th>
               </tr>
             </thead>
             <tbody>
@@ -301,19 +303,19 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
                 const originalIndex = filaments.findIndex(orig => orig === f);
                 return (
                 <tr key={i} style={{ transition: "background-color 0.2s" }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f8f9fa"}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fff"}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.surfaceHover}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.surface}
                 >
-                  <td style={commonStyles.tableCell}>{f.brand}</td>
-                  <td style={commonStyles.tableCell}>{f.type}</td>
-                  <td style={commonStyles.tableCell}>{f.color || "-"}</td>
-                  <td style={commonStyles.tableCell}>{f.weight}g</td>
-                  <td style={commonStyles.tableCell}>
-                    <strong style={{ color: "#28a745" }}>
+                  <td style={themeStyles.tableCell}>{f.brand}</td>
+                  <td style={themeStyles.tableCell}>{f.type}</td>
+                  <td style={themeStyles.tableCell}>{f.color || "-"}</td>
+                  <td style={themeStyles.tableCell}>{f.weight}g</td>
+                  <td style={themeStyles.tableCell}>
+                    <strong style={{ color: theme.colors.success }}>
                       {filamentPrice(f, settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}/kg
                     </strong>
                   </td>
-                  <td style={commonStyles.tableCell}>
+                  <td style={themeStyles.tableCell}>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <button 
                         onClick={() => startEdit(originalIndex)}
@@ -321,8 +323,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
                         onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.transform = "translateY(-1px)"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
                         style={{ 
-                          ...commonStyles.button,
-                          ...commonStyles.buttonPrimary,
+                          ...themeStyles.button,
+                          ...themeStyles.buttonPrimary,
                           padding: "8px 16px",
                           fontSize: "12px",
                           opacity: editingIndex !== null && editingIndex !== originalIndex ? 0.5 : 1,
@@ -336,8 +338,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
                         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
                         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
                         style={{ 
-                          ...commonStyles.button,
-                          ...commonStyles.buttonDanger,
+                          ...themeStyles.button,
+                          ...themeStyles.buttonDanger,
                           padding: "8px 16px",
                           fontSize: "12px"
                         }}
@@ -353,16 +355,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
           </table>
         </div>
       ) : filaments.length > 0 && searchTerm ? (
-        <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px" }}>
+        <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
-          <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>
+          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>
             {settings.language === "hu" ? "Nincs találat a keresési kifejezésre." : settings.language === "de" ? "Keine Ergebnisse für den Suchbegriff." : "No results found for the search term."}
           </p>
         </div>
       ) : (
-        <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px" }}>
+        <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🧵</div>
-          <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>{t("filaments.empty")}</p>
+          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>{t("filaments.empty")}</p>
         </div>
       )}
       

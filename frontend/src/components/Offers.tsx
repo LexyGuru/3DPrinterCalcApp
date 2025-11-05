@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import type { Offer, Settings } from "../types";
+import type { Theme } from "../utils/themes";
 import { useTranslation, type TranslationKey } from "../utils/translations";
-import { commonStyles } from "../utils/styles";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 
@@ -11,9 +11,11 @@ interface Props {
   offers: Offer[];
   setOffers: (offers: Offer[]) => void;
   settings: Settings;
+  theme: Theme;
+  themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
 
-export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
+export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, themeStyles }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
@@ -314,13 +316,13 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
 
   return (
     <div>
-      <h2 style={commonStyles.pageTitle}>{t("offers.title")}</h2>
-      <p style={commonStyles.pageSubtitle}>Mentett árajánlatok kezelése és exportálása</p>
+      <h2 style={themeStyles.pageTitle}>{t("offers.title")}</h2>
+      <p style={themeStyles.pageSubtitle}>Mentett árajánlatok kezelése és exportálása</p>
       
       {/* Kereső mező */}
       {offers.length > 0 && (
-        <div style={{ ...commonStyles.card, marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+        <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
             🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
           </label>
           <input
@@ -328,23 +330,23 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
             placeholder={settings.language === "hu" ? "Keresés nyomtató, ügyfél vagy dátum alapján..." : settings.language === "de" ? "Suche nach Drucker, Kunde oder Datum..." : "Search by printer, customer or date..."}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-            onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-            style={{ ...commonStyles.input, width: "100%", maxWidth: "400px" }}
+            onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+            style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
           />
         </div>
       )}
       
       {offers.length === 0 ? (
-        <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px" }}>
+        <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-          <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>{t("offers.empty")}</p>
+          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>{t("offers.empty")}</p>
         </div>
       ) : (
         <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
           {/* Árajánlatok lista */}
           <div style={{ flex: "1", minWidth: "300px" }}>
-            <h3 style={{ fontSize: "20px", fontWeight: "600", color: "#495057", marginBottom: "16px" }}>
+            <h3 style={{ fontSize: "20px", fontWeight: "600", color: theme.colors.text, marginBottom: "16px" }}>
               📋 Mentett árajánlatok
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -355,15 +357,15 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                     key={offer.id}
                     onClick={() => setSelectedOffer(offer)}
                     style={{
-                      ...commonStyles.card,
-                      backgroundColor: selectedOffer?.id === offer.id ? "#e3f2fd" : "#fff",
-                      border: selectedOffer?.id === offer.id ? "2px solid #007bff" : "1px solid #e9ecef",
+                      ...themeStyles.card,
+                      backgroundColor: selectedOffer?.id === offer.id ? theme.colors.primary + "20" : theme.colors.surface,
+                      border: selectedOffer?.id === offer.id ? `2px solid ${theme.colors.primary}` : `1px solid ${theme.colors.border}`,
                       cursor: "pointer",
                       transition: "all 0.2s"
                     }}
                     onMouseEnter={(e) => {
                       if (selectedOffer?.id !== offer.id) {
-                        Object.assign(e.currentTarget.style, commonStyles.cardHover);
+                        Object.assign(e.currentTarget.style, themeStyles.cardHover);
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -378,21 +380,21 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                         <strong style={{ fontSize: "16px" }}>
                           {offer.customerName ? `${offer.customerName}` : `Árajánlat #${offer.id}`}
                         </strong>
-                        <p style={{ margin: "5px 0", color: "#666", fontSize: "14px" }}>
+                        <p style={{ margin: "5px 0", color: theme.colors.textSecondary, fontSize: "14px" }}>
                           {date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
                         </p>
                         {offer.customerName && (
-                          <p style={{ margin: "5px 0", fontSize: "14px" }}><strong>{t("offers.customerName")}:</strong> {offer.customerName}</p>
+                          <p style={{ margin: "5px 0", fontSize: "14px", color: theme.colors.text }}><strong>{t("offers.customerName")}:</strong> {offer.customerName}</p>
                         )}
                         {offer.customerContact && (
-                          <p style={{ margin: "5px 0", fontSize: "14px" }}>
+                          <p style={{ margin: "5px 0", fontSize: "14px", color: theme.colors.text }}>
                             <strong>{settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}:</strong> {offer.customerContact}
                           </p>
                         )}
-                        <p style={{ margin: "5px 0", fontSize: "14px" }}>
+                        <p style={{ margin: "5px 0", fontSize: "14px", color: theme.colors.text }}>
                           <strong>{offer.printerName}</strong> - {offer.totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
                         </p>
-                        <p style={{ margin: "5px 0", fontSize: "16px", color: "#007bff", fontWeight: "bold" }}>
+                        <p style={{ margin: "5px 0", fontSize: "16px", color: theme.colors.primary, fontWeight: "bold" }}>
                           {t("calculator.totalCost")}: {offer.costs.totalCost.toFixed(2)} {offer.currency === "HUF" ? "Ft" : offer.currency}
                         </p>
                       </div>
@@ -404,8 +406,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
                         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
                         style={{
-                          ...commonStyles.button,
-                          ...commonStyles.buttonDanger,
+                          ...themeStyles.button,
+                          ...themeStyles.buttonDanger,
                           padding: "8px 16px",
                           fontSize: "12px"
                         }}
@@ -417,9 +419,9 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                 );
               })}
               {filteredOffers.length === 0 && offers.length > 0 && (
-                <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px" }}>
+                <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
                   <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
-                  <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>
+                  <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>
                     {settings.language === "hu" ? "Nincs találat a keresési kifejezésre." : settings.language === "de" ? "Keine Ergebnisse für den Suchbegriff." : "No results found for the search term."}
                   </p>
                 </div>
@@ -429,19 +431,19 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
 
           {/* Kiválasztott árajánlat részletes nézete */}
           {selectedOffer && (
-            <div style={{ ...commonStyles.card, flex: "1", minWidth: "400px" }}>
+            <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-                <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+                <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
                   📄 {selectedOffer.customerName ? `${selectedOffer.customerName}` : `Árajánlat #${selectedOffer.id}`}
                 </h3>
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                   <button
                     onClick={() => duplicateOffer(selectedOffer)}
-                    onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
+                    onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
                     onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = "#6c757d 0 2px 4px"; }}
                     style={{
-                      ...commonStyles.button,
-                      backgroundColor: "#6c757d",
+                      ...themeStyles.button,
+                      backgroundColor: theme.colors.secondary,
                       color: "#fff",
                       padding: "8px 16px",
                       fontSize: "14px"
@@ -451,22 +453,22 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                   </button>
                   <button
                     onClick={() => exportToPDF(selectedOffer)}
-                    onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-                    onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonPrimary.boxShadow; }}
+                    onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                    onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
                     style={{
-                      ...commonStyles.button,
-                      ...commonStyles.buttonPrimary
+                      ...themeStyles.button,
+                      ...themeStyles.buttonPrimary
                     }}
                   >
                     {t("offers.print")}
                   </button>
                   <button
                     onClick={() => exportAsPDF(selectedOffer)}
-                    onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-                    onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonSuccess.boxShadow; }}
+                    onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                    onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
                     style={{
-                      ...commonStyles.button,
-                      ...commonStyles.buttonSuccess
+                      ...themeStyles.button,
+                      ...themeStyles.buttonSuccess
                     }}
                   >
                     {t("offers.downloadPDF")}
@@ -474,36 +476,36 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                 </div>
               </div>
 
-              <div style={{ marginBottom: "20px", padding: "16px", backgroundColor: "#f8f9fa", borderRadius: "8px" }}>
+              <div style={{ marginBottom: "20px", padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px" }}>
                 {selectedOffer.customerName && (
                   <div style={{ marginBottom: "12px" }}>
-                    <strong style={{ color: "#495057" }}>{t("offers.customerName")}:</strong> 
-                    <span style={{ marginLeft: "8px", color: "#212529" }}>{selectedOffer.customerName}</span>
+                    <strong style={{ color: theme.colors.text }}>{t("offers.customerName")}:</strong> 
+                    <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerName}</span>
                   </div>
                 )}
                 {selectedOffer.customerContact && (
                   <div style={{ marginBottom: "12px" }}>
-                    <strong style={{ color: "#495057" }}>
+                    <strong style={{ color: theme.colors.text }}>
                       {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}:
                     </strong> 
-                    <span style={{ marginLeft: "8px", color: "#212529" }}>{selectedOffer.customerContact}</span>
+                    <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerContact}</span>
                   </div>
                 )}
                 {selectedOffer.description && (
                   <div style={{ marginBottom: "12px" }}>
-                    <strong style={{ color: "#495057" }}>{t("offers.description")}:</strong> 
-                    <span style={{ marginLeft: "8px", color: "#212529", wordWrap: "break-word", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{selectedOffer.description}</span>
+                    <strong style={{ color: theme.colors.text }}>{t("offers.description")}:</strong> 
+                    <span style={{ marginLeft: "8px", color: theme.colors.text, wordWrap: "break-word", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{selectedOffer.description}</span>
                   </div>
                 )}
                 <div style={{ marginBottom: "12px" }}>
-                  <strong style={{ color: "#495057" }}>{t("offers.date")}:</strong> 
-                  <span style={{ marginLeft: "8px", color: "#212529" }}>
+                  <strong style={{ color: theme.colors.text }}>{t("offers.date")}:</strong> 
+                  <span style={{ marginLeft: "8px", color: theme.colors.text }}>
                     {new Date(selectedOffer.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
                   </span>
                 </div>
 
                 <div style={{ marginBottom: "12px" }}>
-                  <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#495057" }}>
+                  <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
                     📈 {t("offers.profitPercentage")}
                   </label>
                   <select
@@ -516,9 +518,9 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                       setOffers(updatedOffers);
                       setSelectedOffer({ ...selectedOffer, profitPercentage: value });
                     }}
-                    onFocus={(e) => Object.assign(e.target.style, commonStyles.selectFocus)}
-                    onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                    style={{ ...commonStyles.select, width: "100%", maxWidth: "300px" }}
+                    onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+                    onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                    style={{ ...themeStyles.select, width: "100%", maxWidth: "300px" }}
                   >
                     <option value={10}>10%</option>
                     <option value={20}>20%</option>
@@ -526,33 +528,33 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                     <option value={40}>40%</option>
                     <option value={50}>50%</option>
                   </select>
-                  <p style={{ marginTop: "4px", fontSize: "12px", color: "#6c757d" }}>
+                  <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
                     Bevétel = Költségek × (1 + {selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}%) = {(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100)).toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}
                   </p>
                 </div>
               </div>
 
-              <div style={{ marginBottom: "20px", ...commonStyles.card, padding: "20px" }}>
-                <strong style={{ display: "block", marginBottom: "12px", fontSize: "16px", color: "#495057" }}>
+              <div style={{ marginBottom: "20px", ...themeStyles.card, padding: "20px" }}>
+                <strong style={{ display: "block", marginBottom: "12px", fontSize: "16px", color: theme.colors.text }}>
                   🖨️ {t("offers.printer")}
                 </strong>
-                <div style={{ fontSize: "14px", color: "#212529", lineHeight: "1.8" }}>
+                <div style={{ fontSize: "14px", color: theme.colors.text, lineHeight: "1.8" }}>
                   <strong>{selectedOffer.printerName}</strong> ({selectedOffer.printerType}) - {selectedOffer.printerPower}W
                   <br />
                   <strong>{t("offers.printTime")}:</strong> {selectedOffer.printTimeHours}h {selectedOffer.printTimeMinutes}m {selectedOffer.printTimeSeconds}s
                 </div>
               </div>
 
-              <div style={{ marginBottom: "20px", ...commonStyles.card, padding: "20px" }}>
-                <strong style={{ display: "block", marginBottom: "12px", fontSize: "16px", color: "#495057" }}>
+              <div style={{ marginBottom: "20px", ...themeStyles.card, padding: "20px" }}>
+                <strong style={{ display: "block", marginBottom: "12px", fontSize: "16px", color: theme.colors.text }}>
                   🧵 {t("offers.filaments")}
                 </strong>
                 <ul style={{ marginTop: "10px", paddingLeft: "20px", listStyle: "none" }}>
                   {selectedOffer.filaments.map((f, idx) => (
-                    <li key={idx} style={{ marginBottom: "12px", padding: "12px", backgroundColor: "#f8f9fa", borderRadius: "8px", fontSize: "14px" }}>
-                      <strong>{f.brand} {f.type}</strong> {f.color ? `(${f.color})` : ""} - {f.usedGrams}g @ {f.pricePerKg}{selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}/kg
+                    <li key={idx} style={{ marginBottom: "12px", padding: "12px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", fontSize: "14px", color: theme.colors.text }}>
+                      <strong style={{ color: theme.colors.text }}>{f.brand} {f.type}</strong> {f.color ? `(${f.color})` : ""} - {f.usedGrams}g @ {f.pricePerKg}{selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}/kg
                       {f.needsDrying && (
-                        <div style={{ marginTop: "8px", fontSize: "12px", color: "#6c757d" }}>
+                        <div style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
                           🌡️ Szárítás: {f.dryingTime}h @ {f.dryingPower}W
                         </div>
                       )}
@@ -561,42 +563,42 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                 </ul>
               </div>
 
-              <div style={{ ...commonStyles.card, padding: "20px", backgroundColor: "#fff" }}>
-                <strong style={{ display: "block", marginBottom: "16px", fontSize: "16px", color: "#495057" }}>
+              <div style={{ ...themeStyles.card, padding: "20px", backgroundColor: theme.colors.surface }}>
+                <strong style={{ display: "block", marginBottom: "16px", fontSize: "16px", color: theme.colors.text }}>
                   💰 {t("calculator.costBreakdown")}
                 </strong>
                 <div style={{ marginTop: "10px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #e9ecef" }}>
-                    <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.filamentCost")}</span>
-                    <strong style={{ fontSize: "16px", color: "#28a745" }}>{selectedOffer.costs.filamentCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
+                    <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.filamentCost")}</span>
+                    <strong style={{ fontSize: "16px", color: theme.colors.success }}>{selectedOffer.costs.filamentCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #e9ecef" }}>
-                    <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.electricityCost")}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
+                    <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.electricityCost")}</span>
                     <strong style={{ fontSize: "16px", color: "#ffc107" }}>{selectedOffer.costs.electricityCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
                   </div>
                   {selectedOffer.costs.dryingCost > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #e9ecef" }}>
-                      <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.dryingCost")}</span>
-                      <strong style={{ fontSize: "16px", color: "#17a2b8" }}>{selectedOffer.costs.dryingCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
+                      <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.dryingCost")}</span>
+                      <strong style={{ fontSize: "16px", color: theme.colors.primary }}>{selectedOffer.costs.dryingCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
                     </div>
                   )}
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: "2px solid #dee2e6" }}>
-                    <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.usageCost")}</span>
-                    <strong style={{ fontSize: "16px", color: "#6c757d" }}>{selectedOffer.costs.usageCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: `2px solid ${theme.colors.border}` }}>
+                    <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.usageCost")}</span>
+                    <strong style={{ fontSize: "16px", color: theme.colors.textMuted }}>{selectedOffer.costs.usageCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: "2px solid #dee2e6" }}>
-                    <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.totalCost")}</span>
-                    <strong style={{ fontSize: "16px", color: "#007bff" }}>{selectedOffer.costs.totalCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `2px solid ${theme.colors.border}` }}>
+                    <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.totalCost")}</span>
+                    <strong style={{ fontSize: "16px", color: theme.colors.text }}>{selectedOffer.costs.totalCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: "#f8f9fa", padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
-                    <span style={{ color: "#495057" }}>Bevétel ({selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}% profit):</span>
-                    <strong style={{ color: "#28a745" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: theme.colors.surfaceHover, padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
+                    <span style={{ color: theme.colors.text }}>Bevétel ({selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}% profit):</span>
+                    <strong style={{ color: theme.colors.success }}>
                       {(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100)).toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}
                     </strong>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #e9ecef" }}>
-                    <span style={{ fontSize: "14px", color: "#495057" }}>Profit:</span>
-                    <strong style={{ fontSize: "18px", color: "#28a745", fontWeight: "bold" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", paddingTop: "12px", borderTop: `1px solid ${theme.colors.border}` }}>
+                    <span style={{ fontSize: "14px", color: theme.colors.text }}>Profit:</span>
+                    <strong style={{ fontSize: "18px", color: theme.colors.success, fontWeight: "bold" }}>
                       {(selectedOffer.costs.totalCost * ((selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100)).toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}
                     </strong>
                   </div>
@@ -678,7 +680,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                   onClick={() => setShowPrintPreview(false)}
                   style={{
                     padding: "10px 20px",
-                    backgroundColor: "#6c757d",
+                    backgroundColor: theme.colors.secondary,
                     color: "white",
                     border: "none",
                     borderRadius: "4px",
@@ -695,7 +697,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
               style={{
                 border: "1px solid #ddd",
                 padding: "20px",
-                backgroundColor: "#fff"
+                backgroundColor: theme.colors.surface
               }}
             />
           </div>

@@ -3,8 +3,8 @@ import { save, open } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import type { Settings, Printer, Filament, Offer } from "../types";
 import { useTranslation } from "../utils/translations";
-import { commonStyles } from "../utils/styles";
 import { useToast } from "./Toast";
+import { themes, type ThemeName } from "../utils/themes";
 
 interface Props {
   settings: Settings;
@@ -15,6 +15,8 @@ interface Props {
   setFilaments: (filaments: Filament[]) => void;
   offers: Offer[];
   setOffers: (offers: Offer[]) => void;
+  theme: Theme;
+  themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
 
 export const SettingsPage: React.FC<Props> = ({ 
@@ -25,7 +27,9 @@ export const SettingsPage: React.FC<Props> = ({
   filaments,
   setFilaments,
   offers,
-  setOffers
+  setOffers,
+  theme,
+  themeStyles
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
@@ -186,20 +190,20 @@ export const SettingsPage: React.FC<Props> = ({
 
   return (
     <div>
-      <h2 style={commonStyles.pageTitle}>{t("settings.title")}</h2>
-      <p style={commonStyles.pageSubtitle}>Alkalmazás beállítások kezelése</p>
+      <h2 style={themeStyles.pageTitle}>{t("settings.title")}</h2>
+      <p style={themeStyles.pageSubtitle}>Alkalmazás beállítások kezelése</p>
       
-      <div style={{ ...commonStyles.card }}>
+      <div style={{ ...themeStyles.card }}>
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: "#495057" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
             🌐 {t("settings.language")}
           </label>
           <select 
             value={settings.language} 
             onChange={handleLanguageChange}
-            onFocus={(e) => Object.assign(e.target.style, commonStyles.selectFocus)}
-            onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-            style={{ ...commonStyles.select, width: "100%", maxWidth: "300px" }}
+            onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+            style={{ ...themeStyles.select, width: "100%", maxWidth: "300px" }}
           >
             <option value="hu">🇭🇺 Magyar</option>
             <option value="de">🇩🇪 Deutsch</option>
@@ -208,15 +212,15 @@ export const SettingsPage: React.FC<Props> = ({
         </div>
         
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: "#495057" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
             💰 {t("settings.currency")}
           </label>
           <select 
             value={settings.currency} 
             onChange={handleCurrencyChange}
-            onFocus={(e) => Object.assign(e.target.style, commonStyles.selectFocus)}
-            onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-            style={{ ...commonStyles.select, width: "100%", maxWidth: "300px" }}
+            onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+            style={{ ...themeStyles.select, width: "100%", maxWidth: "300px" }}
           >
             <option value="EUR">EUR (€)</option>
             <option value="HUF">HUF (Ft)</option>
@@ -225,7 +229,7 @@ export const SettingsPage: React.FC<Props> = ({
         </div>
         
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: "#495057" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
             ⚡ {t("settings.electricityPrice")} ({settings.currency === "HUF" ? "Ft" : settings.currency === "EUR" ? "€" : "$"}/kWh)
           </label>
           <input 
@@ -233,18 +237,18 @@ export const SettingsPage: React.FC<Props> = ({
             step="0.01"
             value={getDisplayElectricityPrice()} 
             onChange={handleElectricityPriceChange}
-            onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-            onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-            style={{ ...commonStyles.input, width: "100%", maxWidth: "300px" }}
+            onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+            style={{ ...themeStyles.input, width: "100%", maxWidth: "300px" }}
             placeholder="Pl: 70"
           />
-          <p style={{ marginTop: "8px", fontSize: "12px", color: "#6c757d" }}>
+          <p style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
             Az áram ár mindig Ft/kWh-ban van tárolva, de a választott pénznemben jelenik meg.
           </p>
         </div>
         
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: "#495057", cursor: "pointer" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
             <input
               type="checkbox"
               checked={settings.checkForBetaUpdates || false}
@@ -253,8 +257,68 @@ export const SettingsPage: React.FC<Props> = ({
             />
             <span>🔬 {t("settings.checkForBetaUpdates")}</span>
           </label>
-          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: "#6c757d" }}>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
             {t("settings.checkForBetaUpdatesDescription")}
+          </p>
+        </div>
+        
+        <div style={{ marginBottom: "24px" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
+            🎨 {t("settings.theme")}
+          </label>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            {(["light", "dark", "blue", "green", "purple", "orange"] as ThemeName[]).map((themeName) => {
+              const theme = themes[themeName];
+              const isSelected = (settings.theme || "light") === themeName;
+              return (
+                <button
+                  key={themeName}
+                  onClick={() => onChange({ ...settings, theme: themeName })}
+                  style={{
+                    ...themeStyles.button,
+                    backgroundColor: isSelected ? theme.colors.primary : theme.colors.surface,
+                    color: isSelected ? "#fff" : theme.colors.text,
+                    border: `2px solid ${isSelected ? theme.colors.primary : theme.colors.border}`,
+                    padding: "16px 20px",
+                    flex: "1",
+                    minWidth: "120px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "8px",
+                    boxShadow: isSelected ? `0 4px 12px ${theme.colors.shadow}` : "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.backgroundColor = theme.colors.surface;
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }
+                  }}
+                >
+                  <span style={{ fontSize: "24px" }}>
+                    {themeName === "light" && "☀️"}
+                    {themeName === "dark" && "🌙"}
+                    {themeName === "blue" && "💙"}
+                    {themeName === "green" && "💚"}
+                    {themeName === "purple" && "💜"}
+                    {themeName === "orange" && "🧡"}
+                  </span>
+                  <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                    {theme.displayName[settings.language]}
+                  </span>
+                  {isSelected && <span style={{ fontSize: "12px" }}>✓</span>}
+                </button>
+              );
+            })}
+          </div>
+          <p style={{ marginTop: "12px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.themeDescription")}
           </p>
         </div>
       </div>
@@ -262,16 +326,16 @@ export const SettingsPage: React.FC<Props> = ({
       {/* Export/Import Data Section - 2 oszlop */}
       <div style={{ display: "flex", gap: "24px", marginTop: "24px", flexWrap: "wrap" }}>
         {/* Export Data Section */}
-        <div style={{ ...commonStyles.card, flex: "1", minWidth: "400px" }}>
-          <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+        <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
+          <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
             💾 {t("settings.exportTitle")}
           </h3>
-          <p style={{ marginBottom: "16px", fontSize: "14px", color: "#6c757d" }}>
+          <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
             {t("settings.exportDescription")}
           </p>
           
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer", marginBottom: "12px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer", marginBottom: "12px" }}>
               <input
                 type="checkbox"
                 checked={exportFilaments}
@@ -281,7 +345,7 @@ export const SettingsPage: React.FC<Props> = ({
               <span>🧵 {t("settings.exportFilaments")} ({filaments.length})</span>
             </label>
             
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer", marginBottom: "12px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer", marginBottom: "12px" }}>
               <input
                 type="checkbox"
                 checked={exportPrinters}
@@ -291,7 +355,7 @@ export const SettingsPage: React.FC<Props> = ({
               <span>🖨️ {t("settings.exportPrinters")} ({printers.length})</span>
             </label>
             
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer" }}>
               <input
                 type="checkbox"
                 checked={exportOffers}
@@ -304,11 +368,11 @@ export const SettingsPage: React.FC<Props> = ({
 
           <button
             onClick={handleExport}
-            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonPrimary.boxShadow; }}
+            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
             style={{
-              ...commonStyles.button,
-              ...commonStyles.buttonPrimary,
+              ...themeStyles.button,
+              ...themeStyles.buttonPrimary,
               width: "100%"
             }}
           >
@@ -317,11 +381,11 @@ export const SettingsPage: React.FC<Props> = ({
         </div>
 
         {/* Import Data Section */}
-        <div style={{ ...commonStyles.card, flex: "1", minWidth: "400px" }}>
-          <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+        <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
+          <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
             📥 {t("settings.importTitle")}
           </h3>
-          <p style={{ marginBottom: "16px", fontSize: "14px", color: "#6c757d" }}>
+          <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
             {t("settings.importDescription")}
           </p>
           <p style={{ marginBottom: "16px", fontSize: "12px", color: "#dc3545", fontWeight: "600" }}>
@@ -329,7 +393,7 @@ export const SettingsPage: React.FC<Props> = ({
           </p>
           
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer", marginBottom: "12px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer", marginBottom: "12px" }}>
               <input
                 type="checkbox"
                 checked={importFilaments}
@@ -339,7 +403,7 @@ export const SettingsPage: React.FC<Props> = ({
               <span>🧵 {t("settings.importFilaments")}</span>
             </label>
             
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer", marginBottom: "12px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer", marginBottom: "12px" }}>
               <input
                 type="checkbox"
                 checked={importPrinters}
@@ -349,7 +413,7 @@ export const SettingsPage: React.FC<Props> = ({
               <span>🖨️ {t("settings.importPrinters")}</span>
             </label>
             
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer" }}>
               <input
                 type="checkbox"
                 checked={importOffers}
@@ -362,11 +426,11 @@ export const SettingsPage: React.FC<Props> = ({
 
           <button
             onClick={handleImport}
-            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonSuccess.boxShadow; }}
+            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
             style={{
-              ...commonStyles.button,
-              ...commonStyles.buttonSuccess,
+              ...themeStyles.button,
+              ...themeStyles.buttonSuccess,
               width: "100%"
             }}
           >

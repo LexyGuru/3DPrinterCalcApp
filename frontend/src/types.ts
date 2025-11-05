@@ -29,6 +29,7 @@ export interface Settings {
   electricityPrice: number; // Ft/kWh
   language: "hu" | "en" | "de";
   checkForBetaUpdates?: boolean; // Beta release-ek ellenőrzése
+  theme?: "light" | "dark" | "blue" | "green" | "purple" | "orange"; // Téma választás
 }
 
 export const defaultSettings: Settings = {
@@ -36,6 +37,7 @@ export const defaultSettings: Settings = {
   electricityPrice: 70, // Ft/kWh alap
   language: "hu",
   checkForBetaUpdates: false, // Alapértelmezetten nem ellenőrzi a beta release-eket
+  theme: "light", // Alapértelmezett téma
 };
 
 export interface OfferFilament {

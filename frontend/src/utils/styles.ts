@@ -1,4 +1,5 @@
 // Közös stílusok az egész alkalmazásban
+// Megjegyzés: A témák használatához használd a getThemeStyles függvényt a themes.ts-ből
 
 export const commonStyles = {
   card: {

@@ -225,6 +225,13 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.2.0 (2025)
+- 🎨 **Téma rendszer** - 6 modern téma (Light, Dark, Blue, Green, Purple, Orange)
+- 🎨 **Téma választó** - Beállításokban választható téma, azonnal érvénybe lép
+- 🎨 **Teljes téma integráció** - Minden komponens (Filaments, Printers, Calculator, Offers, Home, Settings, Sidebar) használja a témákat
+- 🎨 **Dinamikus színek** - Minden hard-coded szín lecserélve a téma színeire
+- 🎨 **Responsive téma** - Az árajánlatok és a Sidebar footer is használja a témákat
+
 ### v0.1.85 (2025)
 - 🎨 **UI/UX Javítások**:
   - ✏️ Duplikált ikonok eltávolítva (Szerkesztés, Mentés, Mégse gombok)
@@ -262,7 +269,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.1.85
+**Verzió**: 0.2.0
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import type { Printer, Settings, AMS } from "../types";
+import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { convertCurrency } from "../utils/currency";
-import { commonStyles } from "../utils/styles";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 
@@ -10,9 +10,11 @@ interface Props {
   printers: Printer[];
   setPrinters: (p: Printer[]) => void;
   settings: Settings;
+  theme: Theme;
+  themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
 
-export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) => {
+export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, theme, themeStyles }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [name, setName] = useState("");
@@ -108,13 +110,13 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
 
   return (
     <div>
-      <h2 style={commonStyles.pageTitle}>{t("printers.title")}</h2>
-      <p style={commonStyles.pageSubtitle}>Nyomtatók és AMS rendszerek kezelése</p>
+      <h2 style={themeStyles.pageTitle}>{t("printers.title")}</h2>
+      <p style={themeStyles.pageSubtitle}>Nyomtatók és AMS rendszerek kezelése</p>
       
       {/* Kereső mező */}
       {printers.length > 0 && (
-        <div style={{ ...commonStyles.card, marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529" }}>
+        <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
             🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
           </label>
           <input
@@ -122,9 +124,9 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
             placeholder={settings.language === "hu" ? "Keresés név vagy típus alapján..." : settings.language === "de" ? "Suche nach Name oder Typ..." : "Search by name or type..."}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-            onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-            style={{ ...commonStyles.input, width: "100%", maxWidth: "400px" }}
+            onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+            style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
           />
         </div>
       )}
@@ -134,11 +136,11 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
         <div style={{ marginBottom: "24px" }}>
           <button
             onClick={() => setShowAddForm(true)}
-            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = commonStyles.buttonPrimary.boxShadow; }}
+            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
             style={{ 
-              ...commonStyles.button,
-              ...commonStyles.buttonPrimary,
+              ...themeStyles.button,
+              ...themeStyles.buttonPrimary,
               fontSize: "16px",
               padding: "14px 28px"
             }}
@@ -150,39 +152,39 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
       
       {/* Új nyomtató hozzáadása form */}
       {showAddForm && (
-      <div style={{ ...commonStyles.card, marginBottom: "24px", backgroundColor: "#f8f9fa", border: "1px solid #e9ecef" }}>
-        <h3 style={{ marginTop: 0, marginBottom: "24px", fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+      <div style={{ ...themeStyles.card, marginBottom: "24px", backgroundColor: theme.colors.surfaceHover, border: `1px solid ${theme.colors.border}` }}>
+        <h3 style={{ marginTop: 0, marginBottom: "24px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
           ➕ {t("printers.addTitle")}
         </h3>
         <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
               {t("printers.name")}
             </label>
             <input 
               placeholder={t("printers.name")} 
               value={name} 
               onChange={e => setName(e.target.value)}
-              onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-              style={{ ...commonStyles.input, width: "100%" }}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
               {t("printers.type")}
             </label>
             <input 
               placeholder={t("printers.type")} 
               value={type} 
               onChange={e => setType(e.target.value)}
-              onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-              style={{ ...commonStyles.input, width: "100%" }}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
               {t("printers.power")}
             </label>
             <input 
@@ -190,13 +192,13 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
               placeholder={t("printers.power")} 
               value={power} 
               onChange={e => setPower(Number(e.target.value))}
-              onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-              style={{ ...commonStyles.input, width: "100%" }}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
               {t("printers.usageCost")}
             </label>
             <input 
@@ -205,13 +207,13 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
               placeholder={t("printers.usageCost")} 
               value={usageCost} 
               onChange={e => setUsageCost(Number(e.target.value))}
-              onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-              style={{ ...commonStyles.input, width: "100%" }}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
               {t("printers.amsCount")}
             </label>
             <input 
@@ -221,20 +223,20 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
               placeholder="0" 
               value={amsCount} 
               onChange={e => setAmsCount(Math.min(4, Math.max(0, Number(e.target.value))))}
-              onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-              style={{ ...commonStyles.input, width: "100%" }}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
         </div>
-        <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: "2px solid #e9ecef" }}>
+        <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
           <button 
             onClick={addPrinter}
-            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonPrimary.boxShadow; }}
+            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
             style={{ 
-              ...commonStyles.button,
-              ...commonStyles.buttonPrimary,
+              ...themeStyles.button,
+              ...themeStyles.buttonPrimary,
               fontSize: "16px",
               padding: "14px 28px"
             }}
@@ -246,8 +248,8 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
             style={{ 
-              ...commonStyles.button,
-              ...commonStyles.buttonSecondary,
+              ...themeStyles.button,
+              ...themeStyles.buttonSecondary,
               padding: "8px 16px",
               fontSize: "12px",
               marginLeft: "10px"
@@ -260,30 +262,30 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
       )}
 
       {filteredPrinters.length > 0 ? (
-        <div style={{ ...commonStyles.card, overflow: "hidden", padding: 0 }}>
-          <table style={commonStyles.table}>
+        <div style={{ ...themeStyles.card, overflow: "hidden", padding: 0 }}>
+          <table style={themeStyles.table}>
             <thead>
               <tr>
-                <th style={commonStyles.tableHeader}>{t("printers.name")}</th>
-                <th style={commonStyles.tableHeader}>{t("printers.type")}</th>
-                <th style={commonStyles.tableHeader}>{t("printers.power")}</th>
-                <th style={commonStyles.tableHeader}>{t("printers.usageCost")}</th>
-                <th style={commonStyles.tableHeader}>{t("printers.ams")}</th>
-                <th style={commonStyles.tableHeader}>{t("printers.action")}</th>
+                <th style={themeStyles.tableHeader}>{t("printers.name")}</th>
+                <th style={themeStyles.tableHeader}>{t("printers.type")}</th>
+                <th style={themeStyles.tableHeader}>{t("printers.power")}</th>
+                <th style={themeStyles.tableHeader}>{t("printers.usageCost")}</th>
+                <th style={themeStyles.tableHeader}>{t("printers.ams")}</th>
+                <th style={themeStyles.tableHeader}>{t("printers.action")}</th>
               </tr>
             </thead>
             <tbody>
               {filteredPrinters.map(p => (
                 <React.Fragment key={p.id}>
                   <tr style={{ transition: "background-color 0.2s" }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f8f9fa"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fff"}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.surfaceHover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.surface}
                   >
-                    <td style={commonStyles.tableCell}><strong>{p.name}</strong></td>
-                    <td style={commonStyles.tableCell}>{p.type}</td>
-                    <td style={commonStyles.tableCell}>{p.power}W</td>
-                    <td style={commonStyles.tableCell}>
-                      <strong style={{ color: "#28a745" }}>
+                    <td style={themeStyles.tableCell}><strong>{p.name}</strong></td>
+                    <td style={themeStyles.tableCell}>{p.type}</td>
+                    <td style={themeStyles.tableCell}>{p.power}W</td>
+                    <td style={themeStyles.tableCell}>
+                      <strong style={{ color: theme.colors.success }}>
                         {(() => {
                           const convertedCost = convertCurrency(p.usageCost, settings.currency);
                           const currencySymbol = settings.currency === "HUF" ? "Ft" : settings.currency;
@@ -291,10 +293,10 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
                         })()}
                       </strong>
                     </td>
-                    <td style={commonStyles.tableCell}>
+                    <td style={themeStyles.tableCell}>
                       {p.amsCount || 0} {t("printers.ams")}
                     </td>
-                    <td style={commonStyles.tableCell}>
+                    <td style={themeStyles.tableCell}>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                         {p.amsCount && p.amsCount > 0 && (
                           <button 
@@ -315,8 +317,8 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
                             onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.transform = "translateY(-1px)"; }}
                             onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
                             style={{ 
-                              ...commonStyles.button,
-                              ...(editingPrinterId === p.id ? commonStyles.buttonSuccess : commonStyles.buttonPrimary),
+                              ...themeStyles.button,
+                              ...(editingPrinterId === p.id ? themeStyles.buttonSuccess : themeStyles.buttonPrimary),
                               padding: "8px 16px",
                               fontSize: "12px"
                             }}
@@ -329,8 +331,8 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
                           onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
                           onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
                           style={{ 
-                            ...commonStyles.button,
-                            ...commonStyles.buttonDanger,
+                            ...themeStyles.button,
+                            ...themeStyles.buttonDanger,
                             padding: "8px 16px",
                             fontSize: "12px"
                           }}
@@ -342,46 +344,46 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
                   </tr>
               {editingPrinterId === p.id && p.amsCount && p.amsCount > 0 && (
                 <tr>
-                  <td colSpan={6} style={{ ...commonStyles.tableCell, padding: "24px", backgroundColor: "#f8f9fa" }}>
+                  <td colSpan={6} style={{ ...themeStyles.tableCell, padding: "24px", backgroundColor: theme.colors.surfaceHover }}>
                     <div>
-                      <h4 style={{ marginTop: 0, marginBottom: "16px", fontSize: "18px", fontWeight: "600", color: "#495057" }}>
+                      <h4 style={{ marginTop: 0, marginBottom: "16px", fontSize: "18px", fontWeight: "600", color: theme.colors.text }}>
                         🔧 {t("printers.amsSystems")} ({p.amsCount})
                       </h4>
                       <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "16px" }}>
                         {(amsForms[p.id] || []).map((ams, idx) => (
-                          <div key={idx} style={{ ...commonStyles.card, padding: "16px" }}>
-                            <strong style={{ display: "block", marginBottom: "12px", fontSize: "14px", color: "#495057" }}>
+                          <div key={idx} style={{ ...themeStyles.card, padding: "16px" }}>
+                            <strong style={{ display: "block", marginBottom: "12px", fontSize: "14px", color: theme.colors.text }}>
                               {t("printers.ams")} {idx + 1}:
                             </strong>
                             <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
                               <div style={{ width: "180px", flexShrink: 0 }}>
-                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
                                   {t("printers.amsBrand")}
                                 </label>
                                 <input
                                   placeholder={t("printers.amsBrand")}
                                   value={ams.brand}
                                   onChange={e => updateAMSForm(p.id, idx, "brand", e.target.value)}
-                                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                                  style={{ ...commonStyles.input, width: "100%" }}
+                                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                  style={{ ...themeStyles.input, width: "100%" }}
                                 />
                               </div>
                               <div style={{ width: "180px", flexShrink: 0 }}>
-                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
                                   {t("printers.amsName")}
                                 </label>
                                 <input
                                   placeholder={t("printers.amsName")}
                                   value={ams.name}
                                   onChange={e => updateAMSForm(p.id, idx, "name", e.target.value)}
-                                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                                  style={{ ...commonStyles.input, width: "100%" }}
+                                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                  style={{ ...themeStyles.input, width: "100%" }}
                                 />
                               </div>
                               <div style={{ width: "180px", flexShrink: 0 }}>
-                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
                                   {t("printers.amsPower")}
                                 </label>
                                 <input
@@ -389,9 +391,9 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
                                   placeholder={t("printers.amsPower")}
                                   value={ams.power || ""}
                                   onChange={e => updateAMSForm(p.id, idx, "power", Number(e.target.value))}
-                                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                                  style={{ ...commonStyles.input, width: "100%" }}
+                                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                  style={{ ...themeStyles.input, width: "100%" }}
                                 />
                               </div>
                             </div>
@@ -400,11 +402,11 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
                       </div>
                       <button 
                         onClick={() => saveAMS(p.id)}
-                        onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-                        onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonSuccess.boxShadow; }}
+                        onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                        onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
                         style={{ 
-                          ...commonStyles.button,
-                          ...commonStyles.buttonSuccess
+                          ...themeStyles.button,
+                          ...themeStyles.buttonSuccess
                         }}
                       >
                         {t("printers.save")}
@@ -419,16 +421,16 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
           </table>
         </div>
       ) : printers.length > 0 && searchTerm ? (
-        <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px" }}>
+        <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
-          <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>
+          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>
             {settings.language === "hu" ? "Nincs találat a keresési kifejezésre." : settings.language === "de" ? "Keine Ergebnisse für den Suchbegriff." : "No results found for the search term."}
           </p>
         </div>
       ) : (
-        <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px" }}>
+        <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🖨️</div>
-          <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>{t("printers.empty")}</p>
+          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>{t("printers.empty")}</p>
         </div>
       )}
       

@@ -13,6 +13,7 @@ import { LoadingSpinner } from "./components/LoadingSpinner";
 import type { Printer, Settings, Filament, Offer } from "./types";
 import { defaultSettings } from "./types";
 import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers } from "./utils/store";
+import { themes, getThemeStyles } from "./utils/themes";
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
@@ -46,6 +47,10 @@ export default function App() {
             console.warn("Betöltött beállításokban az electricityPrice érvénytelen, alapértelmezett értéket használunk");
           }
           loadedSettings.electricityPrice = defaultSettings.electricityPrice;
+        }
+        // Ha nincs téma, használjuk az alapértelmezettet
+        if (!loadedSettings.theme) {
+          loadedSettings.theme = defaultSettings.theme;
         }
         setSettings(loadedSettings);
       } else {
@@ -86,19 +91,24 @@ export default function App() {
     setOffers([...offers, offer]);
   };
 
+  // Get current theme
+  const currentThemeName = settings.theme || "light";
+  const currentTheme = themes[currentThemeName];
+  const themeStyles = getThemeStyles(currentTheme);
+
   let PageComponent;
   switch (activePage) {
     case "filaments": 
-      PageComponent = <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} />; 
+      PageComponent = <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} />; 
       break;
     case "printers":
-      PageComponent = <Printers printers={printers} setPrinters={setPrinters} settings={settings} />;
+      PageComponent = <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
       break;
     case "calculator": 
-      PageComponent = <Calculator printers={printers} filaments={filaments} settings={settings} onSaveOffer={handleSaveOffer} />; 
+      PageComponent = <Calculator printers={printers} filaments={filaments} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
       break;
     case "offers":
-      PageComponent = <Offers offers={offers} setOffers={setOffers} settings={settings} />;
+      PageComponent = <Offers offers={offers} setOffers={setOffers} settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
       break;
     case "settings": 
       PageComponent = <SettingsPage 
@@ -110,9 +120,11 @@ export default function App() {
         setFilaments={setFilaments}
         offers={offers}
         setOffers={setOffers}
+        theme={currentTheme}
+        themeStyles={themeStyles}
       />; 
       break;
-    default: PageComponent = <Home settings={settings} offers={offers} />;
+    default: PageComponent = <Home settings={settings} offers={offers} theme={currentTheme} themeStyles={themeStyles} />;
   }
 
   // Determine if this is a beta build from environment variable (set at build time)
@@ -121,13 +133,19 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
-        <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
+        <div style={{ 
+          height: "100vh", 
+          width: "100vw", 
+          overflow: "hidden",
+          backgroundColor: currentTheme.colors.background,
+          color: currentTheme.colors.text,
+        }}>
           <UpdateChecker settings={settings} />
-          <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} isBeta={isBeta} />
+          <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} isBeta={isBeta} theme={currentTheme} />
           <main style={{ 
             padding: 20, 
-            backgroundColor: "#ffffff", 
-            color: "#111111",
+            backgroundColor: currentTheme.colors.background, 
+            color: currentTheme.colors.text,
             overflowY: "auto",
             overflowX: "hidden",
             position: "relative",

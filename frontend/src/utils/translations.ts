@@ -116,6 +116,8 @@ export type TranslationKey =
   | "settings.importError"
   | "settings.noFileSelected"
   | "settings.invalidFile"
+  | "settings.theme"
+  | "settings.themeDescription"
   // Offers
   | "offers.title"
   | "offers.save"
@@ -279,6 +281,8 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.importError": "Hiba történt az importálás során!",
     "settings.noFileSelected": "Nincs fájl kiválasztva!",
     "settings.invalidFile": "Érvénytelen fájl formátum!",
+    "settings.theme": "Téma:",
+    "settings.themeDescription": "Válassz egy témát az alkalmazás megjelenéséhez. A változtatás azonnal érvénybe lép.",
     // Offers
     "offers.title": "Árajánlatok",
     "offers.save": "Mentés",
@@ -442,6 +446,8 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.importError": "Error importing data!",
     "settings.noFileSelected": "No file selected!",
     "settings.invalidFile": "Invalid file format!",
+    "settings.theme": "Theme:",
+    "settings.themeDescription": "Choose a theme for the application appearance. Changes take effect immediately.",
     // Offers
     "offers.title": "Offers",
     "offers.save": "Save",
@@ -605,6 +611,8 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.importError": "Fehler beim Importieren!",
     "settings.noFileSelected": "Keine Datei ausgewählt!",
     "settings.invalidFile": "Ungültiges Dateiformat!",
+    "settings.theme": "Design:",
+    "settings.themeDescription": "Wähle ein Design für das Erscheinungsbild der Anwendung. Änderungen werden sofort wirksam.",
     // Offers
     "offers.title": "Angebote",
     "offers.save": "Speichern",

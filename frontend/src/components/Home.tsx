@@ -1,14 +1,17 @@
 import React, { useMemo } from "react";
 import type { Settings, Offer } from "../types";
+import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { convertCurrency } from "../utils/currency";
 
 interface Props {
   settings: Settings;
   offers: Offer[];
+  theme: Theme;
+  themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
 
-export const Home: React.FC<Props> = ({ settings, offers }) => {
+export const Home: React.FC<Props> = ({ settings, offers, theme, themeStyles }) => {
   const t = useTranslation(settings.language);
   
   // Statisztikák számítása
@@ -121,7 +124,7 @@ export const Home: React.FC<Props> = ({ settings, offers }) => {
     color: string;
   }) => (
     <div style={{
-      backgroundColor: "#fff",
+      backgroundColor: theme.colors.surface,
       borderRadius: "12px",
       padding: "24px",
       boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
@@ -141,10 +144,10 @@ export const Home: React.FC<Props> = ({ settings, offers }) => {
     >
       <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
         <span style={{ fontSize: "32px", marginRight: "12px" }}>{icon}</span>
-        <h3 style={{ margin: 0, fontSize: "14px", color: "#666", fontWeight: "500" }}>{title}</h3>
+        <h3 style={{ margin: 0, fontSize: "14px", color: theme.colors.textSecondary, fontWeight: "500" }}>{title}</h3>
       </div>
       <div style={{ fontSize: "28px", fontWeight: "bold", color: color }}>
-        {value} {unit && <span style={{ fontSize: "16px", color: "#666" }}>{unit}</span>}
+        {value} {unit && <span style={{ fontSize: "16px", color: theme.colors.textSecondary }}>{unit}</span>}
       </div>
     </div>
   );
@@ -152,10 +155,10 @@ export const Home: React.FC<Props> = ({ settings, offers }) => {
   return (
     <div>
       <div style={{ marginBottom: "30px" }}>
-        <h2 style={{ margin: 0, fontSize: "32px", fontWeight: "bold", color: "#1a1a1a" }}>
+        <h2 style={{ margin: 0, fontSize: "32px", fontWeight: "bold", color: theme.colors.text }}>
           {t("home.title")}
         </h2>
-        <p style={{ marginTop: "8px", color: "#666", fontSize: "16px" }}>
+        <p style={{ marginTop: "8px", color: theme.colors.textSecondary, fontSize: "16px" }}>
           Statisztikák és összefoglaló az árajánlatokról
         </p>
       </div>
@@ -213,7 +216,7 @@ export const Home: React.FC<Props> = ({ settings, offers }) => {
 
       {/* További információ */}
       <div style={{
-        backgroundColor: "#fff",
+        backgroundColor: theme.colors.surface,
         borderRadius: "12px",
         padding: "24px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
@@ -224,19 +227,19 @@ export const Home: React.FC<Props> = ({ settings, offers }) => {
         </h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
           <div>
-            <strong style={{ color: "#666" }}>Árajánlatok száma:</strong>
+            <strong style={{ color: theme.colors.textSecondary }}>Árajánlatok száma:</strong>
             <div style={{ fontSize: "24px", fontWeight: "bold", color: "#007bff", marginTop: "4px" }}>
               {statistics.offerCount}
             </div>
           </div>
           <div>
-            <strong style={{ color: "#666" }}>Átlagos profit/árajánlat:</strong>
+            <strong style={{ color: theme.colors.textSecondary }}>Átlagos profit/árajánlat:</strong>
             <div style={{ fontSize: "24px", fontWeight: "bold", color: statistics.totalProfit >= 0 ? "#28a745" : "#dc3545", marginTop: "4px" }}>
               {statistics.offerCount > 0 ? formatNumber(formatCurrency(statistics.totalProfit / statistics.offerCount), 2) : "0.00"} {settings.currency === "HUF" ? "Ft" : settings.currency}
             </div>
           </div>
           <div>
-            <strong style={{ color: "#666" }}>Profit margó:</strong>
+            <strong style={{ color: theme.colors.textSecondary }}>Profit margó:</strong>
             <div style={{ fontSize: "24px", fontWeight: "bold", color: statistics.totalProfit >= 0 ? "#28a745" : "#dc3545", marginTop: "4px" }}>
               {statistics.totalRevenue > 0 ? formatNumber((statistics.totalProfit / statistics.totalRevenue) * 100, 1) : "0.0"}%
             </div>
@@ -247,14 +250,14 @@ export const Home: React.FC<Props> = ({ settings, offers }) => {
       {/* Üres állapot */}
       {statistics.offerCount === 0 && (
         <div style={{
-          backgroundColor: "#f8f9fa",
+          backgroundColor: theme.colors.surfaceHover,
           borderRadius: "12px",
           padding: "40px",
           textAlign: "center",
-          border: "2px dashed #dee2e6"
+          border: `2px dashed ${theme.colors.border}`
         }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>📊</div>
-          <h3 style={{ margin: 0, marginBottom: "8px", color: "#495057" }}>
+          <h3 style={{ margin: 0, marginBottom: "8px", color: theme.colors.text }}>
             Még nincsenek statisztikák
           </h3>
           <p style={{ margin: 0, color: "#6c757d" }}>

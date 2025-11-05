@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
 import type { Printer, Filament, Settings, Offer } from "../types";
+import type { Theme } from "../utils/themes";
 import { convertCurrency } from "../utils/currency";
 import { useTranslation } from "../utils/translations";
-import { commonStyles } from "../utils/styles";
 import { useToast } from "./Toast";
 
 interface SelectedFilament {
@@ -18,9 +18,11 @@ interface Props {
   filaments: Filament[];
   settings: Settings;
   onSaveOffer?: (offer: any) => void;
+  theme: Theme;
+  themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
 
-export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onSaveOffer }) => {
+export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onSaveOffer, theme, themeStyles }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [selectedPrinterId, setSelectedPrinterId] = useState<number | "">("");
@@ -136,16 +138,16 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
 
   return (
     <div>
-      <h2 style={commonStyles.pageTitle}>{t("calculator.title")}</h2>
-      <p style={commonStyles.pageSubtitle}>3D nyomtatási költség számítás</p>
+      <h2 style={themeStyles.pageTitle}>{t("calculator.title")}</h2>
+      <p style={themeStyles.pageSubtitle}>3D nyomtatási költség számítás</p>
       
-      <div style={{ ...commonStyles.card, marginBottom: "24px", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
-        <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+      <div style={{ ...themeStyles.card, marginBottom: "24px", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
+        <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
           ⚙️ {t("calculator.parameters")}
         </h3>
         
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: "#495057" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
             🖨️ {t("calculator.printer")}
           </label>
           <select
@@ -154,9 +156,9 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               setSelectedPrinterId(e.target.value === "" ? "" : Number(e.target.value));
               setSelectedFilaments([]); // Reset filaments when printer changes
             }}
-            onFocus={(e) => Object.assign(e.target.style, commonStyles.selectFocus)}
-            onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-            style={{ ...commonStyles.select, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
+            onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+            style={{ ...themeStyles.select, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
           >
             <option value="">{t("calculator.selectPrinter")}</option>
             {printers.map(p => (
@@ -166,7 +168,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             ))}
           </select>
           {selectedPrinter && (
-            <p style={{ marginTop: "5px", fontSize: "12px", color: "#666" }}>
+            <p style={{ marginTop: "5px", fontSize: "12px", color: theme.colors.textSecondary }}>
               {t("calculator.maxFilaments")} {maxFilaments} ({(selectedPrinter.amsCount || 0)} {t("printers.ams")} × 4)
             </p>
           )}
@@ -174,50 +176,50 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
 
         {/* Nyomtatási idő: óra, perc, másodperc */}
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: "#495057" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
             ⏱️ {t("calculator.printTimeLabel")}
           </label>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.hours")}</label>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.hours")}</label>
               <input
                 type="number"
                 min="0"
                 value={printTimeHours}
                 onChange={e => setPrintTimeHours(Math.max(0, Number(e.target.value)))}
-                onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                style={{ ...commonStyles.input, width: "100px" }}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                style={{ ...themeStyles.input, width: "100px" }}
               />
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.minutes")}</label>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.minutes")}</label>
               <input
                 type="number"
                 min="0"
                 max="59"
                 value={printTimeMinutes}
                 onChange={e => setPrintTimeMinutes(Math.min(59, Math.max(0, Number(e.target.value))))}
-                onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                style={{ ...commonStyles.input, width: "100px" }}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                style={{ ...themeStyles.input, width: "100px" }}
               />
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.seconds")}</label>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.seconds")}</label>
               <input
                 type="number"
                 min="0"
                 max="59"
                 value={printTimeSeconds}
                 onChange={e => setPrintTimeSeconds(Math.min(59, Math.max(0, Number(e.target.value))))}
-                onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                style={{ ...commonStyles.input, width: "100px" }}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                style={{ ...themeStyles.input, width: "100px" }}
               />
             </div>
           </div>
-          <p style={{ marginTop: "5px", fontSize: "12px", color: "#666" }}>
+          <p style={{ marginTop: "5px", fontSize: "12px", color: theme.colors.textSecondary }}>
             {t("calculator.totalTime")} {totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
           </p>
         </div>
@@ -225,17 +227,17 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
         {/* Filamentek kiválasztása */}
         <div style={{ marginBottom: "20px", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
-            <label style={{ fontWeight: "600", fontSize: "16px", color: "#495057" }}>
+            <label style={{ fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
               🧵 {t("calculator.filaments")} ({selectedFilaments.length}/{maxFilaments})
             </label>
             {maxFilaments > 0 && selectedFilaments.length < maxFilaments && (
               <button 
                 onClick={addFilament}
-                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonPrimary.boxShadow; }}
+                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
                 style={{ 
-                  ...commonStyles.button,
-                  ...commonStyles.buttonPrimary,
+                  ...themeStyles.button,
+                  ...themeStyles.buttonPrimary,
                   padding: "10px 20px",
                   fontSize: "14px"
                 }}
@@ -247,16 +249,16 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
           
           <div style={{ display: "flex", flexDirection: "column", gap: "16px", maxWidth: "100%", overflow: "hidden" }}>
             {selectedFilaments.map((sf, idx) => (
-              <div key={idx} style={{ ...commonStyles.card, width: "100%", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
+              <div key={idx} style={{ ...themeStyles.card, width: "100%", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
-                <strong style={{ fontSize: "16px", color: "#495057" }}>{t("calculator.filament")} {idx + 1}:</strong>
+                <strong style={{ fontSize: "16px", color: theme.colors.text }}>{t("calculator.filament")} {idx + 1}:</strong>
                 <button 
                   onClick={() => removeFilament(idx)}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
                   style={{ 
-                    ...commonStyles.button,
-                    ...commonStyles.buttonDanger,
+                    ...themeStyles.button,
+                    ...themeStyles.buttonDanger,
                     padding: "8px 16px",
                     fontSize: "12px",
                     flexShrink: 0
@@ -267,13 +269,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               </div>
               <div style={{ display: "flex", gap: "16px", alignItems: "flex-end", marginBottom: "16px", flexWrap: "wrap" }}>
                 <div style={{ flex: "1", minWidth: "200px", maxWidth: "100%" }}>
-                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.filament")}:</label>
+                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.filament")}:</label>
                   <select
                     value={sf.filamentIndex}
                     onChange={e => updateFilament(idx, "filamentIndex", Number(e.target.value))}
-                    onFocus={(e) => Object.assign(e.target.style, commonStyles.selectFocus)}
-                    onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                    style={{ ...commonStyles.select, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
+                    onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+                    onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                    style={{ ...themeStyles.select, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
                   >
                     <option value={-1}>{t("calculator.selectFilamentOption")}</option>
                     {filaments.map((f, i) => (
@@ -284,7 +286,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   </select>
                 </div>
                 <div style={{ flexShrink: 0 }}>
-                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.usedGrams")}</label>
+                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.usedGrams")}</label>
                   <input
                     type="number"
                     min="0"
@@ -296,15 +298,15 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                         updateFilament(idx, "usedGrams", val);
                       }
                     }}
-                    onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                    onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                    style={{ ...commonStyles.input, width: "140px", boxSizing: "border-box" }}
+                    onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                    onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                    style={{ ...themeStyles.input, width: "140px", boxSizing: "border-box" }}
                   />
                 </div>
               </div>
               {/* Szárítás opció minden filamentnél */}
-              <div style={{ ...commonStyles.card, padding: "16px", backgroundColor: "#f8f9fa", marginTop: "16px", maxWidth: "100%", boxSizing: "border-box" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", marginBottom: "12px", fontSize: "14px", color: "#495057" }}>
+              <div style={{ ...themeStyles.card, padding: "16px", backgroundColor: theme.colors.surfaceHover, marginTop: "16px", maxWidth: "100%", boxSizing: "border-box" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", marginBottom: "12px", fontSize: "14px", color: theme.colors.text }}>
                   <input
                     type="checkbox"
                     checked={sf.needsDrying || false}
@@ -316,7 +318,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 {sf.needsDrying && (
                   <div style={{ display: "flex", gap: "12px", marginTop: "12px", flexWrap: "wrap" }}>
                     <div style={{ flex: "1", minWidth: "150px", maxWidth: "100%" }}>
-                      <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.dryingTime")}</label>
+                      <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.dryingTime")}</label>
                       <input
                         type="number"
                         min="0"
@@ -328,13 +330,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                             updateFilament(idx, "dryingTime", val);
                           }
                         }}
-                        onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                        onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                        style={{ ...commonStyles.input, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
+                        onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                        style={{ ...themeStyles.input, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
                       />
                     </div>
                     <div style={{ flex: "1", minWidth: "150px", maxWidth: "100%" }}>
-                      <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "#495057" }}>{t("calculator.dryingPower")}</label>
+                      <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.dryingPower")}</label>
                       <input
                         type="number"
                         min="0"
@@ -345,9 +347,9 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                             updateFilament(idx, "dryingPower", val);
                           }
                         }}
-                        onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                        onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                        style={{ ...commonStyles.input, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
+                        onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                        style={{ ...themeStyles.input, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
                       />
                     </div>
                   </div>
@@ -358,8 +360,8 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
           </div>
           
           {selectedFilaments.length === 0 && (
-            <div style={{ ...commonStyles.card, textAlign: "center", padding: "40px", backgroundColor: "#f8f9fa" }}>
-              <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>{t("calculator.selectPrinter")}, {t("calculator.addFilament").toLowerCase()}.</p>
+            <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px", backgroundColor: theme.colors.surfaceHover }}>
+              <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>{t("calculator.selectPrinter")}, {t("calculator.addFilament").toLowerCase()}.</p>
             </div>
           )}
         </div>
@@ -368,14 +370,14 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
 
       {calculations && (
         <div style={{ 
-          ...commonStyles.card,
+          ...themeStyles.card,
           marginTop: "30px",
           maxWidth: "100%",
           boxSizing: "border-box",
           overflow: "hidden"
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+            <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
               💰 {t("calculator.costBreakdown")} ({settings.currency})
             </h3>
             {onSaveOffer && (
@@ -384,11 +386,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   if (!selectedPrinter) return;
                   setShowOfferDialog(true);
                 }}
-                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
-                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonSuccess.boxShadow; }}
+                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
                 style={{
-                  ...commonStyles.button,
-                  ...commonStyles.buttonSuccess
+                  ...themeStyles.button,
+                  ...themeStyles.buttonSuccess
                 }}
               >
                 {t("calculator.saveAsOffer")}
@@ -396,27 +398,27 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             )}
           </div>
           <div style={{ marginTop: "20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #e9ecef" }}>
-              <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.filamentCost")}</span>
-              <strong style={{ fontSize: "16px", color: "#28a745" }}>{calculations.filamentCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
+              <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.filamentCost")}</span>
+              <strong style={{ fontSize: "16px", color: theme.colors.success }}>{calculations.filamentCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #e9ecef" }}>
-              <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.electricityCost")}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
+              <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.electricityCost")}</span>
               <strong style={{ fontSize: "16px", color: "#ffc107" }}>{calculations.electricityCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
             </div>
             {selectedFilaments.some(sf => sf.needsDrying && sf.dryingTime && sf.dryingTime > 0 && sf.dryingPower && sf.dryingPower > 0) && (
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #e9ecef" }}>
-                <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.dryingCost")}</span>
-                <strong style={{ fontSize: "16px", color: "#17a2b8" }}>{calculations.totalDryingCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
+                <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.dryingCost")}</span>
+                <strong style={{ fontSize: "16px", color: theme.colors.primary }}>{calculations.totalDryingCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
               </div>
             )}
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: "2px solid #dee2e6" }}>
-              <span style={{ fontSize: "14px", color: "#495057" }}>{t("calculator.usageCost")}</span>
-              <strong style={{ fontSize: "16px", color: "#6c757d" }}>{calculations.usageCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: `2px solid ${theme.colors.border}` }}>
+              <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.usageCost")}</span>
+              <strong style={{ fontSize: "16px", color: theme.colors.textMuted }}>{calculations.usageCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: "#f8f9fa", padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
-              <span style={{ color: "#495057" }}>{t("calculator.totalCost")}</span>
-              <strong style={{ color: "#007bff" }}>{calculations.totalCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: theme.colors.surfaceHover, padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
+              <span style={{ color: theme.colors.text }}>{t("calculator.totalCost")}</span>
+              <strong style={{ color: theme.colors.primary }}>{calculations.totalCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
             </div>
           </div>
         </div>
@@ -424,14 +426,14 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
 
       {(!selectedPrinter || selectedFilaments.length === 0 || !calculations) && (
         <div style={{ 
-          ...commonStyles.card,
+          ...themeStyles.card,
           marginTop: "30px",
           textAlign: "center",
           padding: "40px",
-          backgroundColor: "#f8f9fa"
+          backgroundColor: theme.colors.surfaceHover
         }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>📊</div>
-          <p style={{ margin: 0, color: "#6c757d", fontSize: "16px" }}>{t("calculator.fillFields")}</p>
+          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>{t("calculator.fillFields")}</p>
         </div>
       )}
 
@@ -454,7 +456,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
         >
           <div
             style={{
-              backgroundColor: "#fff",
+              backgroundColor: theme.colors.surface,
               borderRadius: "12px",
               padding: "24px",
               maxWidth: "500px",
@@ -463,13 +465,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ margin: "0 0 20px 0", color: "#212529", fontSize: "20px", fontWeight: "600" }}>
+            <h3 style={{ margin: "0 0 20px 0", color: theme.colors.text, fontSize: "20px", fontWeight: "600" }}>
               {t("calculator.saveAsOffer")}
             </h3>
             
             <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
               <div style={{ width: "180px", flexShrink: 0 }}>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
                   {t("offers.customerName")} *
                 </label>
                 <input
@@ -477,14 +479,14 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   placeholder={t("offers.customerName")}
                   value={offerCustomerName}
                   onChange={e => setOfferCustomerName(e.target.value)}
-                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                  style={{ ...commonStyles.input, width: "100%" }}
+                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                  style={{ ...themeStyles.input, width: "100%" }}
                 />
               </div>
               
               <div style={{ width: "180px", flexShrink: 0 }}>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
                   {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}
                 </label>
                 <input
@@ -492,14 +494,14 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   placeholder={settings.language === "hu" ? "Email/telefon" : settings.language === "de" ? "E-Mail/Telefon" : "Email/phone"}
                   value={offerCustomerContact}
                   onChange={e => setOfferCustomerContact(e.target.value)}
-                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                  style={{ ...commonStyles.input, width: "100%" }}
+                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                  style={{ ...themeStyles.input, width: "100%" }}
                 />
               </div>
               
               <div style={{ width: "180px", flexShrink: 0 }}>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
                   {t("offers.profitPercentage")} (%)
                 </label>
                 <input
@@ -514,25 +516,25 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                       setOfferProfitPercentage(val);
                     }
                   }}
-                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                  style={{ ...commonStyles.input, width: "100%" }}
+                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                  style={{ ...themeStyles.input, width: "100%" }}
                 />
               </div>
             </div>
             
             <div style={{ marginTop: "24px" }}>
               <div style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: "#212529", whiteSpace: "nowrap" }}>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
                   {t("offers.description")}
                 </label>
                 <textarea
                   placeholder={t("offers.description")}
                   value={offerDescription}
                   onChange={e => setOfferDescription(e.target.value)}
-                  onFocus={(e) => Object.assign(e.target.style, commonStyles.inputFocus)}
-                  onBlur={(e) => { e.target.style.borderColor = "#e9ecef"; e.target.style.boxShadow = "none"; }}
-                  style={{ ...commonStyles.input, width: "100%", maxWidth: "100%", height: "50px", minHeight: "50px", maxHeight: "100px", resize: "vertical", boxSizing: "border-box" }}
+                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                  style={{ ...themeStyles.input, width: "100%", maxWidth: "100%", height: "50px", minHeight: "50px", maxHeight: "100px", resize: "vertical", boxSizing: "border-box" }}
                 />
               </div>
             </div>
@@ -547,8 +549,8 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   setOfferProfitPercentage(30);
                 }}
                 style={{
-                  ...commonStyles.button,
-                  backgroundColor: "#6c757d",
+                  ...themeStyles.button,
+                  backgroundColor: theme.colors.secondary,
                   color: "#fff",
                   padding: "10px 20px",
                 }}
@@ -612,8 +614,8 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   setOfferProfitPercentage(30);
                 }}
                 style={{
-                  ...commonStyles.button,
-                  ...commonStyles.buttonSuccess,
+                  ...themeStyles.button,
+                  ...themeStyles.buttonSuccess,
                   padding: "10px 20px",
                 }}
               >
