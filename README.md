@@ -218,7 +218,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
-### v0.1.85 (2025.11.4)
+### v0.1.85 (2025)
 - 🎨 **UI/UX Javítások**:
   - ✏️ Duplikált ikonok eltávolítva (Szerkesztés, Mentés, Mégse gombok)
   - 📐 Export/Import szekciók 2 oszlopos layoutban (egymás mellett)
@@ -234,13 +234,13 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
   - Revenue (Bevétel/Összes ár) külön sorban, kiemelve
   - Teljes költség bontás a PDF-ben
 
-### v0.1.56 (2025.11.4)
+### v0.1.56 (2025)
 - ✨ **Calculator layout javítások**: Filament kártyák túlcsordulás javítva, responsive flexbox layout
 - ✨ **Költség bontás responsive**: Most dinamikusan reagál az ablakméret változására
 - 🐛 **Bugfix**: Filament hozzáadásakor nem csúszik ki a tartalom az ablakból
 - 🐛 **Bugfix**: Minden Calculator elem megfelelően reagál az ablakméret változására
 
-### v0.1.55 (2025.11.4)
+### v0.1.55 (2025)
 - ✨ **Megerősítő dialógusok**: Törlés előtt megerősítés kérése (Filamentek, Nyomtatók, Árajánlatok)
 - ✨ **Toast értesítések**: Sikeres műveletek után értesítések (hozzáadás, frissítés, törlés)
 - ✨ **Input validáció**: Negatív számok eltiltása, maximum értékek beállítása
