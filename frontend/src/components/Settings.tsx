@@ -4,7 +4,7 @@ import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import type { Settings, Printer, Filament, Offer } from "../types";
 import { useTranslation } from "../utils/translations";
 import { useToast } from "./Toast";
-import { themes, type ThemeName } from "../utils/themes";
+import { themes, type ThemeName, type Theme } from "../utils/themes";
 
 interface Props {
   settings: Settings;

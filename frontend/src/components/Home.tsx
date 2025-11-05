@@ -8,10 +8,9 @@ interface Props {
   settings: Settings;
   offers: Offer[];
   theme: Theme;
-  themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
 
-export const Home: React.FC<Props> = ({ settings, offers, theme, themeStyles }) => {
+export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
   const t = useTranslation(settings.language);
   
   // Statisztikák számítása

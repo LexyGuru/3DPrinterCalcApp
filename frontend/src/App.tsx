@@ -124,7 +124,7 @@ export default function App() {
         themeStyles={themeStyles}
       />; 
       break;
-    default: PageComponent = <Home settings={settings} offers={offers} theme={currentTheme} themeStyles={themeStyles} />;
+    default: PageComponent = <Home settings={settings} offers={offers} theme={currentTheme} />;
   }
 
   // Determine if this is a beta build from environment variable (set at build time)
