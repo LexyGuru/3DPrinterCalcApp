@@ -566,7 +566,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                 <ul style={{ marginTop: "10px", paddingLeft: "20px", listStyle: "none" }}>
                   {selectedOffer.filaments.map((f, idx) => (
                     <li key={idx} style={{ marginBottom: "12px", padding: "12px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", fontSize: "14px", color: theme.colors.text }}>
-                      <strong style={{ color: theme.colors.text }}>{f.brand} {f.type}</strong> {f.color ? `(${f.color})` : ""} - {f.usedGrams}g @ {f.pricePerKg}{((selectedOffer.currency || "EUR") === "HUF" ? "Ft" : (selectedOffer.currency || "EUR"))}/kg
+                      <strong style={{ color: theme.colors.text }}>{f.brand} {f.type}</strong> {f.color ? `(${f.color})` : ""} - {f.usedGrams}g @ {convertCurrencyFromTo(f.pricePerKg, selectedOffer.currency || "EUR", settings.currency).toFixed(2)}{settings.currency === "HUF" ? "Ft" : settings.currency}/kg
                       {f.needsDrying && (
                         <div style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
                           🌡️ Szárítás: {f.dryingTime}h @ {f.dryingPower}W
