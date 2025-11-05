@@ -101,7 +101,16 @@ export default function App() {
       PageComponent = <Offers offers={offers} setOffers={setOffers} settings={settings} />;
       break;
     case "settings": 
-      PageComponent = <SettingsPage settings={settings} onChange={setSettings} />; 
+      PageComponent = <SettingsPage 
+        settings={settings} 
+        onChange={setSettings}
+        printers={printers}
+        setPrinters={setPrinters}
+        filaments={filaments}
+        setFilaments={setFilaments}
+        offers={offers}
+        setOffers={setOffers}
+      />; 
       break;
     default: PageComponent = <Home settings={settings} offers={offers} />;
   }

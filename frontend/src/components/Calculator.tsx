@@ -464,7 +464,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ margin: "0 0 20px 0", color: "#212529", fontSize: "20px", fontWeight: "600" }}>
-              💾 {t("calculator.saveAsOffer")}
+              {t("calculator.saveAsOffer")}
             </h3>
             
             <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>

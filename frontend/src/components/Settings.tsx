@@ -1,15 +1,40 @@
-import React from "react";
-import type { Settings } from "../types";
+import React, { useState } from "react";
+import { save, open } from "@tauri-apps/plugin-dialog";
+import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import type { Settings, Printer, Filament, Offer } from "../types";
 import { useTranslation } from "../utils/translations";
 import { commonStyles } from "../utils/styles";
+import { useToast } from "./Toast";
 
 interface Props {
   settings: Settings;
   onChange: (newSettings: Settings) => void;
+  printers: Printer[];
+  setPrinters: (printers: Printer[]) => void;
+  filaments: Filament[];
+  setFilaments: (filaments: Filament[]) => void;
+  offers: Offer[];
+  setOffers: (offers: Offer[]) => void;
 }
 
-export const SettingsPage: React.FC<Props> = ({ settings, onChange }) => {
+export const SettingsPage: React.FC<Props> = ({ 
+  settings, 
+  onChange,
+  printers,
+  setPrinters,
+  filaments,
+  setFilaments,
+  offers,
+  setOffers
+}) => {
   const t = useTranslation(settings.language);
+  const { showToast } = useToast();
+  const [exportFilaments, setExportFilaments] = useState(false);
+  const [exportPrinters, setExportPrinters] = useState(false);
+  const [exportOffers, setExportOffers] = useState(false);
+  const [importFilaments, setImportFilaments] = useState(false);
+  const [importPrinters, setImportPrinters] = useState(false);
+  const [importOffers, setImportOffers] = useState(false);
   
   // Átalakítjuk az áramárat megjelenítéshez (Ft/kWh -> választott pénznem)
   const getDisplayElectricityPrice = (): number => {
@@ -51,6 +76,112 @@ export const SettingsPage: React.FC<Props> = ({ settings, onChange }) => {
     // Konvertáljuk Ft/kWh-ba tároláshoz
     const priceInHUF = convertElectricityPriceToHUF(displayValue);
     onChange({ ...settings, electricityPrice: priceInHUF });
+  };
+
+  const handleExport = async () => {
+    if (!exportFilaments && !exportPrinters && !exportOffers) {
+      showToast(t("settings.exportError") + ": " + (settings.language === "hu" ? "Válassz ki legalább egy elemet!" : settings.language === "de" ? "Wählen Sie mindestens ein Element aus!" : "Select at least one item!"), "error");
+      return;
+    }
+
+    try {
+      const exportData: any = {};
+      if (exportFilaments) exportData.filaments = filaments;
+      if (exportPrinters) exportData.printers = printers;
+      if (exportOffers) exportData.offers = offers;
+
+      const jsonContent = JSON.stringify(exportData, null, 2);
+
+      const filePath = await save({
+        defaultPath: "3DPrinterCalcApp_export.json",
+        filters: [{
+          name: "JSON",
+          extensions: ["json"]
+        }]
+      });
+
+      if (filePath) {
+        await writeTextFile(filePath, jsonContent);
+        showToast(t("settings.exportSuccess"), "success");
+        // Reset checkboxes
+        setExportFilaments(false);
+        setExportPrinters(false);
+        setExportOffers(false);
+      } else {
+        // User cancelled the save dialog
+        return;
+      }
+    } catch (error) {
+      console.error("Export error:", error);
+      showToast(t("settings.exportError"), "error");
+    }
+  };
+
+  const handleImport = async () => {
+    if (!importFilaments && !importPrinters && !importOffers) {
+      showToast(t("settings.importError") + ": " + (settings.language === "hu" ? "Válassz ki legalább egy elemet!" : settings.language === "de" ? "Wählen Sie mindestens ein Element aus!" : "Select at least one item!"), "error");
+      return;
+    }
+
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{
+          name: "JSON",
+          extensions: ["json"]
+        }]
+      });
+
+      if (!selected) {
+        // User cancelled the open dialog
+        return;
+      }
+
+      // Handle both string (single file) and array (multiple files) cases
+      const filePath = Array.isArray(selected) ? selected[0] : selected;
+      
+      if (!filePath || typeof filePath !== "string") {
+        showToast(t("settings.noFileSelected"), "error");
+        return;
+      }
+
+      const fileContent = await readTextFile(filePath);
+      const importData = JSON.parse(fileContent);
+
+      // Validate and import data
+      if (importFilaments && importData.filaments) {
+        if (Array.isArray(importData.filaments)) {
+          setFilaments(importData.filaments);
+        } else {
+          throw new Error("Invalid filaments data");
+        }
+      }
+
+      if (importPrinters && importData.printers) {
+        if (Array.isArray(importData.printers)) {
+          setPrinters(importData.printers);
+        } else {
+          throw new Error("Invalid printers data");
+        }
+      }
+
+      if (importOffers && importData.offers) {
+        if (Array.isArray(importData.offers)) {
+          setOffers(importData.offers);
+        } else {
+          throw new Error("Invalid offers data");
+        }
+      }
+
+      showToast(t("settings.importSuccess"), "success");
+      // Reset checkboxes
+      setImportFilaments(false);
+      setImportPrinters(false);
+      setImportOffers(false);
+    } catch (error) {
+      console.error("Import error:", error);
+      showToast(t("settings.importError") + ": " + (settings.language === "hu" ? "Érvénytelen fájl formátum!" : settings.language === "de" ? "Ungültiges Dateiformat!" : "Invalid file format!"), "error");
+    }
   };
 
   return (
@@ -125,6 +256,122 @@ export const SettingsPage: React.FC<Props> = ({ settings, onChange }) => {
           <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: "#6c757d" }}>
             {t("settings.checkForBetaUpdatesDescription")}
           </p>
+        </div>
+      </div>
+
+      {/* Export/Import Data Section - 2 oszlop */}
+      <div style={{ display: "flex", gap: "24px", marginTop: "24px", flexWrap: "wrap" }}>
+        {/* Export Data Section */}
+        <div style={{ ...commonStyles.card, flex: "1", minWidth: "400px" }}>
+          <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+            💾 {t("settings.exportTitle")}
+          </h3>
+          <p style={{ marginBottom: "16px", fontSize: "14px", color: "#6c757d" }}>
+            {t("settings.exportDescription")}
+          </p>
+          
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer", marginBottom: "12px" }}>
+              <input
+                type="checkbox"
+                checked={exportFilaments}
+                onChange={e => setExportFilaments(e.target.checked)}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>🧵 {t("settings.exportFilaments")} ({filaments.length})</span>
+            </label>
+            
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer", marginBottom: "12px" }}>
+              <input
+                type="checkbox"
+                checked={exportPrinters}
+                onChange={e => setExportPrinters(e.target.checked)}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>🖨️ {t("settings.exportPrinters")} ({printers.length})</span>
+            </label>
+            
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={exportOffers}
+                onChange={e => setExportOffers(e.target.checked)}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>📄 {t("settings.exportOffers")} ({offers.length})</span>
+            </label>
+          </div>
+
+          <button
+            onClick={handleExport}
+            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
+            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonPrimary.boxShadow; }}
+            style={{
+              ...commonStyles.button,
+              ...commonStyles.buttonPrimary,
+              width: "100%"
+            }}
+          >
+            {t("settings.exportButton")}
+          </button>
+        </div>
+
+        {/* Import Data Section */}
+        <div style={{ ...commonStyles.card, flex: "1", minWidth: "400px" }}>
+          <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: "#495057" }}>
+            📥 {t("settings.importTitle")}
+          </h3>
+          <p style={{ marginBottom: "16px", fontSize: "14px", color: "#6c757d" }}>
+            {t("settings.importDescription")}
+          </p>
+          <p style={{ marginBottom: "16px", fontSize: "12px", color: "#dc3545", fontWeight: "600" }}>
+            ⚠️ {settings.language === "hu" ? "Figyelem: Az importálás felülírja a jelenlegi adatokat!" : settings.language === "de" ? "Warnung: Der Import überschreibt die aktuellen Daten!" : "Warning: Import will overwrite current data!"}
+          </p>
+          
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer", marginBottom: "12px" }}>
+              <input
+                type="checkbox"
+                checked={importFilaments}
+                onChange={e => setImportFilaments(e.target.checked)}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>🧵 {t("settings.importFilaments")}</span>
+            </label>
+            
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer", marginBottom: "12px" }}>
+              <input
+                type="checkbox"
+                checked={importPrinters}
+                onChange={e => setImportPrinters(e.target.checked)}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>🖨️ {t("settings.importPrinters")}</span>
+            </label>
+            
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: "#495057", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={importOffers}
+                onChange={e => setImportOffers(e.target.checked)}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>📄 {t("settings.importOffers")}</span>
+            </label>
+          </div>
+
+          <button
+            onClick={handleImport}
+            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, commonStyles.buttonHover)}
+            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = commonStyles.buttonSuccess.boxShadow; }}
+            style={{
+              ...commonStyles.button,
+              ...commonStyles.buttonSuccess,
+              width: "100%"
+            }}
+          >
+            {t("settings.importButton")}
+          </button>
         </div>
       </div>
     </div>

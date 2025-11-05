@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@tauri-apps/plugin-store": "^2.4.1",
+    "@tauri-apps/plugin-dialog": "^2.0.0",
+    "@tauri-apps/plugin-fs": "^2.0.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

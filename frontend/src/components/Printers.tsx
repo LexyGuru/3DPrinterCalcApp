@@ -253,7 +253,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings }) =
               marginLeft: "10px"
             }}
           >
-            ✖️ {t("filaments.cancel")}
+            {t("filaments.cancel")}
           </button>
         </div>
       </div>

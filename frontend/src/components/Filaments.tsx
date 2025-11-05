@@ -148,7 +148,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
       <div style={{ ...commonStyles.card, marginBottom: "24px", backgroundColor: editingIndex !== null ? "#fff3cd" : "#f8f9fa", border: editingIndex !== null ? "2px solid #ffc107" : "1px solid #e9ecef" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
           <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: "#495057" }}>
-            {editingIndex !== null ? "✏️ " + t("filaments.edit") : "➕ " + t("filaments.addTitle")}
+            {editingIndex !== null ? t("filaments.edit") : "➕ " + t("filaments.addTitle")}
           </h3>
           {editingIndex !== null && (
             <button 
@@ -162,7 +162,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
                 fontSize: "12px"
               }}
             >
-              ✖️ {t("filaments.cancel")}
+              {t("filaments.cancel")}
             </button>
           )}
         </div>
@@ -261,7 +261,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
               padding: "14px 28px"
             }}
           >
-            {editingIndex !== null ? "💾 " + t("filaments.save") : "➕ " + t("filaments.add")}
+            {editingIndex !== null ? t("filaments.save") : "➕ " + t("filaments.add")}
           </button>
           {showAddForm && editingIndex === null && (
             <button
@@ -276,7 +276,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings }
                 marginLeft: "10px"
               }}
             >
-              ✖️ {t("filaments.cancel")}
+              {t("filaments.cancel")}
             </button>
           )}
         </div>

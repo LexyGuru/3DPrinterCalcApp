@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 import type { Offer, Settings } from "../types";
 import { useTranslation, type TranslationKey } from "../utils/translations";
 import { commonStyles } from "../utils/styles";
@@ -118,7 +120,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
     setShowPrintPreview(false);
   };
 
-  const exportAsPDF = (offer: Offer) => {
+  const exportAsPDF = async (offer: Offer) => {
     try {
       if (import.meta.env.DEV) {
         console.log("PDF export started for offer:", offer.id);
@@ -127,22 +129,47 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
       // HTML tartalom generálása
       const htmlContent = generatePDFContent(offer, t, settings);
       
-      // Blob létrehozása és letöltés
-      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `ajánlat_${offer.id}_${new Date().toISOString().split('T')[0]}.html`;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Tauri save dialog használata
+      const dateStr = new Date().toISOString().split('T')[0];
+      const fileName = `ajánlat_${offer.id}_${dateStr}.html`;
       
-      alert(t("offers.exportPDF") + " - A HTML fájl letöltve! Megnyithatod és PDF-ként mentheted (Fájl → Nyomtatás → Mentés PDF-ként).");
+      const filePath = await save({
+        defaultPath: fileName,
+        filters: [
+          {
+            name: "HTML",
+            extensions: ["html"]
+          },
+          {
+            name: "All Files",
+            extensions: ["*"]
+          }
+        ]
+      });
+
+      if (filePath) {
+        // Fájl mentése
+        await writeTextFile(filePath, htmlContent);
+        showToast(
+          settings.language === "hu" 
+            ? `HTML fájl sikeresen mentve: ${fileName}` 
+            : settings.language === "de"
+            ? `HTML-Datei erfolgreich gespeichert: ${fileName}`
+            : `HTML file saved successfully: ${fileName}`,
+          "success"
+        );
+      }
     } catch (error) {
       console.error("Error exporting PDF:", error);
-      alert(t("offers.exportPDF") + " - Hiba történt: " + (error as Error).message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      showToast(
+        settings.language === "hu"
+          ? `Hiba történt: ${errorMessage}`
+          : settings.language === "de"
+          ? `Fehler aufgetreten: ${errorMessage}`
+          : `Error occurred: ${errorMessage}`,
+        "error"
+      );
     }
   };
 
@@ -186,6 +213,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
         <div class="info">
           <p><strong>${t("offers.date")}:</strong> ${formattedDate}</p>
           ${offer.customerName ? `<p><strong>${t("offers.customerName")}:</strong> ${offer.customerName}</p>` : ""}
+          ${offer.customerContact ? `<p><strong>${t("offers.customerContact")}:</strong> ${offer.customerContact}</p>` : ""}
           ${offer.description ? `<p><strong>${t("offers.description")}:</strong> ${offer.description}</p>` : ""}
         </div>
 
@@ -250,10 +278,15 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
             </tr>
             ${(() => {
               const profitPercentage = offer.profitPercentage !== undefined ? offer.profitPercentage : 30;
+              const profit = offer.costs.totalCost * (profitPercentage / 100);
               const revenue = offer.costs.totalCost * (1 + profitPercentage / 100);
               return `
-            <tr class="total" style="background-color: #f0f8ff; border-top: 2px solid #333;">
-              <td><strong>Összes ár:</strong></td>
+            <tr style="border-top: 2px solid #333;">
+              <td><strong>${t("calculator.profit")} (${profitPercentage}%):</strong></td>
+              <td><strong style="color: #28a745; font-size: 1.1em;">${profit.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
+            </tr>
+            <tr class="total" style="background-color: #f0f8ff;">
+              <td><strong>${t("calculator.revenue")} (${t("calculator.totalPrice")}):</strong></td>
               <td><strong style="color: #007bff; font-size: 1.3em;">${revenue.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
             </tr>
                       `;
@@ -653,7 +686,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings }) => {
                     fontSize: "14px"
                   }}
                 >
-                  ❌ Bezárás
+                  {t("common.close")}
                 </button>
               </div>
             </div>

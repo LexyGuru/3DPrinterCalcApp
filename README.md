@@ -218,6 +218,22 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.1.85 (2025.11.4)
+- 🎨 **UI/UX Javítások**:
+  - ✏️ Duplikált ikonok eltávolítva (Szerkesztés, Mentés, Mégse gombok)
+  - 📐 Export/Import szekciók 2 oszlopos layoutban (egymás mellett)
+  - 💾 PDF mentésnél natív save dialog használata (Tauri dialog)
+  - 📊 Toast értesítések PDF mentésnél (sikeres/hiba)
+  - 🖼️ Alkalmazás ablakméret: 1280x720 (korábban 1000x700)
+- 🐛 **Bugfixek**:
+  - PDF generálásban hiányzó információk hozzáadva (customerContact, profit külön sorban, revenue)
+  - Fordítási kulcsok hozzáadva (calculator.profit, calculator.revenue, calculator.totalPrice, offers.customerContact, common.close)
+- 📄 **PDF Export javítások**:
+  - Ügyfél kapcsolat (email/telefon) megjelenítése a PDF-ben
+  - Profit számítás külön sorban a profit százalékkal
+  - Revenue (Bevétel/Összes ár) külön sorban, kiemelve
+  - Teljes költség bontás a PDF-ben
+
 ### v0.1.56 (2025.11.4)
 - ✨ **Calculator layout javítások**: Filament kártyák túlcsordulás javítva, responsive flexbox layout
 - ✨ **Költség bontás responsive**: Most dinamikusan reagál az ablakméret változására
@@ -239,7 +255,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.1.56
+**Verzió**: 0.1.85
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

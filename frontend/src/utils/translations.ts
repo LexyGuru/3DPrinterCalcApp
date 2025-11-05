@@ -71,6 +71,9 @@ export type TranslationKey =
   | "calculator.dryingTime"
   | "calculator.dryingPower"
   | "calculator.dryingCost"
+  | "calculator.profit"
+  | "calculator.revenue"
+  | "calculator.totalPrice"
   | "filaments.color"
   // Printers - AMS
   | "printers.amsCount"
@@ -91,6 +94,28 @@ export type TranslationKey =
   | "settings.electricityPrice"
   | "settings.checkForBetaUpdates"
   | "settings.checkForBetaUpdatesDescription"
+  | "settings.exportData"
+  | "settings.importData"
+  | "settings.exportTitle"
+  | "settings.importTitle"
+  | "settings.exportDescription"
+  | "settings.importDescription"
+  | "settings.selectExportItems"
+  | "settings.selectImportItems"
+  | "settings.exportFilaments"
+  | "settings.exportPrinters"
+  | "settings.exportOffers"
+  | "settings.importFilaments"
+  | "settings.importPrinters"
+  | "settings.importOffers"
+  | "settings.exportButton"
+  | "settings.importButton"
+  | "settings.exportSuccess"
+  | "settings.importSuccess"
+  | "settings.exportError"
+  | "settings.importError"
+  | "settings.noFileSelected"
+  | "settings.invalidFile"
   // Offers
   | "offers.title"
   | "offers.save"
@@ -100,6 +125,7 @@ export type TranslationKey =
   | "offers.downloadPDF"
   | "offers.print"
   | "offers.customerName"
+  | "offers.customerContact"
   | "offers.description"
   | "offers.profitPercentage"
   | "offers.date"
@@ -131,6 +157,7 @@ export type TranslationKey =
   | "common.loading"
   | "common.duplicate"
   | "common.offerDuplicated"
+  | "common.close"
   // Sidebar
   | "sidebar.home"
   | "sidebar.filaments"
@@ -219,8 +246,39 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "calculator.dryingPower": "Szárítás teljesítménye (W):",
     "calculator.dryingCost": "Szárítás költség:",
     "calculator.saveAsOffer": "💾 Mentés árajánlatként",
+    "calculator.profit": "Profit",
+    "calculator.revenue": "Bevétel",
+    "calculator.totalPrice": "Összes ár",
     "filaments.color": "Szín:",
     // Settings
+    "settings.title": "Beállítások",
+    "settings.language": "Nyelv:",
+    "settings.currency": "Pénznem:",
+    "settings.electricityPrice": "Áram ára:",
+    "settings.checkForBetaUpdates": "Beta verziók ellenőrzése:",
+    "settings.checkForBetaUpdatesDescription": "Ha bekapcsolod, az alkalmazás beta release-eket is ellenőrizni fog, nem csak a stabil verziókat.",
+    "settings.exportData": "Adatok exportálása",
+    "settings.importData": "Adatok importálása",
+    "settings.exportTitle": "Exportálás",
+    "settings.importTitle": "Importálás",
+    "settings.exportDescription": "Válaszd ki, hogy mit szeretnél exportálni:",
+    "settings.importDescription": "Válaszd ki, hogy mit szeretnél importálni:",
+    "settings.selectExportItems": "Válassz ki az exportálandó elemeket:",
+    "settings.selectImportItems": "Válassz ki az importálandó elemeket:",
+    "settings.exportFilaments": "Filamentek",
+    "settings.exportPrinters": "Nyomtatók",
+    "settings.exportOffers": "Árajánlatok",
+    "settings.importFilaments": "Filamentek",
+    "settings.importPrinters": "Nyomtatók",
+    "settings.importOffers": "Árajánlatok",
+    "settings.exportButton": "💾 Exportálás",
+    "settings.importButton": "📥 Importálás",
+    "settings.exportSuccess": "Adatok sikeresen exportálva!",
+    "settings.importSuccess": "Adatok sikeresen importálva!",
+    "settings.exportError": "Hiba történt az exportálás során!",
+    "settings.importError": "Hiba történt az importálás során!",
+    "settings.noFileSelected": "Nincs fájl kiválasztva!",
+    "settings.invalidFile": "Érvénytelen fájl formátum!",
     // Offers
     "offers.title": "Árajánlatok",
     "offers.save": "Mentés",
@@ -230,19 +288,13 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "offers.downloadPDF": "💾 PDF Letöltés",
     "offers.print": "🖨️ Nyomtatás",
     "offers.customerName": "Ügyfél neve:",
+    "offers.customerContact": "Kapcsolat:",
     "offers.description": "Leírás:",
     "offers.profitPercentage": "Profit százalék:",
     "offers.date": "Dátum:",
     "offers.printer": "Nyomtató:",
     "offers.printTime": "Nyomtatási idő:",
     "offers.filaments": "Filamentek:",
-    // Sidebar
-    "settings.title": "Beállítások",
-    "settings.language": "Nyelv:",
-    "settings.currency": "Pénznem:",
-    "settings.electricityPrice": "Áram ára:",
-    "settings.checkForBetaUpdates": "Beta verziók ellenőrzése:",
-    "settings.checkForBetaUpdatesDescription": "Ha bekapcsolod, az alkalmazás beta release-eket is ellenőrizni fog, nem csak a stabil verziókat.",
     // Common
     "common.delete": "Törlés",
     "common.add": "Hozzáadás",
@@ -267,6 +319,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "common.loading": "Betöltés...",
     "common.duplicate": "Duplikálás",
     "common.offerDuplicated": "Árajánlat sikeresen duplikálva!",
+    "common.close": "Bezárás",
     // Sidebar
     "sidebar.menu": "Menü",
     "sidebar.home": "Kezdőlap",
@@ -356,8 +409,39 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "calculator.dryingPower": "Drying Power (W):",
     "calculator.dryingCost": "Drying Cost:",
     "calculator.saveAsOffer": "💾 Save as Offer",
+    "calculator.profit": "Profit",
+    "calculator.revenue": "Revenue",
+    "calculator.totalPrice": "Total Price",
     "filaments.color": "Color:",
     // Settings
+    "settings.title": "Settings",
+    "settings.language": "Language:",
+    "settings.currency": "Currency:",
+    "settings.electricityPrice": "Electricity Price:",
+    "settings.checkForBetaUpdates": "Check for beta updates:",
+    "settings.checkForBetaUpdatesDescription": "If enabled, the app will also check for beta releases, not just stable versions.",
+    "settings.exportData": "Export Data",
+    "settings.importData": "Import Data",
+    "settings.exportTitle": "Export",
+    "settings.importTitle": "Import",
+    "settings.exportDescription": "Select what you want to export:",
+    "settings.importDescription": "Select what you want to import:",
+    "settings.selectExportItems": "Select items to export:",
+    "settings.selectImportItems": "Select items to import:",
+    "settings.exportFilaments": "Filaments",
+    "settings.exportPrinters": "Printers",
+    "settings.exportOffers": "Offers",
+    "settings.importFilaments": "Filaments",
+    "settings.importPrinters": "Printers",
+    "settings.importOffers": "Offers",
+    "settings.exportButton": "💾 Export",
+    "settings.importButton": "📥 Import",
+    "settings.exportSuccess": "Data exported successfully!",
+    "settings.importSuccess": "Data imported successfully!",
+    "settings.exportError": "Error exporting data!",
+    "settings.importError": "Error importing data!",
+    "settings.noFileSelected": "No file selected!",
+    "settings.invalidFile": "Invalid file format!",
     // Offers
     "offers.title": "Offers",
     "offers.save": "Save",
@@ -367,19 +451,13 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "offers.downloadPDF": "💾 Download PDF",
     "offers.print": "🖨️ Print",
     "offers.customerName": "Customer Name:",
+    "offers.customerContact": "Contact:",
     "offers.description": "Description:",
     "offers.profitPercentage": "Profit Percentage:",
     "offers.date": "Date:",
     "offers.printer": "Printer:",
     "offers.printTime": "Print Time:",
     "offers.filaments": "Filaments:",
-    // Sidebar
-    "settings.title": "Settings",
-    "settings.language": "Language:",
-    "settings.currency": "Currency:",
-    "settings.electricityPrice": "Electricity Price:",
-    "settings.checkForBetaUpdates": "Check for beta updates:",
-    "settings.checkForBetaUpdatesDescription": "If enabled, the app will also check for beta releases, not just stable versions.",
     // Common
     "common.delete": "Delete",
     "common.add": "Add",
@@ -404,6 +482,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "common.loading": "Loading...",
     "common.duplicate": "Duplicate",
     "common.offerDuplicated": "Offer duplicated successfully!",
+    "common.close": "Close",
     // Sidebar
     "sidebar.menu": "Menu",
     "sidebar.home": "Home",
@@ -493,8 +572,39 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "calculator.dryingPower": "Trocknungsleistung (W):",
     "calculator.dryingCost": "Trocknungskosten:",
     "calculator.saveAsOffer": "💾 Als Angebot speichern",
+    "calculator.profit": "Gewinn",
+    "calculator.revenue": "Einnahmen",
+    "calculator.totalPrice": "Gesamtpreis",
     "filaments.color": "Farbe:",
     // Settings
+    "settings.title": "Einstellungen",
+    "settings.language": "Sprache:",
+    "settings.currency": "Währung:",
+    "settings.electricityPrice": "Strompreis:",
+    "settings.checkForBetaUpdates": "Beta-Versionen prüfen:",
+    "settings.checkForBetaUpdatesDescription": "Wenn aktiviert, prüft die App auch Beta-Versionen, nicht nur stabile Versionen.",
+    "settings.exportData": "Daten exportieren",
+    "settings.importData": "Daten importieren",
+    "settings.exportTitle": "Exportieren",
+    "settings.importTitle": "Importieren",
+    "settings.exportDescription": "Wählen Sie aus, was Sie exportieren möchten:",
+    "settings.importDescription": "Wählen Sie aus, was Sie importieren möchten:",
+    "settings.selectExportItems": "Elemente zum Exportieren auswählen:",
+    "settings.selectImportItems": "Elemente zum Importieren auswählen:",
+    "settings.exportFilaments": "Filamente",
+    "settings.exportPrinters": "Drucker",
+    "settings.exportOffers": "Angebote",
+    "settings.importFilaments": "Filamente",
+    "settings.importPrinters": "Drucker",
+    "settings.importOffers": "Angebote",
+    "settings.exportButton": "💾 Exportieren",
+    "settings.importButton": "📥 Importieren",
+    "settings.exportSuccess": "Daten erfolgreich exportiert!",
+    "settings.importSuccess": "Daten erfolgreich importiert!",
+    "settings.exportError": "Fehler beim Exportieren!",
+    "settings.importError": "Fehler beim Importieren!",
+    "settings.noFileSelected": "Keine Datei ausgewählt!",
+    "settings.invalidFile": "Ungültiges Dateiformat!",
     // Offers
     "offers.title": "Angebote",
     "offers.save": "Speichern",
@@ -504,19 +614,13 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "offers.downloadPDF": "💾 PDF Herunterladen",
     "offers.print": "🖨️ Drucken",
     "offers.customerName": "Kundenname:",
+    "offers.customerContact": "Kontakt:",
     "offers.description": "Beschreibung:",
     "offers.profitPercentage": "Gewinnprozent:",
     "offers.date": "Datum:",
     "offers.printer": "Drucker:",
     "offers.printTime": "Druckzeit:",
     "offers.filaments": "Filamente:",
-    // Sidebar
-    "settings.title": "Einstellungen",
-    "settings.language": "Sprache:",
-    "settings.currency": "Währung:",
-    "settings.electricityPrice": "Strompreis:",
-    "settings.checkForBetaUpdates": "Beta-Versionen prüfen:",
-    "settings.checkForBetaUpdatesDescription": "Wenn aktiviert, prüft die App auch Beta-Versionen, nicht nur stabile Versionen.",
     // Common
     "common.delete": "Löschen",
     "common.add": "Hinzufügen",
@@ -541,6 +645,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "common.loading": "Laden...",
     "common.duplicate": "Duplizieren",
     "common.offerDuplicated": "Angebot erfolgreich dupliziert!",
+    "common.close": "Schließen",
     // Sidebar
     "sidebar.menu": "Menü",
     "sidebar.home": "Home",
