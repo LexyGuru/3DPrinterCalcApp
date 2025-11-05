@@ -79,7 +79,14 @@ export async function loadOffers(): Promise<Offer[]> {
   const store = await getStore();
   try {
     const data = await store.get("offers");
-    return Array.isArray(data) ? data : [];
+    const offers = Array.isArray(data) ? data : [];
+    // Javítjuk a régi árajánlatokat, amelyeknek nincs currency mezője
+    return offers.map((offer: any) => {
+      if (!offer.currency) {
+        offer.currency = "EUR"; // Alapértelmezett pénznem a régi árajánlatokhoz
+      }
+      return offer;
+    });
   } catch (error) {
     console.error("Error loading offers:", error);
     return [];

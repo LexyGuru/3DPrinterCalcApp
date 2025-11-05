@@ -398,7 +398,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                           <strong>{offer.printerName}</strong> - {offer.totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
                         </p>
                         <p style={{ margin: "5px 0", fontSize: "16px", color: theme.colors.primary, fontWeight: "bold" }}>
-                          {t("calculator.totalCost")}: {offer.costs.totalCost.toFixed(2)} {offer.currency === "HUF" ? "Ft" : offer.currency}
+                          {t("calculator.totalCost")}: {offer.costs.totalCost.toFixed(2)} {(offer.currency || "EUR") === "HUF" ? "Ft" : (offer.currency || "EUR")}
                         </p>
                       </div>
                       <button
@@ -532,7 +532,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                     <option value={50}>50%</option>
                   </select>
                   <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
-                    Bevétel = Költségek × (1 + {selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}%) = {(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100)).toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}
+                    Bevétel = Költségek × (1 + {selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}%) = {(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100)).toFixed(2)} {((selectedOffer.currency || "EUR") === "HUF" ? "Ft" : (selectedOffer.currency || "EUR"))}
                   </p>
                 </div>
               </div>
@@ -555,7 +555,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                 <ul style={{ marginTop: "10px", paddingLeft: "20px", listStyle: "none" }}>
                   {selectedOffer.filaments.map((f, idx) => (
                     <li key={idx} style={{ marginBottom: "12px", padding: "12px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", fontSize: "14px", color: theme.colors.text }}>
-                      <strong style={{ color: theme.colors.text }}>{f.brand} {f.type}</strong> {f.color ? `(${f.color})` : ""} - {f.usedGrams}g @ {f.pricePerKg}{selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}/kg
+                      <strong style={{ color: theme.colors.text }}>{f.brand} {f.type}</strong> {f.color ? `(${f.color})` : ""} - {f.usedGrams}g @ {f.pricePerKg}{((selectedOffer.currency || "EUR") === "HUF" ? "Ft" : (selectedOffer.currency || "EUR"))}/kg
                       {f.needsDrying && (
                         <div style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
                           🌡️ Szárítás: {f.dryingTime}h @ {f.dryingPower}W
@@ -573,36 +573,36 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                 <div style={{ marginTop: "10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
                     <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.filamentCost")}</span>
-                    <strong style={{ fontSize: "16px", color: theme.colors.success }}>{selectedOffer.costs.filamentCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
+                    <strong style={{ fontSize: "16px", color: theme.colors.success }}>{selectedOffer.costs.filamentCost.toFixed(2)} {((selectedOffer.currency || "EUR") === "HUF" ? "Ft" : (selectedOffer.currency || "EUR"))}</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
                     <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.electricityCost")}</span>
-                    <strong style={{ fontSize: "16px", color: "#ffc107" }}>{selectedOffer.costs.electricityCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
+                    <strong style={{ fontSize: "16px", color: "#ffc107" }}>{selectedOffer.costs.electricityCost.toFixed(2)} {((selectedOffer.currency || "EUR") === "HUF" ? "Ft" : (selectedOffer.currency || "EUR"))}</strong>
                   </div>
                   {selectedOffer.costs.dryingCost > 0 && (
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
                       <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.dryingCost")}</span>
-                      <strong style={{ fontSize: "16px", color: theme.colors.primary }}>{selectedOffer.costs.dryingCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
+                      <strong style={{ fontSize: "16px", color: theme.colors.primary }}>{selectedOffer.costs.dryingCost.toFixed(2)} {((selectedOffer.currency || "EUR") === "HUF" ? "Ft" : (selectedOffer.currency || "EUR"))}</strong>
                     </div>
                   )}
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: `2px solid ${theme.colors.border}` }}>
                     <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.usageCost")}</span>
-                    <strong style={{ fontSize: "16px", color: theme.colors.textMuted }}>{selectedOffer.costs.usageCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
+                    <strong style={{ fontSize: "16px", color: theme.colors.textMuted }}>{selectedOffer.costs.usageCost.toFixed(2)} {((selectedOffer.currency || "EUR") === "HUF" ? "Ft" : (selectedOffer.currency || "EUR"))}</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `2px solid ${theme.colors.border}` }}>
                     <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.totalCost")}</span>
-                    <strong style={{ fontSize: "16px", color: theme.colors.text }}>{selectedOffer.costs.totalCost.toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}</strong>
+                    <strong style={{ fontSize: "16px", color: theme.colors.text }}>{selectedOffer.costs.totalCost.toFixed(2)} {((selectedOffer.currency || "EUR") === "HUF" ? "Ft" : (selectedOffer.currency || "EUR"))}</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: theme.colors.surfaceHover, padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
                     <span style={{ color: theme.colors.text }}>Bevétel ({selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}% profit):</span>
                     <strong style={{ color: theme.colors.success }}>
-                      {(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100)).toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}
+                      {(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100)).toFixed(2)} {((selectedOffer.currency || "EUR") === "HUF" ? "Ft" : (selectedOffer.currency || "EUR"))}
                     </strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", paddingTop: "12px", borderTop: `1px solid ${theme.colors.border}` }}>
                     <span style={{ fontSize: "14px", color: theme.colors.text }}>Profit:</span>
                     <strong style={{ fontSize: "18px", color: theme.colors.success, fontWeight: "bold" }}>
-                      {(selectedOffer.costs.totalCost * ((selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100)).toFixed(2)} {selectedOffer.currency === "HUF" ? "Ft" : selectedOffer.currency}
+                      {(selectedOffer.costs.totalCost * ((selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100)).toFixed(2)} {((selectedOffer.currency || "EUR") === "HUF" ? "Ft" : (selectedOffer.currency || "EUR"))}
                     </strong>
                   </div>
                 </div>
