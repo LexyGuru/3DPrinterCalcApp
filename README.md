@@ -190,11 +190,18 @@ Részletes útmutató: [VERSIONING.md](VERSIONING.md)
 
 ## 📝 License
 
-Ez a projekt privát használatra készült.
+Ez a projekt **MIT licenc** alatt áll, azonban **kereskedelmi használat csak engedély alapján**.
+
+A teljes alkalmazás tulajdonjoga: **Lekszikov Miklós (LexyGuru)**
+
+- ✅ **Személyes és oktatási használat**: Engedélyezett
+- ❌ **Kereskedelmi használat**: Csak explicit írásos engedély alapján
+
+Részletek: [LICENSE](LICENSE) fájl
 
 ## 👤 Szerző
 
-Lekszikov
+Lekszikov Miklós (LexyGuru)
 
 ## 🙏 Köszönetnyilvánítás
 
