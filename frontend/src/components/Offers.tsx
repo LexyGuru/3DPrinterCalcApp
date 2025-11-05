@@ -184,6 +184,9 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       return parts.join(" ") || "0";
     };
 
+    // Használjuk az árajánlatban tárolt pénznemet, ha nincs akkor az alapértelmezett (EUR)
+    const offerCurrency = offer.currency || "EUR";
+
     const date = new Date(offer.date);
     const formattedDate = date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US");
 
@@ -234,7 +237,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                 <th>Típus</th>
                 <th>Szín</th>
                 <th>Mennyiség (g)</th>
-                <th>Ár (${offer.currency === "HUF" ? "Ft" : offer.currency}/kg)</th>
+                <th>Ár (${offerCurrency === "HUF" ? "Ft" : offerCurrency}/kg)</th>
                 ${offer.filaments.some(f => f.needsDrying) ? `<th>Szárítás</th>` : ""}
               </tr>
             </thead>
@@ -245,7 +248,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   <td>${f.type}</td>
                   <td>${f.color || "-"}</td>
                   <td>${f.usedGrams}</td>
-                  <td>${f.pricePerKg} ${offer.currency === "HUF" ? "Ft" : offer.currency}</td>
+                  <td>${f.pricePerKg} ${offerCurrency === "HUF" ? "Ft" : offerCurrency}</td>
                   ${offer.filaments.some(f => f.needsDrying) ? `<td>${f.needsDrying ? `${f.dryingTime}h @ ${f.dryingPower}W` : "-"}</td>` : ""}
                 </tr>
               `).join("")}
@@ -258,25 +261,25 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
           <table>
             <tr>
               <td>${t("calculator.filamentCost")}</td>
-              <td><strong>${offer.costs.filamentCost.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
+              <td><strong>${offer.costs.filamentCost.toFixed(2)} ${offerCurrency === "HUF" ? "Ft" : offerCurrency}</strong></td>
             </tr>
             <tr>
               <td>${t("calculator.electricityCost")}</td>
-              <td><strong>${offer.costs.electricityCost.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
+              <td><strong>${offer.costs.electricityCost.toFixed(2)} ${offerCurrency === "HUF" ? "Ft" : offerCurrency}</strong></td>
             </tr>
             ${offer.costs.dryingCost > 0 ? `
             <tr>
               <td>${t("calculator.dryingCost")}</td>
-              <td><strong>${offer.costs.dryingCost.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
+              <td><strong>${offer.costs.dryingCost.toFixed(2)} ${offerCurrency === "HUF" ? "Ft" : offerCurrency}</strong></td>
             </tr>
             ` : ""}
             <tr>
               <td>${t("calculator.usageCost")}</td>
-              <td><strong>${offer.costs.usageCost.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
+              <td><strong>${offer.costs.usageCost.toFixed(2)} ${offerCurrency === "HUF" ? "Ft" : offerCurrency}</strong></td>
             </tr>
             <tr>
               <td><strong>${t("calculator.totalCost")}</strong></td>
-              <td><strong>${offer.costs.totalCost.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
+              <td><strong>${offer.costs.totalCost.toFixed(2)} ${offerCurrency === "HUF" ? "Ft" : offerCurrency}</strong></td>
             </tr>
             ${(() => {
               const profitPercentage = offer.profitPercentage !== undefined ? offer.profitPercentage : 30;
@@ -285,11 +288,11 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
               return `
             <tr style="border-top: 2px solid #333;">
               <td><strong>${t("calculator.profit")} (${profitPercentage}%):</strong></td>
-              <td><strong style="color: #28a745; font-size: 1.1em;">${profit.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
+              <td><strong style="color: #28a745; font-size: 1.1em;">${profit.toFixed(2)} ${offerCurrency === "HUF" ? "Ft" : offerCurrency}</strong></td>
             </tr>
             <tr class="total" style="background-color: #f0f8ff;">
               <td><strong>${t("calculator.revenue")} (${t("calculator.totalPrice")}):</strong></td>
-              <td><strong style="color: #007bff; font-size: 1.3em;">${revenue.toFixed(2)} ${offer.currency === "HUF" ? "Ft" : offer.currency}</strong></td>
+              <td><strong style="color: #007bff; font-size: 1.3em;">${revenue.toFixed(2)} ${offerCurrency === "HUF" ? "Ft" : offerCurrency}</strong></td>
             </tr>
                       `;
                     })()}

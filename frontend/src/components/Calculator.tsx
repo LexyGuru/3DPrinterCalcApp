@@ -568,12 +568,14 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   
                   const offerFilaments = selectedFilaments.map(sf => {
                     const filament = filaments[sf.filamentIndex];
+                    // Konvertáljuk a filament árát az árajánlat pénznemére (filament ár EUR-ban van tárolva)
+                    const pricePerKgInOfferCurrency = convertCurrency(filament.pricePerKg, settings.currency);
                     return {
                       brand: filament.brand,
                       type: filament.type,
                       color: filament.color,
                       usedGrams: sf.usedGrams,
-                      pricePerKg: filament.pricePerKg,
+                      pricePerKg: pricePerKgInOfferCurrency,
                       needsDrying: sf.needsDrying || false,
                       dryingTime: sf.dryingTime || 0,
                       dryingPower: sf.dryingPower || 0,
