@@ -10,10 +10,12 @@ import { UpdateChecker } from "./components/UpdateChecker";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
 import { LoadingSpinner } from "./components/LoadingSpinner";
+import { Console } from "./components/Console";
 import type { Printer, Settings, Filament, Offer } from "./types";
 import { defaultSettings } from "./types";
 import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers } from "./utils/store";
 import { themes, getThemeStyles } from "./utils/themes";
+import "./utils/consoleLogger"; // Initialize console logger
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
@@ -123,6 +125,9 @@ export default function App() {
         theme={currentTheme}
         themeStyles={themeStyles}
       />; 
+      break;
+    case "console":
+      PageComponent = <Console settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
       break;
     default: PageComponent = <Home settings={settings} offers={offers} theme={currentTheme} />;
   }

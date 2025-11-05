@@ -22,6 +22,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
     { key: "calculator", label: t("sidebar.calculator") },
     { key: "offers", label: t("sidebar.offers") },
     { key: "settings", label: t("sidebar.settings") },
+    ...(settings.showConsole ? [{ key: "console", label: t("sidebar.console") }] : []),
   ];
   
   return (

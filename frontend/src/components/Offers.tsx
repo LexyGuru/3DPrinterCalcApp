@@ -32,15 +32,19 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
   const confirmDelete = () => {
     if (deleteConfirmId === null) return;
     const id = deleteConfirmId;
+    const offerToDelete = offers.find(o => o.id === id);
+    console.log("🗑️ Árajánlat törlése...", { offerId: id, customerName: offerToDelete?.customerName });
     setOffers(offers.filter(o => o.id !== id));
     if (selectedOffer?.id === id) {
       setSelectedOffer(null);
     }
+    console.log("✅ Árajánlat sikeresen törölve", { offerId: id });
     showToast(t("common.offerDeleted"), "success");
     setDeleteConfirmId(null);
   };
 
   const duplicateOffer = (offer: Offer) => {
+    console.log("📋 Árajánlat duplikálása...", { originalOfferId: offer.id, customerName: offer.customerName });
     const duplicated: Offer = {
       ...offer,
       id: Date.now(),
@@ -48,14 +52,18 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     };
     setOffers([...offers, duplicated]);
     setSelectedOffer(duplicated);
+    console.log("✅ Árajánlat sikeresen duplikálva", { newOfferId: duplicated.id });
     showToast(t("common.offerDuplicated"), "success");
   };
 
   const exportToPDF = (offer: Offer) => {
     try {
-      if (import.meta.env.DEV) {
-        console.log("PDF export started for offer:", offer.id);
-      }
+      console.log("📄 PDF export indítása...", { 
+        offerId: offer.id, 
+        customerName: offer.customerName,
+        totalCost: offer.costs.totalCost,
+        currency: offer.currency 
+      });
       
       // HTML tartalom generálása
       const htmlContent = generatePDFContent(offer, t, settings);
@@ -84,15 +92,14 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       
       // Várunk, hogy a tartalom betöltődjön
       printWindow.onload = () => {
-        if (import.meta.env.DEV) {
-          console.log("Window loaded, calling print");
-        }
+        console.log("📄 PDF ablak betöltve, nyomtatás indítása...");
         setTimeout(() => {
           try {
             printWindow.focus();
             printWindow.print();
+            console.log("✅ PDF export sikeres", { offerId: offer.id });
           } catch (e) {
-            console.error("Print error:", e);
+            console.error("❌ PDF export hiba:", e);
             alert(t("offers.exportPDF") + " - Nyomtatási hiba: " + (e as Error).message);
           }
         }, 300);
@@ -102,14 +109,13 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       setTimeout(() => {
         try {
           if (printWindow && !printWindow.closed) {
-            if (import.meta.env.DEV) {
-              console.log("Fallback: calling print");
-            }
+            console.log("📄 PDF export fallback: nyomtatás indítása...");
             printWindow.focus();
             printWindow.print();
+            console.log("✅ PDF export sikeres (fallback)", { offerId: offer.id });
           }
         } catch (e) {
-          console.error("Print error (fallback):", e);
+          console.error("❌ PDF export hiba (fallback):", e);
         }
       }, 1000);
     } catch (error) {

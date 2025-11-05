@@ -9,11 +9,16 @@ export interface VersionInfo {
   isBeta: boolean;
 }
 
-const CURRENT_VERSION = "0.2.0"; // Frissítsd ezt, amikor új verziót adsz ki
+const CURRENT_VERSION = "0.2.55"; // Frissítsd ezt, amikor új verziót adsz ki
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp"; // Frissítsd a saját repository nevedre
 
 export async function checkForUpdates(beta: boolean = false): Promise<VersionInfo> {
   try {
+    console.log("🔍 Frissítés ellenőrzése...", { 
+      currentVersion: CURRENT_VERSION, 
+      betaMode: beta 
+    });
+    
     // GitHub Releases API
     const url = beta 
       ? `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=10`
@@ -22,7 +27,7 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
     const response = await fetch(url);
     
     if (!response.ok) {
-      console.error("Failed to fetch releases:", response.statusText);
+      console.error("❌ Frissítés ellenőrzés hiba:", response.statusText, { status: response.status });
       return {
         current: CURRENT_VERSION,
         latest: null,
@@ -53,6 +58,13 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       // Ez lehetővé teszi, hogy main build-ről beta-ra frissítsen, ha van újabb beta verzió
       const isNewer = compareVersions(latestVersion, CURRENT_VERSION) > 0;
 
+      console.log("📊 Beta frissítés ellenőrzés eredménye", { 
+        currentVersion: CURRENT_VERSION, 
+        latestVersion, 
+        isNewer, 
+        releaseUrl: latestRelease.html_url 
+      });
+
       return {
         current: CURRENT_VERSION,
         latest: latestVersion,
@@ -66,6 +78,13 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       const latestVersion = release.tag_name.replace(/^v/, "");
       const isNewer = compareVersions(latestVersion, CURRENT_VERSION) > 0;
 
+      console.log("📊 Stable frissítés ellenőrzés eredménye", { 
+        currentVersion: CURRENT_VERSION, 
+        latestVersion, 
+        isNewer, 
+        releaseUrl: release.html_url 
+      });
+
       return {
         current: CURRENT_VERSION,
         latest: latestVersion,
@@ -75,7 +94,7 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       };
     }
   } catch (error) {
-    console.error("Error checking for updates:", error);
+    console.error("❌ Frissítés ellenőrzés hiba:", error, { betaMode: beta });
     return {
       current: CURRENT_VERSION,
       latest: null,

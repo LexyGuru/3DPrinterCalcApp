@@ -30,6 +30,7 @@ export interface Settings {
   language: "hu" | "en" | "de";
   checkForBetaUpdates?: boolean; // Beta release-ek ellenőrzése
   theme?: "light" | "dark" | "blue" | "green" | "purple" | "orange"; // Téma választás
+  showConsole?: boolean; // Console/Log menüpont megjelenítése
 }
 
 export const defaultSettings: Settings = {

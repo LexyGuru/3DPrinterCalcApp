@@ -225,6 +225,21 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.2.55 (2025)
+- 🖥️ **Console/Log funkció** - Új Console menüpont a hibakereséshez és logok megtekintéséhez
+- 🖥️ **Console beállítás** - Beállításokban lehet bekapcsolni a Console menüpont megjelenítését
+- 📊 **Log gyűjtés** - Automatikus rögzítés minden console.log, console.error, console.warn üzenetről
+- 📊 **Globális hibák rögzítése** - Automatikus rögzítés window error és unhandled promise rejection eseményekről
+- 🔍 **Log szűrés** - Szűrés szintenként (all, error, warn, info, log, debug)
+- 🔍 **Log export** - Logok exportálása JSON formátumban
+- 🧹 **Log törlés** - Logok törlése egy gombbal
+- 📜 **Auto-scroll** - Automatikus görgetés az új logokhoz
+- 💾 **Teljes logolás** - Minden kritikus művelet logolva (mentés, export, import, törlés, PDF export, frissítés letöltés)
+- 🔄 **Frissítés gomb javítás** - A letöltés gomb most Tauri shell plugin-t használ, megbízhatóan működik
+- 🔄 **Frissítés logolás** - Frissítés ellenőrzés és letöltés teljes logolása
+- 🐛 **React render hiba javítás** - Console logger aszinkron működés, hogy ne akadályozza a renderelést
+- 🔧 **num-bigint-dig frissítés** - v0.9.1-re frissítve (deprecation warning javítása)
+
 ### v0.2.0 (2025)
 - 🎨 **Téma rendszer** - 6 modern téma (Light, Dark, Blue, Green, Purple, Orange)
 - 🎨 **Téma választó** - Beállításokban választható téma, azonnal érvénybe lép
@@ -273,7 +288,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.2.0
+**Verzió**: 0.2.55
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

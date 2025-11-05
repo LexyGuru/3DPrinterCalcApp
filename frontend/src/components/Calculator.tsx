@@ -607,7 +607,14 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     description: offerDescription.trim() || undefined,
                   };
 
+                  console.log("💾 Árajánlat mentése...", { 
+                    offerId: offer.id, 
+                    customerName: offer.customerName,
+                    totalCost: offer.costs.totalCost,
+                    currency: offer.currency 
+                  });
                   onSaveOffer(offer);
+                  console.log("✅ Árajánlat sikeresen mentve", { offerId: offer.id });
                   showToast(t("common.offerSaved"), "success");
                   setShowOfferDialog(false);
                   setOfferCustomerName("");

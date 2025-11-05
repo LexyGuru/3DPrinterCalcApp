@@ -40,6 +40,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     }
     
     const newId = Date.now();
+    console.log("➕ Új nyomtató hozzáadása...", { name, type, power, usageCost, amsCount });
     const newPrinter: Printer = { 
       id: newId, 
       name, 
@@ -54,6 +55,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       setAmsForms({ ...amsForms, [newId]: Array(amsCount).fill(null).map(() => ({ brand: "", name: "", power: 0 })) });
       setEditingPrinterId(newId);
     }
+    console.log("✅ Nyomtató sikeresen hozzáadva", { printerId: newId, name });
     showToast(t("common.printerAdded"), "success");
     setName(""); setType(""); setPower(0); setUsageCost(0); setAmsCount(0);
     setShowAddForm(false);
@@ -66,11 +68,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
   const confirmDelete = () => {
     if (deleteConfirmId === null) return;
     const id = deleteConfirmId;
+    const printerToDelete = printers.find(p => p.id === id);
+    console.log("🗑️ Nyomtató törlése...", { printerId: id, name: printerToDelete?.name, type: printerToDelete?.type });
     setPrinters(printers.filter(p => p.id !== id));
     const newAmsForms = { ...amsForms };
     delete newAmsForms[id];
     setAmsForms(newAmsForms);
     if (editingPrinterId === id) setEditingPrinterId(null);
+    console.log("✅ Nyomtató sikeresen törölve", { printerId: id });
     showToast(t("common.printerDeleted"), "success");
     setDeleteConfirmId(null);
   };
@@ -78,16 +83,19 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
   const saveAMS = (printerId: number) => {
     const printer = printers.find(p => p.id === printerId);
     if (!printer) return;
+    console.log("💾 AMS mentése...", { printerId, printerName: printer.name });
     const amsList = amsForms[printerId] || [];
     const validAMS: AMS[] = amsList
       .map((ams, idx) => ({ id: idx, brand: ams.brand, name: ams.name, power: ams.power }))
       .filter(ams => ams.brand && ams.name && ams.power > 0);
     
+    console.log("📊 AMS adatok", { validAMSCount: validAMS.length, amsList });
     setPrinters(printers.map(p => 
       p.id === printerId 
         ? { ...p, ams: validAMS, amsCount: validAMS.length }
         : p
     ));
+    console.log("✅ AMS sikeresen mentve", { printerId, amsCount: validAMS.length });
     setEditingPrinterId(null);
   };
 

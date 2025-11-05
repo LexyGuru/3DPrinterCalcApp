@@ -73,12 +73,31 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
   const handleDownload = async () => {
     if (versionInfo?.releaseUrl) {
       try {
+        console.log("🔄 Frissítés letöltése...", { 
+          currentVersion: versionInfo.current, 
+          latestVersion: versionInfo.latest,
+          releaseUrl: versionInfo.releaseUrl,
+          isBeta: versionInfo.isBeta 
+        });
         // Tauri shell plugin használata külső linkek megnyitásához
         await open(versionInfo.releaseUrl);
+        console.log("✅ Frissítés letöltés sikeresen megnyitva", { 
+          latestVersion: versionInfo.latest,
+          releaseUrl: versionInfo.releaseUrl 
+        });
       } catch (error) {
-        console.error("Failed to open release URL:", error);
+        console.error("❌ Frissítés letöltés hiba:", error, { 
+          releaseUrl: versionInfo.releaseUrl 
+        });
         // Fallback: ha a Tauri shell nem működik, próbáljuk meg a window.open-t
-        window.open(versionInfo.releaseUrl, '_blank', 'noopener,noreferrer');
+        try {
+          window.open(versionInfo.releaseUrl, '_blank', 'noopener,noreferrer');
+          console.log("✅ Frissítés letöltés fallback módon megnyitva", { 
+            latestVersion: versionInfo.latest 
+          });
+        } catch (fallbackError) {
+          console.error("❌ Frissítés letöltés fallback hiba is:", fallbackError);
+        }
       }
     }
   };

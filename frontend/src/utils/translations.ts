@@ -118,6 +118,27 @@ export type TranslationKey =
   | "settings.invalidFile"
   | "settings.theme"
   | "settings.themeDescription"
+  | "settings.showConsole"
+  | "settings.showConsoleDescription"
+  // Console
+  | "console.title"
+  | "console.filter"
+  | "console.all"
+  | "console.error"
+  | "console.warn"
+  | "console.info"
+  | "console.log"
+  | "console.debug"
+  | "console.autoScroll"
+  | "console.clear"
+  | "console.export"
+  | "console.exported"
+  | "console.exportError"
+  | "console.cleared"
+  | "console.empty"
+  | "console.total"
+  | "console.errors"
+  | "console.warnings"
   // Offers
   | "offers.title"
   | "offers.save"
@@ -165,7 +186,8 @@ export type TranslationKey =
   | "sidebar.filaments"
   | "sidebar.printers"
   | "sidebar.calculator"
-  | "sidebar.settings";
+  | "sidebar.settings"
+  | "sidebar.console";
 
 export const translations: Record<Settings["language"], Record<TranslationKey, string>> = {
   hu: {
@@ -283,6 +305,27 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.invalidFile": "Érvénytelen fájl formátum!",
     "settings.theme": "Téma:",
     "settings.themeDescription": "Válassz egy témát az alkalmazás megjelenéséhez. A változtatás azonnal érvénybe lép.",
+    "settings.showConsole": "Console/Log megjelenítése:",
+    "settings.showConsoleDescription": "Ha bekapcsolod, megjelenik egy Console menüpont a menüben, ahol láthatod a hibákat és logokat.",
+    // Console
+    "console.title": "Console / Log",
+    "console.filter": "Szűrő:",
+    "console.all": "Összes",
+    "console.error": "Hibák",
+    "console.warn": "Figyelmeztetések",
+    "console.info": "Információk",
+    "console.log": "Logok",
+    "console.debug": "Debug",
+    "console.autoScroll": "Automatikus görgetés",
+    "console.clear": "Törlés",
+    "console.export": "Export",
+    "console.exported": "Logok exportálva!",
+    "console.exportError": "Hiba az exportálás során!",
+    "console.cleared": "Logok törölve!",
+    "console.empty": "Nincs log üzenet",
+    "console.total": "Összesen",
+    "console.errors": "hiba",
+    "console.warnings": "figyelmeztetés",
     // Offers
     "offers.title": "Árajánlatok",
     "offers.save": "Mentés",
@@ -332,6 +375,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "sidebar.calculator": "Kalkulátor",
     "sidebar.offers": "Árajánlatok",
     "sidebar.settings": "Beállítások",
+    "sidebar.console": "Console",
   },
   en: {
     // Home
@@ -448,6 +492,27 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.invalidFile": "Invalid file format!",
     "settings.theme": "Theme:",
     "settings.themeDescription": "Choose a theme for the application appearance. Changes take effect immediately.",
+    "settings.showConsole": "Show Console/Log:",
+    "settings.showConsoleDescription": "If enabled, a Console menu item will appear in the menu where you can see errors and logs.",
+    // Console
+    "console.title": "Console / Log",
+    "console.filter": "Filter:",
+    "console.all": "All",
+    "console.error": "Errors",
+    "console.warn": "Warnings",
+    "console.info": "Info",
+    "console.log": "Logs",
+    "console.debug": "Debug",
+    "console.autoScroll": "Auto scroll",
+    "console.clear": "Clear",
+    "console.export": "Export",
+    "console.exported": "Logs exported!",
+    "console.exportError": "Error exporting logs!",
+    "console.cleared": "Logs cleared!",
+    "console.empty": "No log messages",
+    "console.total": "Total",
+    "console.errors": "errors",
+    "console.warnings": "warnings",
     // Offers
     "offers.title": "Offers",
     "offers.save": "Save",
@@ -497,6 +562,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "sidebar.calculator": "Calculator",
     "sidebar.offers": "Offers",
     "sidebar.settings": "Settings",
+    "sidebar.console": "Console",
   },
   de: {
     // Home
@@ -613,6 +679,27 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.invalidFile": "Ungültiges Dateiformat!",
     "settings.theme": "Design:",
     "settings.themeDescription": "Wähle ein Design für das Erscheinungsbild der Anwendung. Änderungen werden sofort wirksam.",
+    "settings.showConsole": "Console/Log anzeigen:",
+    "settings.showConsoleDescription": "Wenn aktiviert, erscheint ein Console-Menüpunkt im Menü, wo Sie Fehler und Logs sehen können.",
+    // Console
+    "console.title": "Console / Log",
+    "console.filter": "Filter:",
+    "console.all": "Alle",
+    "console.error": "Fehler",
+    "console.warn": "Warnungen",
+    "console.info": "Info",
+    "console.log": "Logs",
+    "console.debug": "Debug",
+    "console.autoScroll": "Auto-Scroll",
+    "console.clear": "Löschen",
+    "console.export": "Exportieren",
+    "console.exported": "Logs exportiert!",
+    "console.exportError": "Fehler beim Exportieren der Logs!",
+    "console.cleared": "Logs gelöscht!",
+    "console.empty": "Keine Log-Nachrichten",
+    "console.total": "Gesamt",
+    "console.errors": "Fehler",
+    "console.warnings": "Warnungen",
     // Offers
     "offers.title": "Angebote",
     "offers.save": "Speichern",
@@ -662,6 +749,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "sidebar.calculator": "Rechner",
     "sidebar.offers": "Angebote",
     "sidebar.settings": "Einstellungen",
+    "sidebar.console": "Console",
   },
 };
 

@@ -89,12 +89,24 @@ export const SettingsPage: React.FC<Props> = ({
     }
 
     try {
+      console.log("📤 Export indítása...", { 
+        filaments: exportFilaments, 
+        printers: exportPrinters, 
+        offers: exportOffers 
+      });
+      
       const exportData: any = {};
       if (exportFilaments) exportData.filaments = filaments;
       if (exportPrinters) exportData.printers = printers;
       if (exportOffers) exportData.offers = offers;
 
       const jsonContent = JSON.stringify(exportData, null, 2);
+      console.log("📊 Export adatok előkészítve", {
+        filamentsCount: exportData.filaments?.length || 0,
+        printersCount: exportData.printers?.length || 0,
+        offersCount: exportData.offers?.length || 0,
+        jsonSize: jsonContent.length
+      });
 
       const filePath = await save({
         defaultPath: "3DPrinterCalcApp_export.json",
@@ -105,18 +117,21 @@ export const SettingsPage: React.FC<Props> = ({
       });
 
       if (filePath) {
+        console.log("💾 Fájl mentése...", { filePath });
         await writeTextFile(filePath, jsonContent);
+        console.log("✅ Export sikeres", { filePath });
         showToast(t("settings.exportSuccess"), "success");
         // Reset checkboxes
         setExportFilaments(false);
         setExportPrinters(false);
         setExportOffers(false);
       } else {
+        console.log("ℹ️ Export megszakítva (felhasználó megszakította)");
         // User cancelled the save dialog
         return;
       }
     } catch (error) {
-      console.error("Export error:", error);
+      console.error("❌ Export hiba:", error);
       showToast(t("settings.exportError"), "error");
     }
   };
@@ -128,6 +143,12 @@ export const SettingsPage: React.FC<Props> = ({
     }
 
     try {
+      console.log("📥 Import indítása...", { 
+        filaments: importFilaments, 
+        printers: importPrinters, 
+        offers: importOffers 
+      });
+      
       const selected = await open({
         multiple: false,
         filters: [{
@@ -137,6 +158,7 @@ export const SettingsPage: React.FC<Props> = ({
       });
 
       if (!selected) {
+        console.log("ℹ️ Import megszakítva (felhasználó megszakította)");
         // User cancelled the open dialog
         return;
       }
@@ -145,16 +167,24 @@ export const SettingsPage: React.FC<Props> = ({
       const filePath = Array.isArray(selected) ? selected[0] : selected;
       
       if (!filePath || typeof filePath !== "string") {
+        console.error("❌ Érvénytelen fájl kiválasztás");
         showToast(t("settings.noFileSelected"), "error");
         return;
       }
 
+      console.log("📂 Fájl betöltése...", { filePath });
       const fileContent = await readTextFile(filePath);
       const importData = JSON.parse(fileContent);
+      console.log("📊 Import adatok betöltve", {
+        filamentsCount: importData.filaments?.length || 0,
+        printersCount: importData.printers?.length || 0,
+        offersCount: importData.offers?.length || 0
+      });
 
       // Validate and import data
       if (importFilaments && importData.filaments) {
         if (Array.isArray(importData.filaments)) {
+          console.log("✅ Filamentek importálása...", { count: importData.filaments.length });
           setFilaments(importData.filaments);
         } else {
           throw new Error("Invalid filaments data");
@@ -163,6 +193,7 @@ export const SettingsPage: React.FC<Props> = ({
 
       if (importPrinters && importData.printers) {
         if (Array.isArray(importData.printers)) {
+          console.log("✅ Nyomtatók importálása...", { count: importData.printers.length });
           setPrinters(importData.printers);
         } else {
           throw new Error("Invalid printers data");
@@ -171,19 +202,21 @@ export const SettingsPage: React.FC<Props> = ({
 
       if (importOffers && importData.offers) {
         if (Array.isArray(importData.offers)) {
+          console.log("✅ Árajánlatok importálása...", { count: importData.offers.length });
           setOffers(importData.offers);
         } else {
           throw new Error("Invalid offers data");
         }
       }
 
+      console.log("✅ Import sikeres");
       showToast(t("settings.importSuccess"), "success");
       // Reset checkboxes
       setImportFilaments(false);
       setImportPrinters(false);
       setImportOffers(false);
     } catch (error) {
-      console.error("Import error:", error);
+      console.error("❌ Import hiba:", error);
       showToast(t("settings.importError") + ": " + (settings.language === "hu" ? "Érvénytelen fájl formátum!" : settings.language === "de" ? "Ungültiges Dateiformat!" : "Invalid file format!"), "error");
     }
   };
@@ -259,6 +292,21 @@ export const SettingsPage: React.FC<Props> = ({
           </label>
           <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
             {t("settings.checkForBetaUpdatesDescription")}
+          </p>
+        </div>
+        
+        <div style={{ marginBottom: "24px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={settings.showConsole || false}
+              onChange={e => onChange({ ...settings, showConsole: e.target.checked })}
+              style={{ width: "20px", height: "20px", cursor: "pointer" }}
+            />
+            <span>🖥️ {t("settings.showConsole")}</span>
+          </label>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.showConsoleDescription")}
           </p>
         </div>
         

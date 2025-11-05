@@ -50,14 +50,18 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     
     if (editingIndex !== null) {
       // Szerkesztési mód: frissítjük a filamentet
+      console.log("✏️ Filament szerkesztése...", { index: editingIndex, brand, type, pricePerKg });
       const updated = [...filaments];
       updated[editingIndex] = { brand, type, weight, pricePerKg, color: color || undefined };
       setFilaments(updated);
+      console.log("✅ Filament sikeresen frissítve", { index: editingIndex });
       showToast(t("common.filamentUpdated"), "success");
       resetForm();
     } else {
       // Új filament hozzáadása
+      console.log("➕ Új filament hozzáadása...", { brand, type, pricePerKg });
       setFilaments([...filaments, { brand, type, weight, pricePerKg, color: color || undefined }]);
+      console.log("✅ Filament sikeresen hozzáadva", { brand, type });
       showToast(t("common.filamentAdded"), "success");
       resetForm();
     }
@@ -84,10 +88,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const confirmDelete = () => {
     if (deleteConfirmIndex === null) return;
     const index = deleteConfirmIndex;
+    const filamentToDelete = filaments[index];
+    console.log("🗑️ Filament törlése...", { index, brand: filamentToDelete?.brand, type: filamentToDelete?.type });
     setFilaments(filaments.filter((_, i) => i !== index));
     if (editingIndex === index) {
       resetForm();
     }
+    console.log("✅ Filament sikeresen törölve", { index });
     showToast(t("common.filamentDeleted"), "success");
     setDeleteConfirmIndex(null);
   };
