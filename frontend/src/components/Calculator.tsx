@@ -429,7 +429,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                             padding: "6px 12px",
                             borderRadius: "6px",
                             border: `1px solid ${theme.colors.border}`,
-                            backgroundColor: theme.colors.error,
+                            backgroundColor: theme.colors.danger,
                             color: "#fff",
                             fontSize: "12px",
                             cursor: "pointer"
