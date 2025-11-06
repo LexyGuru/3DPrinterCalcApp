@@ -63,7 +63,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
               color: activePage === page.key ? theme.colors.sidebarActive : theme.colors.sidebarText,
               backgroundColor: activePage === page.key ? theme.colors.sidebarActive + "20" : "transparent",
               borderRadius: "4px",
-              transition: "background-color 0.2s",
+              transition: "background-color 0.2s, outline 0.2s",
               outline: "none",
             }}
             onMouseEnter={(e) => {
@@ -79,15 +79,21 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
             onFocus={(e) => {
               if (activePage !== page.key) {
                 e.currentTarget.style.backgroundColor = theme.colors.sidebarHover;
-                e.currentTarget.style.outline = `2px solid ${theme.colors.primary}`;
-                e.currentTarget.style.outlineOffset = "2px";
               }
+              // Outline csak billentyűzet navigációhoz (nem kattintáshoz)
+              e.currentTarget.style.outline = `2px solid ${theme.colors.primary}`;
+              e.currentTarget.style.outlineOffset = "2px";
             }}
             onBlur={(e) => {
               if (activePage !== page.key) {
                 e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.outline = "none";
               }
+              // Mindig eltávolítjuk az outline-ot blur esetén
+              e.currentTarget.style.outline = "none";
+            }}
+            onMouseDown={(e) => {
+              // Kattintáskor eltávolítjuk a fókuszt, hogy ne maradjon outline
+              e.currentTarget.blur();
             }}
           >
             {page.label}
