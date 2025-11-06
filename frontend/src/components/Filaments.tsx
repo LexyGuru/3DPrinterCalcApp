@@ -165,7 +165,12 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
             onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
             style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
+            aria-label={settings.language === "hu" ? "Keresés filamentek között" : settings.language === "de" ? "Filamente durchsuchen" : "Search filaments"}
+            aria-describedby="filament-search-description"
           />
+          <span id="filament-search-description" style={{ display: "none" }}>
+            {settings.language === "hu" ? "Keresés filamentek között márka, típus vagy szín alapján" : settings.language === "de" ? "Filamente nach Marke, Typ oder Farbe durchsuchen" : "Search filaments by brand, type or color"}
+          </span>
         </div>
       )}
       
@@ -177,12 +182,19 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               onClick={() => setShowAddForm(true)}
               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setShowAddForm(true);
+                }
+              }}
               style={{ 
                 ...themeStyles.button,
                 ...themeStyles.buttonPrimary,
                 fontSize: "16px",
                 padding: "14px 28px"
               }}
+              aria-label={settings.language === "hu" ? "Új filament hozzáadása" : settings.language === "de" ? "Neues Filament hinzufügen" : "Add new filament"}
             >
               ➕ {t("filaments.addTitle")}
             </button>
@@ -225,6 +237,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
               style={{ ...themeStyles.input, width: "100%" }}
+              aria-label={t("filaments.brand")}
+              aria-required="true"
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
@@ -238,6 +252,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
               style={{ ...themeStyles.input, width: "100%" }}
+              aria-label={t("filaments.type")}
+              aria-required="true"
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
@@ -259,7 +275,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
               style={{ ...themeStyles.input, width: "100%" }}
+              aria-label={t("filaments.weight")}
+              aria-required="true"
+              aria-describedby="filament-weight-description"
             />
+            <span id="filament-weight-description" style={{ display: "none" }}>
+              {settings.language === "hu" ? "Filament súlya grammban (1-10000)" : settings.language === "de" ? "Filamentgewicht in Gramm (1-10000)" : "Filament weight in grams (1-10000)"}
+            </span>
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
             <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
@@ -302,12 +324,19 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               onClick={addFilament}
               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
               onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = editingIndex !== null ? themeStyles.buttonSuccess.boxShadow : themeStyles.buttonPrimary.boxShadow; }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  addFilament();
+                }
+              }}
               style={{ 
                 ...themeStyles.button, 
                 ...(editingIndex !== null ? themeStyles.buttonSuccess : themeStyles.buttonPrimary),
                 fontSize: "16px",
                 padding: "14px 28px"
               }}
+              aria-label={editingIndex !== null ? (settings.language === "hu" ? "Filament mentése" : settings.language === "de" ? "Filament speichern" : "Save filament") : (settings.language === "hu" ? "Filament hozzáadása" : settings.language === "de" ? "Filament hinzufügen" : "Add filament")}
             >
               {editingIndex !== null ? t("filaments.save") : "➕ " + t("filaments.add")}
             </button>
@@ -318,6 +347,12 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 onClick={() => setShowAddForm(false)}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setShowAddForm(false);
+                  }
+                }}
                 style={{ 
                   ...themeStyles.button,
                   ...themeStyles.buttonSecondary,
@@ -325,6 +360,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                   fontSize: "12px",
                   marginLeft: "10px"
                 }}
+                aria-label={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
               >
                 {t("filaments.cancel")}
               </button>

@@ -46,6 +46,16 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
           <div
             key={page.key}
             onClick={() => setActivePage(page.key)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setActivePage(page.key);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={page.label}
+            aria-current={activePage === page.key ? "page" : undefined}
             style={{
               padding: "10px",
               cursor: "pointer",
@@ -54,6 +64,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
               backgroundColor: activePage === page.key ? theme.colors.sidebarActive + "20" : "transparent",
               borderRadius: "4px",
               transition: "background-color 0.2s",
+              outline: "none",
             }}
             onMouseEnter={(e) => {
               if (activePage !== page.key) {
@@ -63,6 +74,19 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
             onMouseLeave={(e) => {
               if (activePage !== page.key) {
                 e.currentTarget.style.backgroundColor = "transparent";
+              }
+            }}
+            onFocus={(e) => {
+              if (activePage !== page.key) {
+                e.currentTarget.style.backgroundColor = theme.colors.sidebarHover;
+                e.currentTarget.style.outline = `2px solid ${theme.colors.primary}`;
+                e.currentTarget.style.outlineOffset = "2px";
+              }
+            }}
+            onBlur={(e) => {
+              if (activePage !== page.key) {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.outline = "none";
               }
             }}
           >

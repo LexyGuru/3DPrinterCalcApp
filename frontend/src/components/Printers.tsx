@@ -252,7 +252,12 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
             onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
             onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
             style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
+            aria-label={settings.language === "hu" ? "Keresés nyomtatók között" : settings.language === "de" ? "Drucker durchsuchen" : "Search printers"}
+            aria-describedby="printer-search-description"
           />
+          <span id="printer-search-description" style={{ display: "none" }}>
+            {settings.language === "hu" ? "Keresés nyomtatók között név vagy típus alapján" : settings.language === "de" ? "Drucker nach Name oder Typ durchsuchen" : "Search printers by name or type"}
+          </span>
         </div>
       )}
       
@@ -264,12 +269,19 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               onClick={() => setShowAddForm(true)}
               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setShowAddForm(true);
+                }
+              }}
               style={{ 
                 ...themeStyles.button,
                 ...themeStyles.buttonPrimary,
                 fontSize: "16px",
                 padding: "14px 28px"
               }}
+              aria-label={settings.language === "hu" ? "Új nyomtató hozzáadása" : settings.language === "de" ? "Neuen Drucker hinzufügen" : "Add new printer"}
             >
               ➕ {t("printers.addTitle")}
             </button>
@@ -329,7 +341,13 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
               style={{ ...themeStyles.input, width: "100%" }}
+              aria-label={t("printers.power")}
+              aria-required="true"
+              aria-describedby="printer-power-description"
             />
+            <span id="printer-power-description" style={{ display: "none" }}>
+              {settings.language === "hu" ? "Nyomtató teljesítménye wattban (1-100000)" : settings.language === "de" ? "Druckerleistung in Watt (1-100000)" : "Printer power in watts (1-100000)"}
+            </span>
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
             <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
@@ -376,12 +394,19 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               onClick={addPrinter}
               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
               onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  addPrinter();
+                }
+              }}
               style={{ 
                 ...themeStyles.button,
                 ...themeStyles.buttonPrimary,
                 fontSize: "16px",
                 padding: "14px 28px"
               }}
+              aria-label={settings.language === "hu" ? "Nyomtató hozzáadása" : settings.language === "de" ? "Drucker hinzufügen" : "Add printer"}
             >
               ➕ {t("printers.add")}
             </button>
@@ -391,6 +416,12 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               onClick={() => setShowAddForm(false)}
               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setShowAddForm(false);
+                }
+              }}
               style={{ 
                 ...themeStyles.button,
                 ...themeStyles.buttonSecondary,
@@ -398,6 +429,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                 fontSize: "12px",
                 marginLeft: "10px"
               }}
+              aria-label={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
             >
               {t("filaments.cancel")}
             </button>
@@ -467,6 +499,12 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                         <Tooltip content={settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}>
                           <button 
                             onClick={() => deletePrinter(p.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                deletePrinter(p.id);
+                              }
+                            }}
                             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
                             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
                             style={{ 
@@ -475,6 +513,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                               padding: "8px 16px",
                               fontSize: "12px"
                             }}
+                            aria-label={settings.language === "hu" ? `Nyomtató törlése: ${p.name}` : settings.language === "de" ? `Drucker löschen: ${p.name}` : `Delete printer: ${p.name}`}
                           >
                             {t("printers.delete")}
                           </button>

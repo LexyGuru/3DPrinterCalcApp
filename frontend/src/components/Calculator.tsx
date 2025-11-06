@@ -502,21 +502,37 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   setTemplateName("");
                   setTemplateDescription("");
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setShowTemplateDialog(false);
+                    setTemplateName("");
+                    setTemplateDescription("");
+                  }
+                }}
                 style={{
                   ...themeStyles.button,
                   ...themeStyles.buttonSecondary,
                   padding: "10px 20px"
                 }}
+                aria-label={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
               >
                 {settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
               </button>
               <button
                 onClick={handleSaveTemplate}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSaveTemplate();
+                  }
+                }}
                 style={{
                   ...themeStyles.button,
                   ...themeStyles.buttonPrimary,
                   padding: "10px 20px"
                 }}
+                aria-label={settings.language === "hu" ? "Template mentése" : settings.language === "de" ? "Template speichern" : "Save template"}
               >
                 {settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}
               </button>
@@ -543,6 +559,8 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
             onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
             style={{ ...themeStyles.select, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
+            aria-label={t("calculator.printer")}
+            aria-required="true"
           >
             <option value="">{t("calculator.selectPrinter")}</option>
             {printers.map(p => (
@@ -580,7 +598,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100px" }}
+                aria-label={t("calculator.hours")}
+                aria-describedby="print-time-hours-description"
               />
+              <span id="print-time-hours-description" style={{ display: "none" }}>
+                {settings.language === "hu" ? "Nyomtatási idő órákban (0-1000)" : settings.language === "de" ? "Druckzeit in Stunden (0-1000)" : "Print time in hours (0-1000)"}
+              </span>
             </div>
             <div>
               <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.minutes")}</label>
@@ -598,7 +621,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100px" }}
+                aria-label={t("calculator.minutes")}
+                aria-describedby="print-time-minutes-description"
               />
+              <span id="print-time-minutes-description" style={{ display: "none" }}>
+                {settings.language === "hu" ? "Nyomtatási idő percekben (0-59)" : settings.language === "de" ? "Druckzeit in Minuten (0-59)" : "Print time in minutes (0-59)"}
+              </span>
             </div>
             <div>
               <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.seconds")}</label>
@@ -616,7 +644,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100px" }}
+                aria-label={t("calculator.seconds")}
+                aria-describedby="print-time-seconds-description"
               />
+              <span id="print-time-seconds-description" style={{ display: "none" }}>
+                {settings.language === "hu" ? "Nyomtatási idő másodpercekben (0-59)" : settings.language === "de" ? "Druckzeit in Sekunden (0-59)" : "Print time in seconds (0-59)"}
+              </span>
             </div>
           </div>
           <p style={{ marginTop: "5px", fontSize: "12px", color: theme.colors.textSecondary }}>
@@ -636,12 +669,19 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   onClick={addFilament}
                   onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
                   onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      addFilament();
+                    }
+                  }}
                   style={{ 
                     ...themeStyles.button,
                     ...themeStyles.buttonPrimary,
                     padding: "10px 20px",
                     fontSize: "14px"
                   }}
+                  aria-label={settings.language === "hu" ? "Filament hozzáadása" : settings.language === "de" ? "Filament hinzufügen" : "Add filament"}
                 >
                   ➕ {t("calculator.addFilament")}
                 </button>
@@ -659,6 +699,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     onClick={() => removeFilament(idx)}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        removeFilament(idx);
+                      }
+                    }}
                     style={{ 
                       ...themeStyles.button,
                       ...themeStyles.buttonDanger,
@@ -666,6 +712,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                       fontSize: "12px",
                       flexShrink: 0
                     }}
+                    aria-label={settings.language === "hu" ? `Filament eltávolítása: ${idx + 1}` : settings.language === "de" ? `Filament entfernen: ${idx + 1}` : `Remove filament: ${idx + 1}`}
                   >
                     {t("filaments.delete")}
                   </button>
@@ -791,12 +838,20 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     if (!selectedPrinter) return;
                     setShowOfferDialog(true);
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      if (!selectedPrinter) return;
+                      setShowOfferDialog(true);
+                    }
+                  }}
                   onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
                   onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
                   style={{
                     ...themeStyles.button,
                     ...themeStyles.buttonSuccess
                   }}
+                  aria-label={settings.language === "hu" ? "Árajánlat mentése" : settings.language === "de" ? "Angebot speichern" : "Save as offer"}
                 >
                   {t("calculator.saveAsOffer")}
                 </button>
