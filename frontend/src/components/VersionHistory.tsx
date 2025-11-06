@@ -309,13 +309,42 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
         
         // GitHub Releases API
         const url = `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=50`;
-        const response = await fetch(url);
         
-        if (!response.ok) {
-          throw new Error(`Failed to fetch releases: ${response.statusText}`);
+        console.log("📡 GitHub API hívás...", { url });
+        
+        let response: Response;
+        try {
+          response = await fetch(url, {
+            method: "GET",
+            headers: {
+              "Accept": "application/vnd.github.v3+json",
+            },
+          });
+        } catch (fetchError) {
+          console.error("❌ Fetch hiba:", fetchError);
+          throw new Error(`Network error: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
         }
         
-        const releases: GitHubRelease[] = await response.json();
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => response.statusText);
+          console.error("❌ GitHub API hiba:", response.status, response.statusText, errorText);
+          throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}${errorText ? ` - ${errorText}` : ""}`);
+        }
+        
+        let releases: GitHubRelease[];
+        try {
+          releases = await response.json();
+        } catch (parseError) {
+          console.error("❌ JSON parse hiba:", parseError);
+          throw new Error(`Failed to parse releases: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+        }
+        
+        if (!Array.isArray(releases)) {
+          console.error("❌ Érvénytelen válasz formátum:", releases);
+          throw new Error("Invalid response format: expected array");
+        }
+        
+        console.log(`✅ ${releases.length} release betöltve`);
         
         // Szűrés: ha beta app, akkor csak pre-release-eket, ha release app, akkor csak non-pre-release-eket
         const filteredReleases = isBeta
