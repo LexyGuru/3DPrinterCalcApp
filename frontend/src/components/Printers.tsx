@@ -241,6 +241,35 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     setDraggedPrinterId(null);
   };
 
+  // Kontextus menü funkciók
+  const handleContextMenu = (e: React.MouseEvent, printerId: number) => {
+    e.preventDefault();
+    setContextMenu({ printerId, x: e.clientX, y: e.clientY });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  const handleContextMenuAction = (action: "edit" | "delete") => {
+    if (!contextMenu) return;
+    const printer = printers.find(p => p.id === contextMenu.printerId);
+    if (!printer) {
+      closeContextMenu();
+      return;
+    }
+
+    switch (action) {
+      case "edit":
+        startEdit(printer);
+        break;
+      case "delete":
+        deletePrinter(contextMenu.printerId);
+        break;
+    }
+    closeContextMenu();
+  };
+
   // Gyorsbillentyűk
   // macOS-en metaKey (Cmd), Windows/Linux-en ctrlKey (Ctrl)
   // Mindkettőt regisztráljuk platform-független működéshez
