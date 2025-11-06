@@ -225,6 +225,11 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.3.2 (2025)
+- 📋 **Template funkciók** - Kalkulációk mentése és betöltése template-ként a Calculator komponensben
+- 📜 **Előzmények/Verziózás árajánlatokhoz** - Árajánlatok verziózása, előzmények megtekintése, változtatások nyomon követése
+- 🧹 **Duplikáció javítás** - Duplikált CSV/JSON export/import funkciók eltávolítása Filaments és Printers komponensekből (Settings-ben maradtak)
+
 ### v0.3.1 (2025)
 - ✅ **Input validáció fejlesztése** - Negatív számok eltiltása, maximum értékek beállítása (filament súly, nyomtatási idő, teljesítmény, stb.)
 - 📊 **CSV/JSON export/import** - Filamentek és nyomtatók tömeges exportálása/importálása CSV és JSON formátumban
