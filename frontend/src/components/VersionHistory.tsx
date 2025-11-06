@@ -70,14 +70,15 @@ function getCacheKey(text: string, sourceLang: string, targetLang: string): stri
 
 // Rate limiting kezelés
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 7000; // 7 másodperc (10 kérés/perc = 6 másodperc/kérés, +1 másodperc buffer)
+const MIN_REQUEST_INTERVAL = 8000; // 8 másodperc (10 kérés/perc = 6 másodperc/kérés, +2 másodperc buffer)
+const MAX_RETRIES = 2; // Maximum 2 retry próbálkozás
 
 async function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // LibreTranslate API használata fordításhoz (rate limiting és cache kezeléssel)
-async function translateText(text: string, sourceLang: string, targetLang: string, retryIndex: number = 0): Promise<string> {
+async function translateText(text: string, sourceLang: string, targetLang: string, retryIndex: number = 0, retryCount: number = 0): Promise<string> {
   try {
     // Ha a forrás és cél nyelv ugyanaz, ne fordítunk
     if (sourceLang === targetLang) {
@@ -147,18 +148,24 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
       console.warn(`⚠️ LibreTranslate API hiba (${apiUrl}):`, response.status, response.statusText, errorData);
       
       // 429 (Rate Limit) vagy 403 (Forbidden) esetén várunk és újra próbáljuk
-      if (response.status === 429 || response.status === 403) {
+      if ((response.status === 429 || response.status === 403) && retryCount < MAX_RETRIES) {
         const retryAfter = 60; // 60 másodperc várakozás
-        console.log(`⏳ Rate limit elérve (${response.status}), várakozás ${retryAfter} másodperc...`);
+        console.log(`⏳ Rate limit elérve (${response.status}), várakozás ${retryAfter} másodperc... (próbálkozás ${retryCount + 1}/${MAX_RETRIES})`);
         await delay(retryAfter * 1000);
         // Próbáljuk meg újra ugyanazzal az API-val
-        return translateText(text, sourceLang, targetLang, retryIndex);
+        return translateText(text, sourceLang, targetLang, retryIndex, retryCount + 1);
       }
       
-      // Próbáljuk meg a következő API-t
+      // Ha túl sok hiba van, ne próbáljuk meg újra
+      if (retryCount >= MAX_RETRIES) {
+        console.warn(`⚠️ Túl sok próbálkozás (${retryCount}), használjuk az eredeti szöveget`);
+        return text; // Fallback: eredeti szöveg
+      }
+      
+      // Próbáljuk meg a következő API-t (ha van)
       if (retryIndex < LIBRETRANSLATE_APIS.length - 1) {
         console.log(`🔄 Próbálkozás következő API-val: ${retryIndex + 1}`);
-        return translateText(text, sourceLang, targetLang, retryIndex + 1);
+        return translateText(text, sourceLang, targetLang, retryIndex + 1, 0);
       }
       
       return text; // Fallback: eredeti szöveg
@@ -177,12 +184,18 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     
     return translated;
   } catch (error) {
-    console.warn(`⚠️ Fordítás hiba (${LIBRETRANSLATE_APIS[retryIndex]}):`, error);
+    console.warn(`⚠️ Fordítás hiba (${LIBRETRANSLATE_APIS[retryIndex] || LIBRETRANSLATE_APIS[0]}):`, error);
     
-    // Próbáljuk meg a következő API-t
+    // Ha túl sok hiba van, ne próbáljuk meg újra
+    if (retryCount >= MAX_RETRIES) {
+      console.warn(`⚠️ Túl sok próbálkozás (${retryCount}), használjuk az eredeti szöveget`);
+      return text; // Fallback: eredeti szöveg
+    }
+    
+    // Próbáljuk meg a következő API-t (ha van)
     if (retryIndex < LIBRETRANSLATE_APIS.length - 1) {
       console.log(`🔄 Próbálkozás következő API-val: ${retryIndex + 1}`);
-      return translateText(text, sourceLang, targetLang, retryIndex + 1);
+      return translateText(text, sourceLang, targetLang, retryIndex + 1, 0);
     }
     
     return text; // Fallback: eredeti szöveg
