@@ -186,8 +186,14 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               <input
                 type="number"
                 min="0"
+                max="1000"
                 value={printTimeHours}
-                onChange={e => setPrintTimeHours(Math.max(0, Number(e.target.value)))}
+                onChange={e => {
+                  const val = Number(e.target.value);
+                  if (!isNaN(val) && val >= 0 && val <= 1000) {
+                    setPrintTimeHours(val);
+                  }
+                }}
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100px" }}
@@ -200,7 +206,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 min="0"
                 max="59"
                 value={printTimeMinutes}
-                onChange={e => setPrintTimeMinutes(Math.min(59, Math.max(0, Number(e.target.value))))}
+                onChange={e => {
+                  const val = Number(e.target.value);
+                  if (!isNaN(val) && val >= 0 && val <= 59) {
+                    setPrintTimeMinutes(val);
+                  }
+                }}
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100px" }}
@@ -213,7 +224,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 min="0"
                 max="59"
                 value={printTimeSeconds}
-                onChange={e => setPrintTimeSeconds(Math.min(59, Math.max(0, Number(e.target.value))))}
+                onChange={e => {
+                  const val = Number(e.target.value);
+                  if (!isNaN(val) && val >= 0 && val <= 59) {
+                    setPrintTimeSeconds(val);
+                  }
+                }}
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100px" }}
@@ -299,7 +315,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     value={sf.usedGrams || ""}
                     onChange={e => {
                       const val = Number(e.target.value);
-                      if (val >= 0 && val <= 100000) {
+                      if (!isNaN(val) && val >= 0 && val <= 100000) {
                         updateFilament(idx, "usedGrams", val);
                       }
                     }}
@@ -331,7 +347,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                         value={sf.dryingTime || ""}
                         onChange={e => {
                           const val = Number(e.target.value);
-                          if (val >= 0 && val <= 1000) {
+                          if (!isNaN(val) && val >= 0 && val <= 1000) {
                             updateFilament(idx, "dryingTime", val);
                           }
                         }}

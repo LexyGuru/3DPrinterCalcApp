@@ -225,6 +225,12 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.3.1 (2025)
+- ✅ **Input validáció fejlesztése** - Negatív számok eltiltása, maximum értékek beállítása (filament súly, nyomtatási idő, teljesítmény, stb.)
+- 📊 **CSV/JSON export/import** - Filamentek és nyomtatók tömeges exportálása/importálása CSV és JSON formátumban
+- 📥 **Import/Export gombok** - Könnyű hozzáférés az export/import funkciókhoz a Filaments és Printers oldalakon
+- 🎨 **Empty states javítása** - Informatív üres állapotok megjelenítése, amikor nincsenek adatok
+
 ### v0.3.0 (2025)
 - ✏️ **Árajánlat szerkesztés** - Mentett árajánlatok szerkesztése (ügyfél név, elérhetőség, leírás, profit százalék)
 - 📊 **Statisztikák export funkció** - Statisztikák exportálása JSON vagy CSV formátumban a Home oldalról
