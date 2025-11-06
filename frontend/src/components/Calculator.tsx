@@ -7,6 +7,7 @@ import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
 import { saveTemplates, loadTemplates } from "../utils/store";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { validatePrintTime, validateUsedGrams, validateDryingTime, validateDryingPower, validateProfitPercentage } from "../utils/validation";
 
 interface SelectedFilament {
   filamentIndex: number;
@@ -591,8 +592,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 value={printTimeHours}
                 onChange={e => {
                   const val = Number(e.target.value);
-                  if (!isNaN(val) && val >= 0 && val <= 1000) {
+                  const validation = validatePrintTime(val, printTimeMinutes, printTimeSeconds, settings.language);
+                  if (validation.isValid) {
                     setPrintTimeHours(val);
+                  } else if (validation.errorMessage) {
+                    showToast(validation.errorMessage, "error");
                   }
                 }}
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -614,8 +618,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 value={printTimeMinutes}
                 onChange={e => {
                   const val = Number(e.target.value);
-                  if (!isNaN(val) && val >= 0 && val <= 59) {
+                  const validation = validatePrintTime(printTimeHours, val, printTimeSeconds, settings.language);
+                  if (validation.isValid) {
                     setPrintTimeMinutes(val);
+                  } else if (validation.errorMessage) {
+                    showToast(validation.errorMessage, "error");
                   }
                 }}
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -637,8 +644,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 value={printTimeSeconds}
                 onChange={e => {
                   const val = Number(e.target.value);
-                  if (!isNaN(val) && val >= 0 && val <= 59) {
+                  const validation = validatePrintTime(printTimeHours, printTimeMinutes, val, settings.language);
+                  if (validation.isValid) {
                     setPrintTimeSeconds(val);
+                  } else if (validation.errorMessage) {
+                    showToast(validation.errorMessage, "error");
                   }
                 }}
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -745,8 +755,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     value={sf.usedGrams || ""}
                     onChange={e => {
                       const val = Number(e.target.value);
-                      if (!isNaN(val) && val >= 0 && val <= 100000) {
+                      const validation = validateUsedGrams(val, settings.language);
+                      if (validation.isValid) {
                         updateFilament(idx, "usedGrams", val);
+                      } else if (validation.errorMessage) {
+                        showToast(validation.errorMessage, "error");
                       }
                     }}
                     onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -777,8 +790,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                         value={sf.dryingTime || ""}
                         onChange={e => {
                           const val = Number(e.target.value);
-                          if (!isNaN(val) && val >= 0 && val <= 1000) {
+                          const validation = validateDryingTime(val, settings.language);
+                          if (validation.isValid) {
                             updateFilament(idx, "dryingTime", val);
+                          } else if (validation.errorMessage) {
+                            showToast(validation.errorMessage, "error");
                           }
                         }}
                         onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -794,8 +810,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                         value={sf.dryingPower || ""}
                         onChange={e => {
                           const val = Number(e.target.value);
-                          if (val >= 0 && val <= 5000) {
+                          const validation = validateDryingPower(val, settings.language);
+                          if (validation.isValid) {
                             updateFilament(idx, "dryingPower", val);
+                          } else if (validation.errorMessage) {
+                            showToast(validation.errorMessage, "error");
                           }
                         }}
                         onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -973,8 +992,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   value={offerProfitPercentage}
                   onChange={e => {
                     const val = Number(e.target.value);
-                    if (val >= 0 && val <= 100) {
+                    const validation = validateProfitPercentage(val, settings.language);
+                    if (validation.isValid) {
                       setOfferProfitPercentage(val);
+                    } else if (validation.errorMessage) {
+                      showToast(validation.errorMessage, "error");
                     }
                   }}
                   onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}

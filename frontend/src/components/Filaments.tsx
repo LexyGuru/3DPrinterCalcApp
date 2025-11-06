@@ -7,6 +7,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { Tooltip } from "./Tooltip";
+import { validateFilamentWeight, validateFilamentPrice } from "../utils/validation";
 
 interface Props {
   filaments: Filament[];
@@ -336,8 +337,11 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               value={weight} 
               onChange={e => {
                 const val = Number(e.target.value);
-                if (!isNaN(val) && val >= 1 && val <= 10000) {
+                const validation = validateFilamentWeight(val, settings.language);
+                if (validation.isValid) {
                   setWeight(val);
+                } else if (validation.errorMessage) {
+                  showToast(validation.errorMessage, "error");
                 }
               }}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -363,8 +367,11 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               value={pricePerKg} 
               onChange={e => {
                 const val = Number(e.target.value);
-                if (!isNaN(val) && val >= 0 && val <= 1000000) {
+                const validation = validateFilamentPrice(val, settings.language);
+                if (validation.isValid) {
                   setPricePerKg(val);
+                } else if (validation.errorMessage) {
+                  showToast(validation.errorMessage, "error");
                 }
               }}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}

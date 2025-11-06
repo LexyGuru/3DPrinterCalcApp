@@ -7,6 +7,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { Tooltip } from "./Tooltip";
+import { validatePrinterPower, validateUsageCost, validateAMSCount } from "../utils/validation";
 
 interface Props {
   printers: Printer[];
@@ -411,8 +412,11 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               value={power} 
               onChange={e => {
                 const val = Number(e.target.value);
-                if (!isNaN(val) && val >= 1 && val <= 100000) {
+                const validation = validatePrinterPower(val, settings.language);
+                if (validation.isValid) {
                   setPower(val);
+                } else if (validation.errorMessage) {
+                  showToast(validation.errorMessage, "error");
                 }
               }}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -439,8 +443,11 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               value={usageCost} 
               onChange={e => {
                 const val = Number(e.target.value);
-                if (!isNaN(val) && val >= 0 && val <= 1000000) {
+                const validation = validateUsageCost(val, settings.language);
+                if (validation.isValid) {
                   setUsageCost(val);
+                } else if (validation.errorMessage) {
+                  showToast(validation.errorMessage, "error");
                 }
               }}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -458,7 +465,15 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               max="4"
               placeholder="0" 
               value={amsCount} 
-              onChange={e => setAmsCount(Math.min(4, Math.max(0, Number(e.target.value))))}
+              onChange={e => {
+                const val = Number(e.target.value);
+                const validation = validateAMSCount(val, settings.language);
+                if (validation.isValid) {
+                  setAmsCount(val);
+                } else if (validation.errorMessage) {
+                  showToast(validation.errorMessage, "error");
+                }
+              }}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
               style={{ ...themeStyles.input, width: "100%" }}
@@ -667,8 +682,11 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                               value={editingPrinter.power} 
                               onChange={e => {
                                 const val = Number(e.target.value);
-                                if (!isNaN(val) && val >= 1 && val <= 100000) {
+                                const validation = validatePrinterPower(val, settings.language);
+                                if (validation.isValid) {
                                   updateEditingPrinter("power", val);
+                                } else if (validation.errorMessage) {
+                                  showToast(validation.errorMessage, "error");
                                 }
                               }}
                               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -687,8 +705,11 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                               value={editingPrinter.usageCost} 
                               onChange={e => {
                                 const val = Number(e.target.value);
-                                if (!isNaN(val) && val >= 0 && val <= 1000000) {
+                                const validation = validateUsageCost(val, settings.language);
+                                if (validation.isValid) {
                                   updateEditingPrinter("usageCost", val);
+                                } else if (validation.errorMessage) {
+                                  showToast(validation.errorMessage, "error");
                                 }
                               }}
                               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -708,8 +729,11 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                               value={editingPrinter.amsCount} 
                               onChange={e => {
                                 const val = Number(e.target.value);
-                                if (!isNaN(val) && val >= 0 && val <= 4) {
+                                const validation = validateAMSCount(val, settings.language);
+                                if (validation.isValid) {
                                   updateEditingPrinter("amsCount", val);
+                                } else if (validation.errorMessage) {
+                                  showToast(validation.errorMessage, "error");
                                 }
                               }}
                               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
