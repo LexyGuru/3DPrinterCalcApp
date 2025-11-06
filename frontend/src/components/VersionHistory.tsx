@@ -158,8 +158,8 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
       // 429 (Rate Limit) vagy 403 (Forbidden) esetén ne próbáljuk meg újra, csak használjuk az eredeti szöveget
       if (response.status === 429 || response.status === 403) {
         consecutiveErrors++;
-        console.warn(`⚠️ Rate limit elérve (${response.status}), használjuk az eredeti szöveget (egymás utáni hibák: ${consecutiveErrors})`);
-        return text; // Fallback: eredeti szöveg
+        console.warn(`⚠️ Rate limit elérve (${response.status}), azonnal eredeti szöveget használunk (egymás utáni hibák: ${consecutiveErrors})`);
+        return text; // Fallback: eredeti szöveg (NINCS VÁRAKOZÁS!)
       }
       
       // Egyéb hibák esetén is növeljük a számlálót
