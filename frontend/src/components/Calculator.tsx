@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from "react";
-import type { Printer, Filament, Settings, Offer } from "../types";
+import React, { useState, useMemo, useEffect } from "react";
+import type { Printer, Filament, Settings, Offer, CalculationTemplate } from "../types";
 import type { Theme } from "../utils/themes";
 import { convertCurrency } from "../utils/currency";
 import { useTranslation } from "../utils/translations";
 import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
+import { saveTemplates, loadTemplates } from "../utils/store";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 interface SelectedFilament {
   filamentIndex: number;
@@ -36,6 +38,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
   const [offerCustomerContact, setOfferCustomerContact] = useState("");
   const [offerDescription, setOfferDescription] = useState("");
   const [offerProfitPercentage, setOfferProfitPercentage] = useState<number>(30);
+  const [templates, setTemplates] = useState<CalculationTemplate[]>([]);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
+  const [showTemplateList, setShowTemplateList] = useState(false);
+  const [deleteTemplateId, setDeleteTemplateId] = useState<number | null>(null);
 
   const selectedPrinter = useMemo(() => {
     if (selectedPrinterId === "") return null;
@@ -137,10 +145,385 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
     };
   }, [selectedPrinter, selectedFilaments, filaments, totalPrintTimeHours, settings]);
 
+  // Template-ek betöltése
+  useEffect(() => {
+    loadTemplates().then(setTemplates).catch(console.error);
+  }, []);
+
+  // Template mentése
+  const handleSaveTemplate = async () => {
+    if (!templateName.trim()) {
+      showToast(
+        settings.language === "hu" ? "Kérlek add meg a template nevét!" :
+        settings.language === "de" ? "Bitte geben Sie den Template-Namen ein!" :
+        "Please enter template name!",
+        "error"
+      );
+      return;
+    }
+
+    if (!selectedPrinterId || selectedFilaments.length === 0) {
+      showToast(
+        settings.language === "hu" ? "Kérlek válassz nyomtatót és filamenteket!" :
+        settings.language === "de" ? "Bitte wählen Sie einen Drucker und Filamente aus!" :
+        "Please select printer and filaments!",
+        "error"
+      );
+      return;
+    }
+
+    try {
+      const newTemplate: CalculationTemplate = {
+        id: Date.now(),
+        name: templateName.trim(),
+        description: templateDescription.trim() || undefined,
+        printerId: selectedPrinterId as number,
+        selectedFilaments: selectedFilaments.map(sf => ({
+          filamentIndex: sf.filamentIndex,
+          usedGrams: sf.usedGrams,
+          needsDrying: sf.needsDrying,
+          dryingTime: sf.dryingTime,
+          dryingPower: sf.dryingPower,
+        })),
+        printTimeHours,
+        printTimeMinutes,
+        printTimeSeconds,
+        createdAt: new Date().toISOString(),
+      };
+
+      const updatedTemplates = [...templates, newTemplate];
+      await saveTemplates(updatedTemplates);
+      setTemplates(updatedTemplates);
+      setShowTemplateDialog(false);
+      setTemplateName("");
+      setTemplateDescription("");
+      showToast(
+        settings.language === "hu" ? "Template sikeresen mentve!" :
+        settings.language === "de" ? "Template erfolgreich gespeichert!" :
+        "Template saved successfully!",
+        "success"
+      );
+    } catch (error) {
+      console.error("❌ Template mentés hiba:", error);
+      showToast(
+        settings.language === "hu" ? "Hiba történt a template mentésekor" :
+        settings.language === "de" ? "Fehler beim Speichern des Templates" :
+        "Error saving template",
+        "error"
+      );
+    }
+  };
+
+  // Template betöltése
+  const handleLoadTemplate = (template: CalculationTemplate) => {
+    // Ellenőrizzük, hogy a nyomtató még létezik
+    const printer = printers.find(p => p.id === template.printerId);
+    if (!printer) {
+      showToast(
+        settings.language === "hu" ? "A template nyomtatója már nem létezik!" :
+        settings.language === "de" ? "Der Drucker des Templates existiert nicht mehr!" :
+        "Template printer no longer exists!",
+        "error"
+      );
+      return;
+    }
+
+    // Ellenőrizzük, hogy a filamentek még léteznek
+    const invalidFilaments = template.selectedFilaments.filter(
+      sf => sf.filamentIndex < 0 || sf.filamentIndex >= filaments.length
+    );
+    if (invalidFilaments.length > 0) {
+      showToast(
+        settings.language === "hu" ? "Néhány filament már nem létezik!" :
+        settings.language === "de" ? "Einige Filamente existieren nicht mehr!" :
+        "Some filaments no longer exist!",
+        "error"
+      );
+      return;
+    }
+
+    setSelectedPrinterId(template.printerId);
+    setSelectedFilaments(template.selectedFilaments.map(sf => ({
+      filamentIndex: sf.filamentIndex,
+      usedGrams: sf.usedGrams,
+      needsDrying: sf.needsDrying || false,
+      dryingTime: sf.dryingTime || 0,
+      dryingPower: sf.dryingPower || 0,
+    })));
+    setPrintTimeHours(template.printTimeHours);
+    setPrintTimeMinutes(template.printTimeMinutes);
+    setPrintTimeSeconds(template.printTimeSeconds);
+    setShowTemplateList(false);
+    showToast(
+      settings.language === "hu" ? "Template betöltve!" :
+      settings.language === "de" ? "Template geladen!" :
+      "Template loaded!",
+      "success"
+    );
+  };
+
+  // Template törlése
+  const handleDeleteTemplate = async () => {
+    if (deleteTemplateId === null) return;
+    try {
+      const updatedTemplates = templates.filter(t => t.id !== deleteTemplateId);
+      await saveTemplates(updatedTemplates);
+      setTemplates(updatedTemplates);
+      setDeleteTemplateId(null);
+      showToast(
+        settings.language === "hu" ? "Template törölve!" :
+        settings.language === "de" ? "Template gelöscht!" :
+        "Template deleted!",
+        "success"
+      );
+    } catch (error) {
+      console.error("❌ Template törlés hiba:", error);
+      showToast(
+        settings.language === "hu" ? "Hiba történt a template törlésekor" :
+        settings.language === "de" ? "Fehler beim Löschen des Templates" :
+        "Error deleting template",
+        "error"
+      );
+    }
+  };
+
   return (
     <div>
-      <h2 style={themeStyles.pageTitle}>{t("calculator.title")}</h2>
-      <p style={themeStyles.pageSubtitle}>3D nyomtatási költség számítás</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px", flexWrap: "wrap", gap: "20px" }}>
+        <div>
+          <h2 style={themeStyles.pageTitle}>{t("calculator.title")}</h2>
+          <p style={themeStyles.pageSubtitle}>3D nyomtatási költség számítás</p>
+        </div>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+          <Tooltip content={settings.language === "hu" ? "Template betöltése" : settings.language === "de" ? "Template laden" : "Load template"}>
+            <button
+              onClick={() => setShowTemplateList(!showTemplateList)}
+              disabled={templates.length === 0}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "6px",
+                border: `1px solid ${theme.colors.border}`,
+                backgroundColor: theme.colors.surface,
+                color: theme.colors.text,
+                fontSize: "12px",
+                cursor: templates.length === 0 ? "not-allowed" : "pointer",
+                opacity: templates.length === 0 ? 0.5 : 1,
+                transition: "all 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                if (templates.length > 0) {
+                  e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (templates.length > 0) {
+                  e.currentTarget.style.backgroundColor = theme.colors.surface;
+                }
+              }}
+            >
+              📋 {settings.language === "hu" ? "Template-ek" : settings.language === "de" ? "Templates" : "Templates"} ({templates.length})
+            </button>
+          </Tooltip>
+          <Tooltip content={settings.language === "hu" ? "Template mentése" : settings.language === "de" ? "Template speichern" : "Save template"}>
+            <button
+              onClick={() => setShowTemplateDialog(true)}
+              disabled={!selectedPrinterId || selectedFilaments.length === 0}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "6px",
+                border: `1px solid ${theme.colors.border}`,
+                backgroundColor: theme.colors.primary,
+                color: "#fff",
+                fontSize: "12px",
+                cursor: (!selectedPrinterId || selectedFilaments.length === 0) ? "not-allowed" : "pointer",
+                opacity: (!selectedPrinterId || selectedFilaments.length === 0) ? 0.5 : 1,
+                transition: "all 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                if (selectedPrinterId && selectedFilaments.length > 0) {
+                  e.currentTarget.style.backgroundColor = theme.colors.primary + "dd";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedPrinterId && selectedFilaments.length > 0) {
+                  e.currentTarget.style.backgroundColor = theme.colors.primary;
+                }
+              }}
+            >
+              💾 {settings.language === "hu" ? "Template mentése" : settings.language === "de" ? "Template speichern" : "Save template"}
+            </button>
+          </Tooltip>
+        </div>
+      </div>
+
+      {/* Template lista */}
+      {showTemplateList && templates.length > 0 && (
+        <div style={{ ...themeStyles.card, marginBottom: "24px", maxWidth: "100%", boxSizing: "border-box" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: theme.colors.text }}>
+              📋 {settings.language === "hu" ? "Template-ek" : settings.language === "de" ? "Templates" : "Templates"}
+            </h3>
+            <button
+              onClick={() => setShowTemplateList(false)}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: `1px solid ${theme.colors.border}`,
+                backgroundColor: theme.colors.surface,
+                color: theme.colors.text,
+                fontSize: "12px",
+                cursor: "pointer"
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {templates.map(template => {
+              const printer = printers.find(p => p.id === template.printerId);
+              return (
+                <div
+                  key={template.id}
+                  style={{
+                    padding: "16px",
+                    backgroundColor: theme.colors.surfaceHover,
+                    borderRadius: "8px",
+                    border: `1px solid ${theme.colors.border}`
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                    <div style={{ flex: 1 }}>
+                      <strong style={{ fontSize: "16px", color: theme.colors.text }}>{template.name}</strong>
+                      {template.description && (
+                        <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: theme.colors.textSecondary }}>
+                          {template.description}
+                        </p>
+                      )}
+                      <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: theme.colors.textSecondary }}>
+                        {printer ? `${printer.name} (${printer.type})` : settings.language === "hu" ? "Nyomtató nem található" : settings.language === "de" ? "Drucker nicht gefunden" : "Printer not found"} • {template.selectedFilaments.length} {settings.language === "hu" ? "filament" : settings.language === "de" ? "Filament" : "filament"} • {template.printTimeHours}h {template.printTimeMinutes}m {template.printTimeSeconds}s
+                      </p>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <Tooltip content={settings.language === "hu" ? "Betöltés" : settings.language === "de" ? "Laden" : "Load"}>
+                        <button
+                          onClick={() => handleLoadTemplate(template)}
+                          disabled={!printer}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: "6px",
+                            border: `1px solid ${theme.colors.border}`,
+                            backgroundColor: theme.colors.primary,
+                            color: "#fff",
+                            fontSize: "12px",
+                            cursor: printer ? "pointer" : "not-allowed",
+                            opacity: printer ? 1 : 0.5
+                          }}
+                        >
+                          📥
+                        </button>
+                      </Tooltip>
+                      <Tooltip content={settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}>
+                        <button
+                          onClick={() => setDeleteTemplateId(template.id)}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: "6px",
+                            border: `1px solid ${theme.colors.border}`,
+                            backgroundColor: theme.colors.error,
+                            color: "#fff",
+                            fontSize: "12px",
+                            cursor: "pointer"
+                          }}
+                        >
+                          🗑️
+                        </button>
+                      </Tooltip>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Template mentés dialógus */}
+      {showTemplateDialog && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000
+        }}>
+          <div style={{
+            ...themeStyles.card,
+            maxWidth: "500px",
+            width: "90%",
+            maxHeight: "90vh",
+            overflow: "auto"
+          }}>
+            <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
+              💾 {settings.language === "hu" ? "Template mentése" : settings.language === "de" ? "Template speichern" : "Save template"}
+            </h3>
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+                {settings.language === "hu" ? "Template név *" : settings.language === "de" ? "Template-Name *" : "Template name *"}
+              </label>
+              <input
+                type="text"
+                value={templateName}
+                onChange={e => setTemplateName(e.target.value)}
+                placeholder={settings.language === "hu" ? "pl. Gyakori nyomtatás" : settings.language === "de" ? "z.B. Häufiger Druck" : "e.g. Common print"}
+                style={{ ...themeStyles.input, width: "100%" }}
+              />
+            </div>
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+                {settings.language === "hu" ? "Leírás (opcionális)" : settings.language === "de" ? "Beschreibung (optional)" : "Description (optional)"}
+              </label>
+              <textarea
+                value={templateDescription}
+                onChange={e => setTemplateDescription(e.target.value)}
+                placeholder={settings.language === "hu" ? "Rövid leírás..." : settings.language === "de" ? "Kurze Beschreibung..." : "Short description..."}
+                rows={3}
+                style={{ ...themeStyles.input, width: "100%", resize: "vertical" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => {
+                  setShowTemplateDialog(false);
+                  setTemplateName("");
+                  setTemplateDescription("");
+                }}
+                style={{
+                  ...themeStyles.button,
+                  ...themeStyles.buttonSecondary,
+                  padding: "10px 20px"
+                }}
+              >
+                {settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+              </button>
+              <button
+                onClick={handleSaveTemplate}
+                style={{
+                  ...themeStyles.button,
+                  ...themeStyles.buttonPrimary,
+                  padding: "10px 20px"
+                }}
+              >
+                {settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div style={{ ...themeStyles.card, marginBottom: "24px", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
         <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
@@ -661,6 +1044,17 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={deleteTemplateId !== null}
+        title={settings.language === "hu" ? "Template törlése" : settings.language === "de" ? "Template löschen" : "Delete template"}
+        message={settings.language === "hu" ? "Biztosan törölni szeretnéd ezt a template-et?" : settings.language === "de" ? "Möchten Sie diese Vorlage wirklich löschen?" : "Are you sure you want to delete this template?"}
+        onConfirm={handleDeleteTemplate}
+        onCancel={() => setDeleteTemplateId(null)}
+        confirmText={settings.language === "hu" ? "Igen" : settings.language === "de" ? "Ja" : "Yes"}
+        cancelText={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+        type="danger"
+      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { Store } from "@tauri-apps/plugin-store";
-import type { Printer, Filament, Settings, Offer } from "../types";
+import type { Printer, Filament, Settings, Offer, CalculationTemplate } from "../types";
 
 // Lazy-initialized store
 let storeInstance: Store | null = null;
@@ -136,6 +136,34 @@ export async function loadOffers(): Promise<Offer[]> {
     return fixedOffers;
   } catch (error) {
     console.error("❌ Hiba az árajánlatok betöltésekor:", error);
+    return [];
+  }
+}
+
+// Templates
+export async function saveTemplates(templates: CalculationTemplate[]): Promise<void> {
+  try {
+    console.log("💾 Template-ek mentése...", { count: templates.length });
+    const store = await getStore();
+    await store.set("templates", templates);
+    await store.save();
+    console.log("✅ Template-ek sikeresen mentve", { count: templates.length });
+  } catch (error) {
+    console.error("❌ Hiba a template-ek mentésekor:", error);
+    throw error;
+  }
+}
+
+export async function loadTemplates(): Promise<CalculationTemplate[]> {
+  const store = await getStore();
+  try {
+    console.log("📥 Template-ek betöltése...");
+    const data = await store.get("templates");
+    const templates = Array.isArray(data) ? data : [];
+    console.log("✅ Template-ek betöltve", { count: templates.length });
+    return templates;
+  } catch (error) {
+    console.error("❌ Hiba a template-ek betöltésekor:", error);
     return [];
   }
 }

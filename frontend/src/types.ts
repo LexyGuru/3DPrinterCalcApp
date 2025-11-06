@@ -60,6 +60,23 @@ export interface OfferFilament {
   dryingPower?: number;
 }
 
+export interface OfferHistory {
+  version: number;
+  date: string; // ISO date string
+  customerName?: string;
+  customerContact?: string;
+  description?: string;
+  profitPercentage?: number;
+  costs: {
+    filamentCost: number;
+    electricityCost: number;
+    dryingCost: number;
+    usageCost: number;
+    totalCost: number;
+  };
+  changedBy?: string; // Opcionális: ki módosította
+}
+
 export interface Offer {
   id: number;
   date: string; // ISO date string
@@ -83,4 +100,24 @@ export interface Offer {
   customerContact?: string; // Email vagy telefon
   description?: string;
   profitPercentage?: number; // Profit százalék (10, 20, 30, 40, 50), alapértelmezett 30%
+  history?: OfferHistory[]; // Előzmények/verziók
+  currentVersion?: number; // Jelenlegi verzió száma
+}
+
+export interface CalculationTemplate {
+  id: number;
+  name: string;
+  description?: string;
+  printerId: number;
+  selectedFilaments: {
+    filamentIndex: number;
+    usedGrams: number;
+    needsDrying?: boolean;
+    dryingTime?: number;
+    dryingPower?: number;
+  }[];
+  printTimeHours: number;
+  printTimeMinutes: number;
+  printTimeSeconds: number;
+  createdAt: string; // ISO date string
 }

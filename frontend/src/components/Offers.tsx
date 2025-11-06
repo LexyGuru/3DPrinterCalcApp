@@ -93,12 +93,42 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       profitPercentage: editProfitPercentage
     });
 
+    // Ellenőrizzük, hogy változott-e valami
+    const hasChanges = 
+      editingOffer.customerName !== editCustomerName.trim() ||
+      editingOffer.customerContact !== (editCustomerContact.trim() || undefined) ||
+      editingOffer.description !== (editDescription.trim() || undefined) ||
+      editingOffer.profitPercentage !== editProfitPercentage;
+
+    // Ha változott, mentjük az előzménybe
+    let history = editingOffer.history || [];
+    let currentVersion = editingOffer.currentVersion || 1;
+    
+    if (hasChanges) {
+      // Mentjük a régi verziót az előzményekbe
+      const historyEntry: import("../types").OfferHistory = {
+        version: currentVersion,
+        date: editingOffer.date,
+        customerName: editingOffer.customerName,
+        customerContact: editingOffer.customerContact,
+        description: editingOffer.description,
+        profitPercentage: editingOffer.profitPercentage,
+        costs: { ...editingOffer.costs },
+      };
+      
+      history = [historyEntry, ...history];
+      currentVersion = currentVersion + 1;
+    }
+
     const updatedOffer: Offer = {
       ...editingOffer,
       customerName: editCustomerName.trim(),
       customerContact: editCustomerContact.trim() || undefined,
       description: editDescription.trim() || undefined,
       profitPercentage: editProfitPercentage,
+      history: history,
+      currentVersion: currentVersion,
+      date: hasChanges ? new Date().toISOString() : editingOffer.date, // Frissítjük a dátumot, ha változott
     };
 
     const updatedOffers = offers.map(o => o.id === editingOffer.id ? updatedOffer : o);
@@ -106,8 +136,17 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     setSelectedOffer(updatedOffer);
     cancelEditOffer();
     
-    console.log("✅ Árajánlat sikeresen mentve", { offerId: editingOffer.id });
-    showToast(settings.language === "hu" ? "Árajánlat sikeresen mentve" : settings.language === "de" ? "Angebot erfolgreich gespeichert" : "Offer saved successfully", "success");
+    console.log("✅ Árajánlat sikeresen mentve", { 
+      offerId: editingOffer.id, 
+      version: currentVersion,
+      hasHistory: history.length > 0
+    });
+    showToast(
+      settings.language === "hu" ? `Árajánlat sikeresen mentve${hasChanges ? ` (v${currentVersion})` : ""}` :
+      settings.language === "de" ? `Angebot erfolgreich gespeichert${hasChanges ? ` (v${currentVersion})` : ""}` :
+      `Offer saved successfully${hasChanges ? ` (v${currentVersion})` : ""}`,
+      "success"
+    );
   };
 
   const exportToPDF = (offer: Offer) => {
@@ -702,6 +741,11 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                       <span style={{ marginLeft: "8px", color: theme.colors.text }}>
                         {new Date(selectedOffer.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
                       </span>
+                      {selectedOffer.currentVersion && selectedOffer.currentVersion > 1 && (
+                        <span style={{ marginLeft: "12px", fontSize: "12px", color: theme.colors.textSecondary }}>
+                          ({settings.language === "hu" ? "Verzió" : settings.language === "de" ? "Version" : "Version"} {selectedOffer.currentVersion})
+                        </span>
+                      )}
                     </div>
 
                     <div style={{ marginBottom: "12px" }}>
@@ -804,6 +848,55 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   </div>
                 </div>
               </div>
+
+              {/* Előzmények/Verziózás */}
+              {selectedOffer.history && selectedOffer.history.length > 0 && (
+                <div style={{ ...themeStyles.card, padding: "20px", marginBottom: "20px" }}>
+                  <strong style={{ display: "block", marginBottom: "16px", fontSize: "16px", color: theme.colors.text }}>
+                    📜 {settings.language === "hu" ? "Előzmények" : settings.language === "de" ? "Verlauf" : "History"} ({selectedOffer.history.length})
+                  </strong>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "300px", overflowY: "auto" }}>
+                    {selectedOffer.history.map((historyEntry, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: "12px",
+                          backgroundColor: theme.colors.surfaceHover,
+                          borderRadius: "8px",
+                          border: `1px solid ${theme.colors.border}`
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                          <div>
+                            <strong style={{ fontSize: "14px", color: theme.colors.text }}>
+                              {settings.language === "hu" ? "Verzió" : settings.language === "de" ? "Version" : "Version"} {historyEntry.version}
+                            </strong>
+                            <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: theme.colors.textSecondary }}>
+                              {new Date(historyEntry.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")} {new Date(historyEntry.date).toLocaleTimeString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: "12px", color: theme.colors.textSecondary, marginTop: "8px" }}>
+                          {historyEntry.customerName && (
+                            <div style={{ marginBottom: "4px" }}>
+                              <strong>{settings.language === "hu" ? "Ügyfél" : settings.language === "de" ? "Kunde" : "Customer"}:</strong> {historyEntry.customerName}
+                            </div>
+                          )}
+                          {historyEntry.profitPercentage !== undefined && (
+                            <div style={{ marginBottom: "4px" }}>
+                              <strong>{settings.language === "hu" ? "Profit" : settings.language === "de" ? "Gewinn" : "Profit"}:</strong> {historyEntry.profitPercentage}%
+                            </div>
+                          )}
+                          <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: `1px solid ${theme.colors.border}` }}>
+                            <strong>{settings.language === "hu" ? "Összköltség" : settings.language === "de" ? "Gesamtkosten" : "Total Cost"}:</strong>{" "}
+                            {convertCurrencyFromTo(historyEntry.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
                 </>
               )}
             </div>
