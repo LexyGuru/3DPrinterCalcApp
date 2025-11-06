@@ -71,7 +71,9 @@ function getCacheKey(text: string, sourceLang: string, targetLang: string): stri
 // Rate limiting kezelés
 let lastRequestTime = 0;
 const MIN_REQUEST_INTERVAL = 8000; // 8 másodperc (10 kérés/perc = 6 másodperc/kérés, +2 másodperc buffer)
-const MAX_RETRIES = 2; // Maximum 2 retry próbálkozás
+const MAX_RETRIES = 1; // Maximum 1 retry próbálkozás (csökkentve, mert túl sok hiba van)
+let consecutiveErrors = 0; // Számláló a következő hibákhoz
+const MAX_CONSECUTIVE_ERRORS = 3; // Ha 3 egymás utáni hiba van, ne próbáljuk meg fordítani
 
 async function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -88,6 +90,12 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     // Ha a szöveg túl rövid, ne fordítunk
     if (!text || text.trim().length < 3) {
       return text;
+    }
+
+    // Ha túl sok egymás utáni hiba volt, ne próbáljuk meg fordítani
+    if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+      console.warn(`⚠️ Túl sok egymás utáni hiba (${consecutiveErrors}), használjuk az eredeti szöveget`);
+      return text; // Fallback: eredeti szöveg
     }
 
     // Cache ellenőrzés
@@ -147,18 +155,19 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
       
       console.warn(`⚠️ LibreTranslate API hiba (${apiUrl}):`, response.status, response.statusText, errorData);
       
-      // 429 (Rate Limit) vagy 403 (Forbidden) esetén várunk és újra próbáljuk
-      if ((response.status === 429 || response.status === 403) && retryCount < MAX_RETRIES) {
-        const retryAfter = 60; // 60 másodperc várakozás
-        console.log(`⏳ Rate limit elérve (${response.status}), várakozás ${retryAfter} másodperc... (próbálkozás ${retryCount + 1}/${MAX_RETRIES})`);
-        await delay(retryAfter * 1000);
-        // Próbáljuk meg újra ugyanazzal az API-val
-        return translateText(text, sourceLang, targetLang, retryIndex, retryCount + 1);
+      // 429 (Rate Limit) vagy 403 (Forbidden) esetén ne próbáljuk meg újra, csak használjuk az eredeti szöveget
+      if (response.status === 429 || response.status === 403) {
+        consecutiveErrors++;
+        console.warn(`⚠️ Rate limit elérve (${response.status}), használjuk az eredeti szöveget (egymás utáni hibák: ${consecutiveErrors})`);
+        return text; // Fallback: eredeti szöveg
       }
       
+      // Egyéb hibák esetén is növeljük a számlálót
+      consecutiveErrors++;
+      
       // Ha túl sok hiba van, ne próbáljuk meg újra
-      if (retryCount >= MAX_RETRIES) {
-        console.warn(`⚠️ Túl sok próbálkozás (${retryCount}), használjuk az eredeti szöveget`);
+      if (retryCount >= MAX_RETRIES || consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        console.warn(`⚠️ Túl sok próbálkozás (retry: ${retryCount}, consecutive: ${consecutiveErrors}), használjuk az eredeti szöveget`);
         return text; // Fallback: eredeti szöveg
       }
       
@@ -174,8 +183,9 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     const data = await response.json();
     const translated = data.translatedText || text;
     
-    // Cache mentés
+    // Sikeres fordítás esetén nullázzuk a hibaszámlálót
     if (translated !== text) {
+      consecutiveErrors = 0; // Sikeres fordítás, nullázzuk a hibaszámlálót
       const updatedCache = getTranslationCache();
       updatedCache.translations[cacheKey] = translated;
       saveTranslationCache(updatedCache);
@@ -184,11 +194,12 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     
     return translated;
   } catch (error) {
-    console.warn(`⚠️ Fordítás hiba (${LIBRETRANSLATE_APIS[retryIndex] || LIBRETRANSLATE_APIS[0]}):`, error);
+    consecutiveErrors++;
+    console.warn(`⚠️ Fordítás hiba (${LIBRETRANSLATE_APIS[retryIndex] || LIBRETRANSLATE_APIS[0]}):`, error, `(egymás utáni hibák: ${consecutiveErrors})`);
     
     // Ha túl sok hiba van, ne próbáljuk meg újra
-    if (retryCount >= MAX_RETRIES) {
-      console.warn(`⚠️ Túl sok próbálkozás (${retryCount}), használjuk az eredeti szöveget`);
+    if (retryCount >= MAX_RETRIES || consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+      console.warn(`⚠️ Túl sok próbálkozás (retry: ${retryCount}, consecutive: ${consecutiveErrors}), használjuk az eredeti szöveget`);
       return text; // Fallback: eredeti szöveg
     }
     
