@@ -120,6 +120,19 @@ export type TranslationKey =
   | "settings.themeDescription"
   | "settings.showConsole"
   | "settings.showConsoleDescription"
+  | "settings.autosave"
+  | "settings.autosaveDescription"
+  | "settings.autosaveInterval"
+  | "settings.autosaveIntervalDescription"
+  | "settings.notificationEnabled"
+  | "settings.notificationEnabledDescription"
+  | "settings.notificationDuration"
+  | "settings.notificationDurationDescription"
+  | "settings.backup"
+  | "settings.backupCreate"
+  | "settings.backupRestore"
+  | "settings.shortcuts"
+  | "settings.shortcutsDescription"
   // Console
   | "console.title"
   | "console.filter"
@@ -167,6 +180,20 @@ export type TranslationKey =
   | "common.confirmDeleteFilament"
   | "common.confirmDeletePrinter"
   | "common.confirmDeleteOffer"
+  | "common.offerDuplicated"
+  | "common.printerUpdated"
+  // Shortcuts
+  | "shortcuts.title"
+  | "shortcuts.noShortcuts"
+  | "shortcuts.closeHint"
+  // Backup
+  | "backup.create"
+  | "backup.restore"
+  | "backup.createSuccess"
+  | "backup.restoreSuccess"
+  | "backup.restoreError"
+  | "backup.invalidFile"
+  | "backup.confirmRestore"
   | "common.success"
   | "common.error"
   | "common.filamentAdded"
@@ -307,6 +334,19 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.themeDescription": "Válassz egy témát az alkalmazás megjelenéséhez. A változtatás azonnal érvénybe lép.",
     "settings.showConsole": "Console/Log megjelenítése:",
     "settings.showConsoleDescription": "Ha bekapcsolod, megjelenik egy Console menüpont a menüben, ahol láthatod a hibákat és logokat.",
+    "settings.autosave": "Automatikus mentés:",
+    "settings.autosaveDescription": "Ha bekapcsolod, az alkalmazás automatikusan menti az adatokat.",
+    "settings.autosaveInterval": "Automatikus mentés intervallum (másodperc):",
+    "settings.autosaveIntervalDescription": "Adja meg, hogy hány másodpercenként történjen az automatikus mentés (minimum 5 másodperc).",
+    "settings.notificationEnabled": "Értesítések engedélyezése:",
+    "settings.notificationEnabledDescription": "Ha bekapcsolod, az alkalmazás értesítéseket jelenít meg a műveletekről.",
+    "settings.notificationDuration": "Értesítés időtartama (ms):",
+    "settings.notificationDurationDescription": "Adja meg, hogy hány milliszekundumig jelenjen meg az értesítés (minimum 1000ms).",
+    "settings.backup": "Backup",
+    "settings.backupCreate": "Backup létrehozása",
+    "settings.backupRestore": "Backup visszaállítása",
+    "settings.shortcuts": "Gyorsbillentyűk megjelenítése:",
+    "settings.shortcutsDescription": "Nyomd meg a Ctrl/Cmd+? billentyűt a gyorsbillentyűk listájának megjelenítéséhez.",
     // Console
     "console.title": "Console / Log",
     "console.filter": "Szűrő:",
@@ -367,6 +407,18 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "common.duplicate": "Duplikálás",
     "common.offerDuplicated": "Árajánlat sikeresen duplikálva!",
     "common.close": "Bezárás",
+    // Shortcuts
+    "shortcuts.title": "Gyorsbillentyűk",
+    "shortcuts.noShortcuts": "Nincsenek regisztrált gyorsbillentyűk",
+    "shortcuts.closeHint": "Nyomd meg az Escape-t vagy Ctrl/Cmd+? a bezáráshoz",
+    // Backup
+    "backup.create": "Backup létrehozása",
+    "backup.restore": "Backup visszaállítása",
+    "backup.createSuccess": "Backup sikeresen létrehozva!",
+    "backup.restoreSuccess": "Backup sikeresen visszaállítva!",
+    "backup.restoreError": "Hiba a backup visszaállításakor",
+    "backup.invalidFile": "Érvénytelen backup fájl",
+    "backup.confirmRestore": "Biztosan vissza szeretnéd állítani a backup-ot? Ez felülírja az aktuális adatokat.",
     // Sidebar
     "sidebar.menu": "Menü",
     "sidebar.home": "Kezdőlap",
@@ -494,6 +546,19 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.themeDescription": "Choose a theme for the application appearance. Changes take effect immediately.",
     "settings.showConsole": "Show Console/Log:",
     "settings.showConsoleDescription": "If enabled, a Console menu item will appear in the menu where you can see errors and logs.",
+    "settings.autosave": "Automatic save:",
+    "settings.autosaveDescription": "If enabled, the application will automatically save data.",
+    "settings.autosaveInterval": "Automatic save interval (seconds):",
+    "settings.autosaveIntervalDescription": "Specify how often the automatic save should occur (minimum 5 seconds).",
+    "settings.notificationEnabled": "Enable notifications:",
+    "settings.notificationEnabledDescription": "If enabled, the application will show notifications about operations.",
+    "settings.notificationDuration": "Notification duration (ms):",
+    "settings.notificationDurationDescription": "Specify how long the notification should be displayed (minimum 1000ms).",
+    "settings.backup": "Backup",
+    "settings.backupCreate": "Create Backup",
+    "settings.backupRestore": "Restore Backup",
+    "settings.shortcuts": "Show Keyboard Shortcuts:",
+    "settings.shortcutsDescription": "Press Ctrl/Cmd+? to show the keyboard shortcuts list.",
     // Console
     "console.title": "Console / Log",
     "console.filter": "Filter:",
@@ -554,6 +619,18 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "common.duplicate": "Duplicate",
     "common.offerDuplicated": "Offer duplicated successfully!",
     "common.close": "Close",
+    // Shortcuts
+    "shortcuts.title": "Keyboard Shortcuts",
+    "shortcuts.noShortcuts": "No shortcuts registered",
+    "shortcuts.closeHint": "Press Escape or Ctrl/Cmd+? to close",
+    // Backup
+    "backup.create": "Create Backup",
+    "backup.restore": "Restore Backup",
+    "backup.createSuccess": "Backup created successfully!",
+    "backup.restoreSuccess": "Backup restored successfully!",
+    "backup.restoreError": "Error restoring backup",
+    "backup.invalidFile": "Invalid backup file",
+    "backup.confirmRestore": "Are you sure you want to restore the backup? This will overwrite your current data.",
     // Sidebar
     "sidebar.menu": "Menu",
     "sidebar.home": "Home",
@@ -681,6 +758,19 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "settings.themeDescription": "Wähle ein Design für das Erscheinungsbild der Anwendung. Änderungen werden sofort wirksam.",
     "settings.showConsole": "Console/Log anzeigen:",
     "settings.showConsoleDescription": "Wenn aktiviert, erscheint ein Console-Menüpunkt im Menü, wo Sie Fehler und Logs sehen können.",
+    "settings.autosave": "Automatisches Speichern:",
+    "settings.autosaveDescription": "Wenn aktiviert, speichert die Anwendung automatisch Daten.",
+    "settings.autosaveInterval": "Intervall für automatisches Speichern (Sekunden):",
+    "settings.autosaveIntervalDescription": "Geben Sie an, wie oft das automatische Speichern erfolgen soll (mindestens 5 Sekunden).",
+    "settings.notificationEnabled": "Benachrichtigungen aktivieren:",
+    "settings.notificationEnabledDescription": "Wenn aktiviert, zeigt die Anwendung Benachrichtigungen über Vorgänge an.",
+    "settings.notificationDuration": "Benachrichtigungsdauer (ms):",
+    "settings.notificationDurationDescription": "Geben Sie an, wie lange die Benachrichtigung angezeigt werden soll (mindestens 1000ms).",
+    "settings.backup": "Backup",
+    "settings.backupCreate": "Backup erstellen",
+    "settings.backupRestore": "Backup wiederherstellen",
+    "settings.shortcuts": "Tastenkürzel anzeigen:",
+    "settings.shortcutsDescription": "Drücken Sie Strg/Cmd+?, um die Liste der Tastenkürzel anzuzeigen.",
     // Console
     "console.title": "Console / Log",
     "console.filter": "Filter:",
@@ -741,6 +831,18 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "common.duplicate": "Duplizieren",
     "common.offerDuplicated": "Angebot erfolgreich dupliziert!",
     "common.close": "Schließen",
+    // Shortcuts
+    "shortcuts.title": "Tastenkürzel",
+    "shortcuts.noShortcuts": "Keine Tastenkürzel registriert",
+    "shortcuts.closeHint": "Drücken Sie Escape oder Strg/Cmd+? zum Schließen",
+    // Backup
+    "backup.create": "Backup erstellen",
+    "backup.restore": "Backup wiederherstellen",
+    "backup.createSuccess": "Backup erfolgreich erstellt!",
+    "backup.restoreSuccess": "Backup erfolgreich wiederhergestellt!",
+    "backup.restoreError": "Fehler beim Wiederherstellen des Backups",
+    "backup.invalidFile": "Ungültige Backup-Datei",
+    "backup.confirmRestore": "Möchten Sie das Backup wirklich wiederherstellen? Dies überschreibt Ihre aktuellen Daten.",
     // Sidebar
     "sidebar.menu": "Menü",
     "sidebar.home": "Home",

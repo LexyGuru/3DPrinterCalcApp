@@ -1,131 +1,244 @@
 # Fejlesztési javaslatok - 3DPrinterCalcApp
 
-## 🎯 Prioritás szerint rendezve
+## ✅ Már implementált funkciók
 
-### 🔴 Magas prioritás (UX javítások)
+### v0.3.0-ban implementálva:
+- ✅ **Árajánlat szerkesztés** - Mentett árajánlatok szerkesztése (ügyfél név, elérhetőség, leírás, profit százalék)
+- ✅ **Statisztikák export funkció** - Statisztikák exportálása JSON vagy CSV formátumban
+- ✅ **Riport generálás** - Heti/havi/éves/összes riport generálása JSON formátumban
+- ✅ **Verzió előzmények megjelenítése** - Verzió előzmények megtekintése a beállításokban
 
-#### 1. **Megerősítő dialógusok törlésnél**
-- **Hol**: `Filaments.tsx`, `Printers.tsx`, `Offers.tsx`
-- **Mit**: Amikor törölsz egy filamentet/nyomtatót/árajánlatot, jelenjen meg egy megerősítő üzenet
-- **Példa**: "Biztosan törölni szeretnéd ezt a filamentet?"
-- **Előny**: Megelőzi a véletlen törléseket
+### v0.2.55-ban implementálva:
+- ✅ **Console/Log funkció** - Console menüpont hibakereséshez és logok megtekintéséhez
+- ✅ **Gyorsbillentyűk** - `Ctrl/Cmd+N` (új), `Ctrl/Cmd+S` (mentés), `Escape` (mégse)
+- ✅ **Teljes logolás** - Minden kritikus művelet logolva (mentés, export, import, törlés, PDF export, frissítés)
+- ✅ **Frissítés gomb javítás** - Tauri shell plugin használata megbízható működéshez
+- ✅ **Toast értesítések** - Sikeres műveletek után értesítések
+- ✅ **Megerősítő dialógusok** - Törlés előtt megerősítés
+- ✅ **Keresés és szűrés** - Filamentek, nyomtatók és árajánlatok keresése
+- ✅ **Duplikálás** - Árajánlatok könnyű duplikálása
+- ✅ **Témaváltás** - Több téma támogatás (light, dark, blue, green, purple, orange)
+- ✅ **Teljes nyomtató szerkesztés** - Nyomtatók részletes szerkesztése, több AMS hozzáadása
+- ✅ **Responsive layout** - Dinamikus alkalmazkodás az ablakmérethez
+- ✅ **Loading states** - Betöltési állapotok megjelenítése
+- ✅ **Backup és restore** - Adatok biztonsági mentése és visszaállítása
+- ✅ **Error boundaries** - Alkalmazás szintű hibakezelés
+- ✅ **Automatikus mentés** - Debounced automatikus mentés beállítható intervallummal
+- ✅ **Értesítési beállítások** - Toast értesítések be/ki kapcsolása és időtartam beállítása
+- ✅ **Shortcut help menü** - Gyorsbillentyűk listája (`Ctrl/Cmd+?`)
+- ✅ **Animációk és transitions** - Smooth transitions és animációk
+- ✅ **Tooltip-ek** - Kontextuális segítség minden fontos elemhez
 
-#### 2. **Toast értesítések (sikeres műveletek)**
-- **Hol**: Minden komponens
-- **Mit**: Sikeres mentés/törlés/hozzáadás után egy kis értesítés jelenjen meg
-- **Példa**: "Filament sikeresen hozzáadva!" vagy "Árajánlat mentve!"
-- **Előny**: Visszajelzés a felhasználónak, hogy a művelet sikerült
+---
 
-#### 3. **Input validáció javítása**
+## 🎯 Prioritás szerint rendezett javaslatok
+
+### 🔴 Magas prioritás (UX/Funkcionalitás javítások)
+
+
+#### 2. **Tömeges import/export (CSV/JSON)**
+- **Hol**: `Filaments.tsx`, `Printers.tsx`
+- **Mit**: CSV/JSON fájlból importálás és exportálás
+- **Előny**: Könnyű adatátvitel, biztonsági mentés, backup
+- **Becsült idő**: 4-6 óra
+- **Komplexitás**: Magas
+
+#### 3. **Input validáció fejlesztése**
 - **Hol**: `Calculator.tsx`, `Filaments.tsx`, `Printers.tsx`
 - **Mit**: 
   - Negatív számok eltiltása
   - Maximum értékek beállítása (pl. nem lehet 10000g filament)
   - Idő mezők validáció (nem lehet 100 óra)
+  - Reális értékek ellenőrzése
 - **Előny**: Megelőzi a hibás adatbevitelt
+- **Becsült idő**: 2-3 óra
+- **Komplexitás**: Alacsony
 
-#### 4. **Loading states (betöltési állapotok)**
-- **Hol**: `App.tsx` (adatbetöltés), `Offers.tsx` (PDF export)
-- **Mit**: Spinner vagy loading indicator, amikor adatok betöltődnek vagy művelet fut
-- **Előny**: A felhasználó tudja, hogy az alkalmazás dolgozik
 
-### 🟡 Közepes prioritás (funkcionalitás)
+### 🟡 Közepes prioritás (funkcionalitás bővítések)
 
-#### 5. **Árajánlatok duplikálása**
+#### 5. **Template funkciók**
+- **Hol**: `Calculator.tsx`
+- **Mit**: Mentett kalkulációk mintaként használhatók (pl. "Gyakori nyomtatás", "Template név")
+- **Előny**: Időmegtakarítás, gyors újraszámítás hasonló paraméterekkel
+- **Becsült idő**: 4-6 óra
+- **Komplexitás**: Közepes
+
+#### 6. **Előzmények/Verziózás árajánlatokhoz**
 - **Hol**: `Offers.tsx`
-- **Mit**: "Duplikálás" gomb, ami egy másolatot készít az árajánlatról
-- **Előny**: Könnyű új árajánlat készítése hasonló paraméterekkel
+- **Mit**: Árajánlatok verziózása, előzmények megtekintése, változtatások nyomon követése
+- **Előny**: Látható, hogyan változott egy árajánlat, jobb nyilvántartás
+- **Becsült idő**: 6-8 óra
+- **Komplexitás**: Magas
 
-#### 6. **Statisztika export (CSV/PDF)**
-- **Hol**: `Home.tsx`
-- **Mit**: Export gomb a statisztikákhoz CSV vagy PDF formátumban
-- **Előny**: Könnyű megosztás és elemzés
-
-#### 7. **Keresés és szűrés**
-- **Hol**: `Filaments.tsx`, `Printers.tsx`, `Offers.tsx`
-- **Mit**: Kereső mező, ami szűrni tudja a listát (márka, típus, dátum szerint)
-- **Előny**: Könnyű navigáció sok adat esetén
-
-#### 8. **Tömeges import/export (CSV)**
-- **Hol**: `Filaments.tsx`, `Printers.tsx`
-- **Mit**: CSV fájlból importálás és exportálás
-- **Előny**: Könnyű adatátvitel, biztonsági mentés
 
 ### 🟢 Alacsony prioritás (nice-to-have)
 
-#### 9. **Keyboard shortcuts**
-- **Mit**: 
-  - `Ctrl+N` / `Cmd+N`: Új filament/nyomtató
-  - `Ctrl+S` / `Cmd+S`: Mentés
-  - `Esc`: Mégse/dialog bezárása
-- **Előny**: Gyorsabb munkavégzés
+#### 9. **Tooltip-ek**
+- **Hol**: Minden gomb, input mező
+- **Mit**: Rövidek magyarázatok, hogy mit csinál az adott elem
+- **Előny**: Jobb usability, segítség a kezdőknek
+- **Becsült idő**: 3-4 óra
+- **Komplexitás**: Alacsony
 
-#### 10. **Témaváltás (Dark mode)**
-- **Mit**: Világos/sötét téma váltás a beállításokban
-- **Előny**: Jobb UX különböző környezetben
 
-#### 11. **Verzió előzmények megjelenítése**
-- **Hol**: `UpdateChecker.tsx` vagy Settings
-- **Mit**: Lista a korábbi verziókból és változtatásokról
-- **Előny**: Transparens fejlesztés
+#### 13. **Automatikus mentés**
+- **Mit**: Automatikus mentés X percek után, vagy "Autosave" beállítás
+- **Előny**: Adatvesztés elkerülése
+- **Becsült idő**: 2-3 óra
+- **Komplexitás**: Közepes
 
-#### 12. **Template funkciók**
-- **Hol**: `Calculator.tsx`
-- **Mit**: Mentett kalkulációk mintaként használhatók (pl. "Gyakori nyomtatás")
-- **Előny**: Időmegtakarítás
+#### 14. **Értesítési beállítások**
+- **Mit**: Beállítható, hogy milyen értesítéseket jelenítsen meg (toast, notification)
+- **Előny**: Személyre szabható UX
+- **Becsült idő**: 2-3 óra
+- **Komplexitás**: Alacsony
 
-## 🛠️ Technikai javítások
+## 🛠️ Technikai javítások és optimalizálás
 
 ### 1. **Error boundaries**
 - **Hol**: `App.tsx`
 - **Mit**: React Error Boundary komponens, ami elkapja a váratlan hibákat
-- **Előny**: Az alkalmazás nem omlik össze egy hiba miatt
+- **Előny**: Az alkalmazás nem omlik össze egy hiba miatt, jobb hibakezelés
+- **Becsült idő**: 2-3 óra
+- **Komplexitás**: Közepes
 
 ### 2. **TypeScript strict mode**
-- **Mit**: Ellenőrizd, hogy minden típus helyesen van definiálva
-- **Hol**: Minden `.tsx` fájl
-- **Előny**: Kevesebb runtime hiba
+- **Mit**: Ellenőrizd, hogy minden típus helyesen van definiálva, strict mode bekapcsolása
+- **Hol**: Minden `.tsx` fájl, `tsconfig.json`
+- **Előny**: Kevesebb runtime hiba, jobb kódminőség
+- **Becsült idő**: 4-6 óra
+- **Komplexitás**: Közepes
 
-### 3. **Console.log cleanup**
-- **Mit**: A production buildben ne legyenek console.log-ok
-- **Hol**: Használj `import.meta.env.DEV` ellenőrzést vagy egy logger utility-t
-- **Előny**: Tisztább kód, jobb teljesítmény
-
-### 4. **Mentés optimalizálás**
+### 3. **Mentés optimalizálás (debounce)**
 - **Hol**: `App.tsx` (useEffect-ek)
 - **Mit**: Debounce a mentéshez, hogy ne mentse túl gyakran
-- **Előny**: Jobb teljesítmény, kevesebb IO művelet
+- **Előny**: Jobb teljesítmény, kevesebb IO művelet, gyorsabb alkalmazás
+- **Becsült idő**: 1-2 óra
+- **Komplexitás**: Alacsony
 
-### 5. **Unit tesztek**
-- **Mit**: Tesztek a kritikus számításokhoz (pl. `Calculator.tsx`)
-- **Előny**: Biztonságos refactoring, kevesebb bug
+### 4. **Unit tesztek**
+- **Mit**: Tesztek a kritikus számításokhoz (pl. `Calculator.tsx`), utility funkciókhoz
+- **Előny**: Biztonságos refactoring, kevesebb bug, jobb kódminőség
+- **Becsült idő**: 8-12 óra
+- **Komplexitás**: Magas
 
-## 📊 Mérési pontok
+### 5. **Performance optimalizálás**
+- **Mit**: 
+  - React.memo használata nagy komponenseknél
+  - useMemo/useCallback optimalizálás
+  - Lazy loading komponenseknél
+- **Előny**: Gyorsabb alkalmazás, jobb UX
+- **Becsült idő**: 4-6 óra
+- **Komplexitás**: Közepes
+
+### 6. **Code splitting**
+- **Mit**: Lazy loading komponenseknél, route-based code splitting
+- **Előny**: Gyorsabb inicializálás, kisebb bundle méret
+- **Becsült idő**: 2-3 óra
+- **Komplexitás**: Közepes
+
+## 📊 Adatkezelés és elemzés
 
 ### 1. **Analytics (opcionális)**
 - **Mit**: Használati statisztikák (anonym módon)
 - **Mit mérj**: Mely funkciókat használják a legtöbbet, hol vannak problémák
 - **Előny**: Adat-alapú fejlesztési döntések
+- **Figyelem**: GDPR szabályozás, privacy policy szükséges
+- **Becsült idő**: 8-12 óra
+- **Komplexitás**: Magas
+
+### 2. **Backup és restore**
+- **Mit**: Automatikus backup létrehozása, restore funkció
+- **Előny**: Adatvesztés elkerülése, könnyebb helyreállítás
+- **Becsült idő**: 4-6 óra
+- **Komplexitás**: Közepes
+
+### 3. **Adatbázis migráció**
+- **Mit**: Verziózott adatstruktúra, automatikus migráció
+- **Előny**: Könnyebb frissítések, kompatibilitás
+- **Becsült idő**: 6-8 óra
+- **Komplexitás**: Magas
 
 ## 🎨 UI/UX finomítások
 
-### 1. **Tooltip-ek**
-- **Hol**: Minden gomb, input mező
-- **Mit**: Rövidek magyarázatok, hogy mit csinál az adott elem
-- **Előny**: Jobb usability
-
-### 2. **Empty states**
+### 1. **Empty states javítása**
 - **Hol**: Üres listák (nincs filament, nincs nyomtató, stb.)
-- **Mit**: Informatív üzenetek és CTA gombok ("Hozzáadás")
-- **Előny**: Jobb első benyomás
+- **Mit**: Informatív üzenetek és CTA gombok ("Hozzáadás"), illusztrációk
+- **Előny**: Jobb első benyomás, könnyebb első lépések
+- **Becsült idő**: 2-3 óra
+- **Komplexitás**: Alacsony
 
-### 3. **Animációk**
-- **Mit**: Smooth transitions, fade-in animációk
-- **Előny**: Professzionálisabb megjelenés
+### 2. **Accessibility (a11y) javítások**
+- **Mit**: 
+  - ARIA labels hozzáadása
+  - Keyboard navigation javítása
+  - Screen reader támogatás
+  - Színkontraszt javítása
+- **Előny**: Akadálymentes használat, szélesebb felhasználói bázis
+- **Becsült idő**: 6-8 óra
+- **Komplexitás**: Közepes
 
-### 4. **Responsive design**
-- **Mit**: Ellenőrizd, hogy más ablakméretben is jól néz ki
-- **Előny**: Különböző képernyőméretek támogatása
+### 3. **Drag & Drop funkciók**
+- **Mit**: Árajánlatok, filamentek, nyomtatók átrendezése drag & drop-pal
+- **Előny**: Intuitívabb használat
+- **Becsült idő**: 4-6 óra
+- **Komplexitás**: Közepes
+
+### 4. **Kontextus menük**
+- **Mit**: Jobb klikk menük a listaelemekhez (szerkesztés, törlés, duplikálás)
+- **Előny**: Gyorsabb műveletek, jobb UX
+- **Becsült idő**: 3-4 óra
+- **Komplexitás**: Közepes
+
+## 🔐 Biztonság és adatvédelem
+
+### 1. **Adattitkosítás**
+- **Mit**: Bizalmas adatok (árajánlatok, ügyfél adatok) titkosítása
+- **Előny**: Jobb adatvédelem, GDPR megfelelőség
+- **Becsült idő**: 8-12 óra
+- **Komplexitás**: Magas
+
+### 2. **Jelszavas védelem**
+- **Mit**: Opcionális jelszóvédelem az alkalmazáshoz
+- **Előny**: Adatok védelme
+- **Becsült idő**: 4-6 óra
+- **Komplexitás**: Közepes
+
+## 🌐 Integrációk
+
+### 1. **Cloud sync (opcionális)**
+- **Mit**: Felhő alapú szinkronizálás (Google Drive, Dropbox, OneDrive)
+- **Előny**: Több eszközön használható, automatikus backup
+- **Figyelem**: Privacy policy, GDPR szabályozás
+- **Becsült idő**: 12-16 óra
+- **Komplexitás**: Magas
+
+### 2. **API integráció**
+- **Mit**: API végpontok a filament árak lekéréséhez, valuta árfolyamokhoz
+- **Előny**: Automatikus frissítések, pontos adatok
+- **Becsült idő**: 8-12 óra
+- **Komplexitás**: Magas
+
+## 📱 Platform specifikus fejlesztések
+
+### 1. **macOS Dock integráció**
+- **Mit**: Dock menü, badge értesítések
+- **Előny**: Jobb macOS integráció
+- **Becsült idő**: 2-3 óra
+- **Komplexitás**: Közepes
+
+### 2. **Windows Taskbar integráció**
+- **Mit**: Taskbar progress bar, jump list
+- **Előny**: Jobb Windows integráció
+- **Becsült idő**: 2-3 óra
+- **Komplexitás**: Közepes
+
+### 3. **Linux AppIndicator**
+- **Mit**: System tray integráció Linux rendszereken
+- **Előny**: Jobb Linux integráció
+- **Becsült idő**: 2-3 óra
+- **Komplexitás**: Közepes
 
 ---
 
@@ -133,10 +246,26 @@
 
 Ha csak gyorsan szeretnél valamit hozzáadni, ajánlom ezeket:
 
-1. **Megerősítő dialógus törlésnél** - 30 perc
-2. **Toast értesítések** - 1 óra
-3. **Input validáció** - 1 óra
-4. **Loading spinner az App.tsx-ben** - 30 perc
+1. **Input validáció** - 1-2 óra
+2. **Shortcut help menü** - 1-2 óra
+3. **Empty states javítása** - 1-2 óra
+4. **Mentés optimalizálás (debounce)** - 1-2 óra
+5. **Verzió előzmények megjelenítése** - 2-3 óra
 
 Ezek a legnagyobb UX javulást hoznák a legkevesebb munkával.
 
+---
+
+## 📝 Megjegyzések
+
+- **Becsült idő**: Durva becslés, a tényleges idő függ a részletektől és a komplexitástól
+- **Komplexitás**: 
+  - **Alacsony**: Könnyen implementálható, kevés rizikó
+  - **Közepes**: Tervezés szükséges, közepes rizikó
+  - **Magas**: Bonyolult implementáció, nagy rizikó, tesztelés szükséges
+
+- **Prioritás**: A prioritás a felhasználói érték és a implementációs nehézség alapján van meghatározva
+
+---
+
+**Utolsó frissítés**: 2025. január (v0.2.55 után)

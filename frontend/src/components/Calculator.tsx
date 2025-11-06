@@ -4,6 +4,7 @@ import type { Theme } from "../utils/themes";
 import { convertCurrency } from "../utils/currency";
 import { useTranslation } from "../utils/translations";
 import { useToast } from "./Toast";
+import { Tooltip } from "./Tooltip";
 
 interface SelectedFilament {
   filamentIndex: number;
@@ -231,19 +232,21 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               🧵 {t("calculator.filaments")} ({selectedFilaments.length}/{maxFilaments})
             </label>
             {maxFilaments > 0 && selectedFilaments.length < maxFilaments && (
-              <button 
-                onClick={addFilament}
-                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
-                style={{ 
-                  ...themeStyles.button,
-                  ...themeStyles.buttonPrimary,
-                  padding: "10px 20px",
-                  fontSize: "14px"
-                }}
-              >
-                ➕ {t("calculator.addFilament")}
-              </button>
+              <Tooltip content={settings.language === "hu" ? "Filament hozzáadása" : settings.language === "de" ? "Filament hinzufügen" : "Add filament"}>
+                <button 
+                  onClick={addFilament}
+                  onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                  onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
+                  style={{ 
+                    ...themeStyles.button,
+                    ...themeStyles.buttonPrimary,
+                    padding: "10px 20px",
+                    fontSize: "14px"
+                  }}
+                >
+                  ➕ {t("calculator.addFilament")}
+                </button>
+              </Tooltip>
             )}
           </div>
           
@@ -252,20 +255,22 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               <div key={idx} style={{ ...themeStyles.card, width: "100%", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
                 <strong style={{ fontSize: "16px", color: theme.colors.text }}>{t("calculator.filament")} {idx + 1}:</strong>
-                <button 
-                  onClick={() => removeFilament(idx)}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
-                  style={{ 
-                    ...themeStyles.button,
-                    ...themeStyles.buttonDanger,
-                    padding: "8px 16px",
-                    fontSize: "12px",
-                    flexShrink: 0
-                  }}
-                >
-                  {t("filaments.delete")}
-                </button>
+                <Tooltip content={settings.language === "hu" ? "Filament eltávolítása" : settings.language === "de" ? "Filament entfernen" : "Remove filament"}>
+                  <button 
+                    onClick={() => removeFilament(idx)}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                    style={{ 
+                      ...themeStyles.button,
+                      ...themeStyles.buttonDanger,
+                      padding: "8px 16px",
+                      fontSize: "12px",
+                      flexShrink: 0
+                    }}
+                  >
+                    {t("filaments.delete")}
+                  </button>
+                </Tooltip>
               </div>
               <div style={{ display: "flex", gap: "16px", alignItems: "flex-end", marginBottom: "16px", flexWrap: "wrap" }}>
                 <div style={{ flex: "1", minWidth: "200px", maxWidth: "100%" }}>
@@ -381,20 +386,22 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               💰 {t("calculator.costBreakdown")} ({settings.currency})
             </h3>
             {onSaveOffer && (
-              <button
-                onClick={() => {
-                  if (!selectedPrinter) return;
-                  setShowOfferDialog(true);
-                }}
-                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
-                style={{
-                  ...themeStyles.button,
-                  ...themeStyles.buttonSuccess
-                }}
-              >
-                {t("calculator.saveAsOffer")}
-              </button>
+              <Tooltip content={settings.language === "hu" ? "Árajánlatként mentés" : settings.language === "de" ? "Als Angebot speichern" : "Save as offer"}>
+                <button
+                  onClick={() => {
+                    if (!selectedPrinter) return;
+                    setShowOfferDialog(true);
+                  }}
+                  onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                  onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSuccess
+                  }}
+                >
+                  {t("calculator.saveAsOffer")}
+                </button>
+              </Tooltip>
             )}
           </div>
           <div style={{ marginTop: "20px" }}>
@@ -540,31 +547,34 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             </div>
             
             <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px" }}>
-              <button
-                onClick={() => {
-                  setShowOfferDialog(false);
-                  setOfferCustomerName("");
-                  setOfferCustomerContact("");
-                  setOfferDescription("");
-                  setOfferProfitPercentage(30);
-                }}
-                style={{
-                  ...themeStyles.button,
-                  backgroundColor: theme.colors.secondary,
-                  color: "#fff",
-                  padding: "10px 20px",
-                }}
-              >
-                {t("common.cancel")}
-              </button>
-              <button
-                onClick={() => {
-                  if (!offerCustomerName.trim()) {
-                    showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek add meg az ügyfél nevét!" : settings.language === "de" ? "Bitte geben Sie den Kundennamen ein!" : "Please enter customer name!"), "error");
-                    return;
-                  }
-                  
-                  if (!selectedPrinter || !calculations || !onSaveOffer) return;
+              <Tooltip content={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}>
+                <button
+                  onClick={() => {
+                    setShowOfferDialog(false);
+                    setOfferCustomerName("");
+                    setOfferCustomerContact("");
+                    setOfferDescription("");
+                    setOfferProfitPercentage(30);
+                  }}
+                  style={{
+                    ...themeStyles.button,
+                    backgroundColor: theme.colors.secondary,
+                    color: "#fff",
+                    padding: "10px 20px",
+                  }}
+                >
+                  {t("common.cancel")}
+                </button>
+              </Tooltip>
+              <Tooltip content={settings.language === "hu" ? "Árajánlat mentése" : settings.language === "de" ? "Angebot speichern" : "Save offer"}>
+                <button
+                  onClick={() => {
+                    if (!offerCustomerName.trim()) {
+                      showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek add meg az ügyfél nevét!" : settings.language === "de" ? "Bitte geben Sie den Kundennamen ein!" : "Please enter customer name!"), "error");
+                      return;
+                    }
+                    
+                    if (!selectedPrinter || !calculations || !onSaveOffer) return;
                   
                   const offerFilaments = selectedFilaments.map(sf => {
                     const filament = filaments[sf.filamentIndex];
@@ -630,6 +640,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               >
                 {t("offers.save")}
               </button>
+              </Tooltip>
             </div>
           </div>
         </div>

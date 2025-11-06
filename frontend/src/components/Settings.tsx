@@ -5,6 +5,10 @@ import type { Settings, Printer, Filament, Offer } from "../types";
 import { useTranslation } from "../utils/translations";
 import { useToast } from "./Toast";
 import { themes, type ThemeName, type Theme } from "../utils/themes";
+import { createBackup, restoreBackup } from "../utils/backup";
+import { ShortcutHelp } from "./ShortcutHelp";
+import { Tooltip } from "./Tooltip";
+import { VersionHistory } from "./VersionHistory";
 
 interface Props {
   settings: Settings;
@@ -39,6 +43,8 @@ export const SettingsPage: React.FC<Props> = ({
   const [importFilaments, setImportFilaments] = useState(false);
   const [importPrinters, setImportPrinters] = useState(false);
   const [importOffers, setImportOffers] = useState(false);
+  const [showShortcutHelp, setShowShortcutHelp] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
   
   // Átalakítjuk az áramárat megjelenítéshez (Ft/kWh -> választott pénznem)
   const getDisplayElectricityPrice = (): number => {
@@ -228,9 +234,11 @@ export const SettingsPage: React.FC<Props> = ({
       
       <div style={{ ...themeStyles.card }}>
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
-            🌐 {t("settings.language")}
-          </label>
+          <Tooltip content={t("settings.language") + " - " + (settings.language === "hu" ? "Válaszd ki az alkalmazás nyelvét" : settings.language === "de" ? "Wähle die Sprache der Anwendung" : "Choose the application language")}>
+            <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, width: "fit-content" }}>
+              🌐 {t("settings.language")}
+            </label>
+          </Tooltip>
           <select 
             value={settings.language} 
             onChange={handleLanguageChange}
@@ -245,9 +253,11 @@ export const SettingsPage: React.FC<Props> = ({
         </div>
         
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
-            💰 {t("settings.currency")}
-          </label>
+          <Tooltip content={settings.language === "hu" ? "Válaszd ki a pénznemet az árak megjelenítéséhez" : settings.language === "de" ? "Wählen Sie die Währung für die Preisanzeige" : "Choose the currency for price display"}>
+            <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, width: "fit-content" }}>
+              💰 {t("settings.currency")}
+            </label>
+          </Tooltip>
           <select 
             value={settings.currency} 
             onChange={handleCurrencyChange}
@@ -262,9 +272,11 @@ export const SettingsPage: React.FC<Props> = ({
         </div>
         
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
-            ⚡ {t("settings.electricityPrice")} ({settings.currency === "HUF" ? "Ft" : settings.currency === "EUR" ? "€" : "$"}/kWh)
-          </label>
+          <Tooltip content={settings.language === "hu" ? "Adja meg az áram árát kilowattóránként" : settings.language === "de" ? "Geben Sie den Strompreis pro Kilowattstunde ein" : "Enter the electricity price per kilowatt hour"}>
+            <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, width: "fit-content" }}>
+              ⚡ {t("settings.electricityPrice")} ({settings.currency === "HUF" ? "Ft" : settings.currency === "EUR" ? "€" : "$"}/kWh)
+            </label>
+          </Tooltip>
           <input 
             type="number" 
             step="0.01"
@@ -276,38 +288,218 @@ export const SettingsPage: React.FC<Props> = ({
             placeholder="Pl: 70"
           />
           <p style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
-            Az áram ár mindig Ft/kWh-ban van tárolva, de a választott pénznemben jelenik meg.
+            {settings.language === "hu" ? "Az áram ár mindig Ft/kWh-ban van tárolva, de a választott pénznemben jelenik meg." : settings.language === "de" ? "Der Strompreis wird immer in Ft/kWh gespeichert, wird aber in der gewählten Währung angezeigt." : "The electricity price is always stored in Ft/kWh, but displayed in the selected currency."}
           </p>
         </div>
         
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
-            <input
-              type="checkbox"
-              checked={settings.checkForBetaUpdates || false}
-              onChange={e => onChange({ ...settings, checkForBetaUpdates: e.target.checked })}
-              style={{ width: "20px", height: "20px", cursor: "pointer" }}
-            />
-            <span>🔬 {t("settings.checkForBetaUpdates")}</span>
-          </label>
+          <Tooltip content={t("settings.checkForBetaUpdatesDescription")}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={settings.checkForBetaUpdates || false}
+                onChange={e => onChange({ ...settings, checkForBetaUpdates: e.target.checked })}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>🔬 {t("settings.checkForBetaUpdates")}</span>
+            </label>
+          </Tooltip>
           <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
             {t("settings.checkForBetaUpdatesDescription")}
           </p>
         </div>
         
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
-            <input
-              type="checkbox"
-              checked={settings.showConsole || false}
-              onChange={e => onChange({ ...settings, showConsole: e.target.checked })}
-              style={{ width: "20px", height: "20px", cursor: "pointer" }}
-            />
-            <span>🖥️ {t("settings.showConsole")}</span>
-          </label>
+          <Tooltip content={t("settings.showConsoleDescription")}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={settings.showConsole || false}
+                onChange={e => onChange({ ...settings, showConsole: e.target.checked })}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>🖥️ {t("settings.showConsole")}</span>
+            </label>
+          </Tooltip>
           <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
             {t("settings.showConsoleDescription")}
           </p>
+        </div>
+
+        {/* Automatikus mentés */}
+        <div style={{ marginBottom: "24px" }}>
+          <Tooltip content={t("settings.autosaveDescription")}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={settings.autosave !== false}
+                onChange={e => onChange({ ...settings, autosave: e.target.checked })}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>💾 {t("settings.autosave")}</span>
+            </label>
+          </Tooltip>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.autosaveDescription")}
+          </p>
+          {settings.autosave !== false && (
+            <div style={{ marginTop: "12px", marginLeft: "32px" }}>
+              <Tooltip content={t("settings.autosaveIntervalDescription")}>
+                <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", color: theme.colors.text }}>
+                  {t("settings.autosaveInterval")}
+                </label>
+              </Tooltip>
+              <input
+                type="number"
+                min="5"
+                value={settings.autosaveInterval || 30}
+                onChange={e => onChange({ ...settings, autosaveInterval: Math.max(5, Number(e.target.value)) })}
+                style={{
+                  width: "100px",
+                  padding: "8px",
+                  borderRadius: "6px",
+                  border: `1px solid ${theme.colors.border}`,
+                  backgroundColor: theme.colors.surface,
+                  color: theme.colors.text,
+                  fontSize: "14px",
+                }}
+              />
+              <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
+                {t("settings.autosaveIntervalDescription")}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Értesítések */}
+        <div style={{ marginBottom: "24px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={settings.notificationEnabled !== false}
+              onChange={e => onChange({ ...settings, notificationEnabled: e.target.checked })}
+              style={{ width: "20px", height: "20px", cursor: "pointer" }}
+            />
+            <span>🔔 {t("settings.notificationEnabled")}</span>
+          </label>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.notificationEnabledDescription")}
+          </p>
+          {settings.notificationEnabled !== false && (
+            <div style={{ marginTop: "12px", marginLeft: "32px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", color: theme.colors.text }}>
+                {t("settings.notificationDuration")}
+              </label>
+              <input
+                type="number"
+                min="1000"
+                step="500"
+                value={settings.notificationDuration || 3000}
+                onChange={e => onChange({ ...settings, notificationDuration: Math.max(1000, Number(e.target.value)) })}
+                style={{
+                  width: "100px",
+                  padding: "8px",
+                  borderRadius: "6px",
+                  border: `1px solid ${theme.colors.border}`,
+                  backgroundColor: theme.colors.surface,
+                  color: theme.colors.text,
+                  fontSize: "14px",
+                }}
+              />
+              <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
+                {t("settings.notificationDurationDescription")}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Gyorsbillentyűk */}
+        <div style={{ marginBottom: "24px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
+            <span>⌨️ {t("settings.shortcuts")}</span>
+          </label>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.shortcutsDescription")}
+          </p>
+          <div style={{ display: "flex", gap: "12px", marginTop: "12px", marginLeft: "32px", flexWrap: "wrap" }}>
+            <Tooltip content={t("settings.shortcutsDescription")}>
+              <button
+                onClick={() => setShowShortcutHelp(true)}
+                style={{
+                  ...themeStyles.button,
+                }}
+              >
+                ⌨️ {t("shortcuts.title")}
+              </button>
+            </Tooltip>
+            <Tooltip content={settings.language === "hu" ? "Verzió előzmények megjelenítése" : settings.language === "de" ? "Versionsverlauf anzeigen" : "Show version history"}>
+              <button
+                onClick={() => setShowVersionHistory(true)}
+                style={{
+                  ...themeStyles.button,
+                }}
+              >
+                📋 {settings.language === "hu" ? "Verzió előzmények" : settings.language === "de" ? "Versionsverlauf" : "Version History"}
+              </button>
+            </Tooltip>
+          </div>
+        </div>
+
+        {/* Backup */}
+        <div style={{ marginBottom: "24px" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
+            💾 {t("settings.backup")}
+          </label>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <Tooltip content={settings.language === "hu" ? "Mentés az összes adatot egy JSON fájlba" : settings.language === "de" ? "Speichern Sie alle Daten in einer JSON-Datei" : "Save all data to a JSON file"}>
+              <button
+                onClick={async () => {
+                  try {
+                    const filePath = await createBackup(printers, filaments, offers, settings);
+                    if (filePath) {
+                      showToast(t("backup.createSuccess"), "success");
+                    }
+                  } catch (error) {
+                    showToast(t("backup.restoreError"), "error");
+                  }
+                }}
+                style={{
+                  ...themeStyles.button,
+                  flex: 1,
+                  minWidth: "150px",
+                }}
+              >
+                💾 {t("settings.backupCreate")}
+              </button>
+            </Tooltip>
+            <Tooltip content={settings.language === "hu" ? "Visszaállítás egy korábbi backup fájlból" : settings.language === "de" ? "Wiederherstellen aus einer früheren Backup-Datei" : "Restore from a previous backup file"}>
+              <button
+                onClick={async () => {
+                  try {
+                    if (confirm(t("backup.confirmRestore"))) {
+                      const backupData = await restoreBackup();
+                      if (backupData) {
+                        if (backupData.printers) setPrinters(backupData.printers);
+                        if (backupData.filaments) setFilaments(backupData.filaments);
+                        if (backupData.offers) setOffers(backupData.offers);
+                        if (backupData.settings) onChange(backupData.settings);
+                        showToast(t("backup.restoreSuccess"), "success");
+                      }
+                    }
+                  } catch (error) {
+                    showToast(t("backup.restoreError"), "error");
+                  }
+                }}
+                style={{
+                  ...themeStyles.button,
+                  flex: 1,
+                  minWidth: "150px",
+                }}
+              >
+                📥 {t("settings.backupRestore")}
+              </button>
+            </Tooltip>
+          </div>
         </div>
         
         <div style={{ marginBottom: "24px" }}>
@@ -414,18 +606,20 @@ export const SettingsPage: React.FC<Props> = ({
             </label>
           </div>
 
-          <button
-            onClick={handleExport}
-            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
-            style={{
-              ...themeStyles.button,
-              ...themeStyles.buttonPrimary,
-              width: "100%"
-            }}
-          >
-            {t("settings.exportButton")}
-          </button>
+          <Tooltip content={settings.language === "hu" ? "Adatok exportálása JSON fájlba" : settings.language === "de" ? "Daten in JSON-Datei exportieren" : "Export data to JSON file"}>
+            <button
+              onClick={handleExport}
+              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+              onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
+              style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonPrimary,
+                width: "100%"
+              }}
+            >
+              {t("settings.exportButton")}
+            </button>
+          </Tooltip>
         </div>
 
         {/* Import Data Section */}
@@ -472,20 +666,37 @@ export const SettingsPage: React.FC<Props> = ({
             </label>
           </div>
 
-          <button
-            onClick={handleImport}
-            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
-            style={{
-              ...themeStyles.button,
-              ...themeStyles.buttonSuccess,
-              width: "100%"
-            }}
-          >
-            {t("settings.importButton")}
-          </button>
+          <Tooltip content={settings.language === "hu" ? "Adatok importálása JSON fájlból" : settings.language === "de" ? "Daten aus JSON-Datei importieren" : "Import data from JSON file"}>
+            <button
+              onClick={handleImport}
+              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+              onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
+              style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonSuccess,
+                width: "100%"
+              }}
+            >
+              {t("settings.importButton")}
+            </button>
+          </Tooltip>
         </div>
       </div>
+      {showShortcutHelp && (
+        <ShortcutHelp
+          settings={settings}
+          theme={theme}
+          themeStyles={themeStyles}
+          onClose={() => setShowShortcutHelp(false)}
+        />
+      )}
+      {showVersionHistory && (
+        <VersionHistory
+          settings={settings}
+          theme={theme}
+          onClose={() => setShowVersionHistory(false)}
+        />
+      )}
     </div>
   );
 };

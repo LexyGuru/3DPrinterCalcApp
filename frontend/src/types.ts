@@ -31,6 +31,10 @@ export interface Settings {
   checkForBetaUpdates?: boolean; // Beta release-ek ellenőrzése
   theme?: "light" | "dark" | "blue" | "green" | "purple" | "orange"; // Téma választás
   showConsole?: boolean; // Console/Log menüpont megjelenítése
+  autosave?: boolean; // Automatikus mentés
+  autosaveInterval?: number; // Automatikus mentés intervalluma (másodpercben)
+  notificationEnabled?: boolean; // Toast értesítések engedélyezése
+  notificationDuration?: number; // Toast értesítés időtartama (ms)
 }
 
 export const defaultSettings: Settings = {
@@ -39,6 +43,10 @@ export const defaultSettings: Settings = {
   language: "hu",
   checkForBetaUpdates: false, // Alapértelmezetten nem ellenőrzi a beta release-eket
   theme: "light", // Alapértelmezett téma
+  autosave: true, // Alapértelmezetten engedélyezve
+  autosaveInterval: 30, // Alapértelmezett 30 másodperc
+  notificationEnabled: true, // Alapértelmezetten engedélyezve
+  notificationDuration: 3000, // Alapértelmezett 3 másodperc
 };
 
 export interface OfferFilament {

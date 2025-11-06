@@ -225,6 +225,13 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.3.0 (2025)
+- ✏️ **Árajánlat szerkesztés** - Mentett árajánlatok szerkesztése (ügyfél név, elérhetőség, leírás, profit százalék)
+- 📊 **Statisztikák export funkció** - Statisztikák exportálása JSON vagy CSV formátumban a Home oldalról
+- 📈 **Riport generálás** - Heti/havi/éves/összes riport generálása JSON formátumban időszak szerinti szűréssel
+- 📋 **Verzió előzmények megjelenítése** - Verzió előzmények megtekintése a beállításokban, részletes changelog
+- 🐛 **Bugfixek** - Használaton kívüli változók eltávolítása, kód tisztítás
+
 ### v0.2.55 (2025)
 - 🖥️ **Console/Log funkció** - Új Console menüpont a hibakereséshez és logok megtekintéséhez
 - 🖥️ **Console beállítás** - Beállításokban lehet bekapcsolni a Console menüpont megjelenítését
@@ -288,7 +295,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.2.55
+**Verzió**: 0.3.0
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

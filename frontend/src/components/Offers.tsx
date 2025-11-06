@@ -7,6 +7,7 @@ import { useTranslation, type TranslationKey } from "../utils/translations";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 import { convertCurrencyFromTo } from "../utils/currency";
+import { Tooltip } from "./Tooltip";
 
 interface Props {
   offers: Offer[];
@@ -24,6 +25,11 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
   const [printContent, setPrintContent] = useState<string>("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
+  const [editCustomerName, setEditCustomerName] = useState("");
+  const [editCustomerContact, setEditCustomerContact] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editProfitPercentage, setEditProfitPercentage] = useState<number>(30);
 
   const deleteOffer = (id: number) => {
     setDeleteConfirmId(id);
@@ -54,6 +60,54 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     setSelectedOffer(duplicated);
     console.log("✅ Árajánlat sikeresen duplikálva", { newOfferId: duplicated.id });
     showToast(t("common.offerDuplicated"), "success");
+  };
+
+  const startEditOffer = (offer: Offer) => {
+    console.log("✏️ Árajánlat szerkesztése indítása...", { offerId: offer.id, customerName: offer.customerName });
+    setEditingOffer(offer);
+    setEditCustomerName(offer.customerName || "");
+    setEditCustomerContact(offer.customerContact || "");
+    setEditDescription(offer.description || "");
+    setEditProfitPercentage(offer.profitPercentage || 30);
+  };
+
+  const cancelEditOffer = () => {
+    setEditingOffer(null);
+    setEditCustomerName("");
+    setEditCustomerContact("");
+    setEditDescription("");
+    setEditProfitPercentage(30);
+  };
+
+  const saveEditOffer = () => {
+    if (!editingOffer) return;
+    
+    if (!editCustomerName.trim()) {
+      showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek add meg az ügyfél nevét!" : settings.language === "de" ? "Bitte geben Sie den Kundennamen ein!" : "Please enter customer name!"), "error");
+      return;
+    }
+
+    console.log("💾 Árajánlat mentése...", { 
+      offerId: editingOffer.id, 
+      customerName: editCustomerName,
+      profitPercentage: editProfitPercentage
+    });
+
+    const updatedOffer: Offer = {
+      ...editingOffer,
+      customerName: editCustomerName.trim(),
+      customerContact: editCustomerContact.trim() || undefined,
+      description: editDescription.trim() || undefined,
+      profitPercentage: editProfitPercentage,
+    };
+
+    const updatedOffers = offers.map(o => o.id === editingOffer.id ? updatedOffer : o);
+    setOffers(updatedOffers);
+    setSelectedOffer(updatedOffer);
+    cancelEditOffer();
+    
+    console.log("✅ Árajánlat sikeresen mentve", { offerId: editingOffer.id });
+    showToast(settings.language === "hu" ? "Árajánlat sikeresen mentve" : settings.language === "de" ? "Angebot erfolgreich gespeichert" : "Offer saved successfully", "success");
   };
 
   const exportToPDF = (offer: Offer) => {
@@ -418,22 +472,24 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                           {t("calculator.totalCost")}: {convertCurrencyFromTo(offer.costs.totalCost, offer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
                         </p>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteOffer(offer.id);
-                        }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
-                        style={{
-                          ...themeStyles.button,
-                          ...themeStyles.buttonDanger,
-                          padding: "8px 16px",
-                          fontSize: "12px"
-                        }}
-                      >
-                        {t("offers.delete")}
-                      </button>
+                      <Tooltip content={settings.language === "hu" ? "Árajánlat törlése" : settings.language === "de" ? "Angebot löschen" : "Delete offer"}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteOffer(offer.id);
+                          }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                          style={{
+                            ...themeStyles.button,
+                            ...themeStyles.buttonDanger,
+                            padding: "8px 16px",
+                            fontSize: "12px"
+                          }}
+                        >
+                          {t("offers.delete")}
+                        </button>
+                      </Tooltip>
                     </div>
                   </div>
                 );
@@ -457,104 +513,228 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   📄 {selectedOffer.customerName ? `${selectedOffer.customerName}` : `Árajánlat #${selectedOffer.id}`}
                 </h3>
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                  <button
-                    onClick={() => duplicateOffer(selectedOffer)}
-                    onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                    onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = "#6c757d 0 2px 4px"; }}
-                    style={{
-                      ...themeStyles.button,
-                      backgroundColor: theme.colors.secondary,
-                      color: "#fff",
-                      padding: "8px 16px",
-                      fontSize: "14px"
-                    }}
-                  >
-                    📋 {t("common.duplicate")}
-                  </button>
-                  <button
-                    onClick={() => exportToPDF(selectedOffer)}
-                    onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                    onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
-                    style={{
-                      ...themeStyles.button,
-                      ...themeStyles.buttonPrimary
-                    }}
-                  >
-                    {t("offers.print")}
-                  </button>
-                  <button
-                    onClick={() => exportAsPDF(selectedOffer)}
-                    onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                    onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
-                    style={{
-                      ...themeStyles.button,
-                      ...themeStyles.buttonSuccess
-                    }}
-                  >
-                    {t("offers.downloadPDF")}
-                  </button>
+                  {!editingOffer && (
+                    <Tooltip content={settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}>
+                      <button
+                        onClick={() => startEditOffer(selectedOffer)}
+                        onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                        onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
+                        style={{
+                          ...themeStyles.button,
+                          ...themeStyles.buttonSuccess,
+                          padding: "8px 16px",
+                          fontSize: "14px"
+                        }}
+                      >
+                        ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
+                      </button>
+                    </Tooltip>
+                  )}
+                  <Tooltip content={settings.language === "hu" ? "Árajánlat duplikálása" : settings.language === "de" ? "Angebot duplizieren" : "Duplicate offer"}>
+                    <button
+                      onClick={() => duplicateOffer(selectedOffer)}
+                      onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                      onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = "#6c757d 0 2px 4px"; }}
+                      style={{
+                        ...themeStyles.button,
+                        backgroundColor: theme.colors.secondary,
+                        color: "#fff",
+                        padding: "8px 16px",
+                        fontSize: "14px"
+                      }}
+                    >
+                      📋 {t("common.duplicate")}
+                    </button>
+                  </Tooltip>
+                  <Tooltip content={settings.language === "hu" ? "PDF export vagy nyomtatás" : settings.language === "de" ? "PDF-Export oder Drucken" : "PDF export or print"}>
+                    <button
+                      onClick={() => exportToPDF(selectedOffer)}
+                      onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                      onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
+                      style={{
+                        ...themeStyles.button,
+                        ...themeStyles.buttonPrimary
+                      }}
+                    >
+                      {t("offers.print")}
+                    </button>
+                  </Tooltip>
+                  <Tooltip content={settings.language === "hu" ? "PDF letöltése HTML fájlként" : settings.language === "de" ? "PDF als HTML-Datei herunterladen" : "Download PDF as HTML file"}>
+                    <button
+                      onClick={() => exportAsPDF(selectedOffer)}
+                      onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                      onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
+                      style={{
+                        ...themeStyles.button,
+                        ...themeStyles.buttonSuccess
+                      }}
+                    >
+                      {t("offers.downloadPDF")}
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
 
-              <div style={{ marginBottom: "20px", padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px" }}>
-                {selectedOffer.customerName && (
-                  <div style={{ marginBottom: "12px" }}>
-                    <strong style={{ color: theme.colors.text }}>{t("offers.customerName")}:</strong> 
-                    <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerName}</span>
+              {editingOffer && editingOffer.id === selectedOffer.id ? (
+                <div style={{ ...themeStyles.card, marginBottom: "20px", backgroundColor: theme.colors.primary + "20", border: `2px solid ${theme.colors.primary}` }}>
+                  <h4 style={{ marginTop: 0, marginBottom: "20px", fontSize: "18px", fontWeight: "600", color: theme.colors.text }}>
+                    ✏️ {settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}
+                  </h4>
+                  <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
+                    <div style={{ width: "180px", flexShrink: 0 }}>
+                      <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                        {t("offers.customerName")} *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder={t("offers.customerName")}
+                        value={editCustomerName}
+                        onChange={e => setEditCustomerName(e.target.value)}
+                        onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                        style={{ ...themeStyles.input, width: "100%" }}
+                      />
+                    </div>
+                    <div style={{ width: "180px", flexShrink: 0 }}>
+                      <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                        {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder={settings.language === "hu" ? "Email vagy telefon" : settings.language === "de" ? "E-Mail oder Telefon" : "Email or phone"}
+                        value={editCustomerContact}
+                        onChange={e => setEditCustomerContact(e.target.value)}
+                        onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                        style={{ ...themeStyles.input, width: "100%" }}
+                      />
+                    </div>
+                    <div style={{ width: "180px", flexShrink: 0 }}>
+                      <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                        📈 {t("offers.profitPercentage")}
+                      </label>
+                      <select
+                        value={editProfitPercentage}
+                        onChange={e => setEditProfitPercentage(Number(e.target.value))}
+                        onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                        style={{ ...themeStyles.select, width: "100%" }}
+                      >
+                        <option value={10}>10%</option>
+                        <option value={20}>20%</option>
+                        <option value={30}>30%</option>
+                        <option value={40}>40%</option>
+                        <option value={50}>50%</option>
+                      </select>
+                    </div>
                   </div>
-                )}
-                {selectedOffer.customerContact && (
-                  <div style={{ marginBottom: "12px" }}>
-                    <strong style={{ color: theme.colors.text }}>
-                      {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}:
-                    </strong> 
-                    <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerContact}</span>
+                  <div style={{ marginTop: "20px" }}>
+                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+                      {t("offers.description")}
+                    </label>
+                    <textarea
+                      placeholder={t("offers.description")}
+                      value={editDescription}
+                      onChange={e => setEditDescription(e.target.value)}
+                      onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                      onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                      style={{ ...themeStyles.input, width: "100%", minHeight: "80px", resize: "vertical" }}
+                    />
                   </div>
-                )}
-                {selectedOffer.description && (
-                  <div style={{ marginBottom: "12px" }}>
-                    <strong style={{ color: theme.colors.text }}>{t("offers.description")}:</strong> 
-                    <span style={{ marginLeft: "8px", color: theme.colors.text, wordWrap: "break-word", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{selectedOffer.description}</span>
+                  <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
+                    <Tooltip content={settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}>
+                      <button
+                        onClick={saveEditOffer}
+                        onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                        onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
+                        style={{
+                          ...themeStyles.button,
+                          ...themeStyles.buttonSuccess,
+                          fontSize: "16px",
+                          padding: "14px 28px"
+                        }}
+                      >
+                        💾 {settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}
+                      </button>
+                    </Tooltip>
+                    <Tooltip content={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}>
+                      <button
+                        onClick={cancelEditOffer}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                        style={{
+                          ...themeStyles.button,
+                          ...themeStyles.buttonSecondary,
+                          padding: "8px 16px",
+                          fontSize: "12px"
+                        }}
+                      >
+                        {settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+                      </button>
+                    </Tooltip>
                   </div>
-                )}
-                <div style={{ marginBottom: "12px" }}>
-                  <strong style={{ color: theme.colors.text }}>{t("offers.date")}:</strong> 
-                  <span style={{ marginLeft: "8px", color: theme.colors.text }}>
-                    {new Date(selectedOffer.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
-                  </span>
                 </div>
+              ) : (
+                <>
+                  <div style={{ marginBottom: "20px", padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px" }}>
+                    {selectedOffer.customerName && (
+                      <div style={{ marginBottom: "12px" }}>
+                        <strong style={{ color: theme.colors.text }}>{t("offers.customerName")}:</strong> 
+                        <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerName}</span>
+                      </div>
+                    )}
+                    {selectedOffer.customerContact && (
+                      <div style={{ marginBottom: "12px" }}>
+                        <strong style={{ color: theme.colors.text }}>
+                          {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}:
+                        </strong> 
+                        <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerContact}</span>
+                      </div>
+                    )}
+                    {selectedOffer.description && (
+                      <div style={{ marginBottom: "12px" }}>
+                        <strong style={{ color: theme.colors.text }}>{t("offers.description")}:</strong> 
+                        <span style={{ marginLeft: "8px", color: theme.colors.text, wordWrap: "break-word", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{selectedOffer.description}</span>
+                      </div>
+                    )}
+                    <div style={{ marginBottom: "12px" }}>
+                      <strong style={{ color: theme.colors.text }}>{t("offers.date")}:</strong> 
+                      <span style={{ marginLeft: "8px", color: theme.colors.text }}>
+                        {new Date(selectedOffer.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
+                      </span>
+                    </div>
 
-                <div style={{ marginBottom: "12px" }}>
-                  <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
-                    📈 {t("offers.profitPercentage")}
-                  </label>
-                  <select
-                    value={selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}
-                    onChange={e => {
-                      const value = Number(e.target.value);
-                      const updatedOffers = offers.map(o => 
-                        o.id === selectedOffer.id ? { ...o, profitPercentage: value } : o
-                      );
-                      setOffers(updatedOffers);
-                      setSelectedOffer({ ...selectedOffer, profitPercentage: value });
-                    }}
-                    onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
-                    onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                    style={{ ...themeStyles.select, width: "100%", maxWidth: "300px" }}
-                  >
-                    <option value={10}>10%</option>
-                    <option value={20}>20%</option>
-                    <option value={30}>30% (alapértelmezett)</option>
-                    <option value={40}>40%</option>
-                    <option value={50}>50%</option>
-                  </select>
-                  <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
-                    Bevétel = Költségek × (1 + {selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}%) = {convertCurrencyFromTo(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100), selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
-                  </p>
-                </div>
-              </div>
+                    <div style={{ marginBottom: "12px" }}>
+                      <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+                        📈 {t("offers.profitPercentage")}
+                      </label>
+                      <select
+                        value={selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}
+                        onChange={e => {
+                          const value = Number(e.target.value);
+                          const updatedOffers = offers.map(o => 
+                            o.id === selectedOffer.id ? { ...o, profitPercentage: value } : o
+                          );
+                          setOffers(updatedOffers);
+                          setSelectedOffer({ ...selectedOffer, profitPercentage: value });
+                        }}
+                        onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                        style={{ ...themeStyles.select, width: "100%", maxWidth: "300px" }}
+                      >
+                        <option value={10}>10%</option>
+                        <option value={20}>20%</option>
+                        <option value={30}>30% (alapértelmezett)</option>
+                        <option value={40}>40%</option>
+                        <option value={50}>50%</option>
+                      </select>
+                      <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
+                        Bevétel = Költségek × (1 + {selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}%) = {convertCurrencyFromTo(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100), selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
+                      </p>
+                    </div>
+                  </div>
 
-              <div style={{ marginBottom: "20px", ...themeStyles.card, padding: "20px" }}>
+                  <div style={{ marginBottom: "20px", ...themeStyles.card, padding: "20px" }}>
                 <strong style={{ display: "block", marginBottom: "12px", fontSize: "16px", color: theme.colors.text }}>
                   🖨️ {t("offers.printer")}
                 </strong>
@@ -624,6 +804,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   </div>
                 </div>
               </div>
+                </>
+              )}
             </div>
           )}
         </div>

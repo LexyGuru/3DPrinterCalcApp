@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import type { Settings } from "../types";
 
 interface ToastProps {
   message: string;
@@ -81,16 +82,22 @@ export const Toast: React.FC<ToastProps> = ({ message, type, onClose, duration =
 };
 
 // Toast context és provider
+
 interface ToastContextType {
   showToast: (message: string, type: "success" | "error" | "info" | "warning") => void;
 }
 
 export const ToastContext = React.createContext<ToastContextType | null>(null);
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ToastProvider: React.FC<{ children: React.ReactNode; settings?: Settings }> = ({ children, settings }) => {
   const [toasts, setToasts] = React.useState<Array<{ id: number; message: string; type: "success" | "error" | "info" | "warning" }>>([]);
 
   const showToast = (message: string, type: "success" | "error" | "info" | "warning") => {
+    // Ellenőrizzük, hogy az értesítések engedélyezve vannak-e
+    if (settings?.notificationEnabled === false) {
+      return;
+    }
+
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
   };
@@ -98,6 +105,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const removeToast = (id: number) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
+
+  const notificationDuration = settings?.notificationDuration || 3000;
 
   return (
     <ToastContext.Provider value={{ showToast }}>
@@ -109,6 +118,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               message={toast.message}
               type={toast.type}
               onClose={() => removeToast(toast.id)}
+              duration={notificationDuration}
             />
           </div>
         ))}

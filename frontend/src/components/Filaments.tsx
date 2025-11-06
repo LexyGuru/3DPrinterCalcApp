@@ -5,6 +5,8 @@ import { filamentPrice } from "../utils/filamentCalc";
 import { useTranslation } from "../utils/translations";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
+import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
+import { Tooltip } from "./Tooltip";
 
 interface Props {
   filaments: Filament[];
@@ -110,6 +112,39 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     );
   });
 
+  // Gyorsbillentyűk
+  // macOS-en metaKey (Cmd), Windows/Linux-en ctrlKey (Ctrl)
+  // Mindkettőt regisztráljuk platform-független működéshez
+  useKeyboardShortcut('n', () => {
+    if (!showAddForm && editingIndex === null) {
+      setShowAddForm(true);
+    }
+  }, { ctrl: true }); // Windows/Linux
+
+  useKeyboardShortcut('n', () => {
+    if (!showAddForm && editingIndex === null) {
+      setShowAddForm(true);
+    }
+  }, { meta: true }); // macOS
+
+  useKeyboardShortcut('s', () => {
+    if (showAddForm && brand && type && pricePerKg) {
+      addFilament();
+    }
+  }, { ctrl: true }); // Windows/Linux
+
+  useKeyboardShortcut('s', () => {
+    if (showAddForm && brand && type && pricePerKg) {
+      addFilament();
+    }
+  }, { meta: true }); // macOS
+
+  useKeyboardShortcut('Escape', () => {
+    if (editingIndex !== null || showAddForm) {
+      resetForm();
+    }
+  });
+
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("filaments.title")}</h2>
@@ -136,19 +171,21 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       {/* Új filament hozzáadása gomb */}
       {!showAddForm && editingIndex === null && (
         <div style={{ marginBottom: "24px" }}>
-          <button
-            onClick={() => setShowAddForm(true)}
-            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
-            style={{ 
-              ...themeStyles.button,
-              ...themeStyles.buttonPrimary,
-              fontSize: "16px",
-              padding: "14px 28px"
-            }}
-          >
-            ➕ {t("filaments.addTitle")}
-          </button>
+          <Tooltip content={settings.language === "hu" ? "Új filament hozzáadása (Ctrl/Cmd+N)" : settings.language === "de" ? "Neues Filament hinzufügen (Strg/Cmd+N)" : "Add new filament (Ctrl/Cmd+N)"}>
+            <button
+              onClick={() => setShowAddForm(true)}
+              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
+              style={{ 
+                ...themeStyles.button,
+                ...themeStyles.buttonPrimary,
+                fontSize: "16px",
+                padding: "14px 28px"
+              }}
+            >
+              ➕ {t("filaments.addTitle")}
+            </button>
+          </Tooltip>
         </div>
       )}
       
@@ -259,34 +296,38 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           </div>
         </div>
         <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
-          <button 
-            onClick={addFilament}
-            onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-            onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = editingIndex !== null ? themeStyles.buttonSuccess.boxShadow : themeStyles.buttonPrimary.boxShadow; }}
-            style={{ 
-              ...themeStyles.button, 
-              ...(editingIndex !== null ? themeStyles.buttonSuccess : themeStyles.buttonPrimary),
-              fontSize: "16px",
-              padding: "14px 28px"
-            }}
-          >
-            {editingIndex !== null ? t("filaments.save") : "➕ " + t("filaments.add")}
-          </button>
-          {showAddForm && editingIndex === null && (
-            <button
-              onClick={() => setShowAddForm(false)}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+          <Tooltip content={settings.language === "hu" ? (editingIndex !== null ? "Mentés (Ctrl/Cmd+S)" : "Hozzáadás (Ctrl/Cmd+S)") : settings.language === "de" ? (editingIndex !== null ? "Speichern (Strg/Cmd+S)" : "Hinzufügen (Strg/Cmd+S)") : (editingIndex !== null ? "Save (Ctrl/Cmd+S)" : "Add (Ctrl/Cmd+S)")}>
+            <button 
+              onClick={addFilament}
+              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+              onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = editingIndex !== null ? themeStyles.buttonSuccess.boxShadow : themeStyles.buttonPrimary.boxShadow; }}
               style={{ 
-                ...themeStyles.button,
-                ...themeStyles.buttonSecondary,
-                padding: "8px 16px",
-                fontSize: "12px",
-                marginLeft: "10px"
+                ...themeStyles.button, 
+                ...(editingIndex !== null ? themeStyles.buttonSuccess : themeStyles.buttonPrimary),
+                fontSize: "16px",
+                padding: "14px 28px"
               }}
             >
-              {t("filaments.cancel")}
+              {editingIndex !== null ? t("filaments.save") : "➕ " + t("filaments.add")}
             </button>
+          </Tooltip>
+          {showAddForm && editingIndex === null && (
+            <Tooltip content={settings.language === "hu" ? "Mégse (Escape)" : settings.language === "de" ? "Abbrechen (Escape)" : "Cancel (Escape)"}>
+              <button
+                onClick={() => setShowAddForm(false)}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                style={{ 
+                  ...themeStyles.button,
+                  ...themeStyles.buttonSecondary,
+                  padding: "8px 16px",
+                  fontSize: "12px",
+                  marginLeft: "10px"
+                }}
+              >
+                {t("filaments.cancel")}
+              </button>
+            </Tooltip>
           )}
         </div>
       </div>
@@ -324,35 +365,39 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                   </td>
                   <td style={themeStyles.tableCell}>
                     <div style={{ display: "flex", gap: "8px" }}>
-                      <button 
-                        onClick={() => startEdit(originalIndex)}
-                        disabled={editingIndex !== null && editingIndex !== originalIndex}
-                        onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.transform = "translateY(-1px)"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
-                        style={{ 
-                          ...themeStyles.button,
-                          ...themeStyles.buttonPrimary,
-                          padding: "8px 16px",
-                          fontSize: "12px",
-                          opacity: editingIndex !== null && editingIndex !== originalIndex ? 0.5 : 1,
-                          cursor: editingIndex !== null && editingIndex !== originalIndex ? "not-allowed" : "pointer"
-                        }}
-                      >
-                        {t("filaments.edit")}
-                      </button>
-                      <button 
-                        onClick={() => deleteFilament(originalIndex)}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
-                        style={{ 
-                          ...themeStyles.button,
-                          ...themeStyles.buttonDanger,
-                          padding: "8px 16px",
-                          fontSize: "12px"
-                        }}
-                      >
-                        {t("filaments.delete")}
-                      </button>
+                      <Tooltip content={settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}>
+                        <button 
+                          onClick={() => startEdit(originalIndex)}
+                          disabled={editingIndex !== null && editingIndex !== originalIndex}
+                          onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.transform = "translateY(-1px)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+                          style={{ 
+                            ...themeStyles.button,
+                            ...themeStyles.buttonPrimary,
+                            padding: "8px 16px",
+                            fontSize: "12px",
+                            opacity: editingIndex !== null && editingIndex !== originalIndex ? 0.5 : 1,
+                            cursor: editingIndex !== null && editingIndex !== originalIndex ? "not-allowed" : "pointer"
+                          }}
+                        >
+                          {t("filaments.edit")}
+                        </button>
+                      </Tooltip>
+                      <Tooltip content={settings.language === "hu" ? "Filament törlése" : settings.language === "de" ? "Filament löschen" : "Delete filament"}>
+                        <button 
+                          onClick={() => deleteFilament(originalIndex)}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                          style={{ 
+                            ...themeStyles.button,
+                            ...themeStyles.buttonDanger,
+                            padding: "8px 16px",
+                            fontSize: "12px"
+                          }}
+                        >
+                          {t("filaments.delete")}
+                        </button>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>

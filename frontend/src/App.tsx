@@ -15,7 +15,11 @@ import type { Printer, Settings, Filament, Offer } from "./types";
 import { defaultSettings } from "./types";
 import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers } from "./utils/store";
 import { themes, getThemeStyles } from "./utils/themes";
+import { debounce } from "./utils/debounce";
+import { useKeyboardShortcut } from "./utils/keyboardShortcuts";
+import { ShortcutHelp } from "./components/ShortcutHelp";
 import "./utils/consoleLogger"; // Initialize console logger
+import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
@@ -24,6 +28,7 @@ export default function App() {
   const [filaments, setFilaments] = useState<Filament[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showShortcutHelp, setShowShortcutHelp] = useState(false);
 
   // 🔹 Betöltés indításkor
   useEffect(() => {
@@ -64,30 +69,67 @@ export default function App() {
     loadData();
   }, []);
 
-  // 🔹 Mentés, ha változik (csak inicializálás után)
-  useEffect(() => {
-    if (isInitialized) {
+  // 🔹 Automatikus mentés debounce-szal (csak inicializálás után)
+  const autosaveEnabled = settings.autosave !== false; // Alapértelmezetten true
+  const autosaveInterval = (settings.autosaveInterval || 30) * 1000; // Másodperc -> milliszekundum
+
+  // Debounced save functions
+  const debouncedSavePrinters = debounce(() => {
+    if (isInitialized && autosaveEnabled) {
       savePrinters(printers);
     }
-  }, [printers, isInitialized]);
+  }, autosaveInterval);
 
-  useEffect(() => {
-    if (isInitialized) {
+  const debouncedSaveFilaments = debounce(() => {
+    if (isInitialized && autosaveEnabled) {
       saveFilaments(filaments);
     }
-  }, [filaments, isInitialized]);
+  }, autosaveInterval);
 
-  useEffect(() => {
-    if (isInitialized) {
+  const debouncedSaveSettings = debounce(() => {
+    if (isInitialized && autosaveEnabled) {
       saveSettings(settings);
     }
-  }, [settings, isInitialized]);
+  }, autosaveInterval);
 
-  useEffect(() => {
-    if (isInitialized) {
+  const debouncedSaveOffers = debounce(() => {
+    if (isInitialized && autosaveEnabled) {
       saveOffers(offers);
     }
-  }, [offers, isInitialized]);
+  }, autosaveInterval);
+
+  useEffect(() => {
+    if (isInitialized && autosaveEnabled) {
+      debouncedSavePrinters();
+    } else if (isInitialized && !autosaveEnabled) {
+      // Ha az autosave ki van kapcsolva, azonnal mentjük
+      savePrinters(printers);
+    }
+  }, [printers, isInitialized, autosaveEnabled]);
+
+  useEffect(() => {
+    if (isInitialized && autosaveEnabled) {
+      debouncedSaveFilaments();
+    } else if (isInitialized && !autosaveEnabled) {
+      saveFilaments(filaments);
+    }
+  }, [filaments, isInitialized, autosaveEnabled]);
+
+  useEffect(() => {
+    if (isInitialized && autosaveEnabled) {
+      debouncedSaveSettings();
+    } else if (isInitialized && !autosaveEnabled) {
+      saveSettings(settings);
+    }
+  }, [settings, isInitialized, autosaveEnabled]);
+
+  useEffect(() => {
+    if (isInitialized && autosaveEnabled) {
+      debouncedSaveOffers();
+    } else if (isInitialized && !autosaveEnabled) {
+      saveOffers(offers);
+    }
+  }, [offers, isInitialized, autosaveEnabled]);
 
   const handleSaveOffer = (offer: Offer) => {
     setOffers([...offers, offer]);
@@ -97,6 +139,15 @@ export default function App() {
   const currentThemeName = settings.theme || "light";
   const currentTheme = themes[currentThemeName];
   const themeStyles = getThemeStyles(currentTheme);
+
+  // Shortcut help (Ctrl/Cmd + ?)
+  useKeyboardShortcut("?", () => {
+    setShowShortcutHelp(true);
+  }, { ctrl: true });
+
+  useKeyboardShortcut("?", () => {
+    setShowShortcutHelp(true);
+  }, { meta: true });
 
   let PageComponent;
   switch (activePage) {
@@ -137,7 +188,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <ToastProvider>
+      <ToastProvider settings={settings}>
         <div style={{ 
           height: "100vh", 
           width: "100vw", 
@@ -165,6 +216,14 @@ export default function App() {
               PageComponent
             )}
           </main>
+          {showShortcutHelp && (
+            <ShortcutHelp
+              settings={settings}
+              theme={currentTheme}
+              themeStyles={themeStyles}
+              onClose={() => setShowShortcutHelp(false)}
+            />
+          )}
         </div>
       </ToastProvider>
     </ErrorBoundary>
