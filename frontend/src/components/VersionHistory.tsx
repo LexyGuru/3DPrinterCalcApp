@@ -25,10 +25,9 @@ interface GitHubRelease {
 
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp";
 // Több LibreTranslate endpoint próbálása (CORS problémák miatt)
+// Jelenleg csak a libretranslate.com működik, de rate limiting van (10 kérés/perc)
 const LIBRETRANSLATE_APIS = [
-  "https://libretranslate.de/translate", // Alternatív endpoint
-  "https://translate.argosopentech.com/translate", // Argos Translate (LibreTranslate fork)
-  "https://libretranslate.com/translate" // Eredeti endpoint
+  "https://libretranslate.com/translate" // Eredeti endpoint (egyelőre csak ez működik)
 ];
 
 // Cache a fordított szövegekhez (localStorage)
