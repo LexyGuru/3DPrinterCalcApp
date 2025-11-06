@@ -2,6 +2,12 @@
 
 ## ✅ Már implementált funkciók
 
+### v0.3.4-ben implementálva:
+- ✅ **Input validáció fejlesztése** - Központi validációs utility, Calculator, Filaments, Printers komponensekben
+- ✅ **Performance optimalizálás** - Lazy loading, useMemo, useCallback optimalizálás
+- ✅ **Code splitting** - Route-based code splitting komponenseknél
+- ✅ **Platform specifikus inicializálás** - macOS, Windows, Linux platform specifikus inicializálás alapok
+
 ### v0.3.3-ban implementálva:
 - ✅ **Drag & Drop funkciók** - Árajánlatok, filamentek és nyomtatók átrendezése húzással
 - ✅ **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, PDF export)
@@ -50,16 +56,6 @@
 ### 🔴 Magas prioritás (UX/Funkcionalitás javítások)
 
 
-#### 1. **Input validáció fejlesztése**
-- **Hol**: `Calculator.tsx`, `Filaments.tsx`, `Printers.tsx`
-- **Mit**: 
-  - Negatív számok eltiltása
-  - Maximum értékek beállítása (pl. nem lehet 10000g filament)
-  - Idő mezők validáció (nem lehet 100 óra)
-  - Reális értékek ellenőrzése
-- **Előny**: Megelőzi a hibás adatbevitelt
-- **Becsült idő**: 2-3 óra
-- **Komplexitás**: Alacsony
 
 
 ### 🟡 Közepes prioritás (funkcionalitás bővítések)
@@ -109,20 +105,6 @@
 - **Becsült idő**: 8-12 óra
 - **Komplexitás**: Magas
 
-### 5. **Performance optimalizálás**
-- **Mit**: 
-  - React.memo használata nagy komponenseknél
-  - useMemo/useCallback optimalizálás
-  - Lazy loading komponenseknél
-- **Előny**: Gyorsabb alkalmazás, jobb UX
-- **Becsült idő**: 4-6 óra
-- **Komplexitás**: Közepes
-
-### 6. **Code splitting**
-- **Mit**: Lazy loading komponenseknél, route-based code splitting
-- **Előny**: Gyorsabb inicializálás, kisebb bundle méret
-- **Becsült idő**: 2-3 óra
-- **Komplexitás**: Közepes
 
 ## 📊 Adatkezelés és elemzés
 
@@ -197,23 +179,6 @@
 
 ## 📱 Platform specifikus fejlesztések
 
-### 1. **macOS Dock integráció**
-- **Mit**: Dock menü, badge értesítések
-- **Előny**: Jobb macOS integráció
-- **Becsült idő**: 2-3 óra
-- **Komplexitás**: Közepes
-
-### 2. **Windows Taskbar integráció**
-- **Mit**: Taskbar progress bar, jump list
-- **Előny**: Jobb Windows integráció
-- **Becsült idő**: 2-3 óra
-- **Komplexitás**: Közepes
-
-### 3. **Linux AppIndicator**
-- **Mit**: System tray integráció Linux rendszereken
-- **Előny**: Jobb Linux integráció
-- **Becsült idő**: 2-3 óra
-- **Komplexitás**: Közepes
 
 ---
 

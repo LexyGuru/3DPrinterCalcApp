@@ -227,6 +227,13 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.3.4 (2025)
+- ✅ **Input validáció fejlesztése** - Központi validációs utility létrehozása és integrálása Calculator, Filaments, Printers komponensekbe
+- ✅ **Validációs hibaüzenetek** - Többnyelvű (HU/EN/DE) hibaüzenetek toast értesítésekkel
+- ✅ **Performance optimalizálás** - Lazy loading komponensek (code splitting), useMemo és useCallback optimalizálás
+- ✅ **Platform specifikus inicializálás** - macOS, Windows, Linux platform specifikus inicializálás alapok
+- 🐛 **Build hiba javítás** - Printers.tsx kontextus menü funkciók hozzáadása
+
 ### v0.3.3 (2025)
 - 🖱️ **Drag & Drop funkciók** - Árajánlatok, filamentek és nyomtatók átrendezése húzással
 - 📱 **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, PDF export)
@@ -315,7 +322,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.3.3
+**Verzió**: 0.3.4
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 
