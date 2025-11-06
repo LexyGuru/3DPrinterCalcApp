@@ -167,6 +167,9 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
         updatedCache.translations[cacheKey] = translated;
         saveTranslationCache(updatedCache);
         console.log(`✅ Fordítás sikeres (MyMemory): ${text.substring(0, 50)}... -> ${translated.substring(0, 50)}...`);
+      } else {
+        // Ha a fordítás nem sikerült (pl. rate limit), növeljük a hibaszámlálót
+        consecutiveErrors++;
       }
       
       return translated;
