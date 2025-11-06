@@ -24,10 +24,22 @@ interface GitHubRelease {
 }
 
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp";
-// Több LibreTranslate endpoint próbálása (CORS problémák miatt)
-// Jelenleg csak a libretranslate.com működik, de rate limiting van (10 kérés/perc)
-const LIBRETRANSLATE_APIS = [
-  "https://libretranslate.com/translate" // Eredeti endpoint (egyelőre csak ez működik)
+// Ingyenes fordító API-k (prioritás szerint)
+// MyMemory API: ingyenes, nincs API kulcs szükséges, 10000 karakter/nap limit
+// LibreTranslate: rate limiting van (10 kérés/perc)
+const TRANSLATION_APIS = [
+  {
+    name: "MyMemory",
+    url: "https://api.mymemory.translated.net/get",
+    method: "GET", // GET request, nincs CORS probléma
+    requiresKey: false
+  },
+  {
+    name: "LibreTranslate",
+    url: "https://libretranslate.com/translate",
+    method: "POST",
+    requiresKey: false
+  }
 ];
 
 // Cache a fordított szövegekhez (localStorage)
@@ -70,16 +82,16 @@ function getCacheKey(text: string, sourceLang: string, targetLang: string): stri
 
 // Rate limiting kezelés
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 8000; // 8 másodperc (10 kérés/perc = 6 másodperc/kérés, +2 másodperc buffer)
-const MAX_RETRIES = 1; // Maximum 1 retry próbálkozás (csökkentve, mert túl sok hiba van)
+const MIN_REQUEST_INTERVAL = 1000; // 1 másodperc (MyMemory API-nak nincs szigorú rate limit)
+const MAX_RETRIES = 1; // Maximum 1 retry próbálkozás
 let consecutiveErrors = 0; // Számláló a következő hibákhoz
-const MAX_CONSECUTIVE_ERRORS = 3; // Ha 3 egymás utáni hiba van, ne próbáljuk meg fordítani
+const MAX_CONSECUTIVE_ERRORS = 5; // Ha 5 egymás utáni hiba van, ne próbáljuk meg fordítani (növelve, mert MyMemory jobban működik)
 
 async function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// LibreTranslate API használata fordításhoz (rate limiting és cache kezeléssel)
+// Fordító API használata (MyMemory vagy LibreTranslate) - rate limiting és cache kezeléssel
 async function translateText(text: string, sourceLang: string, targetLang: string, retryIndex: number = 0, retryCount: number = 0): Promise<string> {
   try {
     // Ha a forrás és cél nyelv ugyanaz, ne fordítunk
@@ -106,7 +118,7 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
       return cache.translations[cacheKey];
     }
 
-    // LibreTranslate nyelvkódok
+    // Nyelvkódok konverzió
     const langMap: Record<string, string> = {
       "hu": "hu",
       "en": "en",
@@ -117,7 +129,7 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     const target = langMap[targetLang] || "en";
 
     // Próbáljuk meg az elérhető API-kat
-    const apiUrl = LIBRETRANSLATE_APIS[retryIndex] || LIBRETRANSLATE_APIS[0];
+    const api = TRANSLATION_APIS[retryIndex] || TRANSLATION_APIS[0];
 
     // Rate limiting: várunk, ha túl gyorsan küldenénk kérést
     const now = Date.now();
@@ -129,9 +141,39 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     }
     lastRequestTime = Date.now();
 
-    console.log(`🌐 Fordítás próbálkozás: ${source} -> ${target}`, { apiUrl, textLength: text.length });
+    console.log(`🌐 Fordítás próbálkozás (${api.name}): ${source} -> ${target}`, { apiUrl: api.url, textLength: text.length });
 
-    const response = await fetch(apiUrl, {
+    // MyMemory API (GET request)
+    if (api.name === "MyMemory") {
+      const myMemoryUrl = `${api.url}?q=${encodeURIComponent(text)}&langpair=${source}|${target}`;
+      const response = await fetch(myMemoryUrl, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`MyMemory API hiba: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const translated = data.responseData?.translatedText || text;
+      
+      // Sikeres fordítás esetén nullázzuk a hibaszámlálót
+      if (translated !== text) {
+        consecutiveErrors = 0;
+        const updatedCache = getTranslationCache();
+        updatedCache.translations[cacheKey] = translated;
+        saveTranslationCache(updatedCache);
+        console.log(`✅ Fordítás sikeres (MyMemory): ${text.substring(0, 50)}... -> ${translated.substring(0, 50)}...`);
+      }
+      
+      return translated;
+    }
+
+    // LibreTranslate API (POST request)
+    const response = await fetch(api.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -153,7 +195,7 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
         // Nem JSON válasz
       }
       
-      console.warn(`⚠️ LibreTranslate API hiba (${apiUrl}):`, response.status, response.statusText, errorData);
+      console.warn(`⚠️ ${api.name} API hiba (${api.url}):`, response.status, response.statusText, errorData);
       
       // 429 (Rate Limit) vagy 403 (Forbidden) esetén ne próbáljuk meg újra, csak használjuk az eredeti szöveget
       if (response.status === 429 || response.status === 403) {
@@ -172,8 +214,8 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
       }
       
       // Próbáljuk meg a következő API-t (ha van)
-      if (retryIndex < LIBRETRANSLATE_APIS.length - 1) {
-        console.log(`🔄 Próbálkozás következő API-val: ${retryIndex + 1}`);
+      if (retryIndex < TRANSLATION_APIS.length - 1) {
+        console.log(`🔄 Próbálkozás következő API-val: ${TRANSLATION_APIS[retryIndex + 1].name}`);
         return translateText(text, sourceLang, targetLang, retryIndex + 1, 0);
       }
       
@@ -189,13 +231,14 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
       const updatedCache = getTranslationCache();
       updatedCache.translations[cacheKey] = translated;
       saveTranslationCache(updatedCache);
-      console.log(`✅ Fordítás sikeres: ${text.substring(0, 50)}... -> ${translated.substring(0, 50)}...`);
+      console.log(`✅ Fordítás sikeres (${api.name}): ${text.substring(0, 50)}... -> ${translated.substring(0, 50)}...`);
     }
     
     return translated;
   } catch (error) {
     consecutiveErrors++;
-    console.warn(`⚠️ Fordítás hiba (${LIBRETRANSLATE_APIS[retryIndex] || LIBRETRANSLATE_APIS[0]}):`, error, `(egymás utáni hibák: ${consecutiveErrors})`);
+    const currentApi = TRANSLATION_APIS[retryIndex] || TRANSLATION_APIS[0];
+    console.warn(`⚠️ Fordítás hiba (${currentApi.name}):`, error, `(egymás utáni hibák: ${consecutiveErrors})`);
     
     // Ha túl sok hiba van, ne próbáljuk meg újra
     if (retryCount >= MAX_RETRIES || consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
@@ -204,8 +247,8 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     }
     
     // Próbáljuk meg a következő API-t (ha van)
-    if (retryIndex < LIBRETRANSLATE_APIS.length - 1) {
-      console.log(`🔄 Próbálkozás következő API-val: ${retryIndex + 1}`);
+    if (retryIndex < TRANSLATION_APIS.length - 1) {
+      console.log(`🔄 Próbálkozás következő API-val: ${TRANSLATION_APIS[retryIndex + 1].name}`);
       return translateText(text, sourceLang, targetLang, retryIndex + 1, 0);
     }
     
