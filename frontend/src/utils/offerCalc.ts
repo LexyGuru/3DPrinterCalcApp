@@ -1,5 +1,5 @@
-import type { Offer, OfferFilament, Printer, Settings } from "../types";
-import { convertCurrency, convertCurrencyFromTo } from "./currency";
+import type { Offer, Printer, Settings } from "../types";
+import { convertCurrencyFromTo } from "./currency";
 
 export interface OfferCosts {
   filamentCost: number;

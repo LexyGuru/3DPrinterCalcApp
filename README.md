@@ -227,6 +227,12 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.3.5 (2025)
+- ✅ **MyMemory API integráció** - Ingyenes fordító API LibreTranslate helyett
+- ✅ **GitHub releases oldal megnyitása** - Gomb a GitHub releases oldal megnyitásához rate limit esetén
+- ✅ **Rate limit hibakezelés javítása** - Egyértelmű hibaüzenetek és retry gomb
+- 🐛 **Build hibák javítása** - Unused import-ok eltávolítása (offerCalc.ts)
+
 ### v0.3.4 (2025)
 - ✅ **Input validáció fejlesztése** - Központi validációs utility létrehozása és integrálása Calculator, Filaments, Printers komponensekbe
 - ✅ **Validációs hibaüzenetek** - Többnyelvű (HU/EN/DE) hibaüzenetek toast értesítésekkel
@@ -322,7 +328,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.3.4
+**Verzió**: 0.3.5
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

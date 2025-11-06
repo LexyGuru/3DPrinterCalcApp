@@ -3,6 +3,7 @@ import type { Settings } from "../types";
 import type { Theme } from "../utils/themes";
 import { getThemeStyles } from "../utils/themes";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { open } from "@tauri-apps/plugin-shell";
 
 interface Props {
   settings: Settings;
@@ -550,12 +551,13 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
             <div style={{ marginBottom: "16px", fontSize: "14px" }}>
               {error}
             </div>
-            <button
-              onClick={() => {
-                setError(null);
-                setLoading(true);
-                // Újra próbálkozás
-                const fetchVersionHistory = async () => {
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <button
+                onClick={() => {
+                  setError(null);
+                  setLoading(true);
+                  // Újra próbálkozás
+                  const fetchVersionHistory = async () => {
                   try {
                     setLoading(true);
                     setError(null);
@@ -683,15 +685,43 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
                 
                 fetchVersionHistory();
               }}
-              style={{
-                ...themeStyles.button,
-                ...themeStyles.buttonPrimary,
-                padding: "8px 16px",
-                fontSize: "14px"
-              }}
-            >
-              {settings.language === "hu" ? "🔄 Újra próbálkozás" : settings.language === "de" ? "🔄 Erneut versuchen" : "🔄 Retry"}
-            </button>
+                style={{
+                  ...themeStyles.button,
+                  ...themeStyles.buttonPrimary,
+                  padding: "8px 16px",
+                  fontSize: "14px"
+                }}
+              >
+                {settings.language === "hu" ? "🔄 Újra próbálkozás" : settings.language === "de" ? "🔄 Erneut versuchen" : "🔄 Retry"}
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const releasesUrl = `https://github.com/${GITHUB_REPO}/releases${isBeta ? "?prerelease=1" : ""}`;
+                    console.log("🌐 GitHub releases oldal megnyitása...", { url: releasesUrl });
+                    await open(releasesUrl);
+                    console.log("✅ GitHub releases oldal sikeresen megnyitva");
+                  } catch (error) {
+                    console.error("❌ GitHub releases oldal megnyitása hiba:", error);
+                    // Fallback: window.open
+                    try {
+                      const releasesUrl = `https://github.com/${GITHUB_REPO}/releases${isBeta ? "?prerelease=1" : ""}`;
+                      window.open(releasesUrl, '_blank', 'noopener,noreferrer');
+                    } catch (fallbackError) {
+                      console.error("❌ Fallback hiba is:", fallbackError);
+                    }
+                  }
+                }}
+                style={{
+                  ...themeStyles.button,
+                  ...themeStyles.buttonSecondary,
+                  padding: "8px 16px",
+                  fontSize: "14px"
+                }}
+              >
+                {settings.language === "hu" ? "🌐 GitHub oldal megnyitása" : settings.language === "de" ? "🌐 GitHub-Seite öffnen" : "🌐 Open GitHub page"}
+              </button>
+            </div>
           </div>
         ) : versionHistory.length === 0 ? (
           <div style={{ 
