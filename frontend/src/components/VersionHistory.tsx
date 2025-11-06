@@ -31,7 +31,53 @@ const LIBRETRANSLATE_APIS = [
   "https://libretranslate.com/translate" // Eredeti endpoint
 ];
 
-// LibreTranslate API használata fordításhoz
+// Cache a fordított szövegekhez (localStorage)
+const TRANSLATION_CACHE_KEY = "version_history_translations";
+const CACHE_EXPIRY_DAYS = 7;
+
+interface TranslationCache {
+  [key: string]: string; // key: "hu-en-text", value: translated text
+  _timestamp?: number;
+}
+
+function getTranslationCache(): TranslationCache {
+  try {
+    const cached = localStorage.getItem(TRANSLATION_CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached) as TranslationCache;
+      // Ellenőrizzük, hogy a cache még érvényes-e
+      if (parsed._timestamp && Date.now() - parsed._timestamp < CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn("⚠️ Cache olvasási hiba:", e);
+  }
+  return { _timestamp: Date.now() };
+}
+
+function saveTranslationCache(cache: TranslationCache) {
+  try {
+    cache._timestamp = Date.now();
+    localStorage.setItem(TRANSLATION_CACHE_KEY, JSON.stringify(cache));
+  } catch (e) {
+    console.warn("⚠️ Cache mentési hiba:", e);
+  }
+}
+
+function getCacheKey(text: string, sourceLang: string, targetLang: string): string {
+  return `${sourceLang}-${targetLang}-${text.substring(0, 100)}`;
+}
+
+// Rate limiting kezelés
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 7000; // 7 másodperc (10 kérés/perc = 6 másodperc/kérés, +1 másodperc buffer)
+
+async function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// LibreTranslate API használata fordításhoz (rate limiting és cache kezeléssel)
 async function translateText(text: string, sourceLang: string, targetLang: string, retryIndex: number = 0): Promise<string> {
   try {
     // Ha a forrás és cél nyelv ugyanaz, ne fordítunk
@@ -42,6 +88,14 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     // Ha a szöveg túl rövid, ne fordítunk
     if (!text || text.trim().length < 3) {
       return text;
+    }
+
+    // Cache ellenőrzés
+    const cache = getTranslationCache();
+    const cacheKey = getCacheKey(text, sourceLang, targetLang);
+    if (cache[cacheKey]) {
+      console.log(`💾 Cache találat: ${text.substring(0, 50)}...`);
+      return cache[cacheKey];
     }
 
     // LibreTranslate nyelvkódok
@@ -56,6 +110,16 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
 
     // Próbáljuk meg az elérhető API-kat
     const apiUrl = LIBRETRANSLATE_APIS[retryIndex] || LIBRETRANSLATE_APIS[0];
+
+    // Rate limiting: várunk, ha túl gyorsan küldenénk kérést
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+      console.log(`⏳ Rate limiting: várakozás ${waitTime}ms`);
+      await delay(waitTime);
+    }
+    lastRequestTime = Date.now();
 
     console.log(`🌐 Fordítás próbálkozás: ${source} -> ${target}`, { apiUrl, textLength: text.length });
 
@@ -74,7 +138,23 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.warn(`⚠️ LibreTranslate API hiba (${apiUrl}):`, response.status, response.statusText, errorText);
+      let errorData: any = {};
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        // Nem JSON válasz
+      }
+      
+      console.warn(`⚠️ LibreTranslate API hiba (${apiUrl}):`, response.status, response.statusText, errorData);
+      
+      // 429 (Rate Limit) esetén várunk és újra próbáljuk
+      if (response.status === 429) {
+        const retryAfter = 60; // 60 másodperc várakozás
+        console.log(`⏳ Rate limit elérve, várakozás ${retryAfter} másodperc...`);
+        await delay(retryAfter * 1000);
+        // Próbáljuk meg újra ugyanazzal az API-val
+        return translateText(text, sourceLang, targetLang, retryIndex);
+      }
       
       // Próbáljuk meg a következő API-t
       if (retryIndex < LIBRETRANSLATE_APIS.length - 1) {
@@ -88,7 +168,11 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     const data = await response.json();
     const translated = data.translatedText || text;
     
+    // Cache mentés
     if (translated !== text) {
+      const updatedCache = getTranslationCache();
+      updatedCache[cacheKey] = translated;
+      saveTranslationCache(updatedCache);
       console.log(`✅ Fordítás sikeres: ${text.substring(0, 50)}... -> ${translated.substring(0, 50)}...`);
     }
     
@@ -195,12 +279,14 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
             if (settings.language !== "hu") {
               console.log(`🌐 Fordítás indítása: ${changes.length} változás`, { version: release.tag_name, targetLang: settings.language });
               try {
-                translatedChanges = await Promise.all(
-                  changes.map((change, idx) => {
-                    console.log(`  [${idx + 1}/${changes.length}] Fordítás: ${change.substring(0, 50)}...`);
-                    return translateText(change, "hu", settings.language);
-                  })
-                );
+                // Sorban fordítunk (nem párhuzamosan) a rate limiting miatt
+                translatedChanges = [];
+                for (let idx = 0; idx < changes.length; idx++) {
+                  const change = changes[idx];
+                  console.log(`  [${idx + 1}/${changes.length}] Fordítás: ${change.substring(0, 50)}...`);
+                  const translated = await translateText(change, "hu", settings.language);
+                  translatedChanges.push(translated);
+                }
                 console.log(`✅ Fordítás kész: ${release.tag_name}`);
               } catch (translateError) {
                 console.error(`❌ Fordítás hiba (${release.tag_name}):`, translateError);
