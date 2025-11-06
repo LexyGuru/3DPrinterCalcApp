@@ -24,13 +24,23 @@ interface GitHubRelease {
 }
 
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp";
-const LIBRETRANSLATE_API = "https://libretranslate.com/translate"; // Ingyenes publikus API
+// Több LibreTranslate endpoint próbálása (CORS problémák miatt)
+const LIBRETRANSLATE_APIS = [
+  "https://libretranslate.de/translate", // Alternatív endpoint
+  "https://translate.argosopentech.com/translate", // Argos Translate (LibreTranslate fork)
+  "https://libretranslate.com/translate" // Eredeti endpoint
+];
 
 // LibreTranslate API használata fordításhoz
-async function translateText(text: string, sourceLang: string, targetLang: string): Promise<string> {
+async function translateText(text: string, sourceLang: string, targetLang: string, retryIndex: number = 0): Promise<string> {
   try {
     // Ha a forrás és cél nyelv ugyanaz, ne fordítunk
     if (sourceLang === targetLang) {
+      return text;
+    }
+
+    // Ha a szöveg túl rövid, ne fordítunk
+    if (!text || text.trim().length < 3) {
       return text;
     }
 
@@ -44,7 +54,12 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     const source = langMap[sourceLang] || "hu";
     const target = langMap[targetLang] || "en";
 
-    const response = await fetch(LIBRETRANSLATE_API, {
+    // Próbáljuk meg az elérhető API-kat
+    const apiUrl = LIBRETRANSLATE_APIS[retryIndex] || LIBRETRANSLATE_APIS[0];
+
+    console.log(`🌐 Fordítás próbálkozás: ${source} -> ${target}`, { apiUrl, textLength: text.length });
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -58,14 +73,35 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     });
 
     if (!response.ok) {
-      console.warn("⚠️ LibreTranslate API hiba:", response.statusText);
+      const errorText = await response.text();
+      console.warn(`⚠️ LibreTranslate API hiba (${apiUrl}):`, response.status, response.statusText, errorText);
+      
+      // Próbáljuk meg a következő API-t
+      if (retryIndex < LIBRETRANSLATE_APIS.length - 1) {
+        console.log(`🔄 Próbálkozás következő API-val: ${retryIndex + 1}`);
+        return translateText(text, sourceLang, targetLang, retryIndex + 1);
+      }
+      
       return text; // Fallback: eredeti szöveg
     }
 
     const data = await response.json();
-    return data.translatedText || text;
+    const translated = data.translatedText || text;
+    
+    if (translated !== text) {
+      console.log(`✅ Fordítás sikeres: ${text.substring(0, 50)}... -> ${translated.substring(0, 50)}...`);
+    }
+    
+    return translated;
   } catch (error) {
-    console.warn("⚠️ Fordítás hiba:", error);
+    console.warn(`⚠️ Fordítás hiba (${LIBRETRANSLATE_APIS[retryIndex]}):`, error);
+    
+    // Próbáljuk meg a következő API-t
+    if (retryIndex < LIBRETRANSLATE_APIS.length - 1) {
+      console.log(`🔄 Próbálkozás következő API-val: ${retryIndex + 1}`);
+      return translateText(text, sourceLang, targetLang, retryIndex + 1);
+    }
+    
     return text; // Fallback: eredeti szöveg
   }
 }
@@ -107,12 +143,16 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
   const [versionHistory, setVersionHistory] = useState<VersionEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [translating, setTranslating] = useState(false);
 
   useEffect(() => {
     const fetchVersionHistory = async () => {
       try {
         setLoading(true);
         setError(null);
+        setTranslating(false);
+        
+        console.log("📥 Verzió előzmények betöltése...", { isBeta, language: settings.language });
         
         // GitHub Releases API
         const url = `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=50`;
@@ -134,7 +174,11 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
           return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
         });
         
+        console.log(`📊 ${filteredReleases.length} release találat`, { isBeta });
+        
         // Konvertálás VersionEntry formátumba és fordítása
+        setTranslating(settings.language !== "hu");
+        
         const historyPromises = filteredReleases.map(async (release) => {
           const changes = parseReleaseBody(release.body);
           const date = new Date(release.published_at).toLocaleDateString(
@@ -149,9 +193,19 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
           if (changes.length > 0) {
             // Ha nem magyar a célnyelv, fordítunk
             if (settings.language !== "hu") {
-              translatedChanges = await Promise.all(
-                changes.map(change => translateText(change, "hu", settings.language))
-              );
+              console.log(`🌐 Fordítás indítása: ${changes.length} változás`, { version: release.tag_name, targetLang: settings.language });
+              try {
+                translatedChanges = await Promise.all(
+                  changes.map((change, idx) => {
+                    console.log(`  [${idx + 1}/${changes.length}] Fordítás: ${change.substring(0, 50)}...`);
+                    return translateText(change, "hu", settings.language);
+                  })
+                );
+                console.log(`✅ Fordítás kész: ${release.tag_name}`);
+              } catch (translateError) {
+                console.error(`❌ Fordítás hiba (${release.tag_name}):`, translateError);
+                translatedChanges = changes; // Fallback: eredeti szöveg
+              }
             } else {
               translatedChanges = changes;
             }
@@ -168,9 +222,12 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
         
         const history = await Promise.all(historyPromises);
         setVersionHistory(history);
+        setTranslating(false);
+        console.log("✅ Verzió előzmények betöltve", { count: history.length });
       } catch (err) {
         console.error("❌ Verzió előzmények betöltése hiba:", err);
         setError(err instanceof Error ? err.message : String(err));
+        setTranslating(false);
       } finally {
         setLoading(false);
       }
@@ -256,8 +313,23 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
         </div>
 
         {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "40px" }}>
-            <LoadingSpinner message={settings.language === "hu" ? "Verzió előzmények betöltése..." : settings.language === "de" ? "Versionsverlauf wird geladen..." : "Loading version history..."} />
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "40px", flexDirection: "column", gap: "16px" }}>
+            <LoadingSpinner message={
+              translating 
+                ? (settings.language === "hu" ? "Verzió előzmények betöltése és fordítása..." : 
+                   settings.language === "de" ? "Versionsverlauf wird geladen und übersetzt..." : 
+                   "Loading and translating version history...")
+                : (settings.language === "hu" ? "Verzió előzmények betöltése..." : 
+                   settings.language === "de" ? "Versionsverlauf wird geladen..." : 
+                   "Loading version history...")
+            } />
+            {translating && (
+              <p style={{ fontSize: "12px", color: theme.colors.textMuted, marginTop: "8px" }}>
+                {settings.language === "hu" ? "Ez eltarthat egy ideig..." : 
+                 settings.language === "de" ? "Dies kann einen Moment dauern..." : 
+                 "This may take a moment..."}
+              </p>
+            )}
           </div>
         ) : error ? (
           <div style={{ 
