@@ -1,16 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from "react";
 import { Sidebar } from "./components/Sidebar";
-import { Home } from "./components/Home";
-import { Filaments } from "./components/Filaments";
-import { Printers } from "./components/Printers";
-import { Calculator } from "./components/Calculator";
-import { Offers } from "./components/Offers";
-import { SettingsPage } from "./components/Settings";
 import { UpdateChecker } from "./components/UpdateChecker";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
 import { LoadingSpinner } from "./components/LoadingSpinner";
-import { Console } from "./components/Console";
+
+// Lazy loading komponensek (code splitting)
+const Home = lazy(() => import("./components/Home").then(module => ({ default: module.Home })));
+const Filaments = lazy(() => import("./components/Filaments").then(module => ({ default: module.Filaments })));
+const Printers = lazy(() => import("./components/Printers").then(module => ({ default: module.Printers })));
+const Calculator = lazy(() => import("./components/Calculator").then(module => ({ default: module.Calculator })));
+const Offers = lazy(() => import("./components/Offers").then(module => ({ default: module.Offers })));
+const SettingsPage = lazy(() => import("./components/Settings").then(module => ({ default: module.SettingsPage })));
+const Console = lazy(() => import("./components/Console").then(module => ({ default: module.Console })));
 import type { Printer, Settings, Filament, Offer } from "./types";
 import { defaultSettings } from "./types";
 import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers } from "./utils/store";
@@ -131,14 +133,17 @@ export default function App() {
     }
   }, [offers, isInitialized, autosaveEnabled]);
 
-  const handleSaveOffer = (offer: Offer) => {
-    setOffers([...offers, offer]);
-  };
+  const handleSaveOffer = useCallback((offer: Offer) => {
+    setOffers(prevOffers => [...prevOffers, offer]);
+  }, []);
 
-  // Get current theme
-  const currentThemeName = settings.theme || "light";
-  const currentTheme = themes[currentThemeName];
-  const themeStyles = getThemeStyles(currentTheme);
+  // Get current theme (memoized)
+  const currentTheme = useMemo(() => {
+    const themeName = settings.theme || "light";
+    return themes[themeName];
+  }, [settings.theme]);
+
+  const themeStyles = useMemo(() => getThemeStyles(currentTheme), [currentTheme]);
 
   // Shortcut help (Ctrl/Cmd + ?)
   useKeyboardShortcut("?", () => {
@@ -149,39 +154,36 @@ export default function App() {
     setShowShortcutHelp(true);
   }, { meta: true });
 
-  let PageComponent;
-  switch (activePage) {
-    case "filaments": 
-      PageComponent = <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} />; 
-      break;
-    case "printers":
-      PageComponent = <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
-      break;
-    case "calculator": 
-      PageComponent = <Calculator printers={printers} filaments={filaments} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
-      break;
-    case "offers":
-      PageComponent = <Offers offers={offers} setOffers={setOffers} settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
-      break;
-    case "settings": 
-      PageComponent = <SettingsPage 
-        settings={settings} 
-        onChange={setSettings}
-        printers={printers}
-        setPrinters={setPrinters}
-        filaments={filaments}
-        setFilaments={setFilaments}
-        offers={offers}
-        setOffers={setOffers}
-        theme={currentTheme}
-        themeStyles={themeStyles}
-      />; 
-      break;
-    case "console":
-      PageComponent = <Console settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
-      break;
-    default: PageComponent = <Home settings={settings} offers={offers} theme={currentTheme} />;
-  }
+  // Page component (memoized)
+  const PageComponent = useMemo(() => {
+    switch (activePage) {
+      case "filaments": 
+        return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} />; 
+      case "printers":
+        return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
+      case "calculator": 
+        return <Calculator printers={printers} filaments={filaments} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
+      case "offers":
+        return <Offers offers={offers} setOffers={setOffers} settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
+      case "settings": 
+        return <SettingsPage 
+          settings={settings} 
+          onChange={setSettings}
+          printers={printers}
+          setPrinters={setPrinters}
+          filaments={filaments}
+          setFilaments={setFilaments}
+          offers={offers}
+          setOffers={setOffers}
+          theme={currentTheme}
+          themeStyles={themeStyles}
+        />; 
+      case "console":
+        return <Console settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
+      default: 
+        return <Home settings={settings} offers={offers} theme={currentTheme} />;
+    }
+  }, [activePage, filaments, printers, offers, settings, currentTheme, themeStyles, handleSaveOffer]);
 
   // Determine if this is a beta build from environment variable (set at build time)
   const isBeta = import.meta.env.VITE_IS_BETA === 'true';
@@ -213,7 +215,9 @@ export default function App() {
             {!isInitialized ? (
               <LoadingSpinner message={settings.language === "hu" ? "Betöltés..." : settings.language === "de" ? "Laden..." : "Loading..."} />
             ) : (
-              PageComponent
+              <Suspense fallback={<LoadingSpinner message={settings.language === "hu" ? "Betöltés..." : settings.language === "de" ? "Laden..." : "Loading..."} />}>
+                {PageComponent}
+              </Suspense>
             )}
           </main>
           {showShortcutHelp && (
