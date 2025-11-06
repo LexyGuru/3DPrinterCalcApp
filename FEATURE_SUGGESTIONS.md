@@ -2,6 +2,12 @@
 
 ## ✅ Már implementált funkciók
 
+### v0.3.5-ben implementálva:
+- ✅ **MyMemory API integráció** - Ingyenes fordító API LibreTranslate helyett (GET request, nincs CORS probléma)
+- ✅ **GitHub releases oldal megnyitása** - Gomb a GitHub releases oldal megnyitásához rate limit esetén
+- ✅ **Rate limit hibakezelés javítása** - Egyértelmű hibaüzenetek (HU/EN/DE) és retry gomb
+- 🐛 **Build hibák javítása** - Unused import-ok eltávolítása (offerCalc.ts)
+
 ### v0.3.4-ben implementálva:
 - ✅ **Input validáció fejlesztése** - Központi validációs utility, Calculator, Filaments, Printers komponensekben
 - ✅ **Performance optimalizálás** - Lazy loading, useMemo, useCallback optimalizálás
