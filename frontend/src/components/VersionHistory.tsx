@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import type { Settings } from "../types";
 import type { Theme } from "../utils/themes";
+import { getThemeStyles } from "../utils/themes";
 import { LoadingSpinner } from "./LoadingSpinner";
 
 interface Props {
@@ -327,8 +328,26 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
         
         if (!response.ok) {
           const errorText = await response.text().catch(() => response.statusText);
-          console.error("❌ GitHub API hiba:", response.status, response.statusText, errorText);
-          throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}${errorText ? ` - ${errorText}` : ""}`);
+          let errorData: any = {};
+          try {
+            errorData = JSON.parse(errorText);
+          } catch (e) {
+            // Nem JSON válasz
+          }
+          
+          console.error("❌ GitHub API hiba:", response.status, response.statusText, errorData);
+          
+          // Rate limit esetén speciális hibaüzenet
+          if (response.status === 403 && errorData.message?.includes("rate limit")) {
+            const rateLimitMessage = settings.language === "hu" 
+              ? "GitHub API rate limit túllépve. Kérjük, próbálja meg később újra, vagy várjon néhány percet."
+              : settings.language === "de"
+              ? "GitHub API Rate-Limit überschritten. Bitte versuchen Sie es später erneut oder warten Sie einige Minuten."
+              : "GitHub API rate limit exceeded. Please try again later or wait a few minutes.";
+            throw new Error(rateLimitMessage);
+          }
+          
+          throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}${errorData.message ? ` - ${errorData.message}` : errorText ? ` - ${errorText}` : ""}`);
         }
         
         let releases: GitHubRelease[];
@@ -524,7 +543,154 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
             border: `1px solid ${theme.colors.danger}`,
             color: theme.colors.danger
           }}>
-            <strong>{settings.language === "hu" ? "Hiba történt:" : settings.language === "de" ? "Fehler aufgetreten:" : "Error occurred:"}</strong> {error}
+            <div style={{ marginBottom: "12px" }}>
+              <strong>{settings.language === "hu" ? "Hiba történt:" : settings.language === "de" ? "Fehler aufgetreten:" : "Error occurred:"}</strong>
+            </div>
+            <div style={{ marginBottom: "16px", fontSize: "14px" }}>
+              {error}
+            </div>
+            <button
+              onClick={() => {
+                setError(null);
+                setLoading(true);
+                // Újra próbálkozás
+                const fetchVersionHistory = async () => {
+                  try {
+                    setLoading(true);
+                    setError(null);
+                    setTranslating(false);
+                    
+                    console.log("📥 Verzió előzmények újratöltése...", { isBeta, language: settings.language });
+                    
+                    const url = `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=50`;
+                    console.log("📡 GitHub API hívás...", { url });
+                    
+                    let response: Response;
+                    try {
+                      response = await fetch(url, {
+                        method: "GET",
+                        headers: {
+                          "Accept": "application/vnd.github.v3+json",
+                        },
+                      });
+                    } catch (fetchError) {
+                      console.error("❌ Fetch hiba:", fetchError);
+                      throw new Error(`Network error: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
+                    }
+                    
+                    if (!response.ok) {
+                      const errorText = await response.text().catch(() => response.statusText);
+                      let errorData: any = {};
+                      try {
+                        errorData = JSON.parse(errorText);
+                      } catch (e) {
+                        // Nem JSON válasz
+                      }
+                      
+                      console.error("❌ GitHub API hiba:", response.status, response.statusText, errorData);
+                      
+                      if (response.status === 403 && errorData.message?.includes("rate limit")) {
+                        const rateLimitMessage = settings.language === "hu" 
+                          ? "GitHub API rate limit túllépve. Kérjük, próbálja meg később újra, vagy várjon néhány percet."
+                          : settings.language === "de"
+                          ? "GitHub API Rate-Limit überschritten. Bitte versuchen Sie es später erneut oder warten Sie einige Minuten."
+                          : "GitHub API rate limit exceeded. Please try again later or wait a few minutes.";
+                        throw new Error(rateLimitMessage);
+                      }
+                      
+                      throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}${errorData.message ? ` - ${errorData.message}` : errorText ? ` - ${errorText}` : ""}`);
+                    }
+                    
+                    let releases: GitHubRelease[];
+                    try {
+                      releases = await response.json();
+                    } catch (parseError) {
+                      console.error("❌ JSON parse hiba:", parseError);
+                      throw new Error(`Failed to parse releases: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+                    }
+                    
+                    if (!Array.isArray(releases)) {
+                      console.error("❌ Érvénytelen válasz formátum:", releases);
+                      throw new Error("Invalid response format: expected array");
+                    }
+                    
+                    console.log(`✅ ${releases.length} release betöltve`);
+                    
+                    const filteredReleases = isBeta
+                      ? releases.filter(r => r.prerelease === true)
+                      : releases.filter(r => r.prerelease === false);
+                    
+                    filteredReleases.sort((a, b) => {
+                      return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+                    });
+                    
+                    console.log(`📊 ${filteredReleases.length} release találat`, { isBeta });
+                    
+                    setTranslating(settings.language !== "hu");
+                    
+                    const history: VersionEntry[] = [];
+                    for (const release of filteredReleases) {
+                      const changes = parseReleaseBody(release.body);
+                      const date = new Date(release.published_at).toLocaleDateString(
+                        settings.language === "hu" ? "hu-HU" : 
+                        settings.language === "de" ? "de-DE" : 
+                        "en-US"
+                      );
+                      
+                      let translatedChanges: string[] = [];
+                      if (changes.length > 0) {
+                        if (settings.language !== "hu") {
+                          console.log(`🌐 Fordítás indítása: ${changes.length} változás`, { version: release.tag_name, targetLang: settings.language });
+                          try {
+                            translatedChanges = [];
+                            for (let idx = 0; idx < changes.length; idx++) {
+                              const change = changes[idx];
+                              console.log(`  [${idx + 1}/${changes.length}] Fordítás: ${change.substring(0, 50)}...`);
+                              const translated = await translateText(change, "hu", settings.language);
+                              translatedChanges.push(translated);
+                            }
+                            console.log(`✅ Fordítás kész: ${release.tag_name}`);
+                          } catch (translateError) {
+                            console.error(`❌ Fordítás hiba (${release.tag_name}):`, translateError);
+                            translatedChanges = changes;
+                          }
+                        } else {
+                          translatedChanges = changes;
+                        }
+                      } else {
+                        translatedChanges = [settings.language === "hu" ? "Nincs változás leírás" : settings.language === "de" ? "Keine Änderungsbeschreibung" : "No changelog"];
+                      }
+                      
+                      history.push({
+                        version: release.tag_name,
+                        date: date,
+                        changes: translatedChanges
+                      });
+                    }
+                    
+                    setVersionHistory(history);
+                    setTranslating(false);
+                    console.log("✅ Verzió előzmények betöltve", { count: history.length });
+                  } catch (err) {
+                    console.error("❌ Verzió előzmények betöltése hiba:", err);
+                    setError(err instanceof Error ? err.message : String(err));
+                    setTranslating(false);
+                  } finally {
+                    setLoading(false);
+                  }
+                };
+                
+                fetchVersionHistory();
+              }}
+              style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonPrimary,
+                padding: "8px 16px",
+                fontSize: "14px"
+              }}
+            >
+              {settings.language === "hu" ? "🔄 Újra próbálkozás" : settings.language === "de" ? "🔄 Erneut versuchen" : "🔄 Retry"}
+            </button>
           </div>
         ) : versionHistory.length === 0 ? (
           <div style={{ 
