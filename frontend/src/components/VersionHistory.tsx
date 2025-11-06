@@ -24,6 +24,51 @@ interface GitHubRelease {
 }
 
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp";
+const LIBRETRANSLATE_API = "https://libretranslate.com/translate"; // Ingyenes publikus API
+
+// LibreTranslate API használata fordításhoz
+async function translateText(text: string, sourceLang: string, targetLang: string): Promise<string> {
+  try {
+    // Ha a forrás és cél nyelv ugyanaz, ne fordítunk
+    if (sourceLang === targetLang) {
+      return text;
+    }
+
+    // LibreTranslate nyelvkódok
+    const langMap: Record<string, string> = {
+      "hu": "hu",
+      "en": "en",
+      "de": "de"
+    };
+
+    const source = langMap[sourceLang] || "hu";
+    const target = langMap[targetLang] || "en";
+
+    const response = await fetch(LIBRETRANSLATE_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        q: text,
+        source: source,
+        target: target,
+        format: "text"
+      })
+    });
+
+    if (!response.ok) {
+      console.warn("⚠️ LibreTranslate API hiba:", response.statusText);
+      return text; // Fallback: eredeti szöveg
+    }
+
+    const data = await response.json();
+    return data.translatedText || text;
+  } catch (error) {
+    console.warn("⚠️ Fordítás hiba:", error);
+    return text; // Fallback: eredeti szöveg
+  }
+}
 
 // Parse markdown release body-t változások listájává
 function parseReleaseBody(body: string): string[] {
@@ -89,8 +134,8 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
           return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
         });
         
-        // Konvertálás VersionEntry formátumba
-        const history: VersionEntry[] = filteredReleases.map(release => {
+        // Konvertálás VersionEntry formátumba és fordítása
+        const historyPromises = filteredReleases.map(async (release) => {
           const changes = parseReleaseBody(release.body);
           const date = new Date(release.published_at).toLocaleDateString(
             settings.language === "hu" ? "hu-HU" : 
@@ -98,13 +143,30 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
             "en-US"
           );
           
+          // Feltételezzük, hogy a release notes magyarul vannak (source: "hu")
+          // Fordítjuk a kiválasztott nyelvre
+          let translatedChanges: string[] = [];
+          if (changes.length > 0) {
+            // Ha nem magyar a célnyelv, fordítunk
+            if (settings.language !== "hu") {
+              translatedChanges = await Promise.all(
+                changes.map(change => translateText(change, "hu", settings.language))
+              );
+            } else {
+              translatedChanges = changes;
+            }
+          } else {
+            translatedChanges = [settings.language === "hu" ? "Nincs változás leírás" : settings.language === "de" ? "Keine Änderungsbeschreibung" : "No changelog"];
+          }
+          
           return {
             version: release.tag_name,
             date: date,
-            changes: changes.length > 0 ? changes : [settings.language === "hu" ? "Nincs változás leírás" : settings.language === "de" ? "Keine Änderungsbeschreibung" : "No changelog"]
+            changes: translatedChanges
           };
         });
         
+        const history = await Promise.all(historyPromises);
         setVersionHistory(history);
       } catch (err) {
         console.error("❌ Verzió előzmények betöltése hiba:", err);
