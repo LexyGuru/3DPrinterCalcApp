@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
-import type { Offer, Settings } from "../types";
+import type { Offer, Settings, Printer } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation, type TranslationKey } from "../utils/translations";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 import { convertCurrencyFromTo } from "../utils/currency";
 import { Tooltip } from "./Tooltip";
+import { calculateOfferCosts } from "../utils/offerCalc";
+import { validateUsedGrams, validateDryingTime, validateDryingPower } from "../utils/validation";
 
 interface Props {
   offers: Offer[];
@@ -15,9 +17,10 @@ interface Props {
   settings: Settings;
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
+  printers: Printer[];
 }
 
-export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, themeStyles }) => {
+export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, themeStyles, printers }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
@@ -30,6 +33,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
   const [editCustomerContact, setEditCustomerContact] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editProfitPercentage, setEditProfitPercentage] = useState<number>(30);
+  const [editFilaments, setEditFilaments] = useState<Offer["filaments"]>([]);
   const [draggedOfferId, setDraggedOfferId] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ offerId: number; x: number; y: number } | null>(null);
 
@@ -71,6 +75,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     setEditCustomerContact(offer.customerContact || "");
     setEditDescription(offer.description || "");
     setEditProfitPercentage(offer.profitPercentage || 30);
+    setEditFilaments([...offer.filaments]);
   };
 
   const cancelEditOffer = () => {
@@ -79,6 +84,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     setEditCustomerContact("");
     setEditDescription("");
     setEditProfitPercentage(30);
+    setEditFilaments([]);
   };
 
   const saveEditOffer = () => {
@@ -96,15 +102,36 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     });
 
     // Ellenőrizzük, hogy változott-e valami
+    const filamentsChanged = JSON.stringify(editingOffer.filaments) !== JSON.stringify(editFilaments);
     const hasChanges = 
       editingOffer.customerName !== editCustomerName.trim() ||
       editingOffer.customerContact !== (editCustomerContact.trim() || undefined) ||
       editingOffer.description !== (editDescription.trim() || undefined) ||
-      editingOffer.profitPercentage !== editProfitPercentage;
+      editingOffer.profitPercentage !== editProfitPercentage ||
+      filamentsChanged;
 
     // Ha változott, mentjük az előzménybe
     let history = editingOffer.history || [];
     let currentVersion = editingOffer.currentVersion || 1;
+    
+    // Ha a filamentek változtak, újraszámoljuk a költségeket
+    let newCosts = editingOffer.costs;
+    if (filamentsChanged) {
+      const printer = printers.find(p => p.name === editingOffer.printerName);
+      if (printer) {
+        const calculatedCosts = calculateOfferCosts(
+          {
+            ...editingOffer,
+            filaments: editFilaments,
+          },
+          printer,
+          settings
+        );
+        if (calculatedCosts) {
+          newCosts = calculatedCosts;
+        }
+      }
+    }
     
     if (hasChanges) {
       // Mentjük a régi verziót az előzményekbe
@@ -128,6 +155,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       customerContact: editCustomerContact.trim() || undefined,
       description: editDescription.trim() || undefined,
       profitPercentage: editProfitPercentage,
+      filaments: editFilaments,
+      costs: newCosts,
       history: history,
       currentVersion: currentVersion,
       date: hasChanges ? new Date().toISOString() : editingOffer.date, // Frissítjük a dátumot, ha változott
@@ -603,24 +632,45 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                           {t("calculator.totalCost")}: {convertCurrencyFromTo(offer.costs.totalCost, offer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
                         </p>
                       </div>
-                      <Tooltip content={settings.language === "hu" ? "Árajánlat törlése" : settings.language === "de" ? "Angebot löschen" : "Delete offer"}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteOffer(offer.id);
-                          }}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
-                          style={{
-                            ...themeStyles.button,
-                            ...themeStyles.buttonDanger,
-                            padding: "8px 16px",
-                            fontSize: "12px"
-                          }}
-                        >
-                          {t("offers.delete")}
-                        </button>
-                      </Tooltip>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                        <Tooltip content={settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedOffer(offer);
+                              startEditOffer(offer);
+                            }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                            style={{
+                              ...themeStyles.button,
+                              ...themeStyles.buttonSuccess,
+                              padding: "8px 16px",
+                              fontSize: "12px"
+                            }}
+                          >
+                            ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
+                          </button>
+                        </Tooltip>
+                        <Tooltip content={settings.language === "hu" ? "Árajánlat törlése" : settings.language === "de" ? "Angebot löschen" : "Delete offer"}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteOffer(offer.id);
+                            }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                            style={{
+                              ...themeStyles.button,
+                              ...themeStyles.buttonDanger,
+                              padding: "8px 16px",
+                              fontSize: "12px"
+                            }}
+                          >
+                            {t("offers.delete")}
+                          </button>
+                        </Tooltip>
+                      </div>
                     </div>
                   </div>
                 );
@@ -711,8 +761,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   <h4 style={{ marginTop: 0, marginBottom: "20px", fontSize: "18px", fontWeight: "600", color: theme.colors.text }}>
                     ✏️ {settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}
                   </h4>
-                  <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
-                    <div style={{ width: "180px", flexShrink: 0 }}>
+                  <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", flexWrap: "wrap" }}>
+                    <div style={{ width: "200px", flexShrink: 0 }}>
                       <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
                         {t("offers.customerName")} *
                       </label>
@@ -723,10 +773,10 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                         onChange={e => setEditCustomerName(e.target.value)}
                         onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                         onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                        style={{ ...themeStyles.input, width: "100%" }}
+                        style={{ ...themeStyles.input, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}
                       />
                     </div>
-                    <div style={{ width: "180px", flexShrink: 0 }}>
+                    <div style={{ width: "200px", flexShrink: 0 }}>
                       <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
                         {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}
                       </label>
@@ -737,10 +787,10 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                         onChange={e => setEditCustomerContact(e.target.value)}
                         onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                         onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                        style={{ ...themeStyles.input, width: "100%" }}
+                        style={{ ...themeStyles.input, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}
                       />
                     </div>
-                    <div style={{ width: "180px", flexShrink: 0 }}>
+                    <div style={{ width: "150px", flexShrink: 0 }}>
                       <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
                         📈 {t("offers.profitPercentage")}
                       </label>
@@ -749,7 +799,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                         onChange={e => setEditProfitPercentage(Number(e.target.value))}
                         onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
                         onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                        style={{ ...themeStyles.select, width: "100%" }}
+                        style={{ ...themeStyles.select, width: "100%", maxWidth: "150px", boxSizing: "border-box" }}
                       >
                         <option value={10}>10%</option>
                         <option value={20}>20%</option>
@@ -759,7 +809,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                       </select>
                     </div>
                   </div>
-                  <div style={{ marginTop: "20px" }}>
+                  <div style={{ marginTop: "20px", width: "100%", maxWidth: "600px" }}>
                     <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
                       {t("offers.description")}
                     </label>
@@ -769,9 +819,126 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                       onChange={e => setEditDescription(e.target.value)}
                       onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                       onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                      style={{ ...themeStyles.input, width: "100%", minHeight: "80px", resize: "vertical" }}
+                      style={{ ...themeStyles.input, width: "100%", maxWidth: "600px", minHeight: "100px", maxHeight: "200px", resize: "vertical", boxSizing: "border-box" }}
                     />
                   </div>
+                  
+                  {/* Filamentek szerkesztése */}
+                  <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
+                    <h5 style={{ marginTop: 0, marginBottom: "16px", fontSize: "16px", fontWeight: "600", color: theme.colors.text }}>
+                      🧵 {t("offers.filaments")}
+                    </h5>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                      {editFilaments.map((f, idx) => {
+                        return (
+                          <div key={idx} style={{ padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", border: `1px solid ${theme.colors.border}` }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                              <strong style={{ fontSize: "14px", color: theme.colors.text }}>
+                                {f.brand} {f.type} {f.color ? `(${f.color})` : ""}
+                              </strong>
+                              {editFilaments.length > 1 && (
+                                <button
+                                  onClick={() => {
+                                    const newFilaments = editFilaments.filter((_, i) => i !== idx);
+                                    setEditFilaments(newFilaments);
+                                  }}
+                                  style={{
+                                    ...themeStyles.button,
+                                    ...themeStyles.buttonDanger,
+                                    padding: "4px 8px",
+                                    fontSize: "12px"
+                                  }}
+                                >
+                                  {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}
+                                </button>
+                              )}
+                            </div>
+                            <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "flex-end" }}>
+                              <div style={{ width: "150px", flexShrink: 0 }}>
+                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "12px", color: theme.colors.text }}>
+                                  {t("calculator.usedGrams")}
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.1"
+                                  value={f.usedGrams || ""}
+                                  onChange={e => {
+                                    const val = Number(e.target.value);
+                                    const validation = validateUsedGrams(val, settings.language);
+                                    if (validation.isValid) {
+                                      const newFilaments = [...editFilaments];
+                                      newFilaments[idx] = { ...f, usedGrams: val };
+                                      setEditFilaments(newFilaments);
+                                    } else if (validation.errorMessage) {
+                                      showToast(validation.errorMessage, "error");
+                                    }
+                                  }}
+                                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                  style={{ ...themeStyles.input, width: "100%", maxWidth: "150px", boxSizing: "border-box" }}
+                                />
+                              </div>
+                              {f.needsDrying && (
+                                <>
+                                  <div style={{ width: "120px", flexShrink: 0 }}>
+                                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "12px", color: theme.colors.text }}>
+                                      {t("calculator.dryingTime")}
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.1"
+                                      value={f.dryingTime || ""}
+                                      onChange={e => {
+                                        const val = Number(e.target.value);
+                                        const validation = validateDryingTime(val, settings.language);
+                                        if (validation.isValid) {
+                                          const newFilaments = [...editFilaments];
+                                          newFilaments[idx] = { ...f, dryingTime: val };
+                                          setEditFilaments(newFilaments);
+                                        } else if (validation.errorMessage) {
+                                          showToast(validation.errorMessage, "error");
+                                        }
+                                      }}
+                                      onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                      onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                      style={{ ...themeStyles.input, width: "100%", maxWidth: "120px", boxSizing: "border-box" }}
+                                    />
+                                  </div>
+                                  <div style={{ width: "120px", flexShrink: 0 }}>
+                                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "12px", color: theme.colors.text }}>
+                                      {t("calculator.dryingPower")}
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={f.dryingPower || ""}
+                                      onChange={e => {
+                                        const val = Number(e.target.value);
+                                        const validation = validateDryingPower(val, settings.language);
+                                        if (validation.isValid) {
+                                          const newFilaments = [...editFilaments];
+                                          newFilaments[idx] = { ...f, dryingPower: val };
+                                          setEditFilaments(newFilaments);
+                                        } else if (validation.errorMessage) {
+                                          showToast(validation.errorMessage, "error");
+                                        }
+                                      }}
+                                      onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                      onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                      style={{ ...themeStyles.input, width: "100%", maxWidth: "120px", boxSizing: "border-box" }}
+                                    />
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
                   <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
                     <Tooltip content={settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}>
                       <button
