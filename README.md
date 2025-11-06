@@ -20,6 +20,8 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🔔 **Toast értesítések** - Sikeres műveletek után értesítések
 - 🔍 **Keresés és szűrés** - Filamentek, nyomtatók és árajánlatok keresése
 - 📋 **Duplikálás** - Árajánlatok könnyű duplikálása
+- 🖱️ **Drag & Drop** - Árajánlatok, filamentek és nyomtatók átrendezése húzással
+- 📱 **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, export)
 
 ## 📸 Képernyőképek
 
@@ -225,6 +227,13 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.3.3 (2025)
+- 🖱️ **Drag & Drop funkciók** - Árajánlatok, filamentek és nyomtatók átrendezése húzással
+- 📱 **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, PDF export)
+- 🎨 **Visual feedback** - Drag & drop során opacity és cursor változás
+- 🔔 **Toast értesítések** - Átrendezés után értesítések
+- 🐛 **Build hiba javítás** - Calculator.tsx theme.colors.error -> theme.colors.danger javítás
+
 ### v0.3.2 (2025)
 - 📋 **Template funkciók** - Kalkulációk mentése és betöltése template-ként a Calculator komponensben
 - 📜 **Előzmények/Verziózás árajánlatokhoz** - Árajánlatok verziózása, előzmények megtekintése, változtatások nyomon követése
@@ -306,7 +315,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.3.0
+**Verzió**: 0.3.3
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

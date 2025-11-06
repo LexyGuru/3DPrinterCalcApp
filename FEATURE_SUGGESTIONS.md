@@ -2,6 +2,20 @@
 
 ## ✅ Már implementált funkciók
 
+### v0.3.3-ban implementálva:
+- ✅ **Drag & Drop funkciók** - Árajánlatok, filamentek és nyomtatók átrendezése húzással
+- ✅ **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, PDF export)
+
+### v0.3.2-ban implementálva:
+- ✅ **Template funkciók** - Kalkulációk mentése és betöltése template-ként
+- ✅ **Előzmények/Verziózás árajánlatokhoz** - Árajánlatok verziózása, előzmények megtekintése
+- ✅ **Duplikáció javítás** - Duplikált CSV/JSON export/import funkciók eltávolítása
+
+### v0.3.1-ben implementálva:
+- ✅ **Input validáció fejlesztése** - Negatív számok eltiltása, maximum értékek beállítása
+- ✅ **Tömeges import/export (CSV/JSON)** - Filamentek és nyomtatók tömeges exportálása/importálása
+- ✅ **Empty states javítása** - Informatív üres állapotok megjelenítése
+
 ### v0.3.0-ban implementálva:
 - ✅ **Árajánlat szerkesztés** - Mentett árajánlatok szerkesztése (ügyfél név, elérhetőség, leírás, profit százalék)
 - ✅ **Statisztikák export funkció** - Statisztikák exportálása JSON vagy CSV formátumban
@@ -36,14 +50,7 @@
 ### 🔴 Magas prioritás (UX/Funkcionalitás javítások)
 
 
-#### 2. **Tömeges import/export (CSV/JSON)**
-- **Hol**: `Filaments.tsx`, `Printers.tsx`
-- **Mit**: CSV/JSON fájlból importálás és exportálás
-- **Előny**: Könnyű adatátvitel, biztonsági mentés, backup
-- **Becsült idő**: 4-6 óra
-- **Komplexitás**: Magas
-
-#### 3. **Input validáció fejlesztése**
+#### 1. **Input validáció fejlesztése**
 - **Hol**: `Calculator.tsx`, `Filaments.tsx`, `Printers.tsx`
 - **Mit**: 
   - Negatív számok eltiltása
@@ -57,29 +64,8 @@
 
 ### 🟡 Közepes prioritás (funkcionalitás bővítések)
 
-#### 5. **Template funkciók**
-- **Hol**: `Calculator.tsx`
-- **Mit**: Mentett kalkulációk mintaként használhatók (pl. "Gyakori nyomtatás", "Template név")
-- **Előny**: Időmegtakarítás, gyors újraszámítás hasonló paraméterekkel
-- **Becsült idő**: 4-6 óra
-- **Komplexitás**: Közepes
-
-#### 6. **Előzmények/Verziózás árajánlatokhoz**
-- **Hol**: `Offers.tsx`
-- **Mit**: Árajánlatok verziózása, előzmények megtekintése, változtatások nyomon követése
-- **Előny**: Látható, hogyan változott egy árajánlat, jobb nyilvántartás
-- **Becsült idő**: 6-8 óra
-- **Komplexitás**: Magas
-
 
 ### 🟢 Alacsony prioritás (nice-to-have)
-
-#### 9. **Tooltip-ek**
-- **Hol**: Minden gomb, input mező
-- **Mit**: Rövidek magyarázatok, hogy mit csinál az adott elem
-- **Előny**: Jobb usability, segítség a kezdőknek
-- **Becsült idő**: 3-4 óra
-- **Komplexitás**: Alacsony
 
 
 #### 13. **Automatikus mentés**
@@ -179,17 +165,6 @@
 - **Becsült idő**: 6-8 óra
 - **Komplexitás**: Közepes
 
-### 3. **Drag & Drop funkciók**
-- **Mit**: Árajánlatok, filamentek, nyomtatók átrendezése drag & drop-pal
-- **Előny**: Intuitívabb használat
-- **Becsült idő**: 4-6 óra
-- **Komplexitás**: Közepes
-
-### 4. **Kontextus menük**
-- **Mit**: Jobb klikk menük a listaelemekhez (szerkesztés, törlés, duplikálás)
-- **Előny**: Gyorsabb műveletek, jobb UX
-- **Becsült idő**: 3-4 óra
-- **Komplexitás**: Közepes
 
 ## 🔐 Biztonság és adatvédelem
 
