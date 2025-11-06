@@ -30,6 +30,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
   const [editCustomerContact, setEditCustomerContact] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editProfitPercentage, setEditProfitPercentage] = useState<number>(30);
+  const [draggedOfferId, setDraggedOfferId] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ offerId: number; x: number; y: number } | null>(null);
 
   const deleteOffer = (id: number) => {
     setDeleteConfirmId(id);
@@ -427,6 +429,88 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     );
   });
 
+  // Drag & Drop funkciók
+  const handleDragStart = (e: React.DragEvent, offerId: number) => {
+    setDraggedOfferId(offerId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", offerId.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, targetOfferId: number) => {
+    e.preventDefault();
+    if (draggedOfferId === null || draggedOfferId === targetOfferId) {
+      setDraggedOfferId(null);
+      return;
+    }
+
+    const draggedIndex = offers.findIndex(o => o.id === draggedOfferId);
+    const targetIndex = offers.findIndex(o => o.id === targetOfferId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedOfferId(null);
+      return;
+    }
+
+    // Átrendezés
+    const newOffers = [...offers];
+    const [removed] = newOffers.splice(draggedIndex, 1);
+    newOffers.splice(targetIndex, 0, removed);
+
+    setOffers(newOffers);
+    setDraggedOfferId(null);
+    console.log("🔄 Árajánlatok átrendezve", { draggedId: draggedOfferId, targetId: targetOfferId });
+    showToast(
+      settings.language === "hu" ? "Árajánlatok átrendezve" :
+      settings.language === "de" ? "Angebote neu angeordnet" :
+      "Offers reordered",
+      "success"
+    );
+  };
+
+  const handleDragEnd = () => {
+    setDraggedOfferId(null);
+  };
+
+  // Kontextus menü funkciók
+  const handleContextMenu = (e: React.MouseEvent, offer: Offer) => {
+    e.preventDefault();
+    setContextMenu({ offerId: offer.id, x: e.clientX, y: e.clientY });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  const handleContextMenuAction = (action: "edit" | "duplicate" | "delete" | "export") => {
+    if (!contextMenu) return;
+    const offer = offers.find(o => o.id === contextMenu.offerId);
+    if (!offer) {
+      closeContextMenu();
+      return;
+    }
+
+    switch (action) {
+      case "edit":
+        startEditOffer(offer);
+        break;
+      case "duplicate":
+        duplicateOffer(offer);
+        break;
+      case "delete":
+        deleteOffer(offer.id);
+        break;
+      case "export":
+        exportToPDF(offer);
+        break;
+    }
+    closeContextMenu();
+  };
+
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("offers.title")}</h2>
@@ -469,21 +553,29 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   <div
                     key={offer.id}
                     onClick={() => setSelectedOffer(offer)}
+                    onContextMenu={(e) => handleContextMenu(e, offer)}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, offer.id)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, offer.id)}
+                    onDragEnd={handleDragEnd}
                     style={{
                       ...themeStyles.card,
                       backgroundColor: selectedOffer?.id === offer.id ? theme.colors.primary + "20" : theme.colors.surface,
                       border: selectedOffer?.id === offer.id ? `2px solid ${theme.colors.primary}` : `1px solid ${theme.colors.border}`,
-                      cursor: "pointer",
-                      transition: "all 0.2s"
+                      cursor: draggedOfferId === offer.id ? "grabbing" : "grab",
+                      transition: "all 0.2s",
+                      opacity: draggedOfferId === offer.id ? 0.5 : 1,
+                      transform: draggedOfferId === offer.id ? "scale(0.95)" : "scale(1)"
                     }}
                     onMouseEnter={(e) => {
-                      if (selectedOffer?.id !== offer.id) {
+                      if (selectedOffer?.id !== offer.id && draggedOfferId !== offer.id) {
                         Object.assign(e.currentTarget.style, themeStyles.cardHover);
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (selectedOffer?.id !== offer.id) {
-                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.transform = draggedOfferId === offer.id ? "scale(0.95)" : "translateY(0)";
                         e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
                       }
                     }}
@@ -901,6 +993,129 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Kontextus menü */}
+      {contextMenu && (
+        <div
+          onClick={closeContextMenu}
+          onContextMenu={(e) => e.preventDefault()}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1500,
+            backgroundColor: "transparent"
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "fixed",
+              top: contextMenu.y,
+              left: contextMenu.x,
+              backgroundColor: theme.colors.surface,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: "8px",
+              boxShadow: `0 4px 12px ${theme.colors.shadow}`,
+              padding: "8px 0",
+              minWidth: "180px",
+              zIndex: 1501
+            }}
+          >
+            <button
+              onClick={() => handleContextMenuAction("edit")}
+              style={{
+                width: "100%",
+                padding: "10px 16px",
+                textAlign: "left",
+                backgroundColor: "transparent",
+                border: "none",
+                color: theme.colors.text,
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "background-color 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
+            </button>
+            <button
+              onClick={() => handleContextMenuAction("duplicate")}
+              style={{
+                width: "100%",
+                padding: "10px 16px",
+                textAlign: "left",
+                backgroundColor: "transparent",
+                border: "none",
+                color: theme.colors.text,
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "background-color 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              📋 {settings.language === "hu" ? "Duplikálás" : settings.language === "de" ? "Duplizieren" : "Duplicate"}
+            </button>
+            <button
+              onClick={() => handleContextMenuAction("export")}
+              style={{
+                width: "100%",
+                padding: "10px 16px",
+                textAlign: "left",
+                backgroundColor: "transparent",
+                border: "none",
+                color: theme.colors.text,
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "background-color 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              📄 {settings.language === "hu" ? "PDF export" : settings.language === "de" ? "PDF exportieren" : "PDF export"}
+            </button>
+            <div style={{ height: "1px", backgroundColor: theme.colors.border, margin: "4px 0" }} />
+            <button
+              onClick={() => handleContextMenuAction("delete")}
+              style={{
+                width: "100%",
+                padding: "10px 16px",
+                textAlign: "left",
+                backgroundColor: "transparent",
+                border: "none",
+                color: theme.colors.danger,
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "background-color 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              🗑️ {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}
+            </button>
+          </div>
         </div>
       )}
 

@@ -28,6 +28,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [draggedFilamentIndex, setDraggedFilamentIndex] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ index: number; x: number; y: number } | null>(null);
 
   const resetForm = () => {
     setBrand("");
@@ -145,6 +147,72 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     }
   });
 
+  // Drag & Drop funkciók
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedFilamentIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedFilamentIndex === null || draggedFilamentIndex === targetIndex) {
+      setDraggedFilamentIndex(null);
+      return;
+    }
+
+    const newFilaments = [...filaments];
+    const [removed] = newFilaments.splice(draggedFilamentIndex, 1);
+    newFilaments.splice(targetIndex, 0, removed);
+
+    setFilaments(newFilaments);
+    setDraggedFilamentIndex(null);
+    console.log("🔄 Filamentek átrendezve", { draggedIndex: draggedFilamentIndex, targetIndex });
+    showToast(
+      settings.language === "hu" ? "Filamentek átrendezve" :
+      settings.language === "de" ? "Filamente neu angeordnet" :
+      "Filaments reordered",
+      "success"
+    );
+  };
+
+  const handleDragEnd = () => {
+    setDraggedFilamentIndex(null);
+  };
+
+  // Kontextus menü funkciók
+  const handleContextMenu = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    setContextMenu({ index, x: e.clientX, y: e.clientY });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  const handleContextMenuAction = (action: "edit" | "delete") => {
+    if (!contextMenu) return;
+    const filament = filaments[contextMenu.index];
+    if (!filament) {
+      closeContextMenu();
+      return;
+    }
+
+    switch (action) {
+      case "edit":
+        startEdit(contextMenu.index);
+        break;
+      case "delete":
+        deleteFilament(contextMenu.index);
+        break;
+    }
+    closeContextMenu();
+  };
 
   return (
     <div>
@@ -387,9 +455,29 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               {filteredFilaments.map((f, i) => {
                 const originalIndex = filaments.findIndex(orig => orig === f);
                 return (
-                <tr key={i} style={{ transition: "background-color 0.2s" }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.surfaceHover}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.surface}
+                <tr 
+                  key={i} 
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, originalIndex)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, originalIndex)}
+                  onDragEnd={handleDragEnd}
+                  onContextMenu={(e) => handleContextMenu(e, originalIndex)}
+                  style={{ 
+                    transition: "background-color 0.2s",
+                    cursor: draggedFilamentIndex === originalIndex ? "grabbing" : "grab",
+                    opacity: draggedFilamentIndex === originalIndex ? 0.5 : 1
+                  }}
+                  onMouseEnter={(e) => {
+                    if (draggedFilamentIndex !== originalIndex) {
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (draggedFilamentIndex !== originalIndex) {
+                      e.currentTarget.style.backgroundColor = theme.colors.surface;
+                    }
+                  }}
                 >
                   <td style={themeStyles.tableCell}>{f.brand}</td>
                   <td style={themeStyles.tableCell}>{f.type}</td>
@@ -467,6 +555,85 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         cancelText={t("common.cancel")}
         type="danger"
       />
+
+      {/* Kontextus menü */}
+      {contextMenu && (
+        <div
+          onClick={closeContextMenu}
+          onContextMenu={(e) => e.preventDefault()}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1500,
+            backgroundColor: "transparent"
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "fixed",
+              top: contextMenu.y,
+              left: contextMenu.x,
+              backgroundColor: theme.colors.surface,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: "8px",
+              boxShadow: `0 4px 12px ${theme.colors.shadow}`,
+              padding: "8px 0",
+              minWidth: "180px",
+              zIndex: 1501
+            }}
+          >
+            <button
+              onClick={() => handleContextMenuAction("edit")}
+              style={{
+                width: "100%",
+                padding: "10px 16px",
+                textAlign: "left",
+                backgroundColor: "transparent",
+                border: "none",
+                color: theme.colors.text,
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "background-color 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
+            </button>
+            <div style={{ height: "1px", backgroundColor: theme.colors.border, margin: "4px 0" }} />
+            <button
+              onClick={() => handleContextMenuAction("delete")}
+              style={{
+                width: "100%",
+                padding: "10px 16px",
+                textAlign: "left",
+                backgroundColor: "transparent",
+                border: "none",
+                color: theme.colors.danger,
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "background-color 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              🗑️ {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

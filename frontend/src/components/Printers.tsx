@@ -30,6 +30,8 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [draggedPrinterId, setDraggedPrinterId] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ printerId: number; x: number; y: number } | null>(null);
 
   const addPrinter = () => {
     if (!name || !type || !power) {
@@ -192,6 +194,52 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     );
   });
 
+  // Drag & Drop funkciók
+  const handleDragStart = (e: React.DragEvent, printerId: number) => {
+    setDraggedPrinterId(printerId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", printerId.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, targetPrinterId: number) => {
+    e.preventDefault();
+    if (draggedPrinterId === null || draggedPrinterId === targetPrinterId) {
+      setDraggedPrinterId(null);
+      return;
+    }
+
+    const draggedIndex = printers.findIndex(p => p.id === draggedPrinterId);
+    const targetIndex = printers.findIndex(p => p.id === targetPrinterId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedPrinterId(null);
+      return;
+    }
+
+    // Átrendezés
+    const newPrinters = [...printers];
+    const [removed] = newPrinters.splice(draggedIndex, 1);
+    newPrinters.splice(targetIndex, 0, removed);
+
+    setPrinters(newPrinters);
+    setDraggedPrinterId(null);
+    console.log("🔄 Nyomtatók átrendezve", { draggedId: draggedPrinterId, targetId: targetPrinterId });
+    showToast(
+      settings.language === "hu" ? "Nyomtatók átrendezve" :
+      settings.language === "de" ? "Drucker neu angeordnet" :
+      "Printers reordered",
+      "success"
+    );
+  };
+
+  const handleDragEnd = () => {
+    setDraggedPrinterId(null);
+  };
 
   // Gyorsbillentyűk
   // macOS-en metaKey (Cmd), Windows/Linux-en ctrlKey (Ctrl)
@@ -454,9 +502,28 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
             <tbody>
               {filteredPrinters.map(p => (
                 <React.Fragment key={p.id}>
-                  <tr style={{ transition: "background-color 0.2s" }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.surfaceHover}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.surface}
+                  <tr 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, p.id)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, p.id)}
+                    onDragEnd={handleDragEnd}
+                    onContextMenu={(e) => handleContextMenu(e, p.id)}
+                    style={{ 
+                      transition: "background-color 0.2s",
+                      cursor: draggedPrinterId === p.id ? "grabbing" : "grab",
+                      opacity: draggedPrinterId === p.id ? 0.5 : 1
+                    }}
+                    onMouseEnter={(e) => {
+                      if (draggedPrinterId !== p.id) {
+                        e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (draggedPrinterId !== p.id) {
+                        e.currentTarget.style.backgroundColor = theme.colors.surface;
+                      }
+                    }}
                   >
                     <td style={themeStyles.tableCell}><strong>{p.name}</strong></td>
                     <td style={themeStyles.tableCell}>{p.type}</td>
@@ -748,6 +815,85 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
         cancelText={t("common.cancel")}
         type="danger"
       />
+
+      {/* Kontextus menü */}
+      {contextMenu && (
+        <div
+          onClick={closeContextMenu}
+          onContextMenu={(e) => e.preventDefault()}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1500,
+            backgroundColor: "transparent"
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "fixed",
+              top: contextMenu.y,
+              left: contextMenu.x,
+              backgroundColor: theme.colors.surface,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: "8px",
+              boxShadow: `0 4px 12px ${theme.colors.shadow}`,
+              padding: "8px 0",
+              minWidth: "180px",
+              zIndex: 1501
+            }}
+          >
+            <button
+              onClick={() => handleContextMenuAction("edit")}
+              style={{
+                width: "100%",
+                padding: "10px 16px",
+                textAlign: "left",
+                backgroundColor: "transparent",
+                border: "none",
+                color: theme.colors.text,
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "background-color 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
+            </button>
+            <div style={{ height: "1px", backgroundColor: theme.colors.border, margin: "4px 0" }} />
+            <button
+              onClick={() => handleContextMenuAction("delete")}
+              style={{
+                width: "100%",
+                padding: "10px 16px",
+                textAlign: "left",
+                backgroundColor: "transparent",
+                border: "none",
+                color: theme.colors.danger,
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "background-color 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              🗑️ {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
