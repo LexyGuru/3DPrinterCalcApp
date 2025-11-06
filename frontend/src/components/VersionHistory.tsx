@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import type { Settings } from "../types";
 import type { Theme } from "../utils/themes";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 interface Props {
   settings: Settings;
   theme: Theme;
   onClose: () => void;
+  isBeta?: boolean;
 }
 
 interface VersionEntry {
@@ -14,80 +16,106 @@ interface VersionEntry {
   changes: string[];
 }
 
-const versionHistory: VersionEntry[] = [
-  {
-    version: "v0.2.55",
-    date: "2025",
-    changes: [
-      "🖥️ Console/Log funkció - Új Console menüpont a hibakereséshez és logok megtekintéséhez",
-      "🖥️ Console beállítás - Beállításokban lehet bekapcsolni a Console menüpont megjelenítését",
-      "📊 Log gyűjtés - Automatikus rögzítés minden console.log, console.error, console.warn üzenetről",
-      "📊 Globális hibák rögzítése - Automatikus rögzítés window error és unhandled promise rejection eseményekről",
-      "🔍 Log szűrés - Szűrés szintenként (all, error, warn, info, log, debug)",
-      "🔍 Log export - Logok exportálása JSON formátumban",
-      "🧹 Log törlés - Logok törlése egy gombbal",
-      "📜 Auto-scroll - Automatikus görgetés az új logokhoz",
-      "💾 Teljes logolás - Minden kritikus művelet logolva (mentés, export, import, törlés, PDF export, frissítés letöltés)",
-      "🔄 Frissítés gomb javítás - A letöltés gomb most Tauri shell plugin-t használ, megbízhatóan működik",
-      "🔄 Frissítés logolás - Frissítés ellenőrzés és letöltés teljes logolása",
-      "🐛 React render hiba javítás - Console logger aszinkron működés, hogy ne akadályozza a renderelést",
-      "🔧 num-bigint-dig frissítés - v0.9.1-re frissítve (deprecation warning javítása)",
-    ],
-  },
-  {
-    version: "v0.2.0",
-    date: "2025",
-    changes: [
-      "🎨 Téma rendszer - 6 modern téma (Light, Dark, Blue, Green, Purple, Orange)",
-      "🎨 Téma választó - Beállításokban választható téma, azonnal érvénybe lép",
-      "🎨 Teljes téma integráció - Minden komponens használja a témákat",
-      "🎨 Dinamikus színek - Minden hard-coded szín lecserélve a téma színeire",
-      "🎨 Responsive téma - Az árajánlatok és a Sidebar footer is használja a témákat",
-      "💱 Dinamikus pénznem konverzió - Az árajánlatok most a jelenlegi beállítások pénznemében jelennek meg",
-      "💱 Pénznem váltás - A beállításokban megváltoztatott pénznem azonnal érvénybe lép",
-      "💱 PDF pénznem konverzió - A PDF export is a jelenlegi beállítások pénznemében készül",
-      "💱 Filament ár konverzió - A filament árak is automatikusan konvertálva jelennek meg",
-    ],
-  },
-  {
-    version: "v0.1.85",
-    date: "2025",
-    changes: [
-      "🎨 UI/UX Javítások - Duplikált ikonok eltávolítva, Export/Import szekciók 2 oszlopos layoutban",
-      "💾 PDF mentésnél natív save dialog használata (Tauri dialog)",
-      "📊 Toast értesítések PDF mentésnél (sikeres/hiba)",
-      "🖼️ Alkalmazás ablakméret: 1280x720",
-      "🐛 Bugfixek - PDF generálásban hiányzó információk hozzáadva",
-      "📄 PDF Export javítások - Ügyfél kapcsolat, Profit számítás, Revenue külön sorban",
-    ],
-  },
-  {
-    version: "v0.1.56",
-    date: "2025",
-    changes: [
-      "✨ Calculator layout javítások - Filament kártyák túlcsordulás javítva, responsive flexbox layout",
-      "✨ Költség bontás responsive - Most dinamikusan reagál az ablakméret változására",
-      "🐛 Bugfix - Filament hozzáadásakor nem csúszik ki a tartalom az ablakból",
-    ],
-  },
-  {
-    version: "v0.1.55",
-    date: "2025",
-    changes: [
-      "✨ Megerősítő dialógusok - Törlés előtt megerősítés kérése",
-      "✨ Toast értesítések - Sikeres műveletek után értesítések",
-      "✨ Input validáció - Negatív számok eltiltása, maximum értékek beállítása",
-      "✨ Loading states - Betöltési spinner az alkalmazás indításakor",
-      "✨ Error Boundary - Alkalmazás szintű hibakezelés",
-      "✨ Keresés és szűrés - Filamentek, nyomtatók és árajánlatok keresése",
-      "✨ Duplikálás - Árajánlatok könnyű duplikálása",
-      "✨ Collapsible formok - Filament és nyomtató hozzáadási formok összecsukhatóak",
-      "✨ Árajánlat bővítések - Ügyfél név, elérhetőség és leírás mezők hozzáadása",
-    ],
-  },
-];
+interface GitHubRelease {
+  tag_name: string;
+  published_at: string;
+  body: string;
+  prerelease: boolean;
+}
 
-export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose }) => {
+const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp";
+
+// Parse markdown release body-t változások listájává
+function parseReleaseBody(body: string): string[] {
+  if (!body) return [];
+  
+  // Távolítsuk el a markdown formázást és bontsuk sorokra
+  const lines = body
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('##'));
+  
+  // Szűrjük ki az üres sorokat és a markdown list jelöléseket
+  const changes = lines
+    .filter(line => {
+      // Távolítsuk el a markdown list jelöléseket (-, *, •, stb.)
+      const cleaned = line.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '');
+      return cleaned.length > 0;
+    })
+    .map(line => {
+      // Távolítsuk el a markdown formázást
+      return line
+        .replace(/^[-*•]\s*/, '')
+        .replace(/^\d+\.\s*/, '')
+        .replace(/\*\*(.*?)\*\*/g, '$1') // Bold
+        .replace(/\*(.*?)\*/g, '$1') // Italic
+        .replace(/`(.*?)`/g, '$1') // Code
+        .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Links
+        .trim();
+    })
+    .filter(line => line.length > 0);
+  
+  return changes.length > 0 ? changes : [body]; // Ha nem sikerült parse-olni, használjuk az egész body-t
+}
+
+export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBeta = false }) => {
+  const [versionHistory, setVersionHistory] = useState<VersionEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchVersionHistory = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // GitHub Releases API
+        const url = `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=50`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch releases: ${response.statusText}`);
+        }
+        
+        const releases: GitHubRelease[] = await response.json();
+        
+        // Szűrés: ha beta app, akkor csak pre-release-eket, ha release app, akkor csak non-pre-release-eket
+        const filteredReleases = isBeta
+          ? releases.filter(r => r.prerelease === true)
+          : releases.filter(r => r.prerelease === false);
+        
+        // Rendezés dátum szerint (legújabb elöl)
+        filteredReleases.sort((a, b) => {
+          return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+        });
+        
+        // Konvertálás VersionEntry formátumba
+        const history: VersionEntry[] = filteredReleases.map(release => {
+          const changes = parseReleaseBody(release.body);
+          const date = new Date(release.published_at).toLocaleDateString(
+            settings.language === "hu" ? "hu-HU" : 
+            settings.language === "de" ? "de-DE" : 
+            "en-US"
+          );
+          
+          return {
+            version: release.tag_name,
+            date: date,
+            changes: changes.length > 0 ? changes : [settings.language === "hu" ? "Nincs változás leírás" : settings.language === "de" ? "Keine Änderungsbeschreibung" : "No changelog"]
+          };
+        });
+        
+        setVersionHistory(history);
+      } catch (err) {
+        console.error("❌ Verzió előzmények betöltése hiba:", err);
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchVersionHistory();
+  }, [isBeta, settings.language]);
   const translations: Record<string, Record<string, string>> = {
     hu: {
       title: "Verzió előzmények",
@@ -140,7 +168,7 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose }) =>
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
           <h2 style={{ margin: 0, fontSize: "24px", fontWeight: "600", color: theme.colors.text }}>
-            📋 {t.title}
+            📋 {t.title} {isBeta ? "(Beta)" : "(Release)"}
           </h2>
           <button
             onClick={onClose}
@@ -165,8 +193,35 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose }) =>
           </button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-          {versionHistory.map((entry) => (
+        {loading ? (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "40px" }}>
+            <LoadingSpinner message={settings.language === "hu" ? "Verzió előzmények betöltése..." : settings.language === "de" ? "Versionsverlauf wird geladen..." : "Loading version history..."} />
+          </div>
+        ) : error ? (
+          <div style={{ 
+            padding: "20px", 
+            backgroundColor: theme.colors.surfaceHover, 
+            borderRadius: "8px", 
+            border: `1px solid ${theme.colors.danger}`,
+            color: theme.colors.danger
+          }}>
+            <strong>{settings.language === "hu" ? "Hiba történt:" : settings.language === "de" ? "Fehler aufgetreten:" : "Error occurred:"}</strong> {error}
+          </div>
+        ) : versionHistory.length === 0 ? (
+          <div style={{ 
+            padding: "20px", 
+            textAlign: "center",
+            color: theme.colors.textMuted
+          }}>
+            {settings.language === "hu" 
+              ? "Nincsenek elérhető verzió előzmények" 
+              : settings.language === "de" 
+              ? "Keine Versionsverläufe verfügbar" 
+              : "No version history available"}
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            {versionHistory.map((entry) => (
             <div
               key={entry.version}
               style={{
@@ -200,8 +255,9 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose }) =>
                 ))}
               </ul>
             </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

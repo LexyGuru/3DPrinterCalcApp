@@ -695,6 +695,7 @@ export const SettingsPage: React.FC<Props> = ({
           settings={settings}
           theme={theme}
           onClose={() => setShowVersionHistory(false)}
+          isBeta={import.meta.env.VITE_IS_BETA === 'true'}
         />
       )}
     </div>
