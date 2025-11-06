@@ -298,6 +298,7 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);
+  const themeStyles = getThemeStyles(theme);
 
   useEffect(() => {
     const fetchVersionHistory = async () => {
