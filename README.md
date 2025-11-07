@@ -234,7 +234,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 - 🧾 **Céges branding adatlap** – Cégnév, cím, adószám, bankszámlaszám, elérhetőség és logó feltöltése; automatikusan bekerül a PDF fejlécebe
 - 🎨 **PDF sablon választó** – Három stílus (Modern, Minimalista, Professzionális) közül választható az árajánlat kinézete
 - 👁️ **Beépített PDF előnézet** – Külön gomb az árajánlat részleteinél az azonnali vizuális ellenőrzéshez export előtt
-- 🚧 **Státusz dashboard (folyamatban)** – Tervezett státusz kártyák összesítéssel, gyors státusz-szűrőkkel és státuszváltás idővonallal (jelenleg fejlesztés alatt)
+- 📊 **Státusz dashboard** – Státusz kártyák összesítéssel, gyors státusz-szűrők és legutóbbi státuszváltások idővonala az árajánlatoknál
 - 📈 **Statisztikai grafikonok** – Bevétel/költség/profit trendchart, filament megoszlás torta diagram, nyomtatónkénti bevétel oszlopdiagram, mindez SVG/PNG formátumban exportálható, valamint egy PDF-be is menthető
 
 ### v0.3.8 (2025)

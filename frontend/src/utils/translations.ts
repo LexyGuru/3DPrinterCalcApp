@@ -159,6 +159,7 @@ export type TranslationKey =
   | "offers.delete"
   | "offers.exportPDF"
   | "offers.downloadPDF"
+  | "offers.previewPDF"
   | "offers.print"
   | "offers.customerName"
   | "offers.customerContact"
@@ -373,6 +374,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "offers.delete": "❌ Törlés",
     "offers.exportPDF": "📄 PDF Export",
     "offers.downloadPDF": "💾 PDF Letöltés",
+    "offers.previewPDF": "👁️ PDF előnézet",
     "offers.print": "🖨️ Nyomtatás",
     "offers.customerName": "Ügyfél neve:",
     "offers.customerContact": "Kapcsolat:",
@@ -585,6 +587,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "offers.delete": "❌ Delete",
     "offers.exportPDF": "📄 Export PDF",
     "offers.downloadPDF": "💾 Download PDF",
+    "offers.previewPDF": "👁️ PDF preview",
     "offers.print": "🖨️ Print",
     "offers.customerName": "Customer Name:",
     "offers.customerContact": "Contact:",
@@ -797,6 +800,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "offers.delete": "❌ Löschen",
     "offers.exportPDF": "📄 PDF Exportieren",
     "offers.downloadPDF": "💾 PDF Herunterladen",
+    "offers.previewPDF": "👁️ PDF-Vorschau",
     "offers.print": "🖨️ Drucken",
     "offers.customerName": "Kundenname:",
     "offers.customerContact": "Kontakt:",

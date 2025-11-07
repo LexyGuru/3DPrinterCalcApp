@@ -103,12 +103,12 @@
 2. Státusz kezelés
    - ✅ Státusz változtatás
    - ✅ Státusz változtatás megjegyzéssel (modal) – v0.3.9
-   - ⬜ Státusz gyorsszűrők és státusz szerinti listázás (Offers oldalon)
-   - ⬜ Státusz változás dátum követés egységesen a listanézetben (hiányzik a státusz összefoglaló)
+   - ✅ Státusz gyorsszűrők és státusz szerinti listázás (Offers oldalon) – v0.3.9
+   - ✅ Státusz változás dátum követés egységesen a listanézetben – v0.3.9
    
 3. Státusz statisztikák & dashboard
-   - ⬜ Státusz összefoglaló kártyák (számláló, utolsó frissítés, gyorsszűrők)
-   - ⬜ Legutóbbi státuszváltások idővonala
+   - ✅ Státusz összefoglaló kártyák (számláló, utolsó frissítés, gyorsszűrők) – v0.3.9
+   - ✅ Legutóbbi státuszváltások idővonala – v0.3.9
    - ⬜ Státusz riporter export (CSV/JSON)
 
 ---
