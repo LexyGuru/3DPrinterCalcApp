@@ -268,11 +268,16 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 - 🎨 **Empty states javítása** - Informatív üres állapotok megjelenítése, amikor nincsenek adatok
 
 ### v0.3.0 (2025)
-- ✏️ **Árajánlat szerkesztés** - Mentett árajánlatok szerkesztése (ügyfél név, elérhetőség, leírás, profit százalék)
+- ✏️ **Árajánlat szerkesztés** - Mentett árajánlatok szerkesztése (ügyfél név, elérhetőség, leírás, profit százalék, filamentek)
+- ✏️ **Filamentek szerkesztése árajánlatban** - Filamentek módosítása, hozzáadása, törlése az árajánlaton belül
+- ✏️ **Szerkesztés gomb** - Új szerkesztés gomb a törlés gomb mellett az árajánlatok listában
 - 📊 **Statisztikák export funkció** - Statisztikák exportálása JSON vagy CSV formátumban a Home oldalról
 - 📈 **Riport generálás** - Heti/havi/éves/összes riport generálása JSON formátumban időszak szerinti szűréssel
-- 📋 **Verzió előzmények megjelenítése** - Verzió előzmények megtekintése a beállításokban, részletes changelog
-- 🐛 **Bugfixek** - Használaton kívüli változók eltávolítása, kód tisztítás
+- 📋 **Verzió előzmények megjelenítése** - Verzió előzmények megtekintése a beállításokban, GitHub Releases API integrációval
+- 🌐 **GitHub releases fordítása** - Automatikus fordítás magyar -> angol/német (MyMemory API)
+- 💾 **Fordítás cache** - localStorage cache fordított release notes-hoz
+- 🔄 **Dinamikus verzió történet** - Beta és release verziók külön megjelenítése
+- 🐛 **Bugfixek** - Használaton kívüli változók eltávolítása, kód tisztítás, linter hibák javítása
 
 ### v0.2.55 (2025)
 - 🖥️ **Console/Log funkció** - Új Console menüpont a hibakereséshez és logok megtekintéséhez
