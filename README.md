@@ -227,6 +227,16 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.3.9 (2025)
+- 🔍 **Árajánlat szűrő presetek** – Menthető, elnevezhető szűrő beállítások, alapértelmezett gyors presetek (Ma, Tegnap, Heti, Havi stb.) és egy kattintásos alkalmazás/törlés
+- 📝 **Státuszváltási megjegyzések** – Új modal az árajánlat státusz módosításához opcionális jegyzettel, amely eltárolódik a státusz előzményekben
+- 🖼️ **PDF export bővítés** – A filamentekhez tárolt képek megjelennek a PDF táblázatban, nyomtatásra optimalizált stílussal
+- 🧾 **Céges branding adatlap** – Cégnév, cím, adószám, bankszámlaszám, elérhetőség és logó feltöltése; automatikusan bekerül a PDF fejlécebe
+- 🎨 **PDF sablon választó** – Három stílus (Modern, Minimalista, Professzionális) közül választható az árajánlat kinézete
+- 👁️ **Beépített PDF előnézet** – Külön gomb az árajánlat részleteinél az azonnali vizuális ellenőrzéshez export előtt
+- 🚧 **Státusz dashboard (folyamatban)** – Tervezett státusz kártyák összesítéssel, gyors státusz-szűrőkkel és státuszváltás idővonallal (jelenleg fejlesztés alatt)
+- 📈 **Statisztikai grafikonok** – Bevétel/költség/profit trendchart, filament megoszlás torta diagram, nyomtatónkénti bevétel oszlopdiagram, mindez SVG/PNG formátumban exportálható, valamint egy PDF-be is menthető
+
 ### v0.3.8 (2025)
 - 🐛 **Riport számok formázás javítása** - 2 tizedesjegyig formázás a riportban:
   - Fő statisztikák kártyák (Bevétel, Kiadás, Profit, Árajánlatok): `formatNumber(formatCurrency(...), 2)`
@@ -415,7 +425,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.3.8
+**Verzió**: 0.3.9
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

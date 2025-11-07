@@ -1,13 +1,39 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import type { Settings, Offer } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
-import { convertCurrency } from "../utils/currency";
+import { convertCurrency, convertCurrencyFromTo } from "../utils/currency";
 import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
 import { FadeIn, StaggerContainer, StaggerItem, HoverLift } from "../utils/animations";
+import { jsPDF } from "jspdf";
+
+type TrendPoint = {
+  label: string;
+  revenue: number;
+  costs: number;
+  profit: number;
+  date: Date;
+};
+
+type BreakdownSlice = {
+  label: string;
+  value: number;
+  color?: string;
+};
+
+const CHART_PALETTE = [
+  "#6366F1",
+  "#22D3EE",
+  "#F97316",
+  "#4ADE80",
+  "#A855F7",
+  "#F43F5E",
+  "#14B8A6",
+  "#FACC15",
+];
 
 interface Props {
   settings: Settings;
@@ -22,6 +48,11 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
   const [reportPeriod, setReportPeriod] = useState<"all" | "week" | "month" | "year">("all");
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<"all" | "week" | "month" | "year">("all");
+  const locale = settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US";
+  const currencyLabel = settings.currency === "HUF" ? "Ft" : settings.currency;
+  const trendChartRef = useRef<SVGSVGElement | null>(null);
+  const filamentChartRef = useRef<SVGSVGElement | null>(null);
+  const printerChartRef = useRef<SVGSVGElement | null>(null);
   
   // Helper függvény az időszak szűréséhez
   const filterOffersByPeriod = (offers: Offer[], period: "all" | "week" | "month" | "year") => {
@@ -55,6 +86,28 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
       return offerDate >= cutoffDate && offerDate <= now;
     });
   };
+
+  const getOfferFinancials = (offer: Offer) => {
+    const profitPercentage = offer.profitPercentage ?? 30;
+    const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
+    const revenueEUR = convertCurrencyFromTo(revenueInOfferCurrency, offer.currency, "EUR");
+
+    const filamentCostEUR = convertCurrencyFromTo(offer.costs.filamentCost, offer.currency, "EUR");
+    const electricityCostEUR = convertCurrencyFromTo(offer.costs.electricityCost, offer.currency, "EUR");
+    const dryingCostEUR = convertCurrencyFromTo(offer.costs.dryingCost, offer.currency, "EUR");
+    const usageCostEUR = convertCurrencyFromTo(offer.costs.usageCost, offer.currency, "EUR");
+
+    const totalCostsEUR = filamentCostEUR + electricityCostEUR + dryingCostEUR + usageCostEUR;
+    const profitEUR = revenueEUR - totalCostsEUR;
+
+    return {
+      revenueEUR,
+      costsEUR: totalCostsEUR,
+      profitEUR,
+      electricityCostEUR,
+      dryingCostEUR,
+    };
+  };
   
   // Statisztikák számítása
   const calculateStatistics = (offersToCalculate: Offer[]) => {
@@ -75,33 +128,17 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
     let totalElectricityKWh = 0;
     let totalCosts = 0;
     let totalPrintTime = 0;
+    let totalProfit = 0;
 
     offersToCalculate.forEach(offer => {
       offer.filaments.forEach(f => {
         totalFilamentUsed += f.usedGrams;
       });
 
-      const profitPercentage = offer.profitPercentage !== undefined ? offer.profitPercentage : 30;
-      const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
-      const revenueInEUR = offer.currency === "HUF" ? revenueInOfferCurrency / 400 : 
-                           offer.currency === "USD" ? revenueInOfferCurrency / 1.10 : 
-                           revenueInOfferCurrency;
-      totalRevenue += revenueInEUR;
-
-      const filamentCostEUR = offer.currency === "HUF" ? offer.costs.filamentCost / 400 : 
-                              offer.currency === "USD" ? offer.costs.filamentCost / 1.10 : 
-                              offer.costs.filamentCost;
-      const electricityCostEUR = offer.currency === "HUF" ? offer.costs.electricityCost / 400 : 
-                                  offer.currency === "USD" ? offer.costs.electricityCost / 1.10 : 
-                                  offer.costs.electricityCost;
-      const dryingCostEUR = offer.currency === "HUF" ? offer.costs.dryingCost / 400 : 
-                           offer.currency === "USD" ? offer.costs.dryingCost / 1.10 : 
-                           offer.costs.dryingCost;
-      const usageCostEUR = offer.currency === "HUF" ? offer.costs.usageCost / 400 : 
-                          offer.currency === "USD" ? offer.costs.usageCost / 1.10 : 
-                          offer.costs.usageCost;
-
-      totalCosts += filamentCostEUR + electricityCostEUR + dryingCostEUR + usageCostEUR;
+      const { revenueEUR, costsEUR, profitEUR, electricityCostEUR, dryingCostEUR } = getOfferFinancials(offer);
+      totalRevenue += revenueEUR;
+      totalCosts += costsEUR;
+      totalProfit += profitEUR;
 
       const electricityCostHUF = electricityCostEUR * 400;
       const electricityPriceHUF = settings.electricityPrice || 70;
@@ -118,8 +155,6 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
 
       totalPrintTime += offer.totalPrintTimeHours;
     });
-
-    const totalProfit = totalRevenue - totalCosts;
 
     return {
       totalFilamentUsed,
@@ -155,6 +190,311 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
     return calculateStatistics(filteredOffers);
   }, [offers, selectedPeriod, settings.electricityPrice]);
   
+  const trendData = useMemo<TrendPoint[]>(() => {
+    const filtered = filterOffersByPeriod(offers, selectedPeriod);
+    if (filtered.length === 0) {
+      return [];
+    }
+
+    const buckets = new Map<
+      string,
+      {
+        label: string;
+        dateKey: Date;
+        revenue: number;
+        costs: number;
+        profit: number;
+      }
+    >();
+
+    filtered.forEach(offer => {
+      const offerDate = new Date(offer.date);
+      let key: string;
+      let label: string;
+      const normalizedDate = new Date(offerDate);
+      normalizedDate.setHours(0, 0, 0, 0);
+
+      if (selectedPeriod === "year" || selectedPeriod === "all") {
+        key = `${offerDate.getFullYear()}-${offerDate.getMonth()}`;
+        label = offerDate.toLocaleDateString(locale, { year: "numeric", month: "short" });
+        normalizedDate.setDate(1);
+      } else if (selectedPeriod === "week") {
+        key = offerDate.toISOString().slice(0, 10);
+        label = offerDate.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" });
+      } else {
+        key = offerDate.toISOString().slice(0, 10);
+        label = offerDate.toLocaleDateString(locale, { month: "short", day: "numeric" });
+      }
+
+      const { revenueEUR, costsEUR, profitEUR } = getOfferFinancials(offer);
+      const existing = buckets.get(key);
+      if (existing) {
+        existing.revenue += revenueEUR;
+        existing.costs += costsEUR;
+        existing.profit += profitEUR;
+      } else {
+        buckets.set(key, {
+          label,
+          dateKey: normalizedDate,
+          revenue: revenueEUR,
+          costs: costsEUR,
+          profit: profitEUR,
+        });
+      }
+    });
+
+    return Array.from(buckets.values())
+      .sort((a, b) => a.dateKey.getTime() - b.dateKey.getTime())
+      .map(item => ({
+        label: item.label,
+        revenue: item.revenue,
+        costs: item.costs,
+        profit: item.profit,
+        date: item.dateKey,
+      }));
+  }, [offers, selectedPeriod, locale]);
+
+  const trendTotals = useMemo(
+    () =>
+      trendData.reduce(
+        (acc, point) => {
+          acc.revenue += point.revenue;
+          acc.costs += point.costs;
+          acc.profit += point.profit;
+          return acc;
+        },
+        { revenue: 0, costs: 0, profit: 0 }
+      ),
+    [trendData]
+  );
+
+  const filamentBreakdown = useMemo<BreakdownSlice[]>(() => {
+    const filtered = filterOffersByPeriod(offers, selectedPeriod);
+    if (filtered.length === 0) {
+      return [];
+    }
+
+    const map = new Map<string, number>();
+    filtered.forEach(offer => {
+      offer.filaments.forEach(f => {
+        const label =
+          f.type && f.brand
+            ? `${f.brand} · ${f.type}`
+            : f.type || f.brand || (settings.language === "hu" ? "Ismeretlen filament" : settings.language === "de" ? "Unbekanntes Filament" : "Unknown filament");
+        map.set(label, (map.get(label) ?? 0) + f.usedGrams);
+      });
+    });
+
+    return Array.from(map.entries())
+      .map(([label, value], index) => ({
+        label,
+        value,
+        color: CHART_PALETTE[index % CHART_PALETTE.length],
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [offers, selectedPeriod, settings.language]);
+
+  const printerBreakdown = useMemo<BreakdownSlice[]>(() => {
+    const filtered = filterOffersByPeriod(offers, selectedPeriod);
+    if (filtered.length === 0) {
+      return [];
+    }
+
+    const map = new Map<string, number>();
+    filtered.forEach(offer => {
+      const { revenueEUR } = getOfferFinancials(offer);
+      map.set(offer.printerName, (map.get(offer.printerName) ?? 0) + revenueEUR);
+    });
+
+    return Array.from(map.entries())
+      .map(([label, value], index) => ({
+        label,
+        value,
+        color: CHART_PALETTE[index % CHART_PALETTE.length],
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [offers, selectedPeriod]);
+
+  const totalFilamentByType = useMemo(
+    () => filamentBreakdown.reduce((acc, slice) => acc + slice.value, 0),
+    [filamentBreakdown]
+  );
+
+  const totalRevenueByPrinter = useMemo(
+    () => printerBreakdown.reduce((acc, slice) => acc + slice.value, 0),
+    [printerBreakdown]
+  );
+
+  const hasTrendData = trendData.some(point => point.revenue !== 0 || point.costs !== 0 || point.profit !== 0);
+  const hasFilamentData = filamentBreakdown.length > 0 && totalFilamentByType > 0;
+  const hasPrinterData = printerBreakdown.length > 0 && totalRevenueByPrinter > 0;
+  const availableChartsCount = [hasTrendData, hasFilamentData, hasPrinterData].filter(Boolean).length;
+
+  const downloadDataUrl = (dataUrl: string, filename: string) => {
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportChartAsSvg = (svg: SVGSVGElement | null, filename: string) => {
+    if (!svg) {
+      showToast(
+        settings.language === "hu" ? "Nem található a grafikon" : settings.language === "de" ? "Diagram nicht gefunden" : "Chart not found",
+        "error"
+      );
+      return;
+    }
+    const serializer = new XMLSerializer();
+    let source = serializer.serializeToString(svg);
+    if (!source.match(/^<svg[^>]+xmlns="http:\/\/www.w3.org\/2000\/svg"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`;
+    downloadDataUrl(dataUrl, filename);
+    showToast(
+      settings.language === "hu" ? "SVG exportálva" : settings.language === "de" ? "SVG exportiert" : "SVG exported",
+      "success"
+    );
+  };
+
+  const svgToPngDataUrl = (svg: SVGSVGElement, backgroundColor: string) =>
+    new Promise<string>((resolve, reject) => {
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(svg);
+      if (!source.match(/^<svg[^>]+xmlns="http:\/\/www.w3.org\/2000\/svg"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const image = new Image();
+      image.onload = () => {
+        const rect = svg.getBoundingClientRect();
+        const viewBox = svg.viewBox?.baseVal;
+        const width = rect.width || viewBox?.width || 640;
+        const height = rect.height || viewBox?.height || 360;
+        const canvas = document.createElement("canvas");
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          URL.revokeObjectURL(url);
+          reject(new Error("Canvas context unavailable"));
+          return;
+        }
+        ctx.scale(ratio, ratio);
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(image, 0, 0, width, height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("Failed to load SVG image"));
+      };
+      image.src = url;
+    });
+
+  const exportChartAsPng = async (svg: SVGSVGElement | null, filename: string) => {
+    if (!svg) {
+      showToast(
+        settings.language === "hu" ? "Nem található a grafikon" : settings.language === "de" ? "Diagram nicht gefunden" : "Chart not found",
+        "error"
+      );
+      return;
+    }
+    try {
+      const background = theme.colors.background?.includes("gradient") ? "#ffffff" : theme.colors.surface;
+      const dataUrl = await svgToPngDataUrl(svg, background || "#ffffff");
+      downloadDataUrl(dataUrl, filename);
+      showToast(
+        settings.language === "hu" ? "PNG exportálva" : settings.language === "de" ? "PNG exportiert" : "PNG exported",
+        "success"
+      );
+    } catch (error) {
+      console.error("PNG export error", error);
+      showToast(
+        settings.language === "hu" ? "PNG export hiba" : settings.language === "de" ? "Fehler beim PNG-Export" : "PNG export failed",
+        "error"
+      );
+    }
+  };
+
+  const exportChartsToPDF = async () => {
+    const charts: Array<{ ref: React.MutableRefObject<SVGSVGElement | null>; title: string; available: boolean }> = [
+      {
+        ref: trendChartRef,
+        title: settings.language === "hu" ? "Pénzügyi trendek" : settings.language === "de" ? "Finanztrends" : "Financial trends",
+        available: hasTrendData,
+      },
+      {
+        ref: filamentChartRef,
+        title: settings.language === "hu" ? "Filament megoszlás" : settings.language === "de" ? "Filamentverteilung" : "Filament breakdown",
+        available: hasFilamentData,
+      },
+      {
+        ref: printerChartRef,
+        title: settings.language === "hu" ? "Bevétel nyomtatónként" : settings.language === "de" ? "Umsatz je Drucker" : "Revenue by printer",
+        available: hasPrinterData,
+      },
+    ];
+
+    const usableCharts = charts.filter(chart => chart.available && chart.ref.current);
+    if (usableCharts.length === 0) {
+      showToast(
+        settings.language === "hu" ? "Nincs exportálható grafikon" : settings.language === "de" ? "Keine Diagramme zum Export" : "No charts to export",
+        "error"
+      );
+      return;
+    }
+
+    try {
+      const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+      for (let index = 0; index < usableCharts.length; index++) {
+        const chart = usableCharts[index];
+        const svg = chart.ref.current!;
+        const background = theme.colors.background?.includes("gradient") ? "#ffffff" : theme.colors.surface;
+        const dataUrl = await svgToPngDataUrl(svg, background || "#ffffff");
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const margin = 48;
+        const imageWidth = pageWidth - margin * 2;
+        const imageHeight = imageWidth * 0.6;
+
+        pdf.setFontSize(18);
+        pdf.text(chart.title, pageWidth / 2, margin, { align: "center" });
+        pdf.addImage(dataUrl, "PNG", margin, margin + 20, imageWidth, imageHeight, undefined, "FAST");
+
+        if (index < usableCharts.length - 1) {
+          pdf.addPage();
+        }
+      }
+
+      pdf.save(`charts_${new Date().toISOString().split("T")[0]}.pdf`);
+      showToast(
+        settings.language === "hu" ? "PDF exportálva" : settings.language === "de" ? "PDF exportiert" : "PDF exported",
+        "success"
+      );
+    } catch (error) {
+      console.error("PDF export error", error);
+      showToast(
+        settings.language === "hu" ? "PDF export hiba" : settings.language === "de" ? "Fehler beim PDF-Export" : "PDF export failed",
+        "error"
+      );
+    }
+  };
+
+  const exportTrendSvg = () => exportChartAsSvg(trendChartRef.current, `financial_trends_${new Date().toISOString().split("T")[0]}.svg`);
+  const exportTrendPng = () => exportChartAsPng(trendChartRef.current, `financial_trends_${new Date().toISOString().split("T")[0]}.png`);
+  const exportFilamentSvg = () => exportChartAsSvg(filamentChartRef.current, `filament_breakdown_${new Date().toISOString().split("T")[0]}.svg`);
+  const exportFilamentPng = () => exportChartAsPng(filamentChartRef.current, `filament_breakdown_${new Date().toISOString().split("T")[0]}.png`);
+  const exportPrinterSvg = () => exportChartAsSvg(printerChartRef.current, `printer_revenue_${new Date().toISOString().split("T")[0]}.svg`);
+  const exportPrinterPng = () => exportChartAsPng(printerChartRef.current, `printer_revenue_${new Date().toISOString().split("T")[0]}.png`);
 
   const formatCurrency = (amount: number) => {
     return convertCurrency(amount, settings.currency);
@@ -255,7 +595,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         });
         csvRows.push("");
         const periodLabel = settings.language === "hu" ? "Időszak" : settings.language === "de" ? "Zeitraum" : "Period";
-        csvRows.push(`${periodLabel}: ${selectedPeriod === "all" ? (settings.language === "hu" ? "Összes" : settings.language === "de" ? "Alle" : "All") : selectedPeriod === "week" ? (settings.language === "hu" ? "Utolsó hét" : settings.language === "de" ? "Letzte Woche" : "Last week") : selectedPeriod === "month" ? (settings.language === "hu" ? "Utolsó hónap" : settings.language === "de" ? "Letzter Monat" : "Last month") : (settings.language === "hu" ? "Utolsó év" : settings.language === "de" ? "Letztes Jahr" : "Last year")}`);
+        csvRows.push(`${periodLabel}: ${selectedPeriod === "all" ? (settings.language === "hu" ? "Összes" : settings.language === "de" ? "Alle" : "All") : selectedPeriod === "week" ? (settings.language === "hu" ? "Hét" : settings.language === "de" ? "Woche" : "Week") : selectedPeriod === "month" ? (settings.language === "hu" ? "Hónap" : settings.language === "de" ? "Monat" : "Month") : (settings.language === "hu" ? "Év" : settings.language === "de" ? "Jahr" : "Year")}`);
         
         content = csvRows.join("\n");
         fileName = `statistics_${selectedPeriod}_${new Date().toISOString().split("T")[0]}.csv`;
@@ -507,6 +847,285 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           </div>
         </HoverLift>
       </FadeIn>
+    );
+  };
+
+  const TrendChart = ({ data, theme, svgRef }: { data: TrendPoint[]; theme: Theme; svgRef: React.MutableRefObject<SVGSVGElement | null> }) => {
+    const width = 720;
+    const height = 320;
+    const paddingX = 60;
+    const paddingY = 50;
+    const chartHeight = height - paddingY * 1.6;
+    const bottom = height - paddingY;
+    const left = paddingX;
+    const maxValue = Math.max(
+      0,
+      ...data.map(point => Math.max(point.revenue, point.costs, point.profit))
+    ) || 0;
+    const safeMaxValue = maxValue > 0 ? maxValue : 1;
+    const xStep = data.length > 1 ? (width - paddingX * 2) / (data.length - 1) : 0;
+    const getX = (index: number) => {
+      if (data.length === 1) {
+        return left + (width - paddingX * 2) / 2;
+      }
+      return left + index * xStep;
+    };
+    const getY = (value: number) => bottom - (value / safeMaxValue) * chartHeight;
+
+    const lineProps: Array<{ key: keyof TrendPoint; color: string }> = [
+      {
+        key: "revenue",
+        color: "#22D3EE",
+      },
+      {
+        key: "costs",
+        color: "#F97316",
+      },
+      {
+        key: "profit",
+        color: "#4ADE80",
+      },
+    ];
+
+    const horizontalLines = 4;
+
+    return (
+      <svg
+        ref={svgRef}
+        width="100%"
+        height="100%"
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <linearGradient id="trendBackground" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={theme.colors.background?.includes("gradient") ? "rgba(255,255,255,0.9)" : theme.colors.surface} />
+            <stop offset="100%" stopColor={theme.colors.background?.includes("gradient") ? "rgba(255,255,255,0.6)" : theme.colors.surfaceHover} />
+          </linearGradient>
+        </defs>
+        <rect x={0} y={0} width={width} height={height} fill="url(#trendBackground)" rx={16} />
+        {Array.from({ length: horizontalLines + 1 }).map((_, index) => {
+          const y = bottom - (chartHeight / horizontalLines) * index;
+          const valueLabel = ((safeMaxValue / horizontalLines) * index).toFixed(0);
+          return (
+            <g key={`grid-${index}`}>
+              <line
+                x1={left}
+                y1={y}
+                x2={width - paddingX / 2}
+                y2={y}
+                stroke={"rgba(148, 163, 184, 0.25)"}
+                strokeDasharray="6 6"
+              />
+              <text
+                x={left - 12}
+                y={y + 4}
+                fontSize={10}
+                textAnchor="end"
+                fill={theme.colors.textMuted}
+              >
+                {valueLabel}
+              </text>
+            </g>
+          );
+        })}
+        <line
+          x1={left}
+          y1={bottom}
+          x2={width - paddingX / 2}
+          y2={bottom}
+          stroke={theme.colors.textMuted}
+          strokeWidth={1}
+        />
+        <line x1={left} y1={bottom - chartHeight} x2={left} y2={bottom} stroke={theme.colors.textMuted} strokeWidth={1} />
+
+        {lineProps.map(line => {
+          const path = data
+            .map((point, index) => `${index === 0 ? "M" : "L"} ${getX(index)} ${getY(point[line.key] as number)}`)
+            .join(" ");
+          return (
+            <g key={line.key}>
+              <path d={path} fill="none" stroke={line.color} strokeWidth={2.5} strokeLinecap="round" />
+              {data.map((point, index) => (
+                <circle
+                  key={`${line.key}-dot-${index}`}
+                  cx={getX(index)}
+                  cy={getY(point[line.key] as number)}
+                  r={4}
+                  fill={line.color}
+                  stroke="#fff"
+                  strokeWidth={1.5}
+                />
+              ))}
+            </g>
+          );
+        })}
+
+        {data.map((point, index) => (
+          <g key={`label-${index}`}>
+            <line
+              x1={getX(index)}
+              y1={bottom}
+              x2={getX(index)}
+              y2={bottom + 6}
+              stroke={theme.colors.textMuted}
+            />
+            <text
+              x={getX(index)}
+              y={bottom + 20}
+              fontSize={10}
+              textAnchor="middle"
+              fill={theme.colors.textMuted}
+            >
+              {point.label}
+            </text>
+          </g>
+        ))}
+      </svg>
+    );
+  };
+
+  const PieChart = ({ data, theme, svgRef, emptyLabel }: { data: BreakdownSlice[]; theme: Theme; svgRef: React.MutableRefObject<SVGSVGElement | null>; emptyLabel: string }) => {
+    const width = 360;
+    const height = 320;
+    const radius = Math.min(width, height) / 2 - 16;
+    const centerX = width / 2;
+    const centerY = height / 2 + 10;
+    const total = data.reduce((acc, slice) => acc + slice.value, 0);
+
+    let cumulativeAngle = -Math.PI / 2;
+
+    const slices = total > 0
+      ? data.map(slice => {
+          const angle = (slice.value / total) * Math.PI * 2;
+          const startAngle = cumulativeAngle;
+          const endAngle = cumulativeAngle + angle;
+          cumulativeAngle = endAngle;
+
+          const x1 = centerX + radius * Math.cos(startAngle);
+          const y1 = centerY + radius * Math.sin(startAngle);
+          const x2 = centerX + radius * Math.cos(endAngle);
+          const y2 = centerY + radius * Math.sin(endAngle);
+          const largeArc = angle > Math.PI ? 1 : 0;
+
+          return {
+            path: `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`,
+            color: slice.color ?? "#6366F1",
+          };
+        })
+      : [];
+
+    return (
+      <svg
+        ref={svgRef}
+        width="100%"
+        height="100%"
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <radialGradient id="pieBg" cx="50%" cy="50%" r="80%">
+            <stop offset="0%" stopColor={theme.colors.background?.includes("gradient") ? "rgba(255,255,255,0.95)" : theme.colors.surface} />
+            <stop offset="100%" stopColor={theme.colors.background?.includes("gradient") ? "rgba(255,255,255,0.7)" : theme.colors.surfaceHover} />
+          </radialGradient>
+        </defs>
+        <rect x={0} y={0} width={width} height={height} fill="url(#pieBg)" rx={16} />
+        {slices.map((slice, index) => (
+          <path key={index} d={slice.path} fill={slice.color} stroke="#ffffff" strokeWidth={1.5} />
+        ))}
+        {total === 0 && (
+          <text
+            x={width / 2}
+            y={height / 2}
+            textAnchor="middle"
+            fill={theme.colors.textMuted}
+            fontSize={14}
+          >
+            {emptyLabel}
+          </text>
+        )}
+      </svg>
+    );
+  };
+
+  const BarChart = ({ data, theme, svgRef }: { data: BreakdownSlice[]; theme: Theme; svgRef: React.MutableRefObject<SVGSVGElement | null> }) => {
+    const width = 640;
+    const height = 320;
+    const paddingX = 60;
+    const paddingY = 50;
+    const chartHeight = height - paddingY * 1.6;
+    const bottom = height - paddingY;
+    const maxValue = Math.max(0, ...data.map(slice => slice.value)) || 0;
+    const safeMaxValue = maxValue > 0 ? maxValue : 1;
+    const barAreaWidth = width - paddingX * 2;
+    const barWidth = data.length > 0 ? barAreaWidth / data.length * 0.6 : 0;
+    const gap = data.length > 0 ? (barAreaWidth - barWidth * data.length) / (data.length + 1) : 0;
+
+    return (
+      <svg
+        ref={svgRef}
+        width="100%"
+        height="100%"
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <linearGradient id="barBg" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={theme.colors.background?.includes("gradient") ? "rgba(255,255,255,0.95)" : theme.colors.surface} />
+            <stop offset="100%" stopColor={theme.colors.background?.includes("gradient") ? "rgba(255,255,255,0.7)" : theme.colors.surfaceHover} />
+          </linearGradient>
+        </defs>
+        <rect x={0} y={0} width={width} height={height} fill="url(#barBg)" rx={16} />
+        <line x1={paddingX} y1={bottom} x2={width - paddingX / 2} y2={bottom} stroke={theme.colors.textMuted} strokeWidth={1} />
+        <line x1={paddingX} y1={bottom - chartHeight} x2={paddingX} y2={bottom} stroke={theme.colors.textMuted} strokeWidth={1} />
+
+        {Array.from({ length: 4 + 1 }).map((_, index) => {
+          const y = bottom - (chartHeight / 4) * index;
+          const valueLabel = ((safeMaxValue / 4) * index).toFixed(0);
+          return (
+            <g key={`bar-grid-${index}`}>
+              <line
+                x1={paddingX}
+                y1={y}
+                x2={width - paddingX / 2}
+                y2={y}
+                stroke={"rgba(148, 163, 184, 0.25)"}
+                strokeDasharray="6 6"
+              />
+              <text x={paddingX - 12} y={y + 4} fontSize={10} textAnchor="end" fill={theme.colors.textMuted}>
+                {valueLabel}
+              </text>
+            </g>
+          );
+        })}
+
+        {data.map((slice, index) => {
+          const barHeight = (slice.value / safeMaxValue) * chartHeight;
+          const x = paddingX + gap + index * (barWidth + gap);
+          const y = bottom - barHeight;
+          return (
+            <g key={slice.label}>
+              <rect
+                x={x}
+                y={y}
+                width={barWidth}
+                height={barHeight}
+                fill={slice.color ?? CHART_PALETTE[index % CHART_PALETTE.length]}
+                rx={8}
+              />
+              <text
+                x={x + barWidth / 2}
+                y={bottom + 18}
+                fontSize={10}
+                textAnchor="middle"
+                fill={theme.colors.textMuted}
+              >
+                {slice.label}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
     );
   };
 
@@ -906,6 +1525,404 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           </StaggerItem>
         </div>
       </StaggerContainer>
+
+      {statistics.offerCount > 0 && (
+        <>
+          <FadeIn delay={0.35}>
+            <div
+              style={{
+                backgroundColor: theme.colors.background?.includes('gradient') ? "rgba(255, 255, 255, 0.8)" : theme.colors.surface,
+                borderRadius: "20px",
+                padding: "26px",
+                marginBottom: "30px",
+                boxShadow: theme.colors.background?.includes('gradient')
+                  ? `0 8px 24px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)`
+                  : `0 4px 16px ${theme.colors.shadow}`,
+                border: `1px solid ${theme.colors.border}`,
+                backdropFilter: theme.colors.background?.includes('gradient') ? "blur(12px)" : "none",
+                opacity: theme.colors.background?.includes('gradient') ? 0.9 : 1,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
+                <div>
+                  <h3 style={{
+                    margin: 0,
+                    fontSize: "22px",
+                    fontWeight: "700",
+                    color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}>
+                    <span style={{ fontSize: "24px" }}>📈</span>
+                    {settings.language === "hu" ? "Pénzügyi trendek" : settings.language === "de" ? "Finanztrends" : "Financial trends"}
+                  </h3>
+                  <p style={{
+                    margin: "8px 0 0 0",
+                    color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
+                    fontSize: "14px",
+                    maxWidth: "520px",
+                  }}>
+                    {settings.language === "hu"
+                      ? "Heti/havi csúszkáló trend a bevételek, költségek és profit alakulásáról."
+                      : settings.language === "de"
+                      ? "Wöchentliche/monatliche Trends für Einnahmen, Kosten und Gewinn."
+                      : "Weekly/monthly rolling trend for revenue, costs, and profit."}
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  <Tooltip content="SVG">
+                    <button
+                      onClick={exportTrendSvg}
+                      disabled={!hasTrendData}
+                      style={{
+                        padding: "8px 14px",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        borderRadius: "999px",
+                        border: `1px solid ${theme.colors.border}`,
+                        backgroundColor: hasTrendData ? theme.colors.surfaceHover : theme.colors.surface,
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                        cursor: hasTrendData ? "pointer" : "not-allowed",
+                        opacity: hasTrendData ? 1 : 0.5,
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      SVG
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="PNG">
+                    <button
+                      onClick={exportTrendPng}
+                      disabled={!hasTrendData}
+                      style={{
+                        padding: "8px 14px",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        borderRadius: "999px",
+                        border: `1px solid ${theme.colors.border}`,
+                        backgroundColor: hasTrendData ? theme.colors.surfaceHover : theme.colors.surface,
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                        cursor: hasTrendData ? "pointer" : "not-allowed",
+                        opacity: hasTrendData ? 1 : 0.5,
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      PNG
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="PDF">
+                    <button
+                      onClick={exportChartsToPDF}
+                      disabled={availableChartsCount === 0}
+                      style={{
+                        padding: "8px 16px",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        borderRadius: "999px",
+                        border: "none",
+                        backgroundColor: availableChartsCount > 0 ? theme.colors.primary : theme.colors.border,
+                        color: "#fff",
+                        cursor: availableChartsCount > 0 ? "pointer" : "not-allowed",
+                        opacity: availableChartsCount > 0 ? 1 : 0.6,
+                      }}
+                    >
+                      PDF
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
+              {hasTrendData ? (
+                <>
+                  <div style={{ marginTop: "20px" }}>
+                    <TrendChart data={trendData} theme={theme} svgRef={trendChartRef} />
+                  </div>
+                  <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginTop: "16px" }}>
+                    {[{
+                      label: settings.language === "hu" ? "Bevétel összesen" : settings.language === "de" ? "Gesamteinnahmen" : "Total revenue",
+                      value: trendTotals.revenue,
+                      color: "#22D3EE",
+                    }, {
+                      label: settings.language === "hu" ? "Költség összesen" : settings.language === "de" ? "Gesamtkosten" : "Total costs",
+                      value: trendTotals.costs,
+                      color: "#F97316",
+                    }, {
+                      label: settings.language === "hu" ? "Profit összesen" : settings.language === "de" ? "Gesamtgewinn" : "Total profit",
+                      value: trendTotals.profit,
+                      color: "#4ADE80",
+                    }].map(item => (
+                      <div
+                        key={item.label}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          backgroundColor: theme.colors.surfaceHover,
+                          borderRadius: "999px",
+                          padding: "8px 14px",
+                          border: `1px solid ${item.color}30`,
+                        }}
+                      >
+                        <span style={{
+                          width: "12px",
+                          height: "12px",
+                          borderRadius: "999px",
+                          backgroundColor: item.color,
+                        }} />
+                        <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>{item.label}:</span>
+                        <strong style={{ fontSize: "13px", color: item.color }}>
+                          {formatNumber(formatCurrency(item.value), 2)} {currencyLabel}
+                        </strong>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div style={{
+                  marginTop: "32px",
+                  padding: "48px 16px",
+                  textAlign: "center",
+                  color: theme.colors.textMuted,
+                  border: `1px dashed ${theme.colors.border}`,
+                  borderRadius: "16px",
+                }}>
+                  {settings.language === "hu" ? "Nincs elegendő adat a grafikonhoz" : settings.language === "de" ? "Nicht genügend Daten für das Diagramm" : "Not enough data to render the chart"}
+                </div>
+              )}
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.4}>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gap: "20px",
+              marginBottom: "30px",
+            }}>
+              <div style={{
+                backgroundColor: theme.colors.background?.includes('gradient') ? "rgba(255, 255, 255, 0.8)" : theme.colors.surface,
+                borderRadius: "20px",
+                padding: "24px",
+                boxShadow: theme.colors.background?.includes('gradient')
+                  ? `0 6px 18px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)`
+                  : `0 4px 16px ${theme.colors.shadow}`,
+                border: `1px solid ${theme.colors.border}`,
+                backdropFilter: theme.colors.background?.includes('gradient') ? "blur(12px)" : "none",
+                opacity: theme.colors.background?.includes('gradient') ? 0.9 : 1,
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
+                  <div>
+                    <h3 style={{
+                      margin: 0,
+                      fontSize: "18px",
+                      fontWeight: "700",
+                      color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}>
+                      <span style={{ fontSize: "20px" }}>🧵</span>
+                      {settings.language === "hu" ? "Filament megoszlás" : settings.language === "de" ? "Filamentverteilung" : "Filament breakdown"}
+                    </h3>
+                    <p style={{
+                      margin: "6px 0 0 0",
+                      color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
+                      fontSize: "13px",
+                    }}>
+                      {settings.language === "hu" ? "Felhasznált filament tömeg típusonként." : settings.language === "de" ? "Verbrauchtes Filament nach Typ." : "Filament usage per type."}
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <Tooltip content="SVG">
+                      <button
+                        onClick={exportFilamentSvg}
+                        disabled={!hasFilamentData}
+                        style={{
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          borderRadius: "999px",
+                          border: `1px solid ${theme.colors.border}`,
+                          backgroundColor: hasFilamentData ? theme.colors.surfaceHover : theme.colors.surface,
+                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                          cursor: hasFilamentData ? "pointer" : "not-allowed",
+                          opacity: hasFilamentData ? 1 : 0.5,
+                        }}
+                      >
+                        SVG
+                      </button>
+                    </Tooltip>
+                    <Tooltip content="PNG">
+                      <button
+                        onClick={exportFilamentPng}
+                        disabled={!hasFilamentData}
+                        style={{
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          borderRadius: "999px",
+                          border: `1px solid ${theme.colors.border}`,
+                          backgroundColor: hasFilamentData ? theme.colors.surfaceHover : theme.colors.surface,
+                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                          cursor: hasFilamentData ? "pointer" : "not-allowed",
+                          opacity: hasFilamentData ? 1 : 0.5,
+                        }}
+                      >
+                        PNG
+                      </button>
+                    </Tooltip>
+                  </div>
+                </div>
+                {hasFilamentData ? (
+                  <>
+                    <div style={{ marginTop: "16px", height: "280px" }}>
+                      <PieChart data={filamentBreakdown} theme={theme} svgRef={filamentChartRef} emptyLabel={settings.language === "hu" ? "Nincs adat" : settings.language === "de" ? "Keine Daten" : "No data"} />
+                    </div>
+                    <div style={{ marginTop: "18px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {filamentBreakdown.map(slice => {
+                        const percentage = totalFilamentByType > 0 ? (slice.value / totalFilamentByType) * 100 : 0;
+                        return (
+                          <div key={slice.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
+                            <span style={{ display: "flex", alignItems: "center", gap: "8px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
+                              <span style={{ width: "12px", height: "12px", borderRadius: "999px", backgroundColor: slice.color ?? "#6366F1" }} />
+                              {slice.label}
+                            </span>
+                            <span style={{ color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, fontWeight: 600 }}>
+                              {(slice.value / 1000).toFixed(2)} kg · {percentage.toFixed(1)}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{
+                    marginTop: "32px",
+                    padding: "48px 16px",
+                    textAlign: "center",
+                    color: theme.colors.textMuted,
+                    border: `1px dashed ${theme.colors.border}`,
+                    borderRadius: "16px",
+                  }}>
+                    {settings.language === "hu" ? "Nincs filament adat" : settings.language === "de" ? "Keine Filamentdaten" : "No filament data"}
+                  </div>
+                )}
+              </div>
+
+              <div style={{
+                backgroundColor: theme.colors.background?.includes('gradient') ? "rgba(255, 255, 255, 0.8)" : theme.colors.surface,
+                borderRadius: "20px",
+                padding: "24px",
+                boxShadow: theme.colors.background?.includes('gradient')
+                  ? `0 6px 18px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)`
+                  : `0 4px 16px ${theme.colors.shadow}`,
+                border: `1px solid ${theme.colors.border}`,
+                backdropFilter: theme.colors.background?.includes('gradient') ? "blur(12px)" : "none",
+                opacity: theme.colors.background?.includes('gradient') ? 0.9 : 1,
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
+                  <div>
+                    <h3 style={{
+                      margin: 0,
+                      fontSize: "18px",
+                      fontWeight: "700",
+                      color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}>
+                      <span style={{ fontSize: "20px" }}>🖨️</span>
+                      {settings.language === "hu" ? "Bevétel nyomtatónként" : settings.language === "de" ? "Umsatz je Drucker" : "Revenue by printer"}
+                    </h3>
+                    <p style={{
+                      margin: "6px 0 0 0",
+                      color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
+                      fontSize: "13px",
+                    }}>
+                      {settings.language === "hu" ? "Árajánlatból származó bevétel printerenként összesítve." : settings.language === "de" ? "Summierte Angebotserlöse je Drucker." : "Aggregated quote revenue per printer."}
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <Tooltip content="SVG">
+                      <button
+                        onClick={exportPrinterSvg}
+                        disabled={!hasPrinterData}
+                        style={{
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          borderRadius: "999px",
+                          border: `1px solid ${theme.colors.border}`,
+                          backgroundColor: hasPrinterData ? theme.colors.surfaceHover : theme.colors.surface,
+                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                          cursor: hasPrinterData ? "pointer" : "not-allowed",
+                          opacity: hasPrinterData ? 1 : 0.5,
+                        }}
+                      >
+                        SVG
+                      </button>
+                    </Tooltip>
+                    <Tooltip content="PNG">
+                      <button
+                        onClick={exportPrinterPng}
+                        disabled={!hasPrinterData}
+                        style={{
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          borderRadius: "999px",
+                          border: `1px solid ${theme.colors.border}`,
+                          backgroundColor: hasPrinterData ? theme.colors.surfaceHover : theme.colors.surface,
+                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                          cursor: hasPrinterData ? "pointer" : "not-allowed",
+                          opacity: hasPrinterData ? 1 : 0.5,
+                        }}
+                      >
+                        PNG
+                      </button>
+                    </Tooltip>
+                  </div>
+                </div>
+                {hasPrinterData ? (
+                  <>
+                    <div style={{ marginTop: "16px", height: "280px" }}>
+                      <BarChart data={printerBreakdown} theme={theme} svgRef={printerChartRef} />
+                    </div>
+                    <div style={{ marginTop: "18px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {printerBreakdown.map(slice => {
+                        const percentage = totalRevenueByPrinter > 0 ? (slice.value / totalRevenueByPrinter) * 100 : 0;
+                        const revenueConverted = formatCurrency(slice.value);
+                        return (
+                          <div key={slice.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
+                            <span style={{ display: "flex", alignItems: "center", gap: "8px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
+                              <span style={{ width: "12px", height: "12px", borderRadius: "999px", backgroundColor: slice.color ?? "#6366F1" }} />
+                              {slice.label}
+                            </span>
+                            <span style={{ color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, fontWeight: 600 }}>
+                              {formatNumber(revenueConverted, 2)} {currencyLabel} · {percentage.toFixed(1)}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{
+                    marginTop: "32px",
+                    padding: "48px 16px",
+                    textAlign: "center",
+                    color: theme.colors.textMuted,
+                    border: `1px dashed ${theme.colors.border}`,
+                    borderRadius: "16px",
+                  }}>
+                    {settings.language === "hu" ? "Nincs nyomtató adat" : settings.language === "de" ? "Keine Druckerdaten" : "No printer data"}
+                  </div>
+                )}
+              </div>
+            </div>
+          </FadeIn>
+        </>
+      )}
 
       {/* További információ */}
       <div style={{
