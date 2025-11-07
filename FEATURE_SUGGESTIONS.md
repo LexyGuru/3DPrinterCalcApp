@@ -79,42 +79,16 @@
 ### 🟢 Alacsony prioritás (nice-to-have)
 
 
-#### 13. **Automatikus mentés**
-- **Mit**: Automatikus mentés X percek után, vagy "Autosave" beállítás
-- **Előny**: Adatvesztés elkerülése
-- **Becsült idő**: 2-3 óra
-- **Komplexitás**: Közepes
-
-#### 14. **Értesítési beállítások**
-- **Mit**: Beállítható, hogy milyen értesítéseket jelenítsen meg (toast, notification)
-- **Előny**: Személyre szabható UX
-- **Becsült idő**: 2-3 óra
-- **Komplexitás**: Alacsony
-
 ## 🛠️ Technikai javítások és optimalizálás
 
-### 1. **Error boundaries**
-- **Hol**: `App.tsx`
-- **Mit**: React Error Boundary komponens, ami elkapja a váratlan hibákat
-- **Előny**: Az alkalmazás nem omlik össze egy hiba miatt, jobb hibakezelés
-- **Becsült idő**: 2-3 óra
-- **Komplexitás**: Közepes
-
-### 2. **TypeScript strict mode**
+### 1. **TypeScript strict mode**
 - **Mit**: Ellenőrizd, hogy minden típus helyesen van definiálva, strict mode bekapcsolása
 - **Hol**: Minden `.tsx` fájl, `tsconfig.json`
 - **Előny**: Kevesebb runtime hiba, jobb kódminőség
 - **Becsült idő**: 4-6 óra
 - **Komplexitás**: Közepes
 
-### 3. **Mentés optimalizálás (debounce)**
-- **Hol**: `App.tsx` (useEffect-ek)
-- **Mit**: Debounce a mentéshez, hogy ne mentse túl gyakran
-- **Előny**: Jobb teljesítmény, kevesebb IO művelet, gyorsabb alkalmazás
-- **Becsült idő**: 1-2 óra
-- **Komplexitás**: Alacsony
-
-### 4. **Unit tesztek**
+### 2. **Unit tesztek**
 - **Mit**: Tesztek a kritikus számításokhoz (pl. `Calculator.tsx`), utility funkciókhoz
 - **Előny**: Biztonságos refactoring, kevesebb bug, jobb kódminőség
 - **Becsült idő**: 8-12 óra
@@ -131,13 +105,7 @@
 - **Becsült idő**: 8-12 óra
 - **Komplexitás**: Magas
 
-### 2. **Backup és restore**
-- **Mit**: Automatikus backup létrehozása, restore funkció
-- **Előny**: Adatvesztés elkerülése, könnyebb helyreállítás
-- **Becsült idő**: 4-6 óra
-- **Komplexitás**: Közepes
-
-### 3. **Adatbázis migráció**
+### 2. **Adatbázis migráció**
 - **Mit**: Verziózott adatstruktúra, automatikus migráció
 - **Előny**: Könnyebb frissítések, kompatibilitás
 - **Becsült idő**: 6-8 óra
@@ -145,14 +113,7 @@
 
 ## 🎨 UI/UX finomítások
 
-### 1. **Empty states javítása**
-- **Hol**: Üres listák (nincs filament, nincs nyomtató, stb.)
-- **Mit**: Informatív üzenetek és CTA gombok ("Hozzáadás"), illusztrációk
-- **Előny**: Jobb első benyomás, könnyebb első lépések
-- **Becsült idő**: 2-3 óra
-- **Komplexitás**: Alacsony
-
-### 2. **Accessibility (a11y) javítások**
+### 1. **Accessibility (a11y) javítások továbbfejlesztése**
 - **Mit**: 
   - ARIA labels hozzáadása
   - Keyboard navigation javítása
@@ -186,7 +147,7 @@
 - **Becsült idő**: 12-16 óra
 - **Komplexitás**: Magas
 
-### 2. **API integráció**
+### 2. **Valuta API integráció**
 - **Mit**: API végpontok a filament árak lekéréséhez, valuta árfolyamokhoz
 - **Előny**: Automatikus frissítések, pontos adatok
 - **Becsült idő**: 8-12 óra
@@ -201,13 +162,13 @@
 
 Ha csak gyorsan szeretnél valamit hozzáadni, ajánlom ezeket:
 
-1. **Input validáció** - 1-2 óra
-2. **Shortcut help menü** - 1-2 óra
-3. **Empty states javítása** - 1-2 óra
-4. **Mentés optimalizálás (debounce)** - 1-2 óra
-5. **Verzió előzmények megjelenítése** - 2-3 óra
+1. **TypeScript strict mode** - 4-6 óra
+2. **Accessibility javítások továbbfejlesztése** - 6-8 óra
+3. **Adatbázis migráció** - 6-8 óra
+4. **Adattitkosítás** - 8-12 óra
+5. **Unit tesztek** - 8-12 óra
 
-Ezek a legnagyobb UX javulást hoznák a legkevesebb munkával.
+Ezek tovább javítanák a kódminőséget és biztonságot.
 
 ---
 
@@ -223,4 +184,4 @@ Ezek a legnagyobb UX javulást hoznák a legkevesebb munkával.
 
 ---
 
-**Utolsó frissítés**: 2025. január (v0.2.55 után)
+**Utolsó frissítés**: 2025. november (v0.3.6 után)
