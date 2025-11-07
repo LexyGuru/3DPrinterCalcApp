@@ -1,6 +1,6 @@
 // Téma rendszer - több modern dizájn
-
-export type ThemeName = "light" | "dark" | "blue" | "green" | "purple" | "orange" | "gradient" | "neon" | "cyberpunk" | "sunset" | "ocean";
+import type { ThemeName } from "../types";
+export type { ThemeName };
 
 export interface Theme {
   name: ThemeName;

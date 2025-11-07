@@ -38,12 +38,25 @@ export interface CompanyInfo {
 
 export type PdfTemplate = "modern" | "minimal" | "professional";
 
+export type ThemeName =
+  | "light"
+  | "dark"
+  | "blue"
+  | "green"
+  | "purple"
+  | "orange"
+  | "gradient"
+  | "neon"
+  | "cyberpunk"
+  | "sunset"
+  | "ocean";
+
 export interface Settings {
   currency: "EUR" | "HUF" | "USD";
   electricityPrice: number; // Ft/kWh
   language: "hu" | "en" | "de";
   checkForBetaUpdates?: boolean; // Beta release-ek ellenőrzése
-  theme?: "light" | "dark" | "blue" | "green" | "purple" | "orange" | "gradient" | "neon" | "cyberpunk" | "sunset" | "ocean"; // Téma választás
+  theme?: ThemeName; // Téma választás
   showConsole?: boolean; // Console/Log menüpont megjelenítése
   autosave?: boolean; // Automatikus mentés
   autosaveInterval?: number; // Automatikus mentés intervalluma (másodpercben)
