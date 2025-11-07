@@ -26,31 +26,32 @@ interface GitHubRelease {
 }
 
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp";
-// Ingyenes fordító API-k (prioritás szerint)
 // MyMemory API: ingyenes, nincs API kulcs szükséges, 10000 karakter/nap limit
-// LibreTranslate: rate limiting van (10 kérés/perc)
-const TRANSLATION_APIS = [
-  {
-    name: "MyMemory",
-    url: "https://api.mymemory.translated.net/get",
-    method: "GET", // GET request, nincs CORS probléma
-    requiresKey: false
-  },
-  {
-    name: "LibreTranslate",
-    url: "https://libretranslate.com/translate",
-    method: "POST",
-    requiresKey: false
-  }
-];
+const TRANSLATION_API = {
+  name: "MyMemory",
+  url: "https://api.mymemory.translated.net/get",
+  method: "GET", // GET request, nincs CORS probléma
+  requiresKey: false
+};
 
 // Cache a fordított szövegekhez (localStorage)
 const TRANSLATION_CACHE_KEY = "version_history_translations";
+const VERSION_HISTORY_CACHE_KEY = "version_history_data";
 const CACHE_EXPIRY_DAYS = 7;
+const CHECK_INTERVAL_MS = 60 * 60 * 1000; // 1 óra (ellenőrzési időköz a GitHub frissítés ellenőrzéshez)
 
 interface TranslationCache {
   translations: { [key: string]: string }; // key: "hu-en-text", value: translated text
   _timestamp: number;
+}
+
+interface VersionHistoryCache {
+  releases: GitHubRelease[];
+  translatedVersions: Record<string, { // version => { language => translatedChanges[] }
+    [language: string]: string[];
+  }>;
+  lastFetch: number;
+  lastChecksum: string; // A releases listájának hash-e
 }
 
 function getTranslationCache(): TranslationCache {
@@ -82,19 +83,66 @@ function getCacheKey(text: string, sourceLang: string, targetLang: string): stri
   return `${sourceLang}-${targetLang}-${text.substring(0, 100)}`;
 }
 
+// Verzió történet cache kezelés
+function getVersionHistoryCache(): VersionHistoryCache | null {
+  try {
+    const cached = localStorage.getItem(VERSION_HISTORY_CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached) as VersionHistoryCache;
+      console.log("💾 Verzió történet cache betöltve", { 
+        releases: parsed.releases?.length || 0, 
+        translatedVersions: Object.keys(parsed.translatedVersions || {}).length,
+        lastFetch: new Date(parsed.lastFetch).toLocaleString()
+      });
+      return parsed;
+    }
+  } catch (e) {
+    console.warn("⚠️ Verzió történet cache olvasási hiba:", e);
+  }
+  return null;
+}
+
+function saveVersionHistoryCache(cache: VersionHistoryCache) {
+  try {
+    localStorage.setItem(VERSION_HISTORY_CACHE_KEY, JSON.stringify(cache));
+    console.log("💾 Verzió történet cache mentve", { 
+      releases: cache.releases.length, 
+      translatedVersions: Object.keys(cache.translatedVersions).length,
+      lastFetch: new Date(cache.lastFetch).toLocaleString()
+    });
+  } catch (e) {
+    console.warn("⚠️ Verzió történet cache mentési hiba:", e);
+  }
+}
+
+// Checksum generálása a releases listájából (egyszerű hash)
+function generateChecksum(releases: GitHubRelease[]): string {
+  const releaseIds = releases.map(r => `${r.tag_name}:${r.published_at}`).join('|');
+  // Egyszerű hash (nem kriptográfiai)
+  let hash = 0;
+  for (let i = 0; i < releaseIds.length; i++) {
+    const char = releaseIds.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash.toString(36);
+}
+
 // Rate limiting kezelés
 let lastRequestTime = 0;
 const MIN_REQUEST_INTERVAL = 1000; // 1 másodperc (MyMemory API-nak nincs szigorú rate limit)
-const MAX_RETRIES = 1; // Maximum 1 retry próbálkozás
+const MAX_RETRIES = 2; // Maximum 2 retry próbálkozás
 let consecutiveErrors = 0; // Számláló a következő hibákhoz
-const MAX_CONSECUTIVE_ERRORS = 5; // Ha 5 egymás utáni hiba van, ne próbáljuk meg fordítani (növelve, mert MyMemory jobban működik)
+const MAX_CONSECUTIVE_ERRORS = 10; // Ha 10 egymás utáni hiba van, ne próbáljuk meg fordítani
+let lastErrorResetTime = Date.now(); // Utolsó hiba reset ideje
+const ERROR_RESET_INTERVAL = 5 * 60 * 1000; // 5 perc után nullázzuk a hibaszámlálót
 
 async function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Fordító API használata (MyMemory vagy LibreTranslate) - rate limiting és cache kezeléssel
-async function translateText(text: string, sourceLang: string, targetLang: string, retryIndex: number = 0, retryCount: number = 0): Promise<string> {
+// Fordító API használata (MyMemory) - rate limiting és cache kezeléssel
+async function translateText(text: string, sourceLang: string, targetLang: string, retryCount: number = 0): Promise<string> {
   try {
     // Ha a forrás és cél nyelv ugyanaz, ne fordítunk
     if (sourceLang === targetLang) {
@@ -104,6 +152,14 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     // Ha a szöveg túl rövid, ne fordítunk
     if (!text || text.trim().length < 3) {
       return text;
+    }
+
+    // Reseteljük a hibaszámlálót, ha elég idő telt el
+    const currentTime = Date.now();
+    if (currentTime - lastErrorResetTime > ERROR_RESET_INTERVAL) {
+      console.log(`🔄 Hibaszámláló resetelése (${ERROR_RESET_INTERVAL / 1000 / 60} perc telt el)`);
+      consecutiveErrors = 0;
+      lastErrorResetTime = currentTime;
     }
 
     // Ha túl sok egymás utáni hiba volt, ne próbáljuk meg fordítani
@@ -116,8 +172,10 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     const cache = getTranslationCache();
     const cacheKey = getCacheKey(text, sourceLang, targetLang);
     if (cache.translations[cacheKey]) {
-      console.log(`💾 Cache találat: ${text.substring(0, 50)}...`);
-      return cache.translations[cacheKey];
+      const cachedTranslation = cache.translations[cacheKey];
+      // Ha van cache, használjuk (még ha ugyanaz is, mert az azt jelenti, hogy már próbáltuk fordítani)
+      console.log(`💾 Cache találat: ${text.substring(0, 50)}... -> ${cachedTranslation.substring(0, 50)}...`);
+      return cachedTranslation;
     }
 
     // Nyelvkódok konverzió
@@ -130,9 +188,6 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     const source = langMap[sourceLang] || "hu";
     const target = langMap[targetLang] || "en";
 
-    // Próbáljuk meg az elérhető API-kat
-    const api = TRANSLATION_APIS[retryIndex] || TRANSLATION_APIS[0];
-
     // Rate limiting: várunk, ha túl gyorsan küldenénk kérést
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTime;
@@ -143,118 +198,61 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
     }
     lastRequestTime = Date.now();
 
-    console.log(`🌐 Fordítás próbálkozás (${api.name}): ${source} -> ${target}`, { apiUrl: api.url, textLength: text.length });
+    console.log(`🌐 Fordítás próbálkozás (MyMemory): ${source} -> ${target}`, { textLength: text.length });
 
     // MyMemory API (GET request)
-    if (api.name === "MyMemory") {
-      const myMemoryUrl = `${api.url}?q=${encodeURIComponent(text)}&langpair=${source}|${target}`;
-      const response = await fetch(myMemoryUrl, {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`MyMemory API hiba: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const translated = data.responseData?.translatedText || text;
-      
-      // Sikeres fordítás esetén nullázzuk a hibaszámlálót
-      if (translated !== text) {
-        consecutiveErrors = 0;
-        const updatedCache = getTranslationCache();
-        updatedCache.translations[cacheKey] = translated;
-        saveTranslationCache(updatedCache);
-        console.log(`✅ Fordítás sikeres (MyMemory): ${text.substring(0, 50)}... -> ${translated.substring(0, 50)}...`);
-      } else {
-        // Ha a fordítás nem sikerült (pl. rate limit), növeljük a hibaszámlálót
-        consecutiveErrors++;
-      }
-      
-      return translated;
-    }
-
-    // LibreTranslate API (POST request)
-    const response = await fetch(api.url, {
-      method: "POST",
+    const myMemoryUrl = `${TRANSLATION_API.url}?q=${encodeURIComponent(text)}&langpair=${source}|${target}`;
+    const response = await fetch(myMemoryUrl, {
+      method: "GET",
       headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        q: text,
-        source: source,
-        target: target,
-        format: "text"
-      })
+        "Accept": "application/json",
+      }
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      let errorData: any = {};
-      try {
-        errorData = JSON.parse(errorText);
-      } catch (e) {
-        // Nem JSON válasz
-      }
-      
-      console.warn(`⚠️ ${api.name} API hiba (${api.url}):`, response.status, response.statusText, errorData);
-      
-      // 429 (Rate Limit) vagy 403 (Forbidden) esetén ne próbáljuk meg újra, csak használjuk az eredeti szöveget
-      if (response.status === 429 || response.status === 403) {
-        consecutiveErrors++;
-        console.warn(`⚠️ Rate limit elérve (${response.status}), azonnal eredeti szöveget használunk (egymás utáni hibák: ${consecutiveErrors})`);
-        return text; // Fallback: eredeti szöveg (NINCS VÁRAKOZÁS!)
-      }
-      
-      // Egyéb hibák esetén is növeljük a számlálót
-      consecutiveErrors++;
-      
-      // Ha túl sok hiba van, ne próbáljuk meg újra
-      if (retryCount >= MAX_RETRIES || consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-        console.warn(`⚠️ Túl sok próbálkozás (retry: ${retryCount}, consecutive: ${consecutiveErrors}), használjuk az eredeti szöveget`);
-        return text; // Fallback: eredeti szöveg
-      }
-      
-      // Próbáljuk meg a következő API-t (ha van)
-      if (retryIndex < TRANSLATION_APIS.length - 1) {
-        console.log(`🔄 Próbálkozás következő API-val: ${TRANSLATION_APIS[retryIndex + 1].name}`);
-        return translateText(text, sourceLang, targetLang, retryIndex + 1, 0);
-      }
-      
-      return text; // Fallback: eredeti szöveg
+      throw new Error(`MyMemory API hiba: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    const translated = data.translatedText || text;
+    const translated = data.responseData?.translatedText || text;
     
-    // Sikeres fordítás esetén nullázzuk a hibaszámlálót
-    if (translated !== text) {
-      consecutiveErrors = 0; // Sikeres fordítás, nullázzuk a hibaszámlálót
-      const updatedCache = getTranslationCache();
-      updatedCache.translations[cacheKey] = translated;
-      saveTranslationCache(updatedCache);
-      console.log(`✅ Fordítás sikeres (${api.name}): ${text.substring(0, 50)}... -> ${translated.substring(0, 50)}...`);
+    // Cache-eljük az eredményt (még ha nem változott is, hogy ne próbáljuk meg újra)
+    const updatedCache = getTranslationCache();
+    updatedCache.translations[cacheKey] = translated;
+    saveTranslationCache(updatedCache);
+    
+    // Ha sikerült a fordítás (megváltozott a szöveg), nullázzuk a hibaszámlálót
+    if (translated !== text && translated.trim() !== text.trim()) {
+      consecutiveErrors = 0;
+      lastErrorResetTime = Date.now(); // Frissítjük a reset időt
+      console.log(`✅ Fordítás sikeres (MyMemory): ${text.substring(0, 50)}... -> ${translated.substring(0, 50)}...`);
+      return translated;
+    } else {
+      // Ha a fordítás nem változtatta meg a szöveget, de nem volt hiba
+      console.warn(`⚠️ MyMemory nem fordította le a szöveget (lehet, hogy ugyanaz), cache-eljük és használjuk az eredetit`);
+      return text;
     }
-    
-    return translated;
   } catch (error) {
     consecutiveErrors++;
-    const currentApi = TRANSLATION_APIS[retryIndex] || TRANSLATION_APIS[0];
-    console.warn(`⚠️ Fordítás hiba (${currentApi.name}):`, error, `(egymás utáni hibák: ${consecutiveErrors})`);
+    console.warn(`⚠️ Fordítás hiba (MyMemory):`, error, `(egymás utáni hibák: ${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`);
+    
+    // Cache-eljük az eredeti szöveget hiba esetén is, hogy ne próbáljuk meg újra
+    const updatedCache = getTranslationCache();
+    const cacheKey = getCacheKey(text, sourceLang, targetLang);
+    updatedCache.translations[cacheKey] = text; // Hiba esetén az eredeti szöveg cache-elése
+    saveTranslationCache(updatedCache);
     
     // Ha túl sok hiba van, ne próbáljuk meg újra
     if (retryCount >= MAX_RETRIES || consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-      console.warn(`⚠️ Túl sok próbálkozás (retry: ${retryCount}, consecutive: ${consecutiveErrors}), használjuk az eredeti szöveget`);
+      console.warn(`⚠️ Túl sok próbálkozás (retry: ${retryCount}, consecutive: ${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS}), cache-eljük és használjuk az eredeti szöveget`);
       return text; // Fallback: eredeti szöveg
     }
     
-    // Próbáljuk meg a következő API-t (ha van)
-    if (retryIndex < TRANSLATION_APIS.length - 1) {
-      console.log(`🔄 Próbálkozás következő API-val: ${TRANSLATION_APIS[retryIndex + 1].name}`);
-      return translateText(text, sourceLang, targetLang, retryIndex + 1, 0);
+    // Próbáljuk meg újra
+    if (retryCount < MAX_RETRIES) {
+      console.log(`🔄 Újrapróbálkozás... (${retryCount + 1}/${MAX_RETRIES})`);
+      await delay(2000); // Várunk 2 másodpercet újrapróbálkozás előtt
+      return translateText(text, sourceLang, targetLang, retryCount + 1);
     }
     
     return text; // Fallback: eredeti szöveg
@@ -299,6 +297,7 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [refetchTrigger, setRefetchTrigger] = useState(0); // Trigger a manual refetch
   const themeStyles = getThemeStyles(theme);
 
   useEffect(() => {
@@ -309,6 +308,100 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
         setTranslating(false);
         
         console.log("📥 Verzió előzmények betöltése...", { isBeta, language: settings.language });
+        
+        // 1. Ellenőrizzük a cache-t
+        const cachedData = getVersionHistoryCache();
+        const timeNow = Date.now();
+        
+        // 2. Ha van cache és friss (1 órán belüli), használjuk anélkül, hogy letöltenénk a GitHubról
+        if (cachedData && (timeNow - cachedData.lastFetch < CHECK_INTERVAL_MS)) {
+          console.log("💾 Cache használata (friss, nincs GitHub ellenőrzés)", {
+            cacheAge: Math.round((timeNow - cachedData.lastFetch) / 1000 / 60) + " perc",
+            releases: cachedData.releases.length
+          });
+          
+          // Szűrés és megjelenítés a cache-ből
+          const filteredReleases = isBeta
+            ? cachedData.releases.filter(r => r.prerelease === true)
+            : cachedData.releases.filter(r => r.prerelease === false);
+          
+          filteredReleases.sort((a, b) => {
+            return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+          });
+          
+          const history: VersionEntry[] = [];
+          for (const release of filteredReleases) {
+            const changes = parseReleaseBody(release.body);
+            const date = new Date(release.published_at).toLocaleDateString(
+              settings.language === "hu" ? "hu-HU" : 
+              settings.language === "de" ? "de-DE" : 
+              "en-US"
+            );
+            
+            const versionKey = release.tag_name;
+            const langKey = settings.language;
+            const translatedChanges = cachedData.translatedVersions[versionKey]?.[langKey];
+            
+            if (translatedChanges && translatedChanges.length > 0) {
+              console.log(`💾 Lefordított verzió használata (${versionKey} - ${langKey})`);
+              history.push({
+                version: release.tag_name,
+                date: date,
+                changes: translatedChanges
+              });
+            } else if (changes.length > 0 && settings.language !== "hu") {
+              // Nincs még lefordítva erre a nyelvre, fordítsuk le és mentsük el
+              console.log(`🌐 Fordítás szükséges (${versionKey} - ${langKey})`);
+              setTranslating(true);
+              const newTranslatedChanges: string[] = [];
+              for (let idx = 0; idx < changes.length; idx++) {
+                const translated = await translateText(changes[idx], "hu", settings.language);
+                newTranslatedChanges.push(translated);
+              }
+              
+              // Mentsük el a lefordított verziót
+              if (!cachedData.translatedVersions[versionKey]) {
+                cachedData.translatedVersions[versionKey] = {};
+              }
+              cachedData.translatedVersions[versionKey][langKey] = newTranslatedChanges;
+              saveVersionHistoryCache(cachedData);
+              
+              history.push({
+                version: release.tag_name,
+                date: date,
+                changes: newTranslatedChanges
+              });
+            } else {
+              // Magyar vagy nincs változás
+              const finalChanges = changes.length > 0 ? changes : [settings.language === "hu" ? "Nincs változás leírás" : settings.language === "de" ? "Keine Änderungsbeschreibung" : "No changelog"];
+              history.push({
+                version: release.tag_name,
+                date: date,
+                changes: finalChanges
+              });
+              
+              // Magyar esetén is mentsük el
+              if (changes.length > 0 && settings.language === "hu") {
+                if (!cachedData.translatedVersions[versionKey]) {
+                  cachedData.translatedVersions[versionKey] = {};
+                }
+                cachedData.translatedVersions[versionKey]["hu"] = changes;
+                saveVersionHistoryCache(cachedData);
+              }
+            }
+          }
+          
+          setVersionHistory(history);
+          setTranslating(false);
+          setLoading(false);
+          console.log("✅ Verzió előzmények betöltve cache-ből", { count: history.length });
+          return;
+        }
+        
+        // 3. Ha nincs cache vagy lejárt, letöltjük a GitHub releases-t
+        console.log("🔍 GitHub releases letöltése...", { 
+          reason: cachedData ? "Cache lejárt (>1 óra)" : "Nincs cache"
+        });
         
         // GitHub Releases API
         const url = `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=50`;
@@ -365,7 +458,25 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
           throw new Error("Invalid response format: expected array");
         }
         
-        console.log(`✅ ${releases.length} release betöltve`);
+        console.log(`✅ ${releases.length} release betöltve GitHubról`);
+        
+        // 4. Checksum generálása és összehasonlítása
+        const newChecksum = generateChecksum(releases);
+        const hasNewReleases = !cachedData || cachedData.lastChecksum !== newChecksum;
+        
+        console.log("🔎 Checksum ellenőrzés", { 
+          oldChecksum: cachedData?.lastChecksum, 
+          newChecksum,
+          hasNewReleases
+        });
+        
+        // 5. Inicializáljuk vagy használjuk a meglévő cache-t
+        const newCache: VersionHistoryCache = {
+          releases: releases,
+          translatedVersions: cachedData?.translatedVersions || {},
+          lastFetch: timeNow,
+          lastChecksum: newChecksum
+        };
         
         // Szűrés: ha beta app, akkor csak pre-release-eket, ha release app, akkor csak non-pre-release-eket
         const filteredReleases = isBeta
@@ -379,10 +490,9 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
         
         console.log(`📊 ${filteredReleases.length} release találat`, { isBeta });
         
-        // Konvertálás VersionEntry formátumba és fordítása
+        // 6. Konvertálás VersionEntry formátumba és fordítása
         setTranslating(settings.language !== "hu");
         
-        // Sorban dolgozzuk fel a release-eket (nem párhuzamosan) a rate limiting miatt
         const history: VersionEntry[] = [];
         for (const release of filteredReleases) {
           const changes = parseReleaseBody(release.body);
@@ -392,29 +502,40 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
             "en-US"
           );
           
-          // Feltételezzük, hogy a release notes magyarul vannak (source: "hu")
-          // Fordítjuk a kiválasztott nyelvre
-          let translatedChanges: string[] = [];
-          if (changes.length > 0) {
-            // Ha nem magyar a célnyelv, fordítunk
+          const versionKey = release.tag_name;
+          const langKey = settings.language;
+          
+          // Ellenőrizzük, van-e már lefordítva erre a nyelvre
+          let translatedChanges = newCache.translatedVersions[versionKey]?.[langKey];
+          
+          if (translatedChanges && translatedChanges.length > 0) {
+            // Van már lefordítva
+            console.log(`💾 Lefordított verzió használata (${versionKey} - ${langKey})`);
+          } else if (changes.length > 0) {
+            // Nincs még lefordítva, fordítsuk le
             if (settings.language !== "hu") {
-              console.log(`🌐 Fordítás indítása: ${changes.length} változás`, { version: release.tag_name, targetLang: settings.language });
-              try {
-                // Sorban fordítunk (nem párhuzamosan) a rate limiting miatt
-                translatedChanges = [];
-                for (let idx = 0; idx < changes.length; idx++) {
-                  const change = changes[idx];
-                  console.log(`  [${idx + 1}/${changes.length}] Fordítás: ${change.substring(0, 50)}...`);
-                  const translated = await translateText(change, "hu", settings.language);
-                  translatedChanges.push(translated);
-                }
-                console.log(`✅ Fordítás kész: ${release.tag_name}`);
-              } catch (translateError) {
-                console.error(`❌ Fordítás hiba (${release.tag_name}):`, translateError);
-                translatedChanges = changes; // Fallback: eredeti szöveg
+              console.log(`🌐 Fordítás szükséges (${versionKey} - ${langKey})`);
+              translatedChanges = [];
+              for (let idx = 0; idx < changes.length; idx++) {
+                const change = changes[idx];
+                console.log(`  [${idx + 1}/${changes.length}] Fordítás: ${change.substring(0, 50)}...`);
+                const translated = await translateText(change, "hu", settings.language);
+                translatedChanges.push(translated);
               }
+              console.log(`✅ Fordítás kész: ${versionKey}`);
+              
+              // Mentsük el a lefordított verziót
+              if (!newCache.translatedVersions[versionKey]) {
+                newCache.translatedVersions[versionKey] = {};
+              }
+              newCache.translatedVersions[versionKey][langKey] = translatedChanges;
             } else {
+              // Magyar esetén
               translatedChanges = changes;
+              if (!newCache.translatedVersions[versionKey]) {
+                newCache.translatedVersions[versionKey] = {};
+              }
+              newCache.translatedVersions[versionKey]["hu"] = changes;
             }
           } else {
             translatedChanges = [settings.language === "hu" ? "Nincs változás leírás" : settings.language === "de" ? "Keine Änderungsbeschreibung" : "No changelog"];
@@ -423,13 +544,16 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
           history.push({
             version: release.tag_name,
             date: date,
-            changes: translatedChanges
+            changes: translatedChanges || changes
           });
         }
         
+        // 7. Mentsük el a cache-t
+        saveVersionHistoryCache(newCache);
+        
         setVersionHistory(history);
         setTranslating(false);
-        console.log("✅ Verzió előzmények betöltve", { count: history.length });
+        console.log("✅ Verzió előzmények betöltve és cache-elve", { count: history.length });
       } catch (err) {
         console.error("❌ Verzió előzmények betöltése hiba:", err);
         setError(err instanceof Error ? err.message : String(err));
@@ -440,7 +564,7 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
     };
     
     fetchVersionHistory();
-  }, [isBeta, settings.language]);
+  }, [isBeta, settings.language, refetchTrigger]);
   const translations: Record<string, Record<string, string>> = {
     hu: {
       title: "Verzió előzmények",
@@ -554,137 +678,9 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               <button
                 onClick={() => {
-                  setError(null);
-                  setLoading(true);
-                  // Újra próbálkozás
-                  const fetchVersionHistory = async () => {
-                  try {
-                    setLoading(true);
-                    setError(null);
-                    setTranslating(false);
-                    
-                    console.log("📥 Verzió előzmények újratöltése...", { isBeta, language: settings.language });
-                    
-                    const url = `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=50`;
-                    console.log("📡 GitHub API hívás...", { url });
-                    
-                    let response: Response;
-                    try {
-                      response = await fetch(url, {
-                        method: "GET",
-                        headers: {
-                          "Accept": "application/vnd.github.v3+json",
-                        },
-                      });
-                    } catch (fetchError) {
-                      console.error("❌ Fetch hiba:", fetchError);
-                      throw new Error(`Network error: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
-                    }
-                    
-                    if (!response.ok) {
-                      const errorText = await response.text().catch(() => response.statusText);
-                      let errorData: any = {};
-                      try {
-                        errorData = JSON.parse(errorText);
-                      } catch (e) {
-                        // Nem JSON válasz
-                      }
-                      
-                      console.error("❌ GitHub API hiba:", response.status, response.statusText, errorData);
-                      
-                      if (response.status === 403 && errorData.message?.includes("rate limit")) {
-                        const rateLimitMessage = settings.language === "hu" 
-                          ? "GitHub API rate limit túllépve. Kérjük, próbálja meg később újra, vagy várjon néhány percet."
-                          : settings.language === "de"
-                          ? "GitHub API Rate-Limit überschritten. Bitte versuchen Sie es später erneut oder warten Sie einige Minuten."
-                          : "GitHub API rate limit exceeded. Please try again later or wait a few minutes.";
-                        throw new Error(rateLimitMessage);
-                      }
-                      
-                      throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}${errorData.message ? ` - ${errorData.message}` : errorText ? ` - ${errorText}` : ""}`);
-                    }
-                    
-                    let releases: GitHubRelease[];
-                    try {
-                      releases = await response.json();
-                    } catch (parseError) {
-                      console.error("❌ JSON parse hiba:", parseError);
-                      throw new Error(`Failed to parse releases: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
-                    }
-                    
-                    if (!Array.isArray(releases)) {
-                      console.error("❌ Érvénytelen válasz formátum:", releases);
-                      throw new Error("Invalid response format: expected array");
-                    }
-                    
-                    console.log(`✅ ${releases.length} release betöltve`);
-                    
-                    const filteredReleases = isBeta
-                      ? releases.filter(r => r.prerelease === true)
-                      : releases.filter(r => r.prerelease === false);
-                    
-                    filteredReleases.sort((a, b) => {
-                      return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
-                    });
-                    
-                    console.log(`📊 ${filteredReleases.length} release találat`, { isBeta });
-                    
-                    setTranslating(settings.language !== "hu");
-                    
-                    const history: VersionEntry[] = [];
-                    for (const release of filteredReleases) {
-                      const changes = parseReleaseBody(release.body);
-                      const date = new Date(release.published_at).toLocaleDateString(
-                        settings.language === "hu" ? "hu-HU" : 
-                        settings.language === "de" ? "de-DE" : 
-                        "en-US"
-                      );
-                      
-                      let translatedChanges: string[] = [];
-                      if (changes.length > 0) {
-                        if (settings.language !== "hu") {
-                          console.log(`🌐 Fordítás indítása: ${changes.length} változás`, { version: release.tag_name, targetLang: settings.language });
-                          try {
-                            translatedChanges = [];
-                            for (let idx = 0; idx < changes.length; idx++) {
-                              const change = changes[idx];
-                              console.log(`  [${idx + 1}/${changes.length}] Fordítás: ${change.substring(0, 50)}...`);
-                              const translated = await translateText(change, "hu", settings.language);
-                              translatedChanges.push(translated);
-                            }
-                            console.log(`✅ Fordítás kész: ${release.tag_name}`);
-                          } catch (translateError) {
-                            console.error(`❌ Fordítás hiba (${release.tag_name}):`, translateError);
-                            translatedChanges = changes;
-                          }
-                        } else {
-                          translatedChanges = changes;
-                        }
-                      } else {
-                        translatedChanges = [settings.language === "hu" ? "Nincs változás leírás" : settings.language === "de" ? "Keine Änderungsbeschreibung" : "No changelog"];
-                      }
-                      
-                      history.push({
-                        version: release.tag_name,
-                        date: date,
-                        changes: translatedChanges
-                      });
-                    }
-                    
-                    setVersionHistory(history);
-                    setTranslating(false);
-                    console.log("✅ Verzió előzmények betöltve", { count: history.length });
-                  } catch (err) {
-                    console.error("❌ Verzió előzmények betöltése hiba:", err);
-                    setError(err instanceof Error ? err.message : String(err));
-                    setTranslating(false);
-                  } finally {
-                    setLoading(false);
-                  }
-                };
-                
-                fetchVersionHistory();
-              }}
+                  // Újra próbálkozás - egyszerűen csak trigger-eljük a useEffect-et
+                  setRefetchTrigger(prev => prev + 1);
+                }}
                 style={{
                   ...themeStyles.button,
                   ...themeStyles.buttonPrimary,
@@ -729,11 +725,7 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
             textAlign: "center",
             color: theme.colors.textMuted
           }}>
-            {settings.language === "hu" 
-              ? "Nincsenek elérhető verzió előzmények" 
-              : settings.language === "de" 
-              ? "Keine Versionsverläufe verfügbar" 
-              : "No version history available"}
+            {settings.language === "hu" ? "Nincsenek elérhető verzió előzmények" : settings.language === "de" ? "Keine verfügbaren Versionshistorie" : "No version history available"}
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>

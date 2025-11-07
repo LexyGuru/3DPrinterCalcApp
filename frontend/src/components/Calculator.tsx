@@ -293,7 +293,9 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px", flexWrap: "wrap", gap: "20px" }}>
         <div>
           <h2 style={themeStyles.pageTitle}>{t("calculator.title")}</h2>
-          <p style={themeStyles.pageSubtitle}>3D nyomtatási költség számítás</p>
+          <p style={themeStyles.pageSubtitle}>
+            {settings.language === "hu" ? "3D nyomtatási költség számítás" : settings.language === "de" ? "3D-Druckkostenberechnung" : "3D printing cost calculation"}
+          </p>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
           <Tooltip content={settings.language === "hu" ? "Template betöltése" : settings.language === "de" ? "Template laden" : "Load template"}>

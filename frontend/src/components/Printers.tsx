@@ -314,7 +314,9 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("printers.title")}</h2>
-      <p style={themeStyles.pageSubtitle}>Nyomtatók és AMS rendszerek kezelése</p>
+      <p style={themeStyles.pageSubtitle}>
+        {settings.language === "hu" ? "Nyomtatók és AMS rendszerek kezelése" : settings.language === "de" ? "Drucker und AMS-Systeme verwalten" : "Manage printers and AMS systems"}
+      </p>
       
       {/* Kereső mező */}
       {printers.length > 0 && (

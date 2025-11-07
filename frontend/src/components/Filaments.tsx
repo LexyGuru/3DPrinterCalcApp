@@ -218,7 +218,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("filaments.title")}</h2>
-      <p style={themeStyles.pageSubtitle}>Filamentek kezelése és szerkesztése</p>
+      <p style={themeStyles.pageSubtitle}>
+        {settings.language === "hu" ? "Filamentek kezelése és szerkesztése" : settings.language === "de" ? "Filamente verwalten und bearbeiten" : "Manage and edit filaments"}
+      </p>
       
       {/* Kereső mező */}
       {filaments.length > 0 && (

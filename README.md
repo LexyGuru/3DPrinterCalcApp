@@ -227,6 +227,15 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.3.6 (2025)
+- ✅ **Settings UI átrendezése** - Tab rendszer (Általános, Megjelenés, Speciális, Adatkezelés)
+- ✅ **Fordítások javítása** - Minden hardcoded magyar szöveg lefordítva (HU/EN/DE)
+- ✅ **Verzió történet cache** - Fizikai mentés localStorage-ba, 1 óránkénti GitHub ellenőrzés
+- ✅ **Okos fordítás** - Csak új release-eket fordítja le, régi fordításokat használja
+- ✅ **LibreTranslate eltávolítva** - Csak MyMemory API (400-as hibák megszűntek)
+- ✅ **Hibaszámláló auto-reset** - 5 perc után automatikusan resetelődik
+- 🐛 **Build hibák javítása** - JSX indentációs problémák javítva
+
 ### v0.3.5 (2025)
 - ✅ **MyMemory API integráció** - Ingyenes fordító API LibreTranslate helyett
 - ✅ **GitHub releases oldal megnyitása** - Gomb a GitHub releases oldal megnyitásához rate limit esetén
@@ -328,7 +337,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.3.5
+**Verzió**: 0.3.6
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

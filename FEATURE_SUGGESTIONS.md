@@ -2,6 +2,15 @@
 
 ## ✅ Már implementált funkciók
 
+### v0.3.6-ban implementálva:
+- ✅ **Settings UI átrendezése** - Tab rendszer (Általános, Megjelenés, Speciális, Adatkezelés) jobb UX-ért
+- ✅ **Fordítások javítása** - Minden hardcoded magyar szöveg lefordítva (HU/EN/DE)
+- ✅ **Verzió történet cache** - Fizikai mentés localStorage-ba, 1 óránkénti GitHub ellenőrzés
+- ✅ **Okos fordítás** - Csak új release-eket fordítja le, régi fordításokat használja cache-ből
+- ✅ **LibreTranslate eltávolítva** - Csak MyMemory API (400-as hibák megszűntek)
+- ✅ **Hibaszámláló auto-reset** - 5 perc után automatikusan resetelődik
+- 🐛 **Build hibák javítása** - JSX indentációs problémák javítva
+
 ### v0.3.5-ben implementálva:
 - ✅ **MyMemory API integráció** - Ingyenes fordító API LibreTranslate helyett (GET request, nincs CORS probléma)
 - ✅ **GitHub releases oldal megnyitása** - Gomb a GitHub releases oldal megnyitásához rate limit esetén

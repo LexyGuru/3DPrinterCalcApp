@@ -163,19 +163,42 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
       } else {
         // CSV formátum
         const csvRows: string[] = [];
-        csvRows.push("Kategória,Érték,Egység");
-        csvRows.push(`Összes filament fogyasztás,${(statistics.totalFilamentUsed / 1000).toFixed(2)},kg`);
-        csvRows.push(`Összes bevétel,${formatCurrency(statistics.totalRevenue).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
-        csvRows.push(`Összes áram fogyasztás,${statistics.totalElectricityConsumed.toFixed(2)},kWh`);
-        csvRows.push(`Összes költség,${formatCurrency(statistics.totalCosts).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
-        csvRows.push(`Nettó profit,${formatCurrency(statistics.totalProfit).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
-        csvRows.push(`Összes nyomtatási idő,${statistics.totalPrintTime.toFixed(1)},óra`);
-        csvRows.push(`Árajánlatok száma,${statistics.offerCount},db`);
-        csvRows.push(`Átlagos profit/árajánlat,${statistics.offerCount > 0 ? formatCurrency(statistics.totalProfit / statistics.offerCount).toFixed(2) : "0.00"},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
-        csvRows.push(`Profit margó,${statistics.totalRevenue > 0 ? ((statistics.totalProfit / statistics.totalRevenue) * 100).toFixed(1) : "0.0"},%`);
+        const categoryLabel = settings.language === "hu" ? "Kategória" : settings.language === "de" ? "Kategorie" : "Category";
+        const valueLabel = settings.language === "hu" ? "Érték" : settings.language === "de" ? "Wert" : "Value";
+        const unitLabel = settings.language === "hu" ? "Egység" : settings.language === "de" ? "Einheit" : "Unit";
+        csvRows.push(`${categoryLabel},${valueLabel},${unitLabel}`);
+        const filamentLabel = settings.language === "hu" ? "Összes filament fogyasztás" : settings.language === "de" ? "Gesamter Filamentverbrauch" : "Total filament consumption";
+        const revenueLabel = settings.language === "hu" ? "Összes bevétel" : settings.language === "de" ? "Gesamteinnahmen" : "Total revenue";
+        const electricityLabel = settings.language === "hu" ? "Összes áram fogyasztás" : settings.language === "de" ? "Gesamter Stromverbrauch" : "Total electricity consumption";
+        const costLabel = settings.language === "hu" ? "Összes költség" : settings.language === "de" ? "Gesamtkosten" : "Total cost";
+        const profitLabel = settings.language === "hu" ? "Nettó profit" : settings.language === "de" ? "Nettogewinn" : "Net profit";
+        const printTimeLabel = settings.language === "hu" ? "Összes nyomtatási idő" : settings.language === "de" ? "Gesamtdruckzeit" : "Total print time";
+        const offerCountLabel = settings.language === "hu" ? "Árajánlatok száma" : settings.language === "de" ? "Anzahl der Angebote" : "Number of offers";
+        const avgProfitLabel = settings.language === "hu" ? "Átlagos profit/árajánlat" : settings.language === "de" ? "Durchschnittlicher Gewinn/Angebot" : "Average profit/offer";
+        const profitMarginLabel = settings.language === "hu" ? "Profit margó" : settings.language === "de" ? "Gewinnmarge" : "Profit margin";
+        const timeUnit = settings.language === "hu" ? "óra" : settings.language === "de" ? "Std" : "hrs";
+        
+        csvRows.push(`${filamentLabel},${(statistics.totalFilamentUsed / 1000).toFixed(2)},kg`);
+        csvRows.push(`${revenueLabel},${formatCurrency(statistics.totalRevenue).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
+        csvRows.push(`${electricityLabel},${statistics.totalElectricityConsumed.toFixed(2)},kWh`);
+        csvRows.push(`${costLabel},${formatCurrency(statistics.totalCosts).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
+        csvRows.push(`${profitLabel},${formatCurrency(statistics.totalProfit).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
+        csvRows.push(`${printTimeLabel},${statistics.totalPrintTime.toFixed(1)},${timeUnit}`);
+        csvRows.push(`${offerCountLabel},${statistics.offerCount},${settings.language === "hu" ? "db" : settings.language === "de" ? "Stk" : "pcs"}`);
+        csvRows.push(`${avgProfitLabel},${statistics.offerCount > 0 ? formatCurrency(statistics.totalProfit / statistics.offerCount).toFixed(2) : "0.00"},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
+        csvRows.push(`${profitMarginLabel},${statistics.totalRevenue > 0 ? ((statistics.totalProfit / statistics.totalRevenue) * 100).toFixed(1) : "0.0"},%`);
         csvRows.push("");
-        csvRows.push("Árajánlat részletek");
-        csvRows.push("ID,Dátum,Ügyfél név,Összes költség,Profit százalék,Bevétel,Pénznem");
+        const offerDetailsLabel = settings.language === "hu" ? "Árajánlat részletek" : settings.language === "de" ? "Angebotsdetails" : "Offer details";
+        csvRows.push(offerDetailsLabel);
+        const idLabel = settings.language === "hu" ? "ID" : "ID";
+        const dateLabel = settings.language === "hu" ? "Dátum" : settings.language === "de" ? "Datum" : "Date";
+        const customerLabel = settings.language === "hu" ? "Ügyfél név" : settings.language === "de" ? "Kundenname" : "Customer name";
+        const totalCostLabel = settings.language === "hu" ? "Összes költség" : settings.language === "de" ? "Gesamtkosten" : "Total cost";
+        const profitPercentLabel = settings.language === "hu" ? "Profit százalék" : settings.language === "de" ? "Gewinnprozentsatz" : "Profit percentage";
+        const revenueLabel2 = settings.language === "hu" ? "Bevétel" : settings.language === "de" ? "Einnahmen" : "Revenue";
+        const currencyLabel = settings.language === "hu" ? "Pénznem" : settings.language === "de" ? "Währung" : "Currency";
+        
+        csvRows.push(`${idLabel},${dateLabel},${customerLabel},${totalCostLabel},${profitPercentLabel},${revenueLabel2},${currencyLabel}`);
         offers.forEach(o => {
           const profitPct = o.profitPercentage || 30;
           const revenue = o.costs.totalCost * (1 + profitPct / 100);
@@ -388,7 +411,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
             {t("home.title")}
           </h2>
           <p style={{ marginTop: "8px", color: theme.colors.textSecondary, fontSize: "16px" }}>
-            Statisztikák és összefoglaló az árajánlatokról
+            {settings.language === "hu" ? "Statisztikák és összefoglaló az árajánlatokról" : settings.language === "de" ? "Statistiken und Zusammenfassung der Angebote" : "Statistics and summary of offers"}
           </p>
         </div>
         {statistics.offerCount > 0 && (
@@ -475,44 +498,44 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         marginBottom: "30px"
       }}>
         <StatCard
-          title="Összes filament fogyasztás"
+          title={settings.language === "hu" ? "Összes filament fogyasztás" : settings.language === "de" ? "Gesamter Filamentverbrauch" : "Total filament consumption"}
           value={formatNumber(statistics.totalFilamentUsed / 1000, 2)}
           unit="kg"
           icon="🧵"
           color="#007bff"
         />
         <StatCard
-          title="Összes bevétel"
+          title={settings.language === "hu" ? "Összes bevétel" : settings.language === "de" ? "Gesamteinnahmen" : "Total revenue"}
           value={formatNumber(formatCurrency(statistics.totalRevenue), 2)}
           unit={settings.currency === "HUF" ? "Ft" : settings.currency}
           icon="💰"
           color="#28a745"
         />
         <StatCard
-          title="Összes áram fogyasztás"
+          title={settings.language === "hu" ? "Összes áram fogyasztás" : settings.language === "de" ? "Gesamter Stromverbrauch" : "Total electricity consumption"}
           value={formatNumber(statistics.totalElectricityConsumed, 2)}
           unit="kWh"
           icon="⚡"
           color="#ffc107"
         />
         <StatCard
-          title="Összes költség"
+          title={settings.language === "hu" ? "Összes költség" : settings.language === "de" ? "Gesamtkosten" : "Total cost"}
           value={formatNumber(formatCurrency(statistics.totalCosts), 2)}
           unit={settings.currency === "HUF" ? "Ft" : settings.currency}
           icon="💸"
           color="#dc3545"
         />
         <StatCard
-          title="Nettó profit"
+          title={settings.language === "hu" ? "Nettó profit" : settings.language === "de" ? "Nettogewinn" : "Net profit"}
           value={formatCurrency(statistics.totalProfit).toFixed(2)}
           unit={settings.currency === "HUF" ? "Ft" : settings.currency}
           icon="📈"
           color={statistics.totalProfit >= 0 ? "#28a745" : "#dc3545"}
         />
         <StatCard
-          title="Összes nyomtatási idő"
+          title={settings.language === "hu" ? "Összes nyomtatási idő" : settings.language === "de" ? "Gesamtdruckzeit" : "Total print time"}
           value={formatNumber(statistics.totalPrintTime, 1)}
-          unit="óra"
+          unit={settings.language === "hu" ? "óra" : settings.language === "de" ? "Std" : "hrs"}
           icon="⏱️"
           color="#6c757d"
         />
@@ -527,23 +550,29 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         marginBottom: "20px"
       }}>
         <h3 style={{ marginTop: 0, marginBottom: "16px", fontSize: "20px", fontWeight: "600" }}>
-          Összefoglaló
+          {settings.language === "hu" ? "Összefoglaló" : settings.language === "de" ? "Zusammenfassung" : "Summary"}
         </h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
           <div>
-            <strong style={{ color: theme.colors.textSecondary }}>Árajánlatok száma:</strong>
+            <strong style={{ color: theme.colors.textSecondary }}>
+              {settings.language === "hu" ? "Árajánlatok száma:" : settings.language === "de" ? "Anzahl der Angebote:" : "Number of offers:"}
+            </strong>
             <div style={{ fontSize: "24px", fontWeight: "bold", color: "#007bff", marginTop: "4px" }}>
               {statistics.offerCount}
             </div>
           </div>
           <div>
-            <strong style={{ color: theme.colors.textSecondary }}>Átlagos profit/árajánlat:</strong>
+            <strong style={{ color: theme.colors.textSecondary }}>
+              {settings.language === "hu" ? "Átlagos profit/árajánlat:" : settings.language === "de" ? "Durchschnittlicher Gewinn/Angebot:" : "Average profit/offer:"}
+            </strong>
             <div style={{ fontSize: "24px", fontWeight: "bold", color: statistics.totalProfit >= 0 ? "#28a745" : "#dc3545", marginTop: "4px" }}>
               {statistics.offerCount > 0 ? formatNumber(formatCurrency(statistics.totalProfit / statistics.offerCount), 2) : "0.00"} {settings.currency === "HUF" ? "Ft" : settings.currency}
             </div>
           </div>
           <div>
-            <strong style={{ color: theme.colors.textSecondary }}>Profit margó:</strong>
+            <strong style={{ color: theme.colors.textSecondary }}>
+              {settings.language === "hu" ? "Profit margó:" : settings.language === "de" ? "Gewinnmarge:" : "Profit margin:"}
+            </strong>
             <div style={{ fontSize: "24px", fontWeight: "bold", color: statistics.totalProfit >= 0 ? "#28a745" : "#dc3545", marginTop: "4px" }}>
               {statistics.totalRevenue > 0 ? formatNumber((statistics.totalProfit / statistics.totalRevenue) * 100, 1) : "0.0"}%
             </div>

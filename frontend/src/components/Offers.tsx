@@ -543,7 +543,9 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("offers.title")}</h2>
-      <p style={themeStyles.pageSubtitle}>Mentett árajánlatok kezelése és exportálása</p>
+      <p style={themeStyles.pageSubtitle}>
+        {settings.language === "hu" ? "Mentett árajánlatok kezelése és exportálása" : settings.language === "de" ? "Gespeicherte Angebote verwalten und exportieren" : "Manage and export saved offers"}
+      </p>
       
       {/* Kereső mező */}
       {offers.length > 0 && (

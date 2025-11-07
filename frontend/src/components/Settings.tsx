@@ -45,6 +45,7 @@ export const SettingsPage: React.FC<Props> = ({
   const [importOffers, setImportOffers] = useState(false);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [activeTab, setActiveTab] = useState<"general" | "display" | "advanced" | "data">("general");
   
   // Átalakítjuk az áramárat megjelenítéshez (Ft/kWh -> választott pénznem)
   const getDisplayElectricityPrice = (): number => {
@@ -227,12 +228,109 @@ export const SettingsPage: React.FC<Props> = ({
     }
   };
 
+  // Tab style
+  const tabButtonStyle = (isActive: boolean) => ({
+    padding: "12px 24px",
+    border: "none",
+    borderBottom: isActive ? `3px solid ${theme.colors.primary}` : `3px solid transparent`,
+    backgroundColor: isActive ? theme.colors.surfaceHover : "transparent",
+    color: isActive ? theme.colors.primary : theme.colors.text,
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: isActive ? "600" : "500",
+    transition: "all 0.2s",
+    borderRadius: "4px 4px 0 0",
+  });
+
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("settings.title")}</h2>
-      <p style={themeStyles.pageSubtitle}>Alkalmazás beállítások kezelése</p>
+      <p style={themeStyles.pageSubtitle}>
+        {settings.language === "hu" ? "Alkalmazás beállítások kezelése" : settings.language === "de" ? "Anwendungseinstellungen verwalten" : "Manage application settings"}
+      </p>
       
-      <div style={{ ...themeStyles.card }}>
+      {/* Tab Navigation */}
+      <div style={{ 
+        display: "flex", 
+        gap: "8px", 
+        marginBottom: "0",
+        borderBottom: `1px solid ${theme.colors.border}`,
+        backgroundColor: theme.colors.surface,
+        borderRadius: "8px 8px 0 0",
+        overflow: "auto",
+      }}>
+        <button
+          onClick={() => setActiveTab("general")}
+          style={tabButtonStyle(activeTab === "general")}
+          onMouseEnter={(e) => {
+            if (activeTab !== "general") {
+              e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "general") {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }
+          }}
+        >
+          ⚙️ {settings.language === "hu" ? "Általános" : settings.language === "de" ? "Allgemein" : "General"}
+        </button>
+        <button
+          onClick={() => setActiveTab("display")}
+          style={tabButtonStyle(activeTab === "display")}
+          onMouseEnter={(e) => {
+            if (activeTab !== "display") {
+              e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "display") {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }
+          }}
+        >
+          🎨 {settings.language === "hu" ? "Megjelenés" : settings.language === "de" ? "Aussehen" : "Appearance"}
+        </button>
+        <button
+          onClick={() => setActiveTab("advanced")}
+          style={tabButtonStyle(activeTab === "advanced")}
+          onMouseEnter={(e) => {
+            if (activeTab !== "advanced") {
+              e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "advanced") {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }
+          }}
+        >
+          🔧 {settings.language === "hu" ? "Speciális" : settings.language === "de" ? "Erweitert" : "Advanced"}
+        </button>
+        <button
+          onClick={() => setActiveTab("data")}
+          style={tabButtonStyle(activeTab === "data")}
+          onMouseEnter={(e) => {
+            if (activeTab !== "data") {
+              e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "data") {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }
+          }}
+        >
+          💾 {settings.language === "hu" ? "Adatkezelés" : settings.language === "de" ? "Datenverwaltung" : "Data Management"}
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      <div style={{ ...themeStyles.card, borderRadius: "0 8px 8px 8px", marginTop: "0" }}>
+        
+        {/* General Tab */}
+        {activeTab === "general" && (
+          <div>
         <div style={{ marginBottom: "24px" }}>
           <Tooltip content={t("settings.language") + " - " + (settings.language === "hu" ? "Válaszd ki az alkalmazás nyelvét" : settings.language === "de" ? "Wähle die Sprache der Anwendung" : "Choose the application language")}>
             <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, width: "fit-content" }}>
@@ -309,7 +407,7 @@ export const SettingsPage: React.FC<Props> = ({
           </p>
         </div>
         
-        <div style={{ marginBottom: "24px" }}>
+        <div style={{ marginBottom: "0" }}>
           <Tooltip content={t("settings.showConsoleDescription")}>
             <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
               <input
@@ -325,7 +423,77 @@ export const SettingsPage: React.FC<Props> = ({
             {t("settings.showConsoleDescription")}
           </p>
         </div>
+          </div>
+        )}
 
+        {/* Display Tab */}
+        {activeTab === "display" && (
+          <div>
+        <div style={{ marginBottom: "0" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
+            🎨 {t("settings.theme")}
+          </label>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            {(["light", "dark", "blue", "green", "purple", "orange"] as ThemeName[]).map((themeName) => {
+              const themeOption = themes[themeName];
+              const isSelected = (settings.theme || "light") === themeName;
+              return (
+                <button
+                  key={themeName}
+                  onClick={() => onChange({ ...settings, theme: themeName })}
+                  style={{
+                    ...themeStyles.button,
+                    backgroundColor: isSelected ? themeOption.colors.primary : themeOption.colors.surface,
+                    color: isSelected ? "#fff" : themeOption.colors.text,
+                    border: `2px solid ${isSelected ? themeOption.colors.primary : themeOption.colors.border}`,
+                    padding: "16px 20px",
+                    flex: "1",
+                    minWidth: "120px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "8px",
+                    boxShadow: isSelected ? `0 4px 12px ${themeOption.colors.shadow}` : "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.backgroundColor = themeOption.colors.surfaceHover;
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.backgroundColor = themeOption.colors.surface;
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }
+                  }}
+                >
+                  <span style={{ fontSize: "24px" }}>
+                    {themeName === "light" && "☀️"}
+                    {themeName === "dark" && "🌙"}
+                    {themeName === "blue" && "💙"}
+                    {themeName === "green" && "💚"}
+                    {themeName === "purple" && "💜"}
+                    {themeName === "orange" && "🧡"}
+                  </span>
+                  <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                    {themeOption.displayName[settings.language]}
+                  </span>
+                  {isSelected && <span style={{ fontSize: "12px" }}>✓</span>}
+                </button>
+              );
+            })}
+          </div>
+          <p style={{ marginTop: "12px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.themeDescription")}
+          </p>
+        </div>
+          </div>
+        )}
+
+        {/* Advanced Tab */}
+        {activeTab === "advanced" && (
+          <div>
         {/* Automatikus mentés */}
         <div style={{ marginBottom: "24px" }}>
           <Tooltip content={t("settings.autosaveDescription")}>
@@ -413,20 +581,22 @@ export const SettingsPage: React.FC<Props> = ({
           )}
         </div>
 
-        {/* Gyorsbillentyűk */}
-        <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
-            <span>⌨️ {t("settings.shortcuts")}</span>
+        {/* Gyorsbillentyűk és Információk */}
+        <div style={{ marginBottom: "0" }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
+            ⚙️ {settings.language === "hu" ? "Egyéb beállítások" : settings.language === "de" ? "Sonstige Einstellungen" : "Other Settings"}
           </label>
-          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
-            {t("settings.shortcutsDescription")}
+          <p style={{ marginBottom: "16px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {settings.language === "hu" ? "Gyorsbillentyűk megtekintése és verzió előzmények" : settings.language === "de" ? "Tastaturkürzel anzeigen und Versionsverlauf" : "View keyboard shortcuts and version history"}
           </p>
-          <div style={{ display: "flex", gap: "12px", marginTop: "12px", marginLeft: "32px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             <Tooltip content={t("settings.shortcutsDescription")}>
               <button
                 onClick={() => setShowShortcutHelp(true)}
                 style={{
                   ...themeStyles.button,
+                  flex: 1,
+                  minWidth: "180px",
                 }}
               >
                 ⌨️ {t("shortcuts.title")}
@@ -437,6 +607,8 @@ export const SettingsPage: React.FC<Props> = ({
                 onClick={() => setShowVersionHistory(true)}
                 style={{
                   ...themeStyles.button,
+                  flex: 1,
+                  minWidth: "180px",
                 }}
               >
                 📋 {settings.language === "hu" ? "Verzió előzmények" : settings.language === "de" ? "Versionsverlauf" : "Version History"}
@@ -444,12 +616,20 @@ export const SettingsPage: React.FC<Props> = ({
             </Tooltip>
           </div>
         </div>
+          </div>
+        )}
 
+        {/* Data Management Tab */}
+        {activeTab === "data" && (
+          <div>
         {/* Backup */}
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
+          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "18px", color: theme.colors.text }}>
             💾 {t("settings.backup")}
           </label>
+          <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
+            {settings.language === "hu" ? "Készíts biztonsági mentést az összes adatról vagy állítsd vissza egy korábbi állapotot" : settings.language === "de" ? "Erstellen Sie eine Sicherungskopie aller Daten oder stellen Sie einen früheren Zustand wieder her" : "Create a backup of all data or restore a previous state"}
+          </p>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             <Tooltip content={settings.language === "hu" ? "Mentés az összes adatot egy JSON fájlba" : settings.language === "de" ? "Speichern Sie alle Daten in einer JSON-Datei" : "Save all data to a JSON file"}>
               <button
@@ -465,8 +645,9 @@ export const SettingsPage: React.FC<Props> = ({
                 }}
                 style={{
                   ...themeStyles.button,
+                  ...themeStyles.buttonPrimary,
                   flex: 1,
-                  minWidth: "150px",
+                  minWidth: "180px",
                 }}
               >
                 💾 {t("settings.backupCreate")}
@@ -492,8 +673,9 @@ export const SettingsPage: React.FC<Props> = ({
                 }}
                 style={{
                   ...themeStyles.button,
+                  ...themeStyles.buttonSuccess,
                   flex: 1,
-                  minWidth: "150px",
+                  minWidth: "180px",
                 }}
               >
                 📥 {t("settings.backupRestore")}
@@ -501,72 +683,11 @@ export const SettingsPage: React.FC<Props> = ({
             </Tooltip>
           </div>
         </div>
-        
-        <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
-            🎨 {t("settings.theme")}
-          </label>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            {(["light", "dark", "blue", "green", "purple", "orange"] as ThemeName[]).map((themeName) => {
-              const theme = themes[themeName];
-              const isSelected = (settings.theme || "light") === themeName;
-              return (
-                <button
-                  key={themeName}
-                  onClick={() => onChange({ ...settings, theme: themeName })}
-                  style={{
-                    ...themeStyles.button,
-                    backgroundColor: isSelected ? theme.colors.primary : theme.colors.surface,
-                    color: isSelected ? "#fff" : theme.colors.text,
-                    border: `2px solid ${isSelected ? theme.colors.primary : theme.colors.border}`,
-                    padding: "16px 20px",
-                    flex: "1",
-                    minWidth: "120px",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "8px",
-                    boxShadow: isSelected ? `0 4px 12px ${theme.colors.shadow}` : "none",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = theme.colors.surface;
-                      e.currentTarget.style.transform = "translateY(0)";
-                    }
-                  }}
-                >
-                  <span style={{ fontSize: "24px" }}>
-                    {themeName === "light" && "☀️"}
-                    {themeName === "dark" && "🌙"}
-                    {themeName === "blue" && "💙"}
-                    {themeName === "green" && "💚"}
-                    {themeName === "purple" && "💜"}
-                    {themeName === "orange" && "🧡"}
-                  </span>
-                  <span style={{ fontSize: "14px", fontWeight: "600" }}>
-                    {theme.displayName[settings.language]}
-                  </span>
-                  {isSelected && <span style={{ fontSize: "12px" }}>✓</span>}
-                </button>
-              );
-            })}
-          </div>
-          <p style={{ marginTop: "12px", fontSize: "12px", color: theme.colors.textMuted }}>
-            {t("settings.themeDescription")}
-          </p>
-        </div>
-      </div>
 
-      {/* Export/Import Data Section - 2 oszlop */}
-      <div style={{ display: "flex", gap: "24px", marginTop: "24px", flexWrap: "wrap" }}>
-        {/* Export Data Section */}
-        <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
+        {/* Export/Import Data Section - 2 oszlop */}
+        <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+          {/* Export Data Section */}
+          <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
           <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
             💾 {t("settings.exportTitle")}
           </h3>
@@ -620,10 +741,10 @@ export const SettingsPage: React.FC<Props> = ({
               {t("settings.exportButton")}
             </button>
           </Tooltip>
-        </div>
+          </div>
 
-        {/* Import Data Section */}
-        <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
+          {/* Import Data Section */}
+          <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
           <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
             📥 {t("settings.importTitle")}
           </h3>
@@ -680,8 +801,12 @@ export const SettingsPage: React.FC<Props> = ({
               {t("settings.importButton")}
             </button>
           </Tooltip>
+          </div>
         </div>
+          </div>
+        )}
       </div>
+      
       {showShortcutHelp && (
         <ShortcutHelp
           settings={settings}
