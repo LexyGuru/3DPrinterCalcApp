@@ -286,6 +286,16 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 - 💾 **Teljes logolás** - Minden kritikus művelet logolva (mentés, export, import, törlés, PDF export, frissítés letöltés)
 - 🔄 **Frissítés gomb javítás** - A letöltés gomb most Tauri shell plugin-t használ, megbízhatóan működik
 - 🔄 **Frissítés logolás** - Frissítés ellenőrzés és letöltés teljes logolása
+- ⌨️ **Gyorsbillentyűk** - `Ctrl/Cmd+N` (új), `Ctrl/Cmd+S` (mentés), `Escape` (mégse), `Ctrl/Cmd+?` (súgó)
+- ⌨️ **Gyorsbillentyűk macOS javítás** - Cmd vs Ctrl kezelés, capture phase event handling
+- ⏳ **Loading states** - LoadingSpinner komponens betöltési állapotokhoz
+- 💾 **Backup és restore** - Teljes adatmentés és visszaállítás Tauri dialog és fs pluginokkal
+- 🛡️ **Error boundaries** - React ErrorBoundary alkalmazás szintű hibakezeléshez
+- 💾 **Automatikus mentés** - Debounced auto-save beállítható intervallummal (alapértelmezett 30 másodperc)
+- 🔔 **Értesítési beállítások** - Toast értesítések be/ki kapcsolása és időtartam beállítása
+- ⌨️ **Shortcut help menü** - Gyorsbillentyűk listája modal ablakban (`Ctrl/Cmd+?`)
+- 🎬 **Animációk és transitions** - Smooth transitions és keyframe animációk (fadeIn, slideIn, scaleIn, pulse)
+- 💬 **Tooltip-ek** - Kontextuális segítség minden fontos elemhez hover-re
 - 🐛 **React render hiba javítás** - Console logger aszinkron működés, hogy ne akadályozza a renderelést
 - 🔧 **num-bigint-dig frissítés** - v0.9.1-re frissítve (deprecation warning javítása)
 
