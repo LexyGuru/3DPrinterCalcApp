@@ -91,7 +91,7 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
         });
         // Fallback: ha a Tauri shell nem működik, próbáljuk meg a window.open-t
         try {
-          window.open(versionInfo.releaseUrl, '_blank', 'noopener,noreferrer');
+      window.open(versionInfo.releaseUrl, '_blank', 'noopener,noreferrer');
           console.log("✅ Frissítés letöltés fallback módon megnyitva", { 
             latestVersion: versionInfo.latest 
           });

@@ -1222,9 +1222,17 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     };
                   });
 
+                  const createdAt = new Date().toISOString();
+                  const initialStatusNote =
+                    settings.language === "hu"
+                      ? "Árajánlat létrehozva"
+                      : settings.language === "de"
+                      ? "Angebot erstellt"
+                      : "Quote created";
+
                   const offer: Offer = {
                     id: Date.now(),
-                    date: new Date().toISOString(),
+                    date: createdAt,
                     printerName: selectedPrinter.name,
                     printerType: selectedPrinter.type,
                     printerPower: selectedPrinter.power,
@@ -1245,6 +1253,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     customerName: offerCustomerName.trim(),
                     customerContact: offerCustomerContact.trim() || undefined,
                     description: offerDescription.trim() || undefined,
+                    status: "draft",
+                    statusUpdatedAt: createdAt,
+                    statusHistory: [{
+                      status: "draft",
+                      date: createdAt,
+                      note: initialStatusNote
+                    }]
                   };
 
                   console.log("💾 Árajánlat mentése...", { 

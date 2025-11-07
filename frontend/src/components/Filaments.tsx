@@ -25,6 +25,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [weight, setWeight] = useState<number>(1000);
   const [pricePerKg, setPricePerKg] = useState<number>(0);
   const [color, setColor] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,11 +39,93 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setWeight(1000);
     setPricePerKg(0);
     setColor("");
+    setImagePreview(null);
     setEditingIndex(null);
     setShowAddForm(false);
   };
 
-  const addFilament = () => {
+  // Kép feltöltés és base64 konverzió
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Ellenőrizzük a fájl típusát
+    if (!file.type.startsWith('image/')) {
+      showToast(
+        settings.language === "hu" ? "Csak kép fájlok tölthetők fel!" :
+        settings.language === "de" ? "Nur Bilddateien können hochgeladen werden!" :
+        "Only image files can be uploaded!",
+        "error"
+      );
+      return;
+    }
+
+    // Ellenőrizzük a fájl méretét (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast(
+        settings.language === "hu" ? "A kép mérete nem lehet nagyobb 5MB-nál!" :
+        settings.language === "de" ? "Die Bildgröße darf 5 MB nicht überschreiten!" :
+        "Image size cannot exceed 5MB!",
+        "error"
+      );
+      return;
+    }
+
+    // Preview létrehozása
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setImagePreview(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Kép törlése
+  const removeImage = () => {
+    setImagePreview(null);
+  };
+
+  // Kép optimalizálása (átméretezés, kompresszió)
+  const optimizeImage = (base64: string, maxWidth: number = 800, maxHeight: number = 800, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Méret számítás
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas context not available'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const optimizedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(optimizedBase64);
+      };
+      img.onerror = reject;
+      img.src = base64;
+    });
+  };
+
+  const addFilament = async () => {
     if (!brand || !type || !pricePerKg) {
       showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek töltsd ki az összes kötelező mezőt!" : settings.language === "de" ? "Bitte füllen Sie alle Pflichtfelder aus!" : "Please fill in all required fields!"), "error");
       return;
@@ -53,19 +136,50 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       return;
     }
     
+    // Kép optimalizálása, ha van
+    let optimizedImage: string | undefined = undefined;
+    if (imagePreview) {
+      try {
+        optimizedImage = await optimizeImage(imagePreview, 800, 800, 0.8);
+      } catch (error) {
+        console.error("❌ Kép optimalizálás hiba:", error);
+        showToast(
+          settings.language === "hu" ? "Hiba a kép optimalizálása során, az eredeti kép használata..." :
+          settings.language === "de" ? "Fehler bei der Bildoptimierung, ursprüngliches Bild wird verwendet..." :
+          "Error optimizing image, using original...",
+          "error"
+        );
+        optimizedImage = imagePreview;
+      }
+    }
+    
     if (editingIndex !== null) {
       // Szerkesztési mód: frissítjük a filamentet
-      console.log("✏️ Filament szerkesztése...", { index: editingIndex, brand, type, pricePerKg });
+      console.log("✏️ Filament szerkesztése...", { index: editingIndex, brand, type, pricePerKg, hasImage: !!optimizedImage });
       const updated = [...filaments];
-      updated[editingIndex] = { brand, type, weight, pricePerKg, color: color || undefined };
+      updated[editingIndex] = { 
+        brand, 
+        type, 
+        weight, 
+        pricePerKg, 
+        color: color || undefined,
+        imageBase64: optimizedImage
+      };
       setFilaments(updated);
       console.log("✅ Filament sikeresen frissítve", { index: editingIndex });
       showToast(t("common.filamentUpdated"), "success");
       resetForm();
     } else {
       // Új filament hozzáadása
-      console.log("➕ Új filament hozzáadása...", { brand, type, pricePerKg });
-      setFilaments([...filaments, { brand, type, weight, pricePerKg, color: color || undefined }]);
+      console.log("➕ Új filament hozzáadása...", { brand, type, pricePerKg, hasImage: !!optimizedImage });
+      setFilaments([...filaments, { 
+        brand, 
+        type, 
+        weight, 
+        pricePerKg, 
+        color: color || undefined,
+        imageBase64: optimizedImage
+      }]);
       console.log("✅ Filament sikeresen hozzáadva", { brand, type });
       showToast(t("common.filamentAdded"), "success");
       resetForm();
@@ -79,6 +193,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setWeight(filament.weight);
     setPricePerKg(filament.pricePerKg);
     setColor(filament.color || "");
+    setImagePreview(filament.imageBase64 || null);
     setEditingIndex(index);
   };
 
@@ -441,6 +556,98 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             />
           </div>
         </div>
+        
+        {/* Kép feltöltés */}
+        <div style={{ marginTop: "20px" }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "8px", 
+            fontWeight: "600", 
+            fontSize: "14px", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
+            📷 {settings.language === "hu" ? "Kép (opcionális)" : settings.language === "de" ? "Bild (optional)" : "Image (optional)"}
+          </label>
+          {imagePreview ? (
+            <div style={{ position: "relative", display: "inline-block", marginBottom: "8px" }}>
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                style={{ 
+                  maxWidth: "300px", 
+                  maxHeight: "300px", 
+                  borderRadius: "8px",
+                  border: `2px solid ${theme.colors.border}`,
+                  objectFit: "cover",
+                  boxShadow: `0 2px 8px ${theme.colors.shadow}`
+                }} 
+              />
+              <button
+                onClick={removeImage}
+                style={{
+                  position: "absolute",
+                  top: "8px",
+                  right: "8px",
+                  padding: "6px 12px",
+                  fontSize: "14px",
+                  backgroundColor: theme.colors.danger,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  boxShadow: `0 2px 4px ${theme.colors.shadow}`,
+                }}
+              >
+                ✕ {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Remove"}
+              </button>
+            </div>
+          ) : (
+            <label
+              style={{
+                display: "inline-block",
+                padding: "20px",
+                border: `2px dashed ${theme.colors.border}`,
+                borderRadius: "8px",
+                textAlign: "center",
+                cursor: "pointer",
+                backgroundColor: theme.colors.surfaceHover,
+                transition: "all 0.2s",
+                minWidth: "200px",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = theme.colors.primary;
+                e.currentTarget.style.backgroundColor = theme.colors.primary + "10";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = theme.colors.border;
+                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: "none" }}
+              />
+              <div style={{ fontSize: "32px", marginBottom: "8px" }}>📷</div>
+              <span style={{ 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                display: "block"
+              }}>
+                {settings.language === "hu" ? "Kattints a kép feltöltéséhez" : settings.language === "de" ? "Klicken Sie, um ein Bild hochzuladen" : "Click to upload image"}
+              </span>
+              <span style={{ 
+                fontSize: "11px", 
+                color: theme.colors.textMuted,
+                display: "block",
+                marginTop: "4px"
+              }}>
+                {settings.language === "hu" ? "Max. 5MB, JPG/PNG/WebP" : settings.language === "de" ? "Max. 5MB, JPG/PNG/WebP" : "Max. 5MB, JPG/PNG/WebP"}
+              </span>
+            </label>
+          )}
+        </div>
         <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
           <Tooltip content={settings.language === "hu" ? (editingIndex !== null ? "Mentés (Ctrl/Cmd+S)" : "Hozzáadás (Ctrl/Cmd+S)") : settings.language === "de" ? (editingIndex !== null ? "Speichern (Strg/Cmd+S)" : "Hinzufügen (Strg/Cmd+S)") : (editingIndex !== null ? "Save (Ctrl/Cmd+S)" : "Add (Ctrl/Cmd+S)")}>
             <button 
@@ -498,6 +705,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           <table style={themeStyles.table}>
             <thead>
               <tr>
+                <th style={themeStyles.tableHeader}>{settings.language === "hu" ? "Kép" : settings.language === "de" ? "Bild" : "Image"}</th>
                 <th style={themeStyles.tableHeader}>{t("filaments.brand")}</th>
                 <th style={themeStyles.tableHeader}>{t("filaments.type")}</th>
                 <th style={themeStyles.tableHeader}>{t("filaments.color")}</th>
@@ -534,6 +742,39 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     }
                   }}
                 >
+                  <td style={{ ...themeStyles.tableCell, padding: "8px", textAlign: "center" }}>
+                    {f.imageBase64 ? (
+                      <img 
+                        src={f.imageBase64} 
+                        alt={`${f.brand} ${f.type}`}
+                        style={{ 
+                          width: "60px", 
+                          height: "60px", 
+                          objectFit: "cover",
+                          borderRadius: "6px",
+                          border: `1px solid ${theme.colors.border}`,
+                          cursor: "pointer"
+                        }}
+                        onClick={() => {
+                          // Nagyobb kép megjelenítése modal-ban vagy új ablakban
+                          const newWindow = window.open('', '_blank');
+                          if (newWindow) {
+                            newWindow.document.write(`
+                              <html>
+                                <head><title>${f.brand} ${f.type}</title></head>
+                                <body style="margin:0; padding:20px; background:#f5f5f5; display:flex; justify-content:center; align-items:center; min-height:100vh;">
+                                  <img src="${f.imageBase64}" style="max-width:90%; max-height:90vh; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2);" />
+                                </body>
+                              </html>
+                            `);
+                          }
+                        }}
+                        title={settings.language === "hu" ? "Kattints a nagyobb kép megtekintéséhez" : settings.language === "de" ? "Klicken Sie, um ein größeres Bild anzuzeigen" : "Click to view larger image"}
+                      />
+                    ) : (
+                      <span style={{ color: theme.colors.textMuted, fontSize: "24px" }}>📷</span>
+                    )}
+                  </td>
                   <td style={themeStyles.tableCell}>{f.brand}</td>
                   <td style={themeStyles.tableCell}>{f.type}</td>
                   <td style={themeStyles.tableCell}>{f.color || "-"}</td>

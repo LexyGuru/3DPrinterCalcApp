@@ -46,7 +46,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
             backgroundRepeat: "no-repeat",
           }
         : {
-            backgroundColor: theme.colors.sidebarBg,
+      backgroundColor: theme.colors.sidebarBg,
           }
       ),
       color: theme.colors.sidebarText,
@@ -82,7 +82,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
           return (
             <FadeIn key={page.key} delay={0.1 + index * 0.05}>
               <div
-                onClick={() => setActivePage(page.key)}
+            onClick={() => setActivePage(page.key)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
@@ -93,10 +93,10 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                 tabIndex={0}
                 aria-label={page.label}
                 aria-current={isActive ? "page" : undefined}
-                style={{
+            style={{
                   padding: "12px 16px",
                   marginBottom: "8px",
-                  cursor: "pointer",
+              cursor: "pointer",
                   fontWeight: isActive ? "600" : "500",
                   color: isActive 
                     ? (isNeon ? theme.colors.sidebarActive : "#ffffff")
@@ -124,8 +124,8 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                     : "none",
                   textShadow: isActive && isNeon ? `0 0 8px ${theme.colors.sidebarActive}` : "none",
                   transform: isActive ? "translateX(4px)" : "translateX(0)",
-                }}
-                onMouseEnter={(e) => {
+            }}
+            onMouseEnter={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.backgroundColor = isGlassmorphism
                       ? "rgba(255, 255, 255, 0.1)"
@@ -134,9 +134,9 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                     if (isNeon) {
                       e.currentTarget.style.boxShadow = `0 0 10px ${theme.colors.sidebarActive}40`;
                     }
-                  }
-                }}
-                onMouseLeave={(e) => {
+              }
+            }}
+            onMouseLeave={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.backgroundColor = "transparent";
                     e.currentTarget.style.transform = "translateX(0)";
@@ -154,14 +154,14 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                 }}
                 onBlur={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                  }
+                e.currentTarget.style.backgroundColor = "transparent";
+              }
                   e.currentTarget.style.outline = "none";
                 }}
                 onMouseDown={(e) => {
                   e.currentTarget.blur();
-                }}
-              >
+            }}
+          >
                 <span style={{ 
                   fontSize: "20px",
                   filter: isActive && isNeon ? `drop-shadow(0 0 4px ${theme.colors.sidebarActive})` : "none",
@@ -178,7 +178,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                     ✓
                   </span>
                 )}
-              </div>
+          </div>
             </FadeIn>
           );
         })}
@@ -186,38 +186,38 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
       
       {/* Footer információ az alján */}
       <FadeIn delay={0.3}>
-        <div style={{
-          padding: "16px",
-          borderTop: `1px solid ${theme.colors.border}`,
+      <div style={{
+        padding: "16px",
+        borderTop: `1px solid ${theme.colors.border}`,
           backgroundColor: isGlassmorphism
             ? "rgba(255, 255, 255, 0.1)"
             : isGradient
             ? "transparent"
             : theme.colors.sidebarBg,
           backdropFilter: isGlassmorphism ? "blur(10px)" : "none",
-          fontSize: "11px",
+        fontSize: "11px",
           color: theme.colors.sidebarText,
-          textAlign: "center",
+        textAlign: "center",
           flexShrink: 0,
-        }}>
+      }}>
           <div style={{ 
             marginBottom: "8px", 
             fontWeight: "600", 
             color: theme.colors.sidebarText,
             textShadow: isNeon ? `0 0 4px ${theme.colors.sidebarText}` : "none",
           }}>
-            Készítő: LexyGuru
-          </div>
+          Készítő: LexyGuru
+        </div>
           <div style={{ marginBottom: "4px", color: theme.colors.sidebarText }}>
             Verzió: <strong style={{ 
               color: theme.colors.sidebarText,
               textShadow: isNeon ? `0 0 4px ${theme.colors.sidebarText}` : "none",
             }}>{CURRENT_VERSION}</strong>
-          </div>
-          <div>
-            {isBeta ? (
-              <span style={{ 
-                display: "inline-block",
+        </div>
+        <div>
+          {isBeta ? (
+            <span style={{ 
+              display: "inline-block",
                 padding: "6px 12px",
                 borderRadius: "8px",
                 background: isNeon
@@ -236,12 +236,12 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                   : `0 2px 6px ${theme.colors.shadow}`,
                 textShadow: isNeon ? `0 0 4px rgba(0,0,0,0.3)` : "none",
                 border: isGradient || isGlassmorphism ? "1px solid rgba(255, 193, 7, 0.3)" : "none",
-              }}>
-                BETA
-              </span>
-            ) : (
-              <span style={{ 
-                display: "inline-block",
+            }}>
+              BETA
+            </span>
+          ) : (
+            <span style={{ 
+              display: "inline-block",
                 padding: "6px 12px",
                 borderRadius: "8px",
                 background: isNeon
@@ -251,7 +251,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                     ? theme.colors.primary
                     : `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.primaryHover})`)
                   : theme.colors.success,
-                color: "#fff",
+              color: "#fff",
                 fontWeight: "700",
                 fontSize: "11px",
                 letterSpacing: "0.5px",
@@ -262,12 +262,12 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                   : `0 2px 6px ${theme.colors.shadow}`,
                 textShadow: isGradient || isGlassmorphism ? "0 1px 2px rgba(0,0,0,0.3)" : "none",
                 border: isGradient || isGlassmorphism ? "1px solid rgba(255,255,255,0.2)" : "none",
-              }}>
-                RELEASE
-              </span>
-            )}
-          </div>
+            }}>
+              RELEASE
+            </span>
+          )}
         </div>
+      </div>
       </FadeIn>
     </div>
   );

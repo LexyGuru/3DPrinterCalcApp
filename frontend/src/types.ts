@@ -5,6 +5,7 @@ export interface Filament {
   density?: number;   // opcionális
   pricePerKg: number; // EUR
   color?: string;     // szín (opcionális)
+  imageBase64?: string; // Kép base64 stringként (opcionális)
 }
 
 export type Printer = {
@@ -24,17 +25,32 @@ export type AMS = {
   power: number;      // watt - AMS teljesítmény felhasználása
 };
 
+export interface CompanyInfo {
+  name?: string;
+  address?: string;
+  taxNumber?: string;
+  bankAccount?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  logoBase64?: string;
+}
+
+export type PdfTemplate = "modern" | "minimal" | "professional";
+
 export interface Settings {
   currency: "EUR" | "HUF" | "USD";
   electricityPrice: number; // Ft/kWh
   language: "hu" | "en" | "de";
   checkForBetaUpdates?: boolean; // Beta release-ek ellenőrzése
-  theme?: "light" | "dark" | "blue" | "green" | "purple" | "orange"; // Téma választás
+  theme?: "light" | "dark" | "blue" | "green" | "purple" | "orange" | "gradient" | "neon" | "cyberpunk" | "sunset" | "ocean"; // Téma választás
   showConsole?: boolean; // Console/Log menüpont megjelenítése
   autosave?: boolean; // Automatikus mentés
   autosaveInterval?: number; // Automatikus mentés intervalluma (másodpercben)
   notificationEnabled?: boolean; // Toast értesítések engedélyezése
   notificationDuration?: number; // Toast értesítés időtartama (ms)
+  companyInfo?: CompanyInfo;
+  pdfTemplate?: PdfTemplate;
 }
 
 export const defaultSettings: Settings = {
@@ -47,6 +63,8 @@ export const defaultSettings: Settings = {
   autosaveInterval: 30, // Alapértelmezett 30 másodperc
   notificationEnabled: true, // Alapértelmezetten engedélyezve
   notificationDuration: 3000, // Alapértelmezett 3 másodperc
+  companyInfo: {},
+  pdfTemplate: "modern",
 };
 
 export interface OfferFilament {
@@ -58,6 +76,7 @@ export interface OfferFilament {
   needsDrying?: boolean;
   dryingTime?: number;
   dryingPower?: number;
+  imageBase64?: string;
 }
 
 export interface OfferHistory {
@@ -75,6 +94,14 @@ export interface OfferHistory {
     totalCost: number;
   };
   changedBy?: string; // Opcionális: ki módosította
+}
+
+export type OfferStatus = "draft" | "sent" | "accepted" | "rejected" | "completed";
+
+export interface OfferStatusHistory {
+  status: OfferStatus;
+  date: string; // ISO date string
+  note?: string; // Opcionális megjegyzés
 }
 
 export interface Offer {
@@ -102,6 +129,9 @@ export interface Offer {
   profitPercentage?: number; // Profit százalék (10, 20, 30, 40, 50), alapértelmezett 30%
   history?: OfferHistory[]; // Előzmények/verziók
   currentVersion?: number; // Jelenlegi verzió száma
+  status?: OfferStatus; // Árajánlat státusz
+  statusHistory?: OfferStatusHistory[]; // Státusz előzmények
+  statusUpdatedAt?: string; // Utolsó státuszváltás dátuma
 }
 
 export interface CalculationTemplate {
@@ -120,4 +150,32 @@ export interface CalculationTemplate {
   printTimeMinutes: number;
   printTimeSeconds: number;
   createdAt: string; // ISO date string
+}
+
+// Szűrő típusok
+export interface OfferFilter {
+  searchTerm?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  startDate?: string; // ISO date string
+  endDate?: string; // ISO date string
+  minProfit?: number;
+  maxProfit?: number;
+  customerName?: string;
+  printerNames?: string[]; // Több nyomtató kiválasztása
+  filamentTypes?: string[]; // Több filament típus kiválasztása
+  statuses?: OfferStatus[]; // Több státusz kiválasztása
+}
+
+export type QuickFilterType = "today" | "yesterday" | "thisWeek" | "thisMonth" | "last7Days" | "last30Days" | "all";
+
+export interface FilterPreset {
+  id: number;
+  name: string;
+  description?: string;
+  filter: OfferFilter;
+  createdAt: string; // ISO date string
+  quickFilter?: QuickFilterType;
+  searchTerm?: string;
+  isDefault?: boolean;
 }

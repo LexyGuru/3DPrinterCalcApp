@@ -9,7 +9,7 @@ export interface VersionInfo {
   isBeta: boolean;
 }
 
-const CURRENT_VERSION = "0.3.8"; // Frissítsd ezt, amikor új verziót adsz ki
+const CURRENT_VERSION = "0.3.9"; // Frissítsd ezt, amikor új verziót adsz ki
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp"; // Frissítsd a saját repository nevedre
 
 export async function checkForUpdates(beta: boolean = false): Promise<VersionInfo> {

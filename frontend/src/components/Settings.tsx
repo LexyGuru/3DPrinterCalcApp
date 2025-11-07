@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import type { Settings, Printer, Filament, Offer } from "../types";
+import type { Settings, Printer, Filament, Offer, CompanyInfo, PdfTemplate } from "../types";
 import { useTranslation } from "../utils/translations";
 import { useToast } from "./Toast";
 import { themes, type ThemeName, type Theme } from "../utils/themes";
@@ -46,6 +46,11 @@ export const SettingsPage: React.FC<Props> = ({
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "display" | "advanced" | "data">("general");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const companyInfo: CompanyInfo = settings.companyInfo ?? {};
+  const pdfTemplate: PdfTemplate = settings.pdfTemplate ?? "modern";
+  const localize = (hu: string, de: string, en: string) =>
+    settings.language === "hu" ? hu : settings.language === "de" ? de : en;
   
   // Átalakítjuk az áramárat megjelenítéshez (Ft/kWh -> választott pénznem)
   const getDisplayElectricityPrice = (): number => {
@@ -88,6 +93,208 @@ export const SettingsPage: React.FC<Props> = ({
     const priceInHUF = convertElectricityPriceToHUF(displayValue);
     onChange({ ...settings, electricityPrice: priceInHUF });
   };
+
+  const handleCompanyInfoChange = (field: keyof CompanyInfo, value: string) => {
+    onChange({
+      ...settings,
+      companyInfo: {
+        ...companyInfo,
+        [field]: value,
+      },
+    });
+  };
+
+  const optimizeImage = (
+    base64: string,
+    maxWidth: number = 512,
+    maxHeight: number = 512,
+    quality: number = 0.85
+  ): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Canvas context not available"));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        try {
+          const optimizedBase64 = canvas.toDataURL("image/png", quality);
+          resolve(optimizedBase64);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      img.onerror = reject;
+      img.src = base64;
+    });
+  };
+
+  const handleCompanyLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast(
+        settings.language === "hu"
+          ? "Csak kép feltöltése engedélyezett."
+          : settings.language === "de"
+          ? "Es können nur Bilddateien hochgeladen werden."
+          : "Only image files can be uploaded.",
+        "error"
+      );
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 4 * 1024 * 1024) {
+      showToast(
+        settings.language === "hu"
+          ? "A logo mérete nem haladhatja meg a 4 MB-ot."
+          : settings.language === "de"
+          ? "Das Logo darf 4 MB nicht überschreiten."
+          : "Logo size cannot exceed 4 MB.",
+        "error"
+      );
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const result = reader.result as string;
+      try {
+        const optimized = await optimizeImage(result);
+        onChange({
+          ...settings,
+          companyInfo: {
+            ...companyInfo,
+            logoBase64: optimized,
+          },
+        });
+        showToast(
+          settings.language === "hu"
+            ? "Logo sikeresen frissítve."
+            : settings.language === "de"
+            ? "Logo erfolgreich aktualisiert."
+            : "Logo updated successfully.",
+          "success"
+        );
+      } catch (error) {
+        console.error("❌ Logo optimalizálási hiba:", error);
+        showToast(
+          settings.language === "hu"
+            ? "Hiba történt a logo feldolgozásakor."
+            : settings.language === "de"
+            ? "Bei der Verarbeitung des Logos ist ein Fehler aufgetreten."
+            : "An error occurred while processing the logo.",
+          "error"
+        );
+      } finally {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCompanyLogo = () => {
+    onChange({
+      ...settings,
+      companyInfo: {
+        ...companyInfo,
+        logoBase64: undefined,
+      },
+    });
+    showToast(
+      settings.language === "hu"
+        ? "Logo eltávolítva."
+        : settings.language === "de"
+        ? "Logo entfernt."
+        : "Logo removed.",
+      "success"
+    );
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handlePdfTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange({
+      ...settings,
+      pdfTemplate: e.target.value as PdfTemplate,
+    });
+  };
+
+  const pdfTemplateOptions: Array<{ value: PdfTemplate; label: string; description: string }> = [
+    {
+      value: "modern",
+      label:
+        settings.language === "hu"
+          ? "Modern"
+          : settings.language === "de"
+          ? "Modern"
+          : "Modern",
+      description:
+        settings.language === "hu"
+          ? "Színes kiemelések, letisztult tipográfia és kártya stílus."
+          : settings.language === "de"
+          ? "Farbige Akzente, klare Typografie und Kartenstil."
+          : "Color accents, clean typography and card-style layout.",
+    },
+    {
+      value: "minimal",
+      label:
+        settings.language === "hu"
+          ? "Minimalista"
+          : settings.language === "de"
+          ? "Minimalistisch"
+          : "Minimal",
+      description:
+        settings.language === "hu"
+          ? "Letisztult, monokróm megjelenés finom keretekkel."
+          : settings.language === "de"
+          ? "Schlankes, monochromes Layout mit feinen Rahmen."
+          : "Clean, monochrome layout with subtle borders.",
+    },
+    {
+      value: "professional",
+      label:
+        settings.language === "hu"
+          ? "Professzionális"
+          : settings.language === "de"
+          ? "Professionell"
+          : "Professional",
+      description:
+        settings.language === "hu"
+          ? "Sötétebb fejlécek, strukturált információ blokkok."
+          : settings.language === "de"
+          ? "Dunklere Kopfzeilen, strukturierte Informationsblöcke."
+          : "Darker headers with structured information blocks.",
+    },
+  ];
+
+  const currentPdfTemplateOption =
+    pdfTemplateOptions.find(option => option.value === pdfTemplate) || pdfTemplateOptions[0];
 
   const handleExport = async () => {
     if (!exportFilaments && !exportPrinters && !exportOffers) {
@@ -475,6 +682,322 @@ export const SettingsPage: React.FC<Props> = ({
           </Tooltip>
           <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
             {t("settings.showConsoleDescription")}
+          </p>
+        </div>
+
+        <div style={{
+          marginTop: "32px",
+          padding: "24px",
+          backgroundColor: theme.colors.surfaceHover,
+          borderRadius: "12px",
+          border: `1px solid ${theme.colors.border}`
+        }}>
+          <div style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            gap: "20px",
+            alignItems: companyInfo.logoBase64 ? "center" : "flex-start"
+          }}>
+            <div style={{ flex: "1 1 260px", minWidth: "220px" }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: "18px",
+                fontWeight: 700,
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
+              }}>
+                🏢 {localize("Céginformációk", "Unternehmensinformationen", "Company information")}
+              </h3>
+              <p style={{
+                marginTop: "8px",
+                fontSize: "13px",
+                color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
+                lineHeight: 1.6
+              }}>
+                {localize(
+                  "Add meg a vállalkozás adatait, amelyek automatikusan megjelennek a PDF árajánlatokon.",
+                  "Gib hier die Unternehmensdaten ein, die automatisch auf den PDF-Angeboten erscheinen.",
+                  "Provide your company details and branding to include them on exported PDF quotes automatically."
+                )}
+              </p>
+            </div>
+            {companyInfo.logoBase64 && (
+              <div style={{
+                width: "120px",
+                height: "120px",
+                borderRadius: "12px",
+                border: `1px solid ${theme.colors.border}`,
+                backgroundColor: theme.colors.surface,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "12px"
+              }}>
+                <img
+                  src={companyInfo.logoBase64}
+                  alt={localize("Vállalati logo előnézet", "Logo-Vorschau", "Company logo preview")}
+                  style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                />
+              </div>
+            )}
+          </div>
+
+          <div style={{
+            marginTop: "20px",
+            display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "16px"
+          }}>
+            <div>
+              <label style={{
+                display: "block",
+                marginBottom: "8px",
+                fontWeight: 600,
+                fontSize: "14px",
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
+              }}>
+                {localize("Cégnév", "Firmenname", "Company name")}
+              </label>
+              <input
+                type="text"
+                value={companyInfo.name || ""}
+                onChange={e => handleCompanyInfoChange("name", e.target.value)}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
+                placeholder={localize("Pl.: Lekszikov Nyomtató Kft.", "z. B.: Lekszikov Druck GmbH", "e.g. Lekszikov Printing LLC")}
+              />
+            </div>
+            <div>
+              <label style={{
+                display: "block",
+                marginBottom: "8px",
+                fontWeight: 600,
+                fontSize: "14px",
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
+              }}>
+                {localize("Adószám", "Steuernummer", "Tax/VAT number")}
+              </label>
+              <input
+                type="text"
+                value={companyInfo.taxNumber || ""}
+                onChange={e => handleCompanyInfoChange("taxNumber", e.target.value)}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
+                placeholder={localize("Pl.: 12345678-1-12", "z. B.: DE123456789", "e.g. TAX-123456")}
+              />
+            </div>
+            <div>
+              <label style={{
+                display: "block",
+                marginBottom: "8px",
+                fontWeight: 600,
+                fontSize: "14px",
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
+              }}>
+                {localize("Bankszámlaszám / IBAN", "Kontonummer / IBAN", "Bank account / IBAN")}
+              </label>
+              <input
+                type="text"
+                value={companyInfo.bankAccount || ""}
+                onChange={e => handleCompanyInfoChange("bankAccount", e.target.value)}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
+                placeholder={localize("Pl.: HU12 3456 7890 1234 5678 9012 3456", "z. B.: DE12 3456 7890 1234 5678 90", "e.g. GB00 BARC 2004 0149 1234 56")}
+              />
+            </div>
+            <div>
+              <label style={{
+                display: "block",
+                marginBottom: "8px",
+                fontWeight: 600,
+                fontSize: "14px",
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
+              }}>
+                {localize("E-mail", "E-Mail", "Email")}
+              </label>
+              <input
+                type="email"
+                value={companyInfo.email || ""}
+                onChange={e => handleCompanyInfoChange("email", e.target.value)}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
+                placeholder={localize("Pl.: info@ceg.hu", "z. B.: info@firma.de", "e.g. hello@company.com")}
+              />
+            </div>
+            <div>
+              <label style={{
+                display: "block",
+                marginBottom: "8px",
+                fontWeight: 600,
+                fontSize: "14px",
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
+              }}>
+                {localize("Telefon", "Telefon", "Phone")}
+              </label>
+              <input
+                type="tel"
+                value={companyInfo.phone || ""}
+                onChange={e => handleCompanyInfoChange("phone", e.target.value)}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
+                placeholder={localize("Pl.: +36 30 123 4567", "z. B.: +49 30 1234567", "e.g. +1 555 123 4567")}
+              />
+            </div>
+            <div>
+              <label style={{
+                display: "block",
+                marginBottom: "8px",
+                fontWeight: 600,
+                fontSize: "14px",
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
+              }}>
+                {localize("Weboldal", "Webseite", "Website")}
+              </label>
+              <input
+                type="url"
+                value={companyInfo.website || ""}
+                onChange={e => handleCompanyInfoChange("website", e.target.value)}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
+                placeholder={localize("Pl.: https://www.ceg.hu", "z. B.: https://www.firma.de", "e.g. https://www.company.com")}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginTop: "16px" }}>
+            <label style={{
+              display: "block",
+              marginBottom: "8px",
+              fontWeight: 600,
+              fontSize: "14px",
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
+            }}>
+              {localize("Székhely / Cím", "Firmensitz / Adresse", "Headquarters / Address")}
+            </label>
+            <textarea
+              value={companyInfo.address || ""}
+              onChange={e => handleCompanyInfoChange("address", e.target.value)}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, width: "100%", maxWidth: "700px", minHeight: "100px", resize: "vertical" as const }}
+              placeholder={localize(
+                "Pl.: 1111 Budapest, Nyomtató utca 3.",
+                "z. B.: Musterstraße 5, 10115 Berlin",
+                "e.g. 123 Printer Ave, Suite 200"
+              )}
+            />
+          </div>
+
+          <div style={{ marginTop: "20px", display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center" }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleCompanyLogoUpload}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonPrimary,
+                padding: "10px 20px",
+                fontSize: "14px"
+              }}
+            >
+              📁 {localize("Logo feltöltése", "Logo hochladen", "Upload logo")}
+            </button>
+            {companyInfo.logoBase64 && (
+              <button
+                onClick={handleRemoveCompanyLogo}
+                style={{
+                  ...themeStyles.button,
+                  ...themeStyles.buttonDanger,
+                  padding: "10px 20px",
+                  fontSize: "14px"
+                }}
+              >
+                🗑️ {localize("Logo eltávolítása", "Logo entfernen", "Remove logo")}
+              </button>
+            )}
+            <p style={{
+              margin: "8px 0 0 0",
+              fontSize: "12px",
+              color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
+              flexBasis: "100%"
+            }}>
+              {localize(
+                "Tipp: 512×512 px, átlátszó PNG javasolt. Maximum 4 MB.",
+                "Tipp: Empfohlen 512×512 px, transparentes PNG. Maximal 4 MB.",
+                "Tip: Prefer 512×512 px transparent PNG. Maximum size 4 MB."
+              )}
+            </p>
+          </div>
+        </div>
+
+        <div style={{
+          marginTop: "24px",
+          padding: "24px",
+          backgroundColor: theme.colors.surfaceHover,
+          borderRadius: "12px",
+          border: `1px solid ${theme.colors.border}`
+        }}>
+          <h3 style={{
+            margin: "0 0 8px 0",
+            fontSize: "18px",
+            fontWeight: 700,
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
+          }}>
+            📄 {localize("PDF beállítások", "PDF-Einstellungen", "PDF settings")}
+          </h3>
+          <p style={{
+            margin: "0 0 16px 0",
+            fontSize: "13px",
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
+            lineHeight: 1.6
+          }}>
+            {localize(
+              "Válaszd ki az árajánlatok megjelenését. A vállalati adatok automatikusan bekerülnek a fejlécbe.",
+              "Wähle das Erscheinungsbild deiner Angebote. Die Unternehmensdaten erscheinen automatisch im Kopfbereich.",
+              "Choose the visual style of your quotes. Company details will appear automatically in the header."
+            )}
+          </p>
+          <select
+            value={pdfTemplate}
+            onChange={handlePdfTemplateChange}
+            onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+            style={{ ...themeStyles.select, width: "100%", maxWidth: "320px" }}
+          >
+            {pdfTemplateOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <p style={{
+            marginTop: "12px",
+            fontSize: "12px",
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted
+          }}>
+            {currentPdfTemplateOption.description}
+          </p>
+          <p style={{
+            marginTop: "8px",
+            fontSize: "12px",
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted
+          }}>
+            {localize(
+              "Tipp: Használd az árajánlat oldalon az \"PDF előnézet\" gombot a dizájn ellenőrzéséhez export előtt.",
+              "Tipp: Nutze die Schaltfläche „PDF-Vorschau“ im Angebotsbereich, um das Design vor dem Export zu prüfen.",
+              "Tip: Use the \"PDF preview\" button on the offers page to review the layout before exporting."
+            )}
           </p>
         </div>
           </div>

@@ -61,6 +61,17 @@ export default function App() {
         if (!loadedSettings.theme) {
           loadedSettings.theme = defaultSettings.theme;
         }
+        if (!loadedSettings.companyInfo) {
+          loadedSettings.companyInfo = { ...defaultSettings.companyInfo };
+        } else {
+          loadedSettings.companyInfo = {
+            ...defaultSettings.companyInfo,
+            ...loadedSettings.companyInfo,
+          };
+        }
+        if (!loadedSettings.pdfTemplate) {
+          loadedSettings.pdfTemplate = defaultSettings.pdfTemplate;
+        }
         setSettings(loadedSettings);
       } else {
         // Ha nincs betöltött beállítás, használjuk az alapértelmezett értékeket
