@@ -228,13 +228,27 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 ## 📋 Verziótörténet
 
 ### v0.3.6 (2025)
-- ✅ **Settings UI átrendezése** - Tab rendszer (Általános, Megjelenés, Speciális, Adatkezelés)
-- ✅ **Fordítások javítása** - Minden hardcoded magyar szöveg lefordítva (HU/EN/DE)
-- ✅ **Verzió történet cache** - Fizikai mentés localStorage-ba, 1 óránkénti GitHub ellenőrzés
-- ✅ **Okos fordítás** - Csak új release-eket fordítja le, régi fordításokat használja
-- ✅ **LibreTranslate eltávolítva** - Csak MyMemory API (400-as hibák megszűntek)
-- ✅ **Hibaszámláló auto-reset** - 5 perc után automatikusan resetelődik
-- 🐛 **Build hibák javítása** - JSX indentációs problémák javítva
+- 🎨 **Settings UI átrendezése** - Tab rendszer (Általános, Megjelenés, Speciális, Adatkezelés) jobb UX-ért és tisztább navigáció
+- 🌐 **Fordítások javítása** - Minden hardcoded magyar szöveg lefordítva minden komponensben (HU/EN/DE):
+  - Calculator: "3D nyomtatási költség számítás"
+  - Filaments: "Filamentek kezelése és szerkesztése"
+  - Printers: "Nyomtatók és AMS rendszerek kezelése"
+  - Offers: "Mentett árajánlatok kezelése és exportálása"
+  - Home: Statisztikák címei, összefoglaló, CSV export címkék (óra/Std/hrs, db/Stk/pcs)
+  - VersionHistory: "Nincsenek elérhető verzió előzmények"
+- 💾 **Verzió történet cache rendszer** - Fizikai mentés localStorage-ba, 1 óránkénti GitHub ellenőrzés:
+  - Checksum alapú változás észlelés (csak új release-eknél tölti le)
+  - Nyelvenként külön cache (magyar/angol/német)
+  - Gyors nyelvváltás cache-ből (nincs újrafordítás)
+  - Automatikus cache invalidálás új release esetén
+- 🌐 **Okos fordítás** - Csak új release-eket fordítja le, régi fordításokat használja cache-ből:
+  - Cache validálás (ne cache-elje, ha ugyanaz a szöveg)
+  - MyMemory API fallback, ha nem sikerül fordítás
+  - Hibaszámláló auto-reset (5 perc után resetelődik)
+  - MAX_CONSECUTIVE_ERRORS: 10, MAX_RETRIES: 2
+- 🔧 **LibreTranslate eltávolítva** - Csak MyMemory API használata (400-as hibák megszűntek, GET request, nincs CORS)
+- 🔄 **Retry gomb refaktorálás** - Egyszerűbb trigger mechanizmus useEffect-tel
+- 🐛 **Build hibák javítása** - JSX indentációs problémák javítva (Settings.tsx Export/Import szekció)
 
 ### v0.3.5 (2025)
 - ✅ **MyMemory API integráció** - Ingyenes fordító API LibreTranslate helyett
