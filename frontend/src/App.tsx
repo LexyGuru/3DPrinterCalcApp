@@ -195,14 +195,27 @@ export default function App() {
           height: "100vh", 
           width: "100vw", 
           overflow: "hidden",
-          backgroundColor: currentTheme.colors.background,
+          ...(currentTheme.colors.background?.includes('gradient') 
+            ? {
+                backgroundImage: currentTheme.colors.background,
+                backgroundAttachment: "fixed",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+              }
+            : {
+                backgroundColor: currentTheme.colors.background,
+              }
+          ),
           color: currentTheme.colors.text,
         }}>
           <UpdateChecker settings={settings} />
           <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} isBeta={isBeta} theme={currentTheme} />
           <main style={{ 
             padding: 20, 
-            backgroundColor: currentTheme.colors.background, 
+            backgroundColor: currentTheme.colors.background?.includes('gradient')
+              ? "transparent"
+              : currentTheme.colors.background,
             color: currentTheme.colors.text,
             overflowY: "auto",
             overflowX: "hidden",

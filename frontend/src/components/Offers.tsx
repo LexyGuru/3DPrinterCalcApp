@@ -550,7 +550,13 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       {/* Kereső mező */}
       {offers.length > 0 && (
         <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "8px", 
+            fontWeight: "600", 
+            fontSize: "14px", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
           </label>
           <input
@@ -568,13 +574,22 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       {offers.length === 0 ? (
         <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>{t("offers.empty")}</p>
+          <p style={{ 
+            margin: 0, 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
+            fontSize: "16px" 
+          }}>{t("offers.empty")}</p>
         </div>
       ) : (
         <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
           {/* Árajánlatok lista */}
           <div style={{ flex: "1", minWidth: "300px" }}>
-            <h3 style={{ fontSize: "20px", fontWeight: "600", color: theme.colors.text, marginBottom: "16px" }}>
+            <h3 style={{ 
+              fontSize: "20px", 
+              fontWeight: "600", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              marginBottom: "16px" 
+            }}>
               📋 Mentett árajánlatok
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -616,18 +631,34 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                         <strong style={{ fontSize: "16px" }}>
                           {offer.customerName ? `${offer.customerName}` : `Árajánlat #${offer.id}`}
                         </strong>
-                        <p style={{ margin: "5px 0", color: theme.colors.textSecondary, fontSize: "14px" }}>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary, 
+                          fontSize: "14px" 
+                        }}>
                           {date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
                         </p>
                         {offer.customerName && (
-                          <p style={{ margin: "5px 0", fontSize: "14px", color: theme.colors.text }}><strong>{t("offers.customerName")}:</strong> {offer.customerName}</p>
+                          <p style={{ 
+                            margin: "5px 0", 
+                            fontSize: "14px", 
+                            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                          }}><strong>{t("offers.customerName")}:</strong> {offer.customerName}</p>
                         )}
                         {offer.customerContact && (
-                          <p style={{ margin: "5px 0", fontSize: "14px", color: theme.colors.text }}>
+                          <p style={{ 
+                            margin: "5px 0", 
+                            fontSize: "14px", 
+                            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                          }}>
                             <strong>{settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}:</strong> {offer.customerContact}
                           </p>
                         )}
-                        <p style={{ margin: "5px 0", fontSize: "14px", color: theme.colors.text }}>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          fontSize: "14px", 
+                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                        }}>
                           <strong>{offer.printerName}</strong> - {offer.totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
                         </p>
                         <p style={{ margin: "5px 0", fontSize: "16px", color: theme.colors.primary, fontWeight: "bold" }}>
@@ -635,25 +666,6 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                         </p>
                       </div>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                        <Tooltip content={settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedOffer(offer);
-                              startEditOffer(offer);
-                            }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
-                            style={{
-                              ...themeStyles.button,
-                              ...themeStyles.buttonSuccess,
-                              padding: "8px 16px",
-                              fontSize: "12px"
-                            }}
-                          >
-                            ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
-                          </button>
-                        </Tooltip>
                         <Tooltip content={settings.language === "hu" ? "Árajánlat törlése" : settings.language === "de" ? "Angebot löschen" : "Delete offer"}>
                           <button
                             onClick={(e) => {
@@ -692,7 +704,12 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
           {selectedOffer && (
             <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-                <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
+                <h3 style={{ 
+                  margin: 0, 
+                  fontSize: "20px", 
+                  fontWeight: "600", 
+                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                }}>
                   📄 {selectedOffer.customerName ? `${selectedOffer.customerName}` : `Árajánlat #${selectedOffer.id}`}
                 </h3>
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -765,7 +782,14 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   </h4>
                   <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", flexWrap: "wrap" }}>
                     <div style={{ width: "200px", flexShrink: 0 }}>
-                      <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                        whiteSpace: "nowrap" 
+                      }}>
                         {t("offers.customerName")} *
                       </label>
                       <input
@@ -779,7 +803,14 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                       />
                     </div>
                     <div style={{ width: "200px", flexShrink: 0 }}>
-                      <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                        whiteSpace: "nowrap" 
+                      }}>
                         {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}
                       </label>
                       <input
@@ -793,7 +824,14 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                       />
                     </div>
                     <div style={{ width: "150px", flexShrink: 0 }}>
-                      <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                        whiteSpace: "nowrap" 
+                      }}>
                         📈 {t("offers.profitPercentage")}
                       </label>
                       <select
@@ -812,7 +850,13 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                     </div>
                   </div>
                   <div style={{ marginTop: "20px", width: "100%", maxWidth: "600px" }}>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+                    <label style={{ 
+                      display: "block", 
+                      marginBottom: "8px", 
+                      fontWeight: "600", 
+                      fontSize: "14px", 
+                      color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                    }}>
                       {t("offers.description")}
                     </label>
                     <textarea
@@ -857,7 +901,13 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                             </div>
                             <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "flex-end" }}>
                               <div style={{ width: "150px", flexShrink: 0 }}>
-                                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "12px", color: theme.colors.text }}>
+                                <label style={{ 
+                                  display: "block", 
+                                  marginBottom: "8px", 
+                                  fontWeight: "600", 
+                                  fontSize: "12px", 
+                                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                                }}>
                                   {t("calculator.usedGrams")}
                                 </label>
                                 <input
@@ -884,7 +934,13 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                               {f.needsDrying && (
                                 <>
                                   <div style={{ width: "120px", flexShrink: 0 }}>
-                                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "12px", color: theme.colors.text }}>
+                                    <label style={{ 
+                                  display: "block", 
+                                  marginBottom: "8px", 
+                                  fontWeight: "600", 
+                                  fontSize: "12px", 
+                                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                                }}>
                                       {t("calculator.dryingTime")}
                                     </label>
                                     <input
@@ -909,7 +965,13 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                     />
                                   </div>
                                   <div style={{ width: "120px", flexShrink: 0 }}>
-                                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "12px", color: theme.colors.text }}>
+                                    <label style={{ 
+                                  display: "block", 
+                                  marginBottom: "8px", 
+                                  fontWeight: "600", 
+                                  fontSize: "12px", 
+                                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                                }}>
                                       {t("calculator.dryingPower")}
                                     </label>
                                     <input
@@ -1010,7 +1072,13 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                     </div>
 
                     <div style={{ marginBottom: "12px" }}>
-                      <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                      }}>
                         📈 {t("offers.profitPercentage")}
                       </label>
                       <select
@@ -1387,6 +1455,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
         isOpen={deleteConfirmId !== null}
         title={t("common.confirm")}
         message={t("common.confirmDeleteOffer")}
+        theme={theme}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteConfirmId(null)}
         confirmText={t("common.yes")}

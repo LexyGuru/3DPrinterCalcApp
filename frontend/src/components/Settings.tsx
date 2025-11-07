@@ -229,17 +229,23 @@ export const SettingsPage: React.FC<Props> = ({
   };
 
   // Tab style
+  const isGradientBackground = theme.colors.background?.includes('gradient');
   const tabButtonStyle = (isActive: boolean) => ({
     padding: "12px 24px",
     border: "none",
     borderBottom: isActive ? `3px solid ${theme.colors.primary}` : `3px solid transparent`,
-    backgroundColor: isActive ? theme.colors.surfaceHover : "transparent",
-    color: isActive ? theme.colors.primary : theme.colors.text,
+    backgroundColor: isActive 
+      ? (isGradientBackground ? "rgba(255, 255, 255, 0.9)" : theme.colors.surfaceHover)
+      : (isGradientBackground ? "rgba(255, 255, 255, 0.7)" : "transparent"),
+    color: isActive 
+      ? (isGradientBackground ? "#1a202c" : theme.colors.primary)
+      : (isGradientBackground ? "#1a202c" : theme.colors.text),
     cursor: "pointer",
     fontSize: "16px",
-    fontWeight: isActive ? "600" : "500",
+    fontWeight: isActive ? "700" : "600",
     transition: "all 0.2s",
     borderRadius: "4px 4px 0 0",
+    backdropFilter: isGradientBackground ? "blur(8px)" : "none",
   });
 
   return (
@@ -255,21 +261,23 @@ export const SettingsPage: React.FC<Props> = ({
         gap: "8px", 
         marginBottom: "0",
         borderBottom: `1px solid ${theme.colors.border}`,
-        backgroundColor: theme.colors.surface,
+        backgroundColor: isGradientBackground ? "rgba(255, 255, 255, 0.85)" : theme.colors.surface,
         borderRadius: "8px 8px 0 0",
         overflow: "auto",
+        backdropFilter: isGradientBackground ? "blur(10px)" : "none",
+        opacity: isGradientBackground ? 0.9 : 1,
       }}>
         <button
           onClick={() => setActiveTab("general")}
           style={tabButtonStyle(activeTab === "general")}
           onMouseEnter={(e) => {
             if (activeTab !== "general") {
-              e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              e.currentTarget.style.backgroundColor = isGradientBackground ? "rgba(255, 255, 255, 0.85)" : theme.colors.surfaceHover;
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== "general") {
-              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.backgroundColor = isGradientBackground ? "rgba(255, 255, 255, 0.7)" : "transparent";
             }
           }}
         >
@@ -280,12 +288,12 @@ export const SettingsPage: React.FC<Props> = ({
           style={tabButtonStyle(activeTab === "display")}
           onMouseEnter={(e) => {
             if (activeTab !== "display") {
-              e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              e.currentTarget.style.backgroundColor = isGradientBackground ? "rgba(255, 255, 255, 0.85)" : theme.colors.surfaceHover;
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== "display") {
-              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.backgroundColor = isGradientBackground ? "rgba(255, 255, 255, 0.7)" : "transparent";
             }
           }}
         >
@@ -296,12 +304,12 @@ export const SettingsPage: React.FC<Props> = ({
           style={tabButtonStyle(activeTab === "advanced")}
           onMouseEnter={(e) => {
             if (activeTab !== "advanced") {
-              e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              e.currentTarget.style.backgroundColor = isGradientBackground ? "rgba(255, 255, 255, 0.85)" : theme.colors.surfaceHover;
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== "advanced") {
-              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.backgroundColor = isGradientBackground ? "rgba(255, 255, 255, 0.7)" : "transparent";
             }
           }}
         >
@@ -312,12 +320,12 @@ export const SettingsPage: React.FC<Props> = ({
           style={tabButtonStyle(activeTab === "data")}
           onMouseEnter={(e) => {
             if (activeTab !== "data") {
-              e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              e.currentTarget.style.backgroundColor = isGradientBackground ? "rgba(255, 255, 255, 0.85)" : theme.colors.surfaceHover;
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== "data") {
-              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.backgroundColor = isGradientBackground ? "rgba(255, 255, 255, 0.7)" : "transparent";
             }
           }}
         >
@@ -333,7 +341,14 @@ export const SettingsPage: React.FC<Props> = ({
           <div>
         <div style={{ marginBottom: "24px" }}>
           <Tooltip content={t("settings.language") + " - " + (settings.language === "hu" ? "Válaszd ki az alkalmazás nyelvét" : settings.language === "de" ? "Wähle die Sprache der Anwendung" : "Choose the application language")}>
-            <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, width: "fit-content" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              width: "fit-content" 
+            }}>
               🌐 {t("settings.language")}
             </label>
           </Tooltip>
@@ -352,7 +367,14 @@ export const SettingsPage: React.FC<Props> = ({
         
         <div style={{ marginBottom: "24px" }}>
           <Tooltip content={settings.language === "hu" ? "Válaszd ki a pénznemet az árak megjelenítéséhez" : settings.language === "de" ? "Wählen Sie die Währung für die Preisanzeige" : "Choose the currency for price display"}>
-            <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, width: "fit-content" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              width: "fit-content" 
+            }}>
               💰 {t("settings.currency")}
             </label>
           </Tooltip>
@@ -371,7 +393,14 @@ export const SettingsPage: React.FC<Props> = ({
         
         <div style={{ marginBottom: "24px" }}>
           <Tooltip content={settings.language === "hu" ? "Adja meg az áram árát kilowattóránként" : settings.language === "de" ? "Geben Sie den Strompreis pro Kilowattstunde ein" : "Enter the electricity price per kilowatt hour"}>
-            <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, width: "fit-content" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              width: "fit-content" 
+            }}>
               ⚡ {t("settings.electricityPrice")} ({settings.currency === "HUF" ? "Ft" : settings.currency === "EUR" ? "€" : "$"}/kWh)
             </label>
           </Tooltip>
@@ -385,14 +414,26 @@ export const SettingsPage: React.FC<Props> = ({
             style={{ ...themeStyles.input, width: "100%", maxWidth: "300px" }}
             placeholder="Pl: 70"
           />
-          <p style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
+          <p style={{ 
+            marginTop: "8px", 
+            fontSize: "12px", 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
+          }}>
             {settings.language === "hu" ? "Az áram ár mindig Ft/kWh-ban van tárolva, de a választott pénznemben jelenik meg." : settings.language === "de" ? "Der Strompreis wird immer in Ft/kWh gespeichert, wird aber in der gewählten Währung angezeigt." : "The electricity price is always stored in Ft/kWh, but displayed in the selected currency."}
           </p>
         </div>
         
         <div style={{ marginBottom: "24px" }}>
           <Tooltip content={t("settings.checkForBetaUpdatesDescription")}>
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer" 
+            }}>
               <input
                 type="checkbox"
                 checked={settings.checkForBetaUpdates || false}
@@ -402,14 +443,27 @@ export const SettingsPage: React.FC<Props> = ({
               <span>🔬 {t("settings.checkForBetaUpdates")}</span>
             </label>
           </Tooltip>
-          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
+          <p style={{ 
+            marginTop: "8px", 
+            marginLeft: "32px", 
+            fontSize: "12px", 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
+          }}>
             {t("settings.checkForBetaUpdatesDescription")}
           </p>
         </div>
         
         <div style={{ marginBottom: "0" }}>
           <Tooltip content={t("settings.showConsoleDescription")}>
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer" 
+            }}>
               <input
                 type="checkbox"
                 checked={settings.showConsole || false}
@@ -430,61 +484,167 @@ export const SettingsPage: React.FC<Props> = ({
         {activeTab === "display" && (
           <div>
         <div style={{ marginBottom: "0" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "12px", 
+            fontWeight: "600", 
+            fontSize: "16px", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             🎨 {t("settings.theme")}
           </label>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            {(["light", "dark", "blue", "green", "purple", "orange"] as ThemeName[]).map((themeName) => {
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+            gap: "16px",
+            marginBottom: "20px"
+          }}>
+            {(["light", "dark", "blue", "green", "purple", "orange", "gradient", "neon", "cyberpunk", "sunset", "ocean"] as ThemeName[]).map((themeName) => {
               const themeOption = themes[themeName];
               const isSelected = (settings.theme || "light") === themeName;
+              const isGradientTheme = themeOption.colors.background?.includes('gradient');
+              const isNeonTheme = themeName === 'neon' || themeName === 'cyberpunk';
+              
               return (
                 <button
                   key={themeName}
                   onClick={() => onChange({ ...settings, theme: themeName })}
                   style={{
                     ...themeStyles.button,
-                    backgroundColor: isSelected ? themeOption.colors.primary : themeOption.colors.surface,
-                    color: isSelected ? "#fff" : themeOption.colors.text,
-                    border: `2px solid ${isSelected ? themeOption.colors.primary : themeOption.colors.border}`,
-                    padding: "16px 20px",
-                    flex: "1",
-                    minWidth: "120px",
+                    ...(isGradientTheme
+                      ? {
+                          backgroundImage: themeOption.colors.background,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          backgroundRepeat: "no-repeat",
+                        }
+                      : {
+                          backgroundColor: themeOption.colors.background,
+                        }
+                    ),
+                    color: isGradientTheme || themeOption.colors.background === "#1a1a1a" || themeOption.colors.background === "#0a0a0f" || themeOption.colors.background === "#0d0d0d"
+                      ? "#ffffff"
+                      : themeOption.colors.text,
+                    border: isSelected 
+                      ? `3px solid ${themeOption.colors.sidebarActive || themeOption.colors.primary}`
+                      : `2px solid ${themeOption.colors.border}`,
+                    padding: "20px 16px",
+                    minHeight: "120px",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    gap: "8px",
-                    boxShadow: isSelected ? `0 4px 12px ${themeOption.colors.shadow}` : "none",
+                    justifyContent: "center",
+                    gap: "10px",
+                    boxShadow: isSelected 
+                      ? isNeonTheme
+                        ? `0 0 20px ${themeOption.colors.shadow}, 0 4px 12px ${themeOption.colors.shadow}`
+                        : `0 4px 16px ${themeOption.colors.shadow}`
+                      : `0 2px 8px ${themeOption.colors.shadow}`,
+                    position: "relative" as const,
+                    overflow: "hidden" as const,
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    transform: isSelected ? "scale(1.05)" : "scale(1)",
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = themeOption.colors.surfaceHover;
-                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.transform = "scale(1.03) translateY(-2px)";
+                      e.currentTarget.style.boxShadow = isNeonTheme
+                        ? `0 0 15px ${themeOption.colors.shadow}, 0 4px 12px ${themeOption.colors.shadow}`
+                        : `0 4px 12px ${themeOption.colors.shadowHover}`;
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = themeOption.colors.surface;
-                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.boxShadow = `0 2px 8px ${themeOption.colors.shadow}`;
                     }
                   }}
                 >
-                  <span style={{ fontSize: "24px" }}>
+                  {/* Szín preview sávok */}
+                  <div style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: "8px",
+                    ...(isGradientTheme
+                      ? {
+                          backgroundImage: themeOption.colors.background,
+                          backgroundSize: "cover",
+                        }
+                      : {
+                          backgroundColor: themeOption.colors.primary,
+                        }
+                    ),
+                    opacity: 0.8,
+                  }} />
+                  
+                  <span style={{ 
+                    fontSize: "32px",
+                    filter: isGradientTheme 
+                      ? "drop-shadow(0 2px 4px rgba(0,0,0,0.5))" 
+                      : (isNeonTheme && isSelected ? `drop-shadow(0 0 8px ${themeOption.colors.sidebarActive})` : "none"),
+                    zIndex: 1,
+                  }}>
                     {themeName === "light" && "☀️"}
                     {themeName === "dark" && "🌙"}
                     {themeName === "blue" && "💙"}
                     {themeName === "green" && "💚"}
                     {themeName === "purple" && "💜"}
                     {themeName === "orange" && "🧡"}
+                    {themeName === "gradient" && "🌈"}
+                    {themeName === "neon" && "💡"}
+                    {themeName === "cyberpunk" && "🤖"}
+                    {themeName === "sunset" && "🌅"}
+                    {themeName === "ocean" && "🌊"}
                   </span>
-                  <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                  <span style={{ 
+                    fontSize: "14px", 
+                    fontWeight: "600",
+                    zIndex: 1,
+                    textShadow: isGradientTheme 
+                      ? "0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)"
+                      : isNeonTheme 
+                      ? "0 1px 3px rgba(0,0,0,0.3)"
+                      : "none",
+                    color: isGradientTheme ? "#ffffff" : undefined,
+                  }}>
                     {themeOption.displayName[settings.language]}
                   </span>
-                  {isSelected && <span style={{ fontSize: "12px" }}>✓</span>}
+                  {isSelected && (
+                    <span style={{ 
+                      fontSize: "16px",
+                      zIndex: 1,
+                      textShadow: isGradientTheme 
+                        ? "0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)"
+                        : isNeonTheme 
+                        ? "0 1px 3px rgba(0,0,0,0.3)"
+                        : "none",
+                      color: isGradientTheme ? "#ffffff" : undefined,
+                    }}>
+                      ✓
+                    </span>
+                  )}
+                  
+                  {/* Szín preview alsó rész */}
+                  <div style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: "4px",
+                    backgroundColor: themeOption.colors.sidebarActive || themeOption.colors.primary,
+                    opacity: isSelected ? 1 : 0.5,
+                  }} />
                 </button>
               );
             })}
           </div>
-          <p style={{ marginTop: "12px", fontSize: "12px", color: theme.colors.textMuted }}>
+          <p style={{ 
+            marginTop: "12px", 
+            fontSize: "12px", 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
+          }}>
             {t("settings.themeDescription")}
           </p>
         </div>
@@ -497,7 +657,15 @@ export const SettingsPage: React.FC<Props> = ({
         {/* Automatikus mentés */}
         <div style={{ marginBottom: "24px" }}>
           <Tooltip content={t("settings.autosaveDescription")}>
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer" 
+            }}>
               <input
                 type="checkbox"
                 checked={settings.autosave !== false}
@@ -513,7 +681,12 @@ export const SettingsPage: React.FC<Props> = ({
           {settings.autosave !== false && (
             <div style={{ marginTop: "12px", marginLeft: "32px" }}>
               <Tooltip content={t("settings.autosaveIntervalDescription")}>
-                <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", color: theme.colors.text }}>
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "8px", 
+                  fontSize: "14px", 
+                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                }}>
                   {t("settings.autosaveInterval")}
                 </label>
               </Tooltip>
@@ -583,7 +756,13 @@ export const SettingsPage: React.FC<Props> = ({
 
         {/* Gyorsbillentyűk és Információk */}
         <div style={{ marginBottom: "0" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "12px", 
+            fontWeight: "600", 
+            fontSize: "16px", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             ⚙️ {settings.language === "hu" ? "Egyéb beállítások" : settings.language === "de" ? "Sonstige Einstellungen" : "Other Settings"}
           </label>
           <p style={{ marginBottom: "16px", fontSize: "12px", color: theme.colors.textMuted }}>
@@ -624,7 +803,13 @@ export const SettingsPage: React.FC<Props> = ({
           <div>
         {/* Backup */}
         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "18px", color: theme.colors.text }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "12px", 
+            fontWeight: "600", 
+            fontSize: "18px", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             💾 {t("settings.backup")}
           </label>
           <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
@@ -688,7 +873,13 @@ export const SettingsPage: React.FC<Props> = ({
         <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
           {/* Export Data Section */}
           <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
-          <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
+          <h3 style={{ 
+            marginTop: 0, 
+            marginBottom: "20px", 
+            fontSize: "20px", 
+            fontWeight: "600", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             💾 {t("settings.exportTitle")}
           </h3>
           <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
@@ -696,7 +887,16 @@ export const SettingsPage: React.FC<Props> = ({
           </p>
           
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer", marginBottom: "12px" }}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "500", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer", 
+              marginBottom: "12px" 
+            }}>
               <input
                 type="checkbox"
                 checked={exportFilaments}
@@ -706,7 +906,16 @@ export const SettingsPage: React.FC<Props> = ({
               <span>🧵 {t("settings.exportFilaments")} ({filaments.length})</span>
             </label>
             
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer", marginBottom: "12px" }}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "500", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer", 
+              marginBottom: "12px" 
+            }}>
               <input
                 type="checkbox"
                 checked={exportPrinters}
@@ -716,7 +925,15 @@ export const SettingsPage: React.FC<Props> = ({
               <span>🖨️ {t("settings.exportPrinters")} ({printers.length})</span>
             </label>
             
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer" }}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "500", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer" 
+            }}>
               <input
                 type="checkbox"
                 checked={exportOffers}
@@ -745,7 +962,13 @@ export const SettingsPage: React.FC<Props> = ({
 
           {/* Import Data Section */}
           <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
-          <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
+          <h3 style={{ 
+            marginTop: 0, 
+            marginBottom: "20px", 
+            fontSize: "20px", 
+            fontWeight: "600", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             📥 {t("settings.importTitle")}
           </h3>
           <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
@@ -756,7 +979,16 @@ export const SettingsPage: React.FC<Props> = ({
           </p>
           
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer", marginBottom: "12px" }}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "500", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer", 
+              marginBottom: "12px" 
+            }}>
               <input
                 type="checkbox"
                 checked={importFilaments}
@@ -766,7 +998,16 @@ export const SettingsPage: React.FC<Props> = ({
               <span>🧵 {t("settings.importFilaments")}</span>
             </label>
             
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer", marginBottom: "12px" }}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "500", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer", 
+              marginBottom: "12px" 
+            }}>
               <input
                 type="checkbox"
                 checked={importPrinters}
@@ -776,7 +1017,15 @@ export const SettingsPage: React.FC<Props> = ({
               <span>🖨️ {t("settings.importPrinters")}</span>
             </label>
             
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "500", fontSize: "14px", color: theme.colors.text, cursor: "pointer" }}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "500", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer" 
+            }}>
               <input
                 type="checkbox"
                 checked={importOffers}

@@ -2,6 +2,23 @@
 
 ## ✅ Már implementált funkciók
 
+### v0.3.8-ban implementálva:
+- ✅ **Riport számok formázás javítása** - 2 tizedesjegyig formázás a riportban (konzisztens a kezdőlappal)
+- ✅ **Beállítások tab navigáció javítása** - Hátter és betűszín javítása gradient témáknál
+
+### v0.3.7-ben implementálva:
+- ✅ **Dizájn modernizálás** - Teljes vizuális átalakítás animációkkal és új témákkal (Gradient, Neon, Cyberpunk, Sunset, Ocean)
+- ✅ **Framer Motion animációk** - FadeIn, SlideIn, Stagger, HoverLift animációk integrálva
+- ✅ **Glassmorphism effekt** - Blur + átlátszó háttér gradient témáknál
+- ✅ **Neon glow effekt** - Neon/cyberpunk témáknál
+- ✅ **Színezés javítások** - Jobb kontraszt és olvashatóság minden témához
+- ✅ **Táblázat stílusok javítása** - Homályosabb háttér, jobb szöveg kontraszt (#333)
+- ✅ **Kártyák háttérszínek javítása** - Homályosabb háttér (rgba(255,255,255,0.75)), blur(12px)
+- ✅ **Home oldal modernizálás** - Heti/havi/éves statisztikák, időszak összehasonlítás
+- ✅ **Dátum szűrés javítás** - Pontosabb időszak szűrés (idő nullázása, felső határ)
+- ✅ **Sidebar modernizálás** - Ikonok, glassmorphism, neon glow effektek
+- ✅ **ConfirmDialog modernizálás** - Téma prop hozzáadva, harmonizált színezés
+
 ### v0.3.6-ban implementálva:
 - ✅ **Settings UI átrendezése** - Tab rendszer (Általános, Megjelenés, Speciális, Adatkezelés) jobb UX-ért
 - ✅ **Fordítások javítása** - Minden hardcoded magyar szöveg lefordítva (HU/EN/DE)
@@ -184,4 +201,4 @@ Ezek tovább javítanák a kódminőséget és biztonságot.
 
 ---
 
-**Utolsó frissítés**: 2025. november (v0.3.6 után)
+**Utolsó frissítés**: 2025. január (v0.3.8 után)

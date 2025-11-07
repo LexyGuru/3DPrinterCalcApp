@@ -307,7 +307,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 borderRadius: "6px",
                 border: `1px solid ${theme.colors.border}`,
                 backgroundColor: theme.colors.surface,
-                color: theme.colors.text,
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
                 fontSize: "12px",
                 cursor: templates.length === 0 ? "not-allowed" : "pointer",
                 opacity: templates.length === 0 ? 0.5 : 1,
@@ -363,7 +363,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
       {showTemplateList && templates.length > 0 && (
         <div style={{ ...themeStyles.card, marginBottom: "24px", maxWidth: "100%", boxSizing: "border-box" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: theme.colors.text }}>
+            <h3 style={{ 
+              margin: 0, 
+              fontSize: "18px", 
+              fontWeight: "600", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+            }}>
               📋 {settings.language === "hu" ? "Template-ek" : settings.language === "de" ? "Templates" : "Templates"}
             </h3>
             <button
@@ -396,13 +401,24 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
                     <div style={{ flex: 1 }}>
-                      <strong style={{ fontSize: "16px", color: theme.colors.text }}>{template.name}</strong>
+                      <strong style={{ 
+                        fontSize: "16px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                      }}>{template.name}</strong>
                       {template.description && (
-                        <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: theme.colors.textSecondary }}>
+                        <p style={{ 
+                          margin: "4px 0 0 0", 
+                          fontSize: "12px", 
+                          color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
+                        }}>
                           {template.description}
                         </p>
                       )}
-                      <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: theme.colors.textSecondary }}>
+                      <p style={{ 
+                        margin: "8px 0 0 0", 
+                        fontSize: "12px", 
+                        color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
+                      }}>
                         {printer ? `${printer.name} (${printer.type})` : settings.language === "hu" ? "Nyomtató nem található" : settings.language === "de" ? "Drucker nicht gefunden" : "Printer not found"} • {template.selectedFilaments.length} {settings.language === "hu" ? "filament" : settings.language === "de" ? "Filament" : "filament"} • {template.printTimeHours}h {template.printTimeMinutes}m {template.printTimeSeconds}s
                       </p>
                     </div>
@@ -471,11 +487,23 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             maxHeight: "90vh",
             overflow: "auto"
           }}>
-            <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
+            <h3 style={{ 
+              marginTop: 0, 
+              marginBottom: "20px", 
+              fontSize: "20px", 
+              fontWeight: "600", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+            }}>
               💾 {settings.language === "hu" ? "Template mentése" : settings.language === "de" ? "Template speichern" : "Save template"}
             </h3>
             <div style={{ marginBottom: "16px" }}>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontWeight: "600", 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>
                 {settings.language === "hu" ? "Template név *" : settings.language === "de" ? "Template-Name *" : "Template name *"}
               </label>
               <input
@@ -487,7 +515,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               />
             </div>
             <div style={{ marginBottom: "20px" }}>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontWeight: "600", 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>
                 {settings.language === "hu" ? "Leírás (opcionális)" : settings.language === "de" ? "Beschreibung (optional)" : "Description (optional)"}
               </label>
               <textarea
@@ -545,12 +579,24 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
       )}
       
       <div style={{ ...themeStyles.card, marginBottom: "24px", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
-        <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
+        <h3 style={{ 
+          marginTop: 0, 
+          marginBottom: "20px", 
+          fontSize: "20px", 
+          fontWeight: "600", 
+          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+        }}>
           ⚙️ {t("calculator.parameters")}
         </h3>
         
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "12px", 
+            fontWeight: "600", 
+            fontSize: "16px", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             🖨️ {t("calculator.printer")}
           </label>
           <select
@@ -573,7 +619,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             ))}
           </select>
           {selectedPrinter && (
-            <p style={{ marginTop: "5px", fontSize: "12px", color: theme.colors.textSecondary }}>
+            <p style={{ 
+              marginTop: "5px", 
+              fontSize: "12px", 
+              color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
+            }}>
               {t("calculator.maxFilaments")} {maxFilaments} ({(selectedPrinter.amsCount || 0)} {t("printers.ams")} × 4)
             </p>
           )}
@@ -581,12 +631,24 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
 
         {/* Nyomtatási idő: óra, perc, másodperc */}
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "12px", 
+            fontWeight: "600", 
+            fontSize: "16px", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             ⏱️ {t("calculator.printTimeLabel")}
           </label>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.hours")}</label>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontSize: "14px", 
+                fontWeight: "500", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.hours")}</label>
               <input
                 type="number"
                 min="0"
@@ -612,7 +674,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               </span>
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.minutes")}</label>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontSize: "14px", 
+                fontWeight: "500", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.minutes")}</label>
               <input
                 type="number"
                 min="0"
@@ -638,7 +706,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               </span>
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.seconds")}</label>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontSize: "14px", 
+                fontWeight: "500", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.seconds")}</label>
               <input
                 type="number"
                 min="0"
@@ -664,7 +738,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               </span>
             </div>
           </div>
-          <p style={{ marginTop: "5px", fontSize: "12px", color: theme.colors.textSecondary }}>
+          <p style={{ 
+            marginTop: "5px", 
+            fontSize: "12px", 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
+          }}>
             {t("calculator.totalTime")} {totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
           </p>
         </div>
@@ -672,7 +750,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
         {/* Filamentek kiválasztása */}
         <div style={{ marginBottom: "20px", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
-            <label style={{ fontWeight: "600", fontSize: "16px", color: theme.colors.text }}>
+            <label style={{ 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+            }}>
               🧵 {t("calculator.filaments")} ({selectedFilaments.length}/{maxFilaments})
             </label>
             {maxFilaments > 0 && selectedFilaments.length < maxFilaments && (
@@ -732,7 +814,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               </div>
               <div style={{ display: "flex", gap: "16px", alignItems: "flex-end", marginBottom: "16px", flexWrap: "wrap" }}>
                 <div style={{ flex: "1", minWidth: "200px", maxWidth: "100%" }}>
-                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.filament")}:</label>
+                  <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontSize: "14px", 
+                fontWeight: "500", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.filament")}:</label>
                   <select
                     value={sf.filamentIndex}
                     onChange={e => updateFilament(idx, "filamentIndex", Number(e.target.value))}
@@ -749,7 +837,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   </select>
                 </div>
                 <div style={{ flexShrink: 0 }}>
-                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.usedGrams")}</label>
+                  <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontSize: "14px", 
+                fontWeight: "500", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.usedGrams")}</label>
                   <input
                     type="number"
                     min="0"
@@ -772,7 +866,15 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               </div>
               {/* Szárítás opció minden filamentnél */}
               <div style={{ ...themeStyles.card, padding: "16px", backgroundColor: theme.colors.surfaceHover, marginTop: "16px", maxWidth: "100%", boxSizing: "border-box" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", marginBottom: "12px", fontSize: "14px", color: theme.colors.text }}>
+                <label style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: "12px", 
+                  fontWeight: "600", 
+                  marginBottom: "12px", 
+                  fontSize: "14px", 
+                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                }}>
                   <input
                     type="checkbox"
                     checked={sf.needsDrying || false}
@@ -784,7 +886,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 {sf.needsDrying && (
                   <div style={{ display: "flex", gap: "12px", marginTop: "12px", flexWrap: "wrap" }}>
                     <div style={{ flex: "1", minWidth: "150px", maxWidth: "100%" }}>
-                      <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.dryingTime")}</label>
+                      <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontSize: "14px", 
+                fontWeight: "500", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.dryingTime")}</label>
                       <input
                         type="number"
                         min="0"
@@ -805,7 +913,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                       />
                     </div>
                     <div style={{ flex: "1", minWidth: "150px", maxWidth: "100%" }}>
-                      <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: theme.colors.text }}>{t("calculator.dryingPower")}</label>
+                      <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontSize: "14px", 
+                fontWeight: "500", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.dryingPower")}</label>
                       <input
                         type="number"
                         min="0"
@@ -849,7 +963,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
           overflow: "hidden"
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
+            <h3 style={{ 
+              margin: 0, 
+              fontSize: "20px", 
+              fontWeight: "600", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+            }}>
               💰 {t("calculator.costBreakdown")} ({settings.currency})
             </h3>
             {onSaveOffer && (
@@ -881,25 +1000,42 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
           </div>
           <div style={{ marginTop: "20px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-              <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.filamentCost")}</span>
+              <span style={{ 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.filamentCost")}</span>
               <strong style={{ fontSize: "16px", color: theme.colors.success }}>{calculations.filamentCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-              <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.electricityCost")}</span>
+              <span style={{ 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.electricityCost")}</span>
               <strong style={{ fontSize: "16px", color: "#ffc107" }}>{calculations.electricityCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
             </div>
             {selectedFilaments.some(sf => sf.needsDrying && sf.dryingTime && sf.dryingTime > 0 && sf.dryingPower && sf.dryingPower > 0) && (
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-                <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.dryingCost")}</span>
+                <span style={{ 
+                  fontSize: "14px", 
+                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                }}>{t("calculator.dryingCost")}</span>
                 <strong style={{ fontSize: "16px", color: theme.colors.primary }}>{calculations.totalDryingCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: `2px solid ${theme.colors.border}` }}>
-              <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.usageCost")}</span>
-              <strong style={{ fontSize: "16px", color: theme.colors.textMuted }}>{calculations.usageCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+              <span style={{ 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.usageCost")}</span>
+              <strong style={{ 
+                fontSize: "16px", 
+                color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
+              }}>{calculations.usageCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: theme.colors.surfaceHover, padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
-              <span style={{ color: theme.colors.text }}>{t("calculator.totalCost")}</span>
+              <span style={{ 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>{t("calculator.totalCost")}</span>
               <strong style={{ color: theme.colors.primary }}>{calculations.totalCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
             </div>
           </div>
@@ -915,7 +1051,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
           backgroundColor: theme.colors.surfaceHover
         }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>📊</div>
-          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>{t("calculator.fillFields")}</p>
+          <p style={{ 
+            margin: 0, 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
+            fontSize: "16px" 
+          }}>{t("calculator.fillFields")}</p>
         </div>
       )}
 
@@ -947,13 +1087,25 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ margin: "0 0 20px 0", color: theme.colors.text, fontSize: "20px", fontWeight: "600" }}>
+            <h3 style={{ 
+              margin: "0 0 20px 0", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              fontSize: "20px", 
+              fontWeight: "600" 
+            }}>
               {t("calculator.saveAsOffer")}
             </h3>
             
             <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
               <div style={{ width: "180px", flexShrink: 0 }}>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "8px", 
+                  fontWeight: "600", 
+                  fontSize: "14px", 
+                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                  whiteSpace: "nowrap" 
+                }}>
                   {t("offers.customerName")} *
                 </label>
                 <input
@@ -1128,6 +1280,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
         isOpen={deleteTemplateId !== null}
         title={settings.language === "hu" ? "Template törlése" : settings.language === "de" ? "Template löschen" : "Delete template"}
         message={settings.language === "hu" ? "Biztosan törölni szeretnéd ezt a template-et?" : settings.language === "de" ? "Möchten Sie diese Vorlage wirklich löschen?" : "Are you sure you want to delete this template?"}
+        theme={theme}
         onConfirm={handleDeleteTemplate}
         onCancel={() => setDeleteTemplateId(null)}
         confirmText={settings.language === "hu" ? "Igen" : settings.language === "de" ? "Ja" : "Yes"}

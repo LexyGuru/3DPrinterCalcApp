@@ -135,7 +135,13 @@ export const Console: React.FC<Props> = ({ settings, theme, themeStyles }) => {
 
       <div style={{ ...themeStyles.card, marginBottom: "20px" }}>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "500", color: theme.colors.text }}>
+          <label style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "8px", 
+            fontWeight: "500", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             <span>{t("console.filter")}:</span>
             <select
               value={filter}
@@ -151,7 +157,14 @@ export const Console: React.FC<Props> = ({ settings, theme, themeStyles }) => {
             </select>
           </label>
 
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "500", color: theme.colors.text, cursor: "pointer" }}>
+          <label style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "8px", 
+            fontWeight: "500", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+            cursor: "pointer" 
+          }}>
             <input
               type="checkbox"
               checked={autoScroll}
@@ -192,14 +205,22 @@ export const Console: React.FC<Props> = ({ settings, theme, themeStyles }) => {
             overflowX: "auto",
             fontFamily: "monospace",
             fontSize: "13px",
-            backgroundColor: theme.colors.background,
+            backgroundColor: theme.colors.background?.includes('gradient')
+              ? "rgba(255, 255, 255, 0.75)"
+              : theme.colors.background,
             border: `1px solid ${theme.colors.border}`,
             borderRadius: "8px",
             padding: "12px",
+            backdropFilter: theme.colors.background?.includes('gradient') ? "blur(12px)" : "none",
+            opacity: theme.colors.background?.includes('gradient') ? 0.85 : 1,
           }}
         >
           {filteredLogs.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px", color: theme.colors.textMuted }}>
+            <div style={{ 
+              textAlign: "center", 
+              padding: "40px", 
+              color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
+            }}>
               {t("console.empty")}
             </div>
           ) : (
@@ -210,19 +231,30 @@ export const Console: React.FC<Props> = ({ settings, theme, themeStyles }) => {
                   padding: "8px",
                   marginBottom: "4px",
                   borderLeft: `4px solid ${getLogColor(log.level)}`,
-                  backgroundColor: theme.colors.surface,
+                  backgroundColor: theme.colors.background?.includes('gradient')
+                    ? "rgba(255, 255, 255, 0.65)"
+                    : theme.colors.surface,
                   borderRadius: "4px",
                   wordBreak: "break-word",
+                  backdropFilter: theme.colors.background?.includes('gradient') ? "blur(8px)" : "none",
+                  opacity: theme.colors.background?.includes('gradient') ? 0.85 : 1,
                 }}
               >
                 <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
                   <span style={{ color: getLogColor(log.level), fontWeight: "600", minWidth: "60px" }}>
                     [{log.level.toUpperCase()}]
                   </span>
-                  <span style={{ color: theme.colors.textMuted, fontSize: "11px", minWidth: "100px" }}>
+                  <span style={{ 
+                    color: theme.colors.background?.includes('gradient') ? "#718096" : theme.colors.textMuted, 
+                    fontSize: "11px", 
+                    minWidth: "100px" 
+                  }}>
                     {formatTimestamp(log.timestamp)}
                   </span>
-                  <span style={{ color: theme.colors.text, flex: 1 }}>
+                  <span style={{ 
+                    color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                    flex: 1 
+                  }}>
                     {log.message}
                   </span>
                 </div>
@@ -231,11 +263,13 @@ export const Console: React.FC<Props> = ({ settings, theme, themeStyles }) => {
                     <pre style={{
                       margin: 0,
                       padding: "8px",
-                      backgroundColor: theme.colors.background,
+                      backgroundColor: theme.colors.background?.includes('gradient')
+                        ? "rgba(255, 255, 255, 0.9)"
+                        : theme.colors.background,
                       borderRadius: "4px",
                       fontSize: "12px",
                       overflowX: "auto",
-                      color: theme.colors.text,
+                      color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
                     }}>
                       {JSON.stringify(log.data, null, 2)}
                     </pre>
@@ -245,7 +279,12 @@ export const Console: React.FC<Props> = ({ settings, theme, themeStyles }) => {
             ))
           )}
         </div>
-        <div style={{ marginTop: "12px", fontSize: "12px", color: theme.colors.textMuted, textAlign: "right" }}>
+        <div style={{ 
+          marginTop: "12px", 
+          fontSize: "12px", 
+          color: theme.colors.background?.includes('gradient') ? "#718096" : theme.colors.textMuted, 
+          textAlign: "right" 
+        }}>
           {t("console.total")}: {filteredLogs.length} / {logs.length}
         </div>
       </div>

@@ -225,7 +225,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       {/* Kereső mező */}
       {filaments.length > 0 && (
         <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "8px", 
+            fontWeight: "600", 
+            fontSize: "14px", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
           </label>
           <input
@@ -277,7 +283,12 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       {(showAddForm || editingIndex !== null) && (
       <div style={{ ...themeStyles.card, marginBottom: "24px", backgroundColor: editingIndex !== null ? theme.colors.primary + "20" : theme.colors.surfaceHover, border: editingIndex !== null ? `2px solid ${theme.colors.primary}` : `1px solid ${theme.colors.border}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-          <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
+          <h3 style={{ 
+            margin: 0, 
+            fontSize: "20px", 
+            fontWeight: "600", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             {editingIndex !== null ? t("filaments.edit") : "➕ " + t("filaments.addTitle")}
           </h3>
           {editingIndex !== null && (
@@ -298,7 +309,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         </div>
         <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
               {t("filaments.brand")}
             </label>
             <input 
@@ -313,7 +331,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
               {t("filaments.type")}
             </label>
             <input 
@@ -328,7 +353,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
               {t("filaments.weight")}
             </label>
             <input 
@@ -358,7 +390,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             </span>
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
               {t("filaments.pricePerKg")}
             </label>
             <input 
@@ -382,7 +421,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
               {t("filaments.color")}
             </label>
             <input 
@@ -543,14 +589,22 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       ) : filaments.length > 0 && searchTerm ? (
         <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
-          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>
+          <p style={{ 
+            margin: 0, 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
+            fontSize: "16px" 
+          }}>
             {settings.language === "hu" ? "Nincs találat a keresési kifejezésre." : settings.language === "de" ? "Keine Ergebnisse für den Suchbegriff." : "No results found for the search term."}
           </p>
         </div>
       ) : (
         <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🧵</div>
-          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>{t("filaments.empty")}</p>
+          <p style={{ 
+            margin: 0, 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
+            fontSize: "16px" 
+          }}>{t("filaments.empty")}</p>
         </div>
       )}
       
@@ -558,6 +612,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         isOpen={deleteConfirmIndex !== null}
         title={t("common.confirm")}
         message={t("common.confirmDeleteFilament")}
+        theme={theme}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteConfirmIndex(null)}
         confirmText={t("common.yes")}
@@ -603,7 +658,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 textAlign: "left",
                 backgroundColor: "transparent",
                 border: "none",
-                color: theme.colors.text,
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
                 cursor: "pointer",
                 fontSize: "14px",
                 transition: "background-color 0.2s"

@@ -227,6 +227,55 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.3.8 (2025)
+- 🐛 **Riport számok formázás javítása** - 2 tizedesjegyig formázás a riportban:
+  - Fő statisztikák kártyák (Bevétel, Kiadás, Profit, Árajánlatok): `formatNumber(formatCurrency(...), 2)`
+  - Grafikon feletti értékek: `formatNumber(formatCurrency(...), 2)`
+  - Részletes statisztikák (Átlagos profit/árajánlat): `formatNumber(formatCurrency(...), 2)`
+  - Most már konzisztens a kezdőlappal (pl. `6.45` helyett `6.45037688333333`)
+- 🎨 **Beállítások tab navigáció javítása** - Hátter és betűszín javítása:
+  - Tab navigációs rész háttér: `rgba(255, 255, 255, 0.85)` gradient témáknál + `blur(10px)`
+  - Tab gombok háttér: Aktív `rgba(255, 255, 255, 0.9)`, nem aktív `rgba(255, 255, 255, 0.7)` gradient témáknál
+  - Tab gombok szövegszín: `#1a202c` (sötét) gradient témáknál az olvashatóságért
+  - Hover effektek: `rgba(255, 255, 255, 0.85)` gradient témáknál
+  - Backdrop filter: `blur(8px)` tab gomboknál, `blur(10px)` navigációs résznél
+
+### v0.3.7 (2025)
+- 🎨 **Dizájn modernizálás** - Teljes vizuális átalakítás animációkkal és új témákkal:
+  - Új témák: Gradient, Neon, Cyberpunk, Sunset, Ocean (5 új modern téma)
+  - Framer Motion animációk integrálva (fadeIn, slideIn, stagger, hover effects)
+  - Glassmorphism effekt gradient témáknál (blur + átlátszó háttér)
+  - Neon glow effekt neon/cyberpunk témáknál
+  - Modernizált kártyák és felületek (nagyobb padding, kerekített sarkok, jobb árnyékok)
+- 🎨 **Színezés javítások** - Jobb kontraszt és olvashatóság minden témához:
+  - Gradient témáknál sötét szöveg (#1a202c) fehér/könnyű háttéren
+  - Input mezők, label-ek, h3-ak színezése javítva minden komponensben
+  - Konzisztens színkezelés minden oldalon (Filaments, Printers, Calculator, Offers, Settings, Console)
+  - Text shadow hozzáadva gradient témáknál a jobb olvashatóságért
+- 📊 **Táblázat stílusok javítása** - Homályosabb háttér és jobb szöveg kontraszt:
+  - Háttérszín: rgba(255, 255, 255, 0.85) gradient témáknál (előtte 0.95)
+  - Backdrop filter: blur(8px) homályosabb hatásért
+  - Szöveg szín: #333 (sötétszürke) gradient témáknál a jobb olvashatóságért
+  - Cellák háttér: rgba(255, 255, 255, 0.7) homályosabb hatásért
+- 🎨 **Kártyák háttérszínek javítása** - Homályosabb háttér, jobb olvashatóság:
+  - Háttérszín: rgba(255, 255, 255, 0.75) gradient témáknál (előtte 0.95)
+  - Backdrop filter: blur(12px) erősebb homályosításért
+  - Opacity: 0.85 mattabb hatásért
+  - Szöveg szín: #1a202c (sötét) gradient témáknál
+- 📈 **Home oldal modernizálás** - Heti/havi/éves statisztikák és időszak összehasonlítás:
+  - Időszak összehasonlító kártyák (Heti, Havi, Éves) színes accent sávokkal
+  - StatCard komponensek modernizálva (ikonok színes háttérrel, accent sávok)
+  - Összefoglaló szekció kártyákba rendezve ikonokkal
+  - Period Comparison szekció hozzáadva
+- 🐛 **Dátum szűrés javítás** - Pontosabb időszak szűrés:
+  - Idő nullázása (00:00:00) pontos összehasonlításhoz
+  - Felső határ beállítása (ma is beleszámít)
+  - Heti: utolsó 7 nap (ma is beleszámít)
+  - Havi: utolsó 30 nap (ma is beleszámít)
+  - Éves: utolsó 365 nap (ma is beleszámít)
+- 🎨 **Sidebar modernizálás** - Ikonok, glassmorphism, neon glow effektek
+- 🎨 **ConfirmDialog modernizálás** - Téma prop hozzáadva, harmonizált színezés
+
 ### v0.3.6 (2025)
 - 🎨 **Settings UI átrendezése** - Tab rendszer (Általános, Megjelenés, Speciális, Adatkezelés) jobb UX-ért és tisztább navigáció
 - 🌐 **Fordítások javítása** - Minden hardcoded magyar szöveg lefordítva minden komponensben (HU/EN/DE):
@@ -366,7 +415,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.3.6
+**Verzió**: 0.3.8
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

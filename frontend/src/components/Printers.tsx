@@ -321,7 +321,13 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       {/* Kereső mező */}
       {printers.length > 0 && (
         <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "8px", 
+            fontWeight: "600", 
+            fontSize: "14px", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
             🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
           </label>
           <input
@@ -372,12 +378,25 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       {/* Új nyomtató hozzáadása form */}
       {showAddForm && (
       <div style={{ ...themeStyles.card, marginBottom: "24px", backgroundColor: theme.colors.surfaceHover, border: `1px solid ${theme.colors.border}` }}>
-        <h3 style={{ marginTop: 0, marginBottom: "24px", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
+        <h3 style={{ 
+          marginTop: 0, 
+          marginBottom: "24px", 
+          fontSize: "20px", 
+          fontWeight: "600", 
+          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+        }}>
           ➕ {t("printers.addTitle")}
         </h3>
         <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
               {t("printers.name")}
             </label>
             <input 
@@ -390,7 +409,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
               {t("printers.type")}
             </label>
             <input 
@@ -403,7 +429,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
               {t("printers.power")}
             </label>
             <input 
@@ -433,7 +466,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
             </span>
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
               {t("printers.usageCost")}
             </label>
             <input 
@@ -458,7 +498,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
             />
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
               {t("printers.amsCount")}
             </label>
             <input 
@@ -638,18 +685,37 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                 <tr>
                   <td colSpan={6} style={{ ...themeStyles.tableCell, padding: "24px", backgroundColor: theme.colors.surfaceHover }}>
                     <div>
-                      <h4 style={{ marginTop: 0, marginBottom: "20px", fontSize: "18px", fontWeight: "600", color: theme.colors.text }}>
+                      <h4 style={{ 
+                        marginTop: 0, 
+                        marginBottom: "20px", 
+                        fontSize: "18px", 
+                        fontWeight: "600", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                      }}>
                         ✏️ {t("printers.edit")} - {p.name}
                       </h4>
                       
                       {/* Nyomtató alapadatok szerkesztése */}
                       <div style={{ ...themeStyles.card, marginBottom: "24px", padding: "20px" }}>
-                        <h5 style={{ marginTop: 0, marginBottom: "16px", fontSize: "16px", fontWeight: "600", color: theme.colors.text }}>
+                        <h5 style={{ 
+                          marginTop: 0, 
+                          marginBottom: "16px", 
+                          fontSize: "16px", 
+                          fontWeight: "600", 
+                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                        }}>
                           📋 {settings.language === "hu" ? "Nyomtató adatai" : settings.language === "de" ? "Drucker-Daten" : "Printer Details"}
                         </h5>
                         <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
                           <div style={{ width: "180px", flexShrink: 0 }}>
-                            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
                               {t("printers.name")}
                             </label>
                             <input 
@@ -662,7 +728,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                             />
                           </div>
                           <div style={{ width: "180px", flexShrink: 0 }}>
-                            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
                               {t("printers.type")}
                             </label>
                             <input 
@@ -675,7 +748,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                             />
                           </div>
                           <div style={{ width: "180px", flexShrink: 0 }}>
-                            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
                               {t("printers.power")}
                             </label>
                             <input 
@@ -697,7 +777,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                             />
                           </div>
                           <div style={{ width: "180px", flexShrink: 0 }}>
-                            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
                               {t("printers.usageCost")}
                             </label>
                             <input 
@@ -720,7 +807,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                             />
                           </div>
                           <div style={{ width: "180px", flexShrink: 0 }}>
-                            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
                               {t("printers.amsCount")}
                             </label>
                             <input 
@@ -749,18 +843,36 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                       {/* AMS szerkesztés */}
                       {editingPrinter.amsCount > 0 && (
                         <div style={{ ...themeStyles.card, marginBottom: "24px", padding: "20px" }}>
-                          <h5 style={{ marginTop: 0, marginBottom: "16px", fontSize: "16px", fontWeight: "600", color: theme.colors.text }}>
+                          <h5 style={{ 
+                            marginTop: 0, 
+                            marginBottom: "16px", 
+                            fontSize: "16px", 
+                            fontWeight: "600", 
+                            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                          }}>
                             🔧 {t("printers.amsSystems")} ({editingPrinter.amsCount})
                           </h5>
                           <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "16px" }}>
                             {(amsForms[p.id] || []).map((ams, idx) => (
                               <div key={idx} style={{ padding: "16px", backgroundColor: theme.colors.surface, borderRadius: "8px", border: `1px solid ${theme.colors.border}` }}>
-                                <strong style={{ display: "block", marginBottom: "12px", fontSize: "14px", color: theme.colors.text }}>
+                                <strong style={{ 
+                                  display: "block", 
+                                  marginBottom: "12px", 
+                                  fontSize: "14px", 
+                                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                                }}>
                                   {t("printers.ams")} {idx + 1}:
                                 </strong>
                                 <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
                                   <div style={{ width: "180px", flexShrink: 0 }}>
-                                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                                    <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
                                       {t("printers.amsBrand")}
                                     </label>
                                     <input
@@ -773,7 +885,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                                     />
                                   </div>
                                   <div style={{ width: "180px", flexShrink: 0 }}>
-                                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                                    <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
                                       {t("printers.amsName")}
                                     </label>
                                     <input
@@ -786,7 +905,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                                     />
                                   </div>
                                   <div style={{ width: "180px", flexShrink: 0 }}>
-                                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
+                                    <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "600", 
+              fontSize: "14px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              whiteSpace: "nowrap" 
+            }}>
                                       {t("printers.amsPower")}
                                     </label>
                                     <input
@@ -849,14 +975,22 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       ) : printers.length > 0 && searchTerm ? (
         <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
-          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>
+          <p style={{ 
+            margin: 0, 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
+            fontSize: "16px" 
+          }}>
             {settings.language === "hu" ? "Nincs találat a keresési kifejezésre." : settings.language === "de" ? "Keine Ergebnisse für den Suchbegriff." : "No results found for the search term."}
           </p>
         </div>
       ) : (
         <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🖨️</div>
-          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>{t("printers.empty")}</p>
+          <p style={{ 
+            margin: 0, 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
+            fontSize: "16px" 
+          }}>{t("printers.empty")}</p>
         </div>
       )}
       
@@ -864,6 +998,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
         isOpen={deleteConfirmId !== null}
         title={t("common.confirm")}
         message={t("common.confirmDeletePrinter")}
+        theme={theme}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteConfirmId(null)}
         confirmText={t("common.yes")}
@@ -909,7 +1044,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                 textAlign: "left",
                 backgroundColor: "transparent",
                 border: "none",
-                color: theme.colors.text,
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
                 cursor: "pointer",
                 fontSize: "14px",
                 transition: "background-color 0.2s"

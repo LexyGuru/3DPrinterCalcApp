@@ -1,4 +1,5 @@
 import { commonStyles } from "../utils/styles";
+import type { Theme } from "../utils/themes";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface ConfirmDialogProps {
   confirmText?: string;
   cancelText?: string;
   type?: "danger" | "warning" | "info";
+  theme?: Theme;
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -19,15 +21,27 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onCancel,
   confirmText = "Igen",
   cancelText = "Mégse",
-  type = "danger"
+  type = "danger",
+  theme
 }) => {
   if (!isOpen) return null;
 
+  const isGradientBackground = theme?.colors.background?.includes('gradient');
+  const dialogBg = isGradientBackground 
+    ? "rgba(255, 255, 255, 0.98)" 
+    : (theme?.colors.surface || "#fff");
+  const dialogTextColor = isGradientBackground 
+    ? "#1a202c" 
+    : (theme?.colors.text || "#212529");
+  const dialogTextMuted = isGradientBackground 
+    ? "#4a5568" 
+    : (theme?.colors.textMuted || "#495057");
+
   const buttonStyle = type === "danger"
-    ? commonStyles.buttonDanger
+    ? { backgroundColor: theme?.colors.danger || "#dc3545", color: "#fff" }
     : type === "warning"
-    ? { ...commonStyles.button, backgroundColor: "#ffc107", color: "#000" }
-    : commonStyles.buttonPrimary;
+    ? { backgroundColor: "#ffc107", color: "#000" }
+    : { backgroundColor: theme?.colors.primary || "#007bff", color: "#fff" };
 
   return (
     <div
@@ -42,24 +56,39 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         alignItems: "center",
         justifyContent: "center",
         zIndex: 10000,
+        backdropFilter: isGradientBackground ? "blur(5px)" : "none",
       }}
       onClick={onCancel}
     >
       <div
         style={{
-          backgroundColor: "#fff",
-          borderRadius: "12px",
-          padding: "24px",
+          backgroundColor: dialogBg,
+          borderRadius: "16px",
+          padding: "28px",
           maxWidth: "400px",
           width: "90%",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+          boxShadow: isGradientBackground
+            ? "0 8px 32px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)"
+            : "0 4px 20px rgba(0,0,0,0.3)",
+          border: isGradientBackground ? `1px solid ${theme?.colors.border || "rgba(0,0,0,0.1)"}` : "none",
+          backdropFilter: isGradientBackground ? "blur(20px)" : "none",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ margin: "0 0 16px 0", color: "#212529", fontSize: "18px", fontWeight: "600" }}>
+        <h3 style={{ 
+          margin: "0 0 16px 0", 
+          color: dialogTextColor, 
+          fontSize: "20px", 
+          fontWeight: "700" 
+        }}>
           {title}
         </h3>
-        <p style={{ margin: "0 0 24px 0", color: "#495057", fontSize: "14px", lineHeight: "1.5" }}>
+        <p style={{ 
+          margin: "0 0 24px 0", 
+          color: dialogTextMuted, 
+          fontSize: "14px", 
+          lineHeight: "1.6" 
+        }}>
           {message}
         </p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
@@ -67,9 +96,23 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             onClick={onCancel}
             style={{
               ...commonStyles.button,
-              backgroundColor: "#6c757d",
+              backgroundColor: theme?.colors.secondary || "#6c757d",
               color: "#fff",
               padding: "10px 20px",
+              borderRadius: "8px",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: "600",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = theme?.colors.secondaryHover || "#5a6268";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = theme?.colors.secondary || "#6c757d";
+              e.currentTarget.style.transform = "translateY(0)";
             }}
           >
             {cancelText}
@@ -80,6 +123,20 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               ...commonStyles.button,
               ...buttonStyle,
               padding: "10px 20px",
+              borderRadius: "8px",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: "600",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = "0.9";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.transform = "translateY(0)";
             }}
           >
             {confirmText}
