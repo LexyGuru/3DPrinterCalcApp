@@ -23,17 +23,6 @@
 - **❌ Kizárva**: Komplex implementáció, biztonsági kockázatok, alternatíva: PDF export
 - **Részletek**: Lásd [EXCLUDED_FEATURES.md](EXCLUDED_FEATURES.md)
 
-#### 3. **Filamentek kép feltöltés**
-- **Mit**: 
-  - Kép feltöltés filamentekhez (szín preview)
-  - Kép tárolás lokálisan vagy cloud-ban
-  - Kép optimalizálás (átméretezés, kompresszió)
-  - Kép megjelenítés listában és részletes nézetben
-  - Kép export PDF-ben
-- **Előny**: Könnyebb filament azonosítás, jobb UX
-- **Becsült idő**: 6-8 óra
-- **Komplexitás**: Közepes
-
 ### 🟡 Közepes prioritás (funkcionalitás bővítések)
 
 #### 1. **Árajánlat státusz követés**

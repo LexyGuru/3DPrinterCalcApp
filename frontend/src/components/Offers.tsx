@@ -10,6 +10,8 @@ import { convertCurrencyFromTo } from "../utils/currency";
 import { Tooltip } from "./Tooltip";
 import { calculateOfferCosts } from "../utils/offerCalc";
 import { validateUsedGrams, validateDryingTime, validateDryingPower } from "../utils/validation";
+import { getFilamentPlaceholder } from "../utils/filamentPlaceholder";
+import { DEFAULT_COLOR_HEX, normalizeHex, resolveColorHexFromName } from "../utils/filamentColors";
 
 const STATUS_ORDER: OfferStatus[] = ["draft", "sent", "accepted", "rejected", "completed"];
 
@@ -43,6 +45,18 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
   const [statusChangeNote, setStatusChangeNote] = useState("");
   const [statusFilter, setStatusFilter] = useState<OfferStatus | "all">("all");
   const locale = settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US";
+
+  const getFilamentColorHex = (filament: Offer["filaments"][number]) =>
+    normalizeHex(filament.colorHex || resolveColorHexFromName(filament.color) || DEFAULT_COLOR_HEX) || DEFAULT_COLOR_HEX;
+
+  const getFilamentImageSrc = (filament: Offer["filaments"][number]) =>
+    filament.imageBase64 || getFilamentPlaceholder(getFilamentColorHex(filament));
+
+  const actionButtonStyle: React.CSSProperties = {
+    padding: "10px 18px",
+    fontSize: "13px",
+    minWidth: "150px",
+  };
 
   const selectedOfferCreatedAt = useMemo(() => {
     return selectedOffer ? new Date(selectedOffer.date) : null;
@@ -432,6 +446,69 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
 
     const date = new Date(offer.date);
     const formattedDate = date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US");
+    const localize = (hu: string, de: string, en: string) =>
+      settings.language === "hu" ? hu : settings.language === "de" ? de : en;
+
+    const escapeHtml = (value: string) =>
+      value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    const formatMultiline = (value: string) => escapeHtml(value).replace(/\r?\n/g, "<br />");
+
+    const companyInfo = settings.companyInfo || {};
+    const safeName = companyInfo.name?.trim();
+    const safeTax = companyInfo.taxNumber?.trim();
+    const safeBank = companyInfo.bankAccount?.trim();
+    const safeEmail = companyInfo.email?.trim();
+    const safePhone = companyInfo.phone?.trim();
+    const safeWebsite = companyInfo.website?.trim();
+    const safeAddress = companyInfo.address?.trim();
+    const hasCompanyDetails = Boolean(
+      safeName ||
+      safeTax ||
+      safeBank ||
+      safeEmail ||
+      safePhone ||
+      safeWebsite ||
+      safeAddress ||
+      companyInfo.logoBase64
+    );
+
+    const formatLink = (label: string, href: string, display: string) =>
+      `<p><strong>${label}:</strong> <a href="${href}" target="_blank" rel="noreferrer">${escapeHtml(display)}</a></p>`;
+
+    const companyInfoBlock = hasCompanyDetails
+      ? `
+        <div class="company-header">
+          <div class="company-details">
+            ${safeName ? `<h2>${escapeHtml(safeName)}</h2>` : ""}
+            ${safeAddress ? `<p><strong>${localize("Székhely", "Firmensitz", "Headquarters")}:</strong> ${formatMultiline(safeAddress)}</p>` : ""}
+            ${safeTax ? `<p><strong>${localize("Adószám", "Steuernummer", "Tax/VAT")}:</strong> ${escapeHtml(safeTax)}</p>` : ""}
+            ${safeBank ? `<p><strong>${localize("Bankszámla / IBAN", "Kontoverbindung / IBAN", "Bank account / IBAN")}:</strong> ${escapeHtml(safeBank)}</p>` : ""}
+            ${safeEmail ? formatLink(localize("E-mail", "E-Mail", "Email"), `mailto:${encodeURIComponent(safeEmail)}`, safeEmail) : ""}
+            ${safePhone ? formatLink(localize("Telefon", "Telefon", "Phone"), `tel:${encodeURIComponent(safePhone.replace(/\s+/g, ""))}`, safePhone) : ""}
+            ${
+              safeWebsite
+                ? (() => {
+                    const normalized =
+                      safeWebsite.match(/^https?:\/\//i) ? safeWebsite : `https://${safeWebsite}`;
+                    return formatLink(localize("Weboldal", "Webseite", "Website"), encodeURI(normalized), safeWebsite);
+                  })()
+                : ""
+            }
+          </div>
+          ${
+            companyInfo.logoBase64
+              ? `<div class="company-logo"><img src="${companyInfo.logoBase64}" alt="${localize("Céges logo", "Firmenlogo", "Company logo")}" /></div>`
+              : ""
+          }
+        </div>
+      `
+      : "";
 
     return `
       <!DOCTYPE html>
@@ -453,9 +530,18 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
           .total { font-size: 1.2em; font-weight: bold; color: #007bff; }
           .section { margin-bottom: 30px; }
           .info { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+          .company-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 16px; margin-bottom: 24px; border-bottom: 2px solid #e5e7eb; }
+          .company-details { flex: 1 1 auto; }
+          .company-details h2 { margin: 0 0 8px 0; font-size: 24px; color: #1f2937; }
+          .company-details p { margin: 4px 0; font-size: 13px; color: #374151; }
+          .company-details a { color: #007bff; text-decoration: none; }
+          .company-details a:hover { text-decoration: underline; }
+          .company-logo { flex: 0 0 auto; max-width: 160px; max-height: 120px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background: #ffffff; display: flex; align-items: center; justify-content: center; }
+          .company-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
         </style>
       </head>
       <body>
+        ${companyInfoBlock}
         <h1>3D Nyomtatási Árajánlat</h1>
         
         <div class="info">
@@ -476,29 +562,47 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
           <table>
             <thead>
               <tr>
-                <th>Márka</th>
-                <th>Típus</th>
-                <th>Szín</th>
-                <th>Mennyiség (g)</th>
-                <th>Ár (${displayCurrency === "HUF" ? "Ft" : displayCurrency}/kg)</th>
-                ${offer.filaments.some(f => f.needsDrying) ? `<th>Szárítás</th>` : ""}
+                <th>${t("common.image")}</th>
+                <th>${t("filaments.brand")}</th>
+                <th>${t("filaments.type")}</th>
+                <th>${t("filaments.color")}</th>
+                <th>${t("calculator.usedGrams")}</th>
+                <th>${t("filaments.pricePerKg").replace(":", "")} (${displayCurrency === "HUF" ? "Ft" : displayCurrency}/kg)</th>
+                ${offer.filaments.some(f => f.needsDrying) ? `<th>${settings.language === "hu" ? "Szárítás" : settings.language === "de" ? "Trocknung" : "Drying"}</th>` : ""}
               </tr>
             </thead>
             <tbody>
-              ${offer.filaments.map(f => {
+              ${(() => {
                 const offerCurrency = offer.currency || "EUR";
-                const convertedPrice = convertCurrencyFromTo(f.pricePerKg, offerCurrency, displayCurrency);
-                return `
-                <tr>
-                  <td>${f.brand}</td>
-                  <td>${f.type}</td>
-                  <td>${f.color || "-"}</td>
-                  <td>${f.usedGrams}</td>
-                  <td>${convertedPrice.toFixed(2)} ${displayCurrency === "HUF" ? "Ft" : displayCurrency}</td>
-                  ${offer.filaments.some(f => f.needsDrying) ? `<td>${f.needsDrying ? `${f.dryingTime}h @ ${f.dryingPower}W` : "-"}</td>` : ""}
-                </tr>
-              `;
-              }).join("")}
+                const hasDryingInfo = offer.filaments.some(f => f.needsDrying);
+                return offer.filaments.map(f => {
+                  const convertedPrice = convertCurrencyFromTo(f.pricePerKg, offerCurrency, displayCurrency);
+                  const safeBrand = escapeHtml(f.brand);
+                  const safeType = escapeHtml(f.type);
+                  const colorHex = normalizeHex(f.colorHex || resolveColorHexFromName(f.color) || DEFAULT_COLOR_HEX) || DEFAULT_COLOR_HEX;
+                  const imageSrc = f.imageBase64 || getFilamentPlaceholder(colorHex);
+                  const colorLabel = f.color ? escapeHtml(f.color) : colorHex;
+                  const dryingInfo = f.needsDrying ? `${f.dryingTime ?? 0}h @ ${f.dryingPower ?? 0}W` : "-";
+                  return `
+                    <tr>
+                      <td style="text-align:center;">
+                        <img src="${imageSrc}" alt="${safeBrand} ${safeType}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" />
+                      </td>
+                      <td>${safeBrand}</td>
+                      <td>${safeType}</td>
+                      <td>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                          <span style="width:14px;height:14px;border-radius:50%;background-color:${colorHex};border:1px solid rgba(0,0,0,0.15);"></span>
+                          <span>${colorLabel}</span>
+                        </div>
+                      </td>
+                      <td>${f.usedGrams}</td>
+                      <td>${convertedPrice.toFixed(2)} ${displayCurrency === "HUF" ? "Ft" : displayCurrency}</td>
+                      ${hasDryingInfo ? `<td>${dryingInfo}</td>` : ""}
+                    </tr>
+                  `;
+                }).join("");
+              })()}
             </tbody>
           </table>
         </div>
@@ -1226,8 +1330,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                 style={{
                                   ...themeStyles.button,
                                   ...themeStyles.buttonSuccess,
-                                  padding: "8px 16px",
-                                  fontSize: "14px"
+                                ...actionButtonStyle,
                                 }}
                               >
                                 ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
@@ -1243,8 +1346,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                 ...themeStyles.button,
                                 backgroundColor: theme.colors.secondary,
                                 color: "#fff",
-                                padding: "8px 16px",
-                                fontSize: "14px"
+                                ...actionButtonStyle,
                               }}
                             >
                               📋 {t("common.duplicate")}
@@ -1257,7 +1359,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                               onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
                               style={{
                                 ...themeStyles.button,
-                                ...themeStyles.buttonPrimary
+                                ...themeStyles.buttonPrimary,
+                                ...actionButtonStyle,
                               }}
                             >
                               {t("offers.print")}
@@ -1270,7 +1373,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                               onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
                               style={{
                                 ...themeStyles.button,
-                                ...themeStyles.buttonSuccess
+                                ...themeStyles.buttonSuccess,
+                                ...actionButtonStyle,
                               }}
                             >
                               {t("offers.downloadPDF")}
@@ -1285,7 +1389,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                               style={{
                                 ...themeStyles.button,
                                 ...themeStyles.buttonSecondary,
-                                padding: "8px 16px"
+                                ...actionButtonStyle,
                               }}
                             >
                               {t("offers.previewPDF")}
@@ -1501,10 +1605,37 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                               {editFilaments.map((f, idx) => {
                                 return (
                                   <div key={idx} style={{ padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", border: `1px solid ${theme.colors.border}` }}>
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                                      <strong style={{ fontSize: "14px", color: theme.colors.text }}>
-                                        {f.brand} {f.type} {f.color ? `(${f.color})` : ""}
-                                      </strong>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", gap: "16px" }}>
+                                      <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: "1 1 auto" }}>
+                                        <img
+                                          src={getFilamentImageSrc(f)}
+                                          alt={`${f.brand} ${f.type}`}
+                                          style={{
+                                            width: "48px",
+                                            height: "48px",
+                                            borderRadius: "10px",
+                                            border: `1px solid ${theme.colors.border}`,
+                                            objectFit: "cover",
+                                          }}
+                                        />
+                                        <div>
+                                          <strong style={{ fontSize: "14px", color: theme.colors.text }}>
+                                            {f.brand} {f.type}
+                                          </strong>
+                                          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: theme.colors.textMuted, marginTop: "4px" }}>
+                                            <span
+                                              style={{
+                                                width: "12px",
+                                                height: "12px",
+                                                borderRadius: "50%",
+                                                backgroundColor: getFilamentColorHex(f),
+                                                border: "1px solid rgba(0,0,0,0.15)",
+                                              }}
+                                            />
+                                            <span>{f.color || getFilamentColorHex(f)}</span>
+                                          </div>
+                                        </div>
+                                      </div>
                                       {editFilaments.length > 1 && (
                                         <button
                                           onClick={() => {
@@ -1748,12 +1879,44 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                             <ul style={{ marginTop: "10px", paddingLeft: "20px", listStyle: "none" }}>
                               {selectedOffer.filaments.map((f, idx) => (
                                 <li key={idx} style={{ marginBottom: "12px", padding: "12px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", fontSize: "14px", color: theme.colors.text }}>
-                                  <strong style={{ color: theme.colors.text }}>{f.brand} {f.type}</strong> {f.color ? `(${f.color})` : ""} - {f.usedGrams}g @ {convertCurrencyFromTo(f.pricePerKg, selectedOffer.currency || "EUR", settings.currency).toFixed(2)}{settings.currency === "HUF" ? "Ft" : settings.currency}/kg
-                                  {f.needsDrying && (
-                                    <div style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
-                                      🌡️ Szárítás: {f.dryingTime}h @ {f.dryingPower}W
+                                  <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                                    <img
+                                      src={getFilamentImageSrc(f)}
+                                      alt={`${f.brand} ${f.type}`}
+                                      style={{
+                                        width: "48px",
+                                        height: "48px",
+                                        borderRadius: "10px",
+                                        border: `1px solid ${theme.colors.border}`,
+                                        objectFit: "cover",
+                                      }}
+                                    />
+                                    <div style={{ flex: "1 1 auto" }}>
+                                      <strong style={{ color: theme.colors.text }}>
+                                        {f.brand} {f.type}
+                                      </strong>
+                                      <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: theme.colors.textMuted, marginTop: "4px" }}>
+                                        <span
+                                          style={{
+                                            width: "12px",
+                                            height: "12px",
+                                            borderRadius: "50%",
+                                            backgroundColor: getFilamentColorHex(f),
+                                            border: "1px solid rgba(0,0,0,0.15)",
+                                          }}
+                                        />
+                                        <span>{f.color || getFilamentColorHex(f)}</span>
+                                      </div>
+                                      <div style={{ fontSize: "13px", color: theme.colors.text, marginTop: "6px" }}>
+                                        {f.usedGrams}g @ {convertCurrencyFromTo(f.pricePerKg, selectedOffer.currency || "EUR", settings.currency).toFixed(2)}{settings.currency === "HUF" ? "Ft" : settings.currency}/kg
+                                      </div>
+                                      {f.needsDrying && (
+                                        <div style={{ marginTop: "6px", fontSize: "12px", color: theme.colors.textMuted }}>
+                                          🌡️ {settings.language === "hu" ? "Szárítás" : settings.language === "de" ? "Trocknung" : "Drying"}: {f.dryingTime}h @ {f.dryingPower}W
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
+                                  </div>
                                 </li>
                               ))}
                             </ul>

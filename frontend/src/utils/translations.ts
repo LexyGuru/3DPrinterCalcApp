@@ -26,6 +26,12 @@ export type TranslationKey =
   | "filaments.edit"
   | "filaments.save"
   | "filaments.cancel"
+  | "filaments.colorPaletteTitle"
+  | "filaments.colorPaletteHint"
+  | "filaments.finishAll"
+  | "filaments.customColor"
+  | "filaments.placeholderAlt"
+  | "filaments.imagePreviewAlt"
   // Printers
   | "printers.title"
   | "printers.addTitle"
@@ -183,6 +189,7 @@ export type TranslationKey =
   | "common.confirmDeleteOffer"
   | "common.offerDuplicated"
   | "common.printerUpdated"
+  | "common.image"
   // Shortcuts
   | "shortcuts.title"
   | "shortcuts.noShortcuts"
@@ -302,6 +309,12 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "calculator.revenue": "Bevétel",
     "calculator.totalPrice": "Összes ár",
     "filaments.color": "Szín:",
+    "filaments.colorPaletteTitle": "Ajánlott színek",
+    "filaments.colorPaletteHint": "Válassz egy színt a palettáról vagy adj meg egyedi árnyalatot.",
+    "filaments.finishAll": "Összes",
+    "filaments.customColor": "Egyedi szín",
+    "filaments.placeholderAlt": "Alapértelmezett filament tekercs",
+    "filaments.imagePreviewAlt": "Filament kép előnézet",
     // Settings
     "settings.title": "Beállítások",
     "settings.language": "Nyelv:",
@@ -407,6 +420,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "common.offerDeleted": "Árajánlat sikeresen törölve!",
     "common.loading": "Betöltés...",
     "common.duplicate": "Duplikálás",
+    "common.image": "Kép",
     "common.offerDuplicated": "Árajánlat sikeresen duplikálva!",
     "common.close": "Bezárás",
     // Shortcuts
@@ -515,6 +529,12 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "calculator.revenue": "Revenue",
     "calculator.totalPrice": "Total Price",
     "filaments.color": "Color:",
+    "filaments.colorPaletteTitle": "Suggested colors",
+    "filaments.colorPaletteHint": "Pick a color from the palette or set a custom shade.",
+    "filaments.finishAll": "All",
+    "filaments.customColor": "Custom color",
+    "filaments.placeholderAlt": "Default filament spool",
+    "filaments.imagePreviewAlt": "Filament image preview",
     // Settings
     "settings.title": "Settings",
     "settings.language": "Language:",
@@ -620,6 +640,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "common.offerDeleted": "Offer deleted successfully!",
     "common.loading": "Loading...",
     "common.duplicate": "Duplicate",
+    "common.image": "Image",
     "common.offerDuplicated": "Offer duplicated successfully!",
     "common.close": "Close",
     // Shortcuts
@@ -728,6 +749,12 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "calculator.revenue": "Einnahmen",
     "calculator.totalPrice": "Gesamtpreis",
     "filaments.color": "Farbe:",
+    "filaments.colorPaletteTitle": "Empfohlene Farben",
+    "filaments.colorPaletteHint": "Wähle eine Farbe aus der Palette oder lege einen eigenen Farbton fest.",
+    "filaments.finishAll": "Alle",
+    "filaments.customColor": "Eigene Farbe",
+    "filaments.placeholderAlt": "Standard-Filamentspule",
+    "filaments.imagePreviewAlt": "Filament-Vorschaubild",
     // Settings
     "settings.title": "Einstellungen",
     "settings.language": "Sprache:",
@@ -833,6 +860,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "common.offerDeleted": "Angebot erfolgreich gelöscht!",
     "common.loading": "Laden...",
     "common.duplicate": "Duplizieren",
+    "common.image": "Bild",
     "common.offerDuplicated": "Angebot erfolgreich dupliziert!",
     "common.close": "Schließen",
     // Shortcuts

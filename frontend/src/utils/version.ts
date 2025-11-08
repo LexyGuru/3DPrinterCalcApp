@@ -9,11 +9,46 @@ export interface VersionInfo {
   isBeta: boolean;
 }
 
-const CURRENT_VERSION = "0.3.9"; // Frissítsd ezt, amikor új verziót adsz ki
+const CURRENT_VERSION = "0.4.0"; // Frissítsd ezt, amikor új verziót adsz ki
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp"; // Frissítsd a saját repository nevedre
+const RATE_LIMIT_BACKOFF_MS = 15 * 60 * 1000; // 15 perc
+
+let rateLimitResetAt: number | null = null;
+let lastRateLimitLogAt: number | null = null;
+
+function isRateLimitActive() {
+  return typeof rateLimitResetAt === "number" && Date.now() < rateLimitResetAt;
+}
+
+function setRateLimitReset(response: Response) {
+  const resetHeader = response.headers.get("X-RateLimit-Reset");
+  const resetEpoch = resetHeader ? Number(resetHeader) : NaN;
+  if (!Number.isNaN(resetEpoch) && resetEpoch > 0) {
+    rateLimitResetAt = resetEpoch * 1000;
+  } else {
+    rateLimitResetAt = Date.now() + RATE_LIMIT_BACKOFF_MS;
+  }
+}
 
 export async function checkForUpdates(beta: boolean = false): Promise<VersionInfo> {
   try {
+    if (isRateLimitActive()) {
+      if (!lastRateLimitLogAt || Date.now() - lastRateLimitLogAt > 60_000) {
+        console.warn("⏳ GitHub rate limit aktív, a frissítés ellenőrzés később újra próbálkozik.", {
+          betaMode: beta,
+          retryAt: rateLimitResetAt,
+        });
+        lastRateLimitLogAt = Date.now();
+      }
+      return {
+        current: CURRENT_VERSION,
+        latest: null,
+        isUpdateAvailable: false,
+        releaseUrl: null,
+        isBeta: beta,
+      };
+    }
+
     console.log("🔍 Frissítés ellenőrzése...", { 
       currentVersion: CURRENT_VERSION, 
       betaMode: beta 
@@ -24,10 +59,38 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       ? `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=10`
       : `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    });
     
     if (!response.ok) {
-      console.error("❌ Frissítés ellenőrzés hiba:", response.statusText, { status: response.status });
+      let details: any = null;
+      try {
+        details = await response.json();
+      } catch {
+        // ignore parse failure
+      }
+
+      const logPayload = {
+        status: response.status,
+        statusText: response.statusText,
+        message: details?.message,
+        documentationUrl: details?.documentation_url,
+        rateLimitRemaining: response.headers.get("X-RateLimit-Remaining"),
+        betaMode: beta,
+      };
+
+      if (response.status === 403) {
+        setRateLimitReset(response);
+        lastRateLimitLogAt = Date.now();
+        console.warn("⚠️ GitHub API korlát miatt nem sikerült a frissítés ellenőrzése.", logPayload);
+      } else {
+        console.error("❌ Frissítés ellenőrzés hiba:", logPayload);
+      }
+
       return {
         current: CURRENT_VERSION,
         latest: null,

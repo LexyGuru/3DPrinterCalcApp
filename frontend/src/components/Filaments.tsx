@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { Filament, Settings } from "../types";
 import type { Theme } from "../utils/themes";
 import { filamentPrice } from "../utils/filamentCalc";
@@ -8,6 +8,26 @@ import { useToast } from "./Toast";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { Tooltip } from "./Tooltip";
 import { validateFilamentWeight, validateFilamentPrice } from "../utils/validation";
+import type { FilamentFinish, FilamentColorOption } from "../utils/filamentColors";
+import {
+  DEFAULT_COLOR_HEX,
+  getColorOptionsForType,
+  getLocalizedColorLabel,
+  getFinishLabel,
+  extractHexFromString,
+  findColorOptionByLabel,
+  normalizeHex,
+  resolveColorHexFromName,
+} from "../utils/filamentColors";
+import { getFilamentPlaceholder } from "../utils/filamentPlaceholder";
+import {
+  getAllBrands,
+  getAllMaterials,
+  getMaterialsForBrand,
+  getLibraryColorOptions,
+  findLibraryColorByLabel,
+  resolveLibraryHexFromName,
+} from "../utils/filamentLibrary";
 
 interface Props {
   filaments: Filament[];
@@ -25,6 +45,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [weight, setWeight] = useState<number>(1000);
   const [pricePerKg, setPricePerKg] = useState<number>(0);
   const [color, setColor] = useState("");
+  const [colorHex, setColorHex] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
@@ -32,6 +53,282 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [showAddForm, setShowAddForm] = useState(false);
   const [draggedFilamentIndex, setDraggedFilamentIndex] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ index: number; x: number; y: number } | null>(null);
+  const [selectedFinish, setSelectedFinish] = useState<string>("all");
+  const [useCustomBrand, setUseCustomBrand] = useState(false);
+  const [useCustomType, setUseCustomType] = useState(false);
+  const [useCustomColor, setUseCustomColor] = useState(false);
+  const [brandPanelOpen, setBrandPanelOpen] = useState(false);
+  const [typePanelOpen, setTypePanelOpen] = useState(false);
+  const [brandFilter, setBrandFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const BRAND_LIMIT = 120;
+  const TYPE_LIMIT = 120;
+  const brandSelectPlaceholder =
+    settings.language === "hu"
+      ? "Válassz márkát..."
+      : settings.language === "de"
+      ? "Marke auswählen..."
+      : "Select brand...";
+  const brandCustomOptionLabel =
+    settings.language === "hu"
+      ? "➕ Új márka hozzáadása"
+      : settings.language === "de"
+      ? "➕ Neue Marke hinzufügen"
+      : "➕ Add new brand";
+  const brandBackToListLabel =
+    settings.language === "hu"
+      ? "← Vissza a márkákhoz"
+      : settings.language === "de"
+      ? "← Zurück zu den Marken"
+      : "← Back to brands";
+  const typeSelectPlaceholder =
+    settings.language === "hu"
+      ? "Válassz típust..."
+      : settings.language === "de"
+      ? "Typ auswählen..."
+      : "Select type...";
+  const typeCustomOptionLabel =
+    settings.language === "hu"
+      ? "➕ Új típus hozzáadása"
+      : settings.language === "de"
+      ? "➕ Neuen Typ hinzufügen"
+      : "➕ Add new type";
+  const typeBackToListLabel =
+    settings.language === "hu"
+      ? "← Vissza a típusokhoz"
+      : settings.language === "de"
+      ? "← Zurück zu den Typen"
+      : "← Back to types";
+  const colorSelectPlaceholder =
+    settings.language === "hu"
+      ? "Válassz színt..."
+      : settings.language === "de"
+      ? "Farbe auswählen..."
+      : "Select color...";
+  const colorCustomOptionLabel =
+    settings.language === "hu"
+      ? "➕ Egyedi szín megadása"
+      : settings.language === "de"
+      ? "➕ Eigene Farbe hinzufügen"
+      : "➕ Add custom color";
+  const colorBackToListLabel =
+    settings.language === "hu"
+      ? "← Vissza a színekhez"
+      : settings.language === "de"
+      ? "← Zurück zu den Farben"
+      : "← Back to colors";
+  const allBrands = useMemo(() => getAllBrands(), []);
+  const allMaterials = useMemo(() => getAllMaterials(), []);
+
+  const materialsForBrand = useMemo(
+    () => getMaterialsForBrand(!useCustomBrand ? brand : undefined),
+    [brand, useCustomBrand]
+  );
+
+  const libraryColorOptions = useMemo(() => {
+    const brandForLookup = useCustomBrand ? undefined : brand;
+    const typeForLookup = useCustomType ? undefined : type;
+    if (!brandForLookup && !typeForLookup) {
+      return [] as FilamentColorOption[];
+    }
+    return getLibraryColorOptions(brandForLookup, typeForLookup);
+  }, [brand, type, useCustomBrand, useCustomType]);
+
+  const colorOptions = useMemo<FilamentColorOption[]>(() => {
+    if (libraryColorOptions.length > 0) {
+      return libraryColorOptions;
+    }
+    return getColorOptionsForType(type);
+  }, [libraryColorOptions, type]);
+  const paletteColorOptions = useMemo<FilamentColorOption[]>(
+    () => (libraryColorOptions.length > 0 ? libraryColorOptions : []),
+    [libraryColorOptions]
+  );
+  const filteredBrands = useMemo<string[]>(() => {
+    const term = brandFilter.trim().toLowerCase();
+    const list = term ? allBrands.filter(option => option.toLowerCase().includes(term)) : allBrands;
+    return list.length > BRAND_LIMIT ? list.slice(0, BRAND_LIMIT) : list;
+  }, [brandFilter, allBrands]);
+  const materialsBase = useMemo(
+    () => (useCustomBrand ? allMaterials : materialsForBrand),
+    [useCustomBrand, allMaterials, materialsForBrand]
+  );
+  const filteredMaterials = useMemo<string[]>(() => {
+    const term = typeFilter.trim().toLowerCase();
+    const list = term ? materialsBase.filter(option => option.toLowerCase().includes(term)) : materialsBase;
+    return list.length > TYPE_LIMIT ? list.slice(0, TYPE_LIMIT) : list;
+  }, [typeFilter, materialsBase]);
+  const finishOptions = useMemo(() => {
+    const finishes = new Set<string>();
+    paletteColorOptions.forEach(option => finishes.add(option.finish));
+    return Array.from(finishes);
+  }, [paletteColorOptions]);
+  const filteredPaletteOptions = useMemo(
+    () =>
+      selectedFinish === "all"
+        ? paletteColorOptions
+        : paletteColorOptions.filter(option => option.finish === selectedFinish),
+    [paletteColorOptions, selectedFinish]
+  );
+  const normalizedSelectedHex = normalizeHex(colorHex);
+  const fallbackHex = normalizedSelectedHex || DEFAULT_COLOR_HEX;
+  const colorOptionById = useMemo(() => {
+    const map = new Map<string, FilamentColorOption>();
+    colorOptions.forEach(option => {
+      map.set(option.id, option);
+    });
+    return map;
+  }, [colorOptions]);
+  const getOptionHex = (option: FilamentColorOption): string => {
+    const manufacturer = (option as any).manufacturer as string | undefined;
+    const material = (option as any).material as string | undefined;
+    const rawColor = (option as any).rawColor as string | undefined;
+    const libraryMatch = resolveLibraryHexFromName(option.labels.en, manufacturer, material);
+    const localizedMatch =
+      libraryMatch ||
+      resolveLibraryHexFromName(option.labels.hu, manufacturer, material) ||
+      resolveLibraryHexFromName(option.labels.de, manufacturer, material) ||
+      resolveColorHexFromName(option.labels.en) ||
+      resolveColorHexFromName(option.labels.hu) ||
+      resolveColorHexFromName(option.labels.de);
+    const rawMatch = rawColor
+      ? resolveLibraryHexFromName(rawColor, manufacturer, material) || resolveColorHexFromName(rawColor)
+      : undefined;
+    const normalized = normalizeHex(
+      localizedMatch ||
+        rawMatch ||
+        option.hex
+    );
+    return normalized || DEFAULT_COLOR_HEX;
+  };
+  const selectedColorOption = useMemo(() => {
+    if (useCustomColor || !color) {
+      return undefined;
+    }
+    const lowered = color.trim().toLowerCase();
+    if (!lowered) {
+      return undefined;
+    }
+    return colorOptions.find(option => {
+      const localized = getLocalizedColorLabel(option, settings.language).toLowerCase();
+      const labels = option.labels;
+      const matchesLabel =
+        !!labels &&
+        (labels.hu.toLowerCase() === lowered || labels.en.toLowerCase() === lowered || labels.de.toLowerCase() === lowered);
+      const matchesRaw = "rawColor" in option && typeof (option as any).rawColor === "string" && (option as any).rawColor.toLowerCase() === lowered;
+      return localized === lowered || matchesLabel || matchesRaw;
+    });
+  }, [colorOptions, color, useCustomColor, settings.language]);
+  const selectedColorOptionId = !useCustomColor && selectedColorOption ? selectedColorOption.id : "";
+
+  useEffect(() => {
+    if (!color) {
+      setSelectedFinish("all");
+      return;
+    }
+
+    const libraryMatch = findLibraryColorByLabel(color, brand, type);
+    if (libraryMatch) {
+      setSelectedFinish(libraryMatch.finish);
+      const matchedHex = normalizeHex(libraryMatch.hex);
+      if (!normalizedSelectedHex && matchedHex) {
+        setColorHex(matchedHex);
+      }
+      return;
+    }
+
+    const presetMatch = findColorOptionByLabel(color);
+    if (presetMatch) {
+      setSelectedFinish(presetMatch.finish);
+      const matchedHex = normalizeHex(presetMatch.hex);
+      if (!normalizedSelectedHex && matchedHex) {
+        setColorHex(matchedHex);
+      }
+      return;
+    }
+
+    setSelectedFinish("all");
+  }, [brand, type, color, normalizedSelectedHex]);
+
+  useEffect(() => {
+    if (!color || useCustomColor) {
+      return;
+    }
+    if (!selectedColorOption) {
+      setUseCustomColor(true);
+    }
+  }, [color, useCustomColor, selectedColorOption]);
+
+  useEffect(() => {
+    if (selectedFinish === "all") {
+      return;
+    }
+    if (!finishOptions.includes(selectedFinish)) {
+      setSelectedFinish("all");
+    }
+  }, [finishOptions, selectedFinish]);
+
+  useEffect(() => {
+    const extractedHex = extractHexFromString(color);
+    if (extractedHex) {
+      const normalized = normalizeHex(extractedHex);
+      if (normalized && normalized !== normalizedSelectedHex) {
+        setColorHex(normalized);
+      }
+      return;
+    }
+    const libraryMatch = findLibraryColorByLabel(color, brand, type);
+    if (libraryMatch) {
+      const matchedHex = normalizeHex(libraryMatch.hex);
+      if (matchedHex && matchedHex !== normalizedSelectedHex) {
+        setColorHex(matchedHex);
+      }
+      return;
+    }
+    const presetMatch = findColorOptionByLabel(color);
+    if (presetMatch) {
+      const matchedHex = normalizeHex(presetMatch.hex);
+      if (matchedHex && matchedHex !== normalizedSelectedHex) {
+        setColorHex(matchedHex);
+      }
+    }
+  }, [brand, type, color, normalizedSelectedHex]);
+
+  useEffect(() => {
+    if (useCustomBrand) {
+      return;
+    }
+    if (brand && !allBrands.includes(brand)) {
+      setUseCustomBrand(true);
+    }
+  }, [brand, useCustomBrand, allBrands]);
+
+  useEffect(() => {
+    if (useCustomType) {
+      return;
+    }
+    if (type && !materialsForBrand.includes(type)) {
+      setUseCustomType(true);
+    }
+  }, [type, useCustomType, materialsForBrand]);
+
+  useEffect(() => {
+    if (useCustomColor) {
+      setSelectedFinish("all");
+    }
+  }, [useCustomColor]);
+
+  useEffect(() => {
+    if (useCustomBrand) {
+      setBrandPanelOpen(false);
+    }
+  }, [useCustomBrand]);
+
+  useEffect(() => {
+    if (useCustomType) {
+      setTypePanelOpen(false);
+    }
+  }, [useCustomType]);
 
   const resetForm = () => {
     setBrand("");
@@ -39,9 +336,126 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setWeight(1000);
     setPricePerKg(0);
     setColor("");
+    setColorHex("");
     setImagePreview(null);
     setEditingIndex(null);
     setShowAddForm(false);
+    setSelectedFinish("all");
+    setUseCustomBrand(false);
+    setUseCustomType(false);
+    setUseCustomColor(false);
+    setBrandPanelOpen(false);
+    setTypePanelOpen(false);
+    setBrandFilter("");
+    setTypeFilter("");
+  };
+
+  const handleColorInputChange = (value: string) => {
+    if (!useCustomColor) {
+      setUseCustomColor(true);
+    }
+    setColor(value);
+    const extractedHex = extractHexFromString(value);
+    if (extractedHex) {
+      const normalized = normalizeHex(extractedHex);
+      if (normalized) {
+        setColorHex(normalized);
+      }
+    }
+  };
+
+  const handleCustomColorPick = (hexValue: string) => {
+    const normalized = normalizeHex(hexValue);
+    if (normalized) {
+      setUseCustomColor(true);
+      setColorHex(normalized);
+      setColor(normalized);
+      setSelectedFinish("all");
+    }
+  };
+
+  const handleBrandSelectChange = (value: string) => {
+    if (value === "__custom__") {
+      setUseCustomBrand(true);
+      setBrand("");
+      setType("");
+      setUseCustomType(true);
+      setBrandPanelOpen(false);
+      setBrandFilter("");
+      setTypeFilter("");
+      return;
+    }
+    setUseCustomBrand(false);
+    setBrand(value);
+    setBrandPanelOpen(false);
+    setBrandFilter("");
+    const materials = getMaterialsForBrand(value);
+    if (type && materials.includes(type)) {
+      setUseCustomType(false);
+    } else {
+      setType("");
+      setUseCustomType(false);
+    }
+    setTypeFilter("");
+  };
+
+  const handleTypeSelectChange = (value: string) => {
+    if (value === "__custom__") {
+      setUseCustomType(true);
+      setType("");
+      setTypePanelOpen(false);
+      setTypeFilter("");
+      return;
+    }
+    setUseCustomType(false);
+    setType(value);
+    setTypePanelOpen(false);
+    setTypeFilter("");
+  };
+
+  const handleColorSelectChange = (value: string) => {
+    if (value === "__custom__") {
+      setUseCustomColor(true);
+      setColor("");
+      setColorHex("");
+      setSelectedFinish("all");
+      return;
+    }
+    if (!value) {
+      setUseCustomColor(false);
+      setColor("");
+      setColorHex("");
+      setSelectedFinish("all");
+      return;
+    }
+    const option = colorOptionById.get(value);
+    if (option) {
+      setUseCustomColor(false);
+      const optionHex = getOptionHex(option);
+      setColorHex(optionHex);
+      setColor(getLocalizedColorLabel(option, settings.language));
+      setSelectedFinish(option.finish);
+    }
+  };
+
+  const toggleBrandPanel = () => {
+    setBrandPanelOpen(prev => {
+      const next = !prev;
+      if (next) {
+        setTypePanelOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const toggleTypePanel = () => {
+    setTypePanelOpen(prev => {
+      const next = !prev;
+      if (next) {
+        setBrandPanelOpen(false);
+      }
+      return next;
+    });
   };
 
   // Kép feltöltés és base64 konverzió
@@ -153,6 +567,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       }
     }
     
+    const normalizedSaveHex = normalizeHex(colorHex) || undefined;
+
     if (editingIndex !== null) {
       // Szerkesztési mód: frissítjük a filamentet
       console.log("✏️ Filament szerkesztése...", { index: editingIndex, brand, type, pricePerKg, hasImage: !!optimizedImage });
@@ -163,6 +579,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         weight, 
         pricePerKg, 
         color: color || undefined,
+        colorHex: normalizedSaveHex,
         imageBase64: optimizedImage
       };
       setFilaments(updated);
@@ -178,6 +595,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         weight, 
         pricePerKg, 
         color: color || undefined,
+        colorHex: normalizedSaveHex,
         imageBase64: optimizedImage
       }]);
       console.log("✅ Filament sikeresen hozzáadva", { brand, type });
@@ -193,6 +611,25 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setWeight(filament.weight);
     setPricePerKg(filament.pricePerKg);
     setColor(filament.color || "");
+    setBrandPanelOpen(false);
+    setTypePanelOpen(false);
+    setBrandFilter("");
+    setTypeFilter("");
+    const brandKnown = allBrands.includes(filament.brand);
+    setUseCustomBrand(!brandKnown);
+    const availableMaterials = getMaterialsForBrand(brandKnown ? filament.brand : undefined);
+    const typeKnown = availableMaterials.includes(filament.type);
+    setUseCustomType(!typeKnown);
+    const libraryResolvedHex = resolveLibraryHexFromName(filament.color, filament.brand, filament.type);
+    const resolvedHex = normalizeHex(
+      filament.colorHex || libraryResolvedHex || resolveColorHexFromName(filament.color) || ""
+    );
+    setColorHex(resolvedHex);
+    const libraryMatch = findLibraryColorByLabel(filament.color, filament.brand, filament.type);
+    const presetMatch = findColorOptionByLabel(filament.color);
+    const shouldUseCustomColor = !libraryMatch && !presetMatch;
+    setUseCustomColor(shouldUseCustomColor);
+    setSelectedFinish(libraryMatch?.finish ?? presetMatch?.finish ?? "all");
     setImagePreview(filament.imageBase64 || null);
     setEditingIndex(index);
   };
@@ -226,7 +663,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     return (
       f.brand.toLowerCase().includes(term) ||
       f.type.toLowerCase().includes(term) ||
-      (f.color && f.color.toLowerCase().includes(term))
+      (f.color && f.color.toLowerCase().includes(term)) ||
+      (f.colorHex && f.colorHex.toLowerCase().includes(term))
     );
   });
 
@@ -330,6 +768,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     closeContextMenu();
   };
 
+  const panelInputStyle = {
+    height: "32px",
+    minHeight: "32px",
+    maxHeight: "32px",
+    lineHeight: "32px",
+  };
+
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("filaments.title")}</h2>
@@ -423,7 +868,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           )}
         </div>
         <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
-          <div style={{ width: "180px", flexShrink: 0 }}>
+          <div style={{ width: "200px", flexShrink: 0 }}>
             <label style={{ 
               display: "block", 
               marginBottom: "8px", 
@@ -434,18 +879,159 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             }}>
               {t("filaments.brand")}
             </label>
-            <input 
-              placeholder={t("filaments.brand")} 
-              value={brand} 
-              onChange={e => setBrand(e.target.value)}
-              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-              style={{ ...themeStyles.input, width: "100%" }}
-              aria-label={t("filaments.brand")}
-              aria-required="true"
-            />
+            {!useCustomBrand ? (
+              <div style={{ position: "relative" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 10px",
+                    border: `1px solid ${theme.colors.inputBorder}`,
+                    borderRadius: themeStyles.input.borderRadius,
+                    backgroundColor: theme.colors.surface,
+                    boxShadow: themeStyles.card.boxShadow,
+                    cursor: "pointer",
+                  }}
+                  onClick={toggleBrandPanel}
+                >
+                  <span style={{ fontSize: "13px", color: brand ? theme.colors.text : theme.colors.textMuted }}>
+                    {brand || brandSelectPlaceholder}
+                  </span>
+                  <span style={{ fontSize: "12px" }}>{brandPanelOpen ? "✕" : "▼"}</span>
+                </div>
+                {brandPanelOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 6px)",
+                      left: 0,
+                      zIndex: 1200,
+                      width: "260px",
+                      padding: "12px",
+                      border: `1px solid ${theme.colors.inputBorder}`,
+                      borderRadius: "12px",
+                      backgroundColor: theme.colors.surface,
+                      boxShadow: themeStyles.card.boxShadow,
+                    }}
+                  >
+                    <input
+                      type="text"
+                      value={brandFilter}
+                      onChange={e => setBrandFilter(e.target.value)}
+                      placeholder={settings.language === "hu" ? "Keresés..." : settings.language === "de" ? "Suchen..." : "Search..."}
+                      style={{
+                        ...themeStyles.input,
+                        ...panelInputStyle,
+                        width: "87%",
+                      }}
+                      autoFocus
+                    />
+                    <div
+                      style={{
+                        marginTop: "8px",
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        border: `1px solid ${theme.colors.border}`,
+                        borderRadius: "10px",
+                        width: "100%",
+                      }}
+                    >
+                      {filteredBrands.length > 0 ? (
+                        filteredBrands.map((option: string) => {
+                          const isSelected = brand === option;
+                          return (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => handleBrandSelectChange(option)}
+                              style={{
+                                width: "100%",
+                                textAlign: "left",
+                                padding: "8px 12px",
+                                border: "none",
+                                backgroundColor: isSelected ? theme.colors.primary : "transparent",
+                                color: isSelected ? "#fff" : theme.colors.text,
+                                fontSize: "13px",
+                                cursor: "pointer",
+                              }}
+                              onMouseEnter={e => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                                }
+                              }}
+                              onMouseLeave={e => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.backgroundColor = "transparent";
+                                }
+                              }}
+                            >
+                              {option}
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div style={{ padding: "10px", fontSize: "12px", color: theme.colors.textMuted }}>
+                          {settings.language === "hu"
+                            ? "Nincs találat."
+                            : settings.language === "de"
+                            ? "Keine Treffer."
+                            : "No matches."}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleBrandSelectChange("__custom__")}
+                      style={{
+                        ...themeStyles.button,
+                        ...themeStyles.buttonSecondary,
+                        width: "100%",
+                        marginTop: "10px",
+                        fontSize: "12px",
+                        padding: "8px 12px",
+                      }}
+                    >
+                      {brandCustomOptionLabel}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <input
+                  placeholder={t("filaments.brand")}
+                  value={brand}
+                  onChange={e => setBrand(e.target.value)}
+                  onFocus={e => Object.assign(e.target.style, themeStyles.inputFocus)}
+                  onBlur={e => {
+                    e.target.style.borderColor = theme.colors.inputBorder;
+                    e.target.style.boxShadow = "none";
+                  }}
+                  style={{ ...themeStyles.input, width: "100%" }}
+                  aria-label={t("filaments.brand")}
+                  aria-required="true"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseCustomBrand(false);
+                    setBrand("");
+                  }}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    padding: "6px 10px",
+                    fontSize: "11px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {brandBackToListLabel}
+                </button>
+              </div>
+            )}
           </div>
-          <div style={{ width: "180px", flexShrink: 0 }}>
+          <div style={{ width: "240px", flexShrink: 0 }}>
             <label style={{ 
               display: "block", 
               marginBottom: "8px", 
@@ -456,16 +1042,157 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             }}>
               {t("filaments.type")}
             </label>
-            <input 
-              placeholder={t("filaments.type")} 
-              value={type} 
-              onChange={e => setType(e.target.value)}
-              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-              style={{ ...themeStyles.input, width: "100%" }}
-              aria-label={t("filaments.type")}
-              aria-required="true"
-            />
+            {!useCustomType ? (
+              <div style={{ position: "relative" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 10px",
+                    border: `1px solid ${theme.colors.inputBorder}`,
+                    borderRadius: themeStyles.input.borderRadius,
+                    backgroundColor: theme.colors.surface,
+                    boxShadow: themeStyles.card.boxShadow,
+                    cursor: "pointer",
+                  }}
+                  onClick={toggleTypePanel}
+                >
+                  <span style={{ fontSize: "13px", color: type ? theme.colors.text : theme.colors.textMuted }}>
+                    {type || typeSelectPlaceholder}
+                  </span>
+                  <span style={{ fontSize: "12px" }}>{typePanelOpen ? "✕" : "▼"}</span>
+                </div>
+                {typePanelOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 6px)",
+                      left: 0,
+                      zIndex: 1200,
+                      width: "260px",
+                      padding: "12px",
+                      border: `1px solid ${theme.colors.inputBorder}`,
+                      borderRadius: "12px",
+                      backgroundColor: theme.colors.surface,
+                      boxShadow: themeStyles.card.boxShadow,
+                    }}
+                  >
+                    <input
+                      type="text"
+                      value={typeFilter}
+                      onChange={e => setTypeFilter(e.target.value)}
+                      placeholder={settings.language === "hu" ? "Keresés..." : settings.language === "de" ? "Suchen..." : "Search..."}
+                      style={{
+                        ...themeStyles.input,
+                        ...panelInputStyle,
+                        width: "87%",
+                      }}
+                      autoFocus
+                    />
+                    <div
+                      style={{
+                        marginTop: "8px",
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        border: `1px solid ${theme.colors.border}`,
+                        borderRadius: "10px",
+                        width: "100%",
+                      }}
+                    >
+                      {filteredMaterials.length > 0 ? (
+                        filteredMaterials.map((option: string) => {
+                          const isSelected = type === option;
+                          return (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => handleTypeSelectChange(option)}
+                              style={{
+                                width: "100%",
+                                textAlign: "left",
+                                padding: "8px 12px",
+                                border: "none",
+                                backgroundColor: isSelected ? theme.colors.primary : "transparent",
+                                color: isSelected ? "#fff" : theme.colors.text,
+                                fontSize: "13px",
+                                cursor: "pointer",
+                              }}
+                              onMouseEnter={e => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                                }
+                              }}
+                              onMouseLeave={e => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.backgroundColor = "transparent";
+                                }
+                              }}
+                            >
+                              {option}
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div style={{ padding: "10px", fontSize: "12px", color: theme.colors.textMuted }}>
+                          {settings.language === "hu"
+                            ? "Nincs találat."
+                            : settings.language === "de"
+                            ? "Keine Treffer."
+                            : "No matches."}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleTypeSelectChange("__custom__")}
+                      style={{
+                        ...themeStyles.button,
+                        ...themeStyles.buttonSecondary,
+                        width: "100%",
+                        marginTop: "10px",
+                        fontSize: "12px",
+                        padding: "8px 12px",
+                      }}
+                    >
+                      {typeCustomOptionLabel}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <input
+                  placeholder={t("filaments.type")}
+                  value={type}
+                  onChange={e => setType(e.target.value)}
+                  onFocus={e => Object.assign(e.target.style, themeStyles.inputFocus)}
+                  onBlur={e => {
+                    e.target.style.borderColor = theme.colors.inputBorder;
+                    e.target.style.boxShadow = "none";
+                  }}
+                  style={{ ...themeStyles.input, width: "100%" }}
+                  aria-label={t("filaments.type")}
+                  aria-required="true"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseCustomType(false);
+                    setType("");
+                  }}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    padding: "6px 10px",
+                    fontSize: "11px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {typeBackToListLabel}
+                </button>
+              </div>
+            )}
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
             <label style={{ 
@@ -535,7 +1262,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
-          <div style={{ width: "180px", flexShrink: 0 }}>
+          <div style={{ flex: "1 1 280px", minWidth: "220px" }}>
             <label style={{ 
               display: "block", 
               marginBottom: "8px", 
@@ -546,14 +1273,116 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             }}>
               {t("filaments.color")}
             </label>
-            <input 
-              placeholder={t("filaments.color")} 
-              value={color} 
-              onChange={e => setColor(e.target.value)}
+            <input
+              placeholder={t("filaments.color")}
+              value={color}
+              onChange={e => handleColorInputChange(e.target.value)}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-              style={{ ...themeStyles.input, width: "100%" }}
+              style={{ ...themeStyles.input, width: "30%" }}
             />
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "10px", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
+                {t("filaments.customColor")}
+              </span>
+              <input
+                type="color"
+                value={fallbackHex}
+                onChange={e => handleCustomColorPick(e.target.value)}
+                style={{ width: "36px", height: "24px", border: "none", background: "none", cursor: "pointer" }}
+                aria-label={t("filaments.customColor")}
+              />
+              <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>{fallbackHex}</span>
+            </div>
+            {paletteColorOptions.length > 0 && (
+              <div style={{ marginTop: "14px" }}>
+                <strong style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
+                  {t("filaments.colorPaletteTitle")}
+                </strong>
+                <p style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, marginTop: "4px" }}>
+                  {t("filaments.colorPaletteHint")}
+                </p>
+                {finishOptions.length > 1 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "8px" }}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFinish("all")}
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: "999px",
+                        fontSize: "12px",
+                        border: `1px solid ${selectedFinish === "all" ? theme.colors.primary : theme.colors.border}`,
+                        backgroundColor: selectedFinish === "all" ? theme.colors.primary : theme.colors.surfaceHover,
+                        color: selectedFinish === "all" ? "#fff" : theme.colors.text,
+                        cursor: "pointer",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      {t("filaments.finishAll")}
+                    </button>
+                    {finishOptions.map((finish: string) => {
+                      const isActive = selectedFinish === finish;
+                      return (
+                        <button
+                          key={finish}
+                          type="button"
+                          onClick={() => setSelectedFinish(finish)}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: "999px",
+                            fontSize: "12px",
+                            border: `1px solid ${isActive ? theme.colors.primary : theme.colors.border}`,
+                            backgroundColor: isActive ? theme.colors.primary : theme.colors.surfaceHover,
+                            color: isActive ? "#fff" : theme.colors.text,
+                            cursor: "pointer",
+                            transition: "all 0.2s"
+                          }}
+                        >
+                          {getFinishLabel(finish as FilamentFinish, settings.language)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "12px" }}>
+                  {filteredPaletteOptions.map(option => {
+                    const optionHex = getOptionHex(option);
+                    const localizedLabel = getLocalizedColorLabel(option, settings.language);
+                    const isActive = !useCustomColor && selectedColorOptionId === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => handleColorSelectChange(option.id)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "8px 12px",
+                          borderRadius: "12px",
+                          border: isActive ? `2px solid ${optionHex}` : `1px solid ${theme.colors.border}`,
+                          backgroundColor: isActive ? optionHex : theme.colors.surfaceHover,
+                          color: isActive ? "#fff" : theme.colors.text,
+                          cursor: "pointer",
+                          transition: "all 0.2s"
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: "14px",
+                            height: "14px",
+                            borderRadius: "50%",
+                            backgroundColor: optionHex,
+                            border: "1px solid rgba(0,0,0,0.15)"
+                          }}
+                        />
+                        <span style={{ fontSize: "12px" }}>{localizedLabel}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         
@@ -572,7 +1401,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             <div style={{ position: "relative", display: "inline-block", marginBottom: "8px" }}>
               <img 
                 src={imagePreview} 
-                alt="Preview" 
+                alt={t("filaments.imagePreviewAlt")} 
                 style={{ 
                   maxWidth: "300px", 
                   maxHeight: "300px", 
@@ -604,15 +1433,19 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           ) : (
             <label
               style={{
-                display: "inline-block",
+              display: "inline-flex",
                 padding: "20px",
                 border: `2px dashed ${theme.colors.border}`,
                 borderRadius: "8px",
-                textAlign: "center",
+              textAlign: "center",
                 cursor: "pointer",
                 backgroundColor: theme.colors.surfaceHover,
                 transition: "all 0.2s",
                 minWidth: "200px",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "12px"
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = theme.colors.primary;
@@ -629,11 +1462,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 onChange={handleImageUpload}
                 style={{ display: "none" }}
               />
-              <div style={{ fontSize: "32px", marginBottom: "8px" }}>📷</div>
+              <img
+                src={getFilamentPlaceholder(fallbackHex)}
+                alt={t("filaments.placeholderAlt")}
+                style={{ width: "80px", height: "80px" }}
+              />
               <span style={{ 
                 fontSize: "14px", 
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
-                display: "block"
+                display: "block",
+                maxWidth: "220px"
               }}>
                 {settings.language === "hu" ? "Kattints a kép feltöltéséhez" : settings.language === "de" ? "Klicken Sie, um ein Bild hochzuladen" : "Click to upload image"}
               </span>
@@ -705,7 +1543,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           <table style={themeStyles.table}>
             <thead>
               <tr>
-                <th style={themeStyles.tableHeader}>{settings.language === "hu" ? "Kép" : settings.language === "de" ? "Bild" : "Image"}</th>
+                <th style={themeStyles.tableHeader}>{t("common.image")}</th>
                 <th style={themeStyles.tableHeader}>{t("filaments.brand")}</th>
                 <th style={themeStyles.tableHeader}>{t("filaments.type")}</th>
                 <th style={themeStyles.tableHeader}>{t("filaments.color")}</th>
@@ -717,67 +1555,100 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             <tbody>
               {filteredFilaments.map((f, i) => {
                 const originalIndex = filaments.findIndex(orig => orig === f);
+                const storedHex = normalizeHex(f.colorHex) || "";
+                const nameBasedHex = resolveLibraryHexFromName(f.color, f.brand, f.type) || resolveColorHexFromName(f.color);
+                const resolvedHex = normalizeHex(
+                  (nameBasedHex && storedHex && nameBasedHex !== storedHex ? nameBasedHex : storedHex) ||
+                    nameBasedHex ||
+                    ""
+                ) || DEFAULT_COLOR_HEX;
+                const displayHex = resolvedHex;
+                const previewSrc = f.imageBase64 || getFilamentPlaceholder(resolvedHex);
+                const hasUploadedImage = Boolean(f.imageBase64);
+                const handleThumbnailClick = () => {
+                  if (!f.imageBase64) return;
+                  const newWindow = window.open("", "_blank");
+                  if (newWindow) {
+                    newWindow.document.write(`
+                      <html>
+                        <head><title>${f.brand} ${f.type}</title></head>
+                        <body style="margin:0; padding:20px; background:#f5f5f5; display:flex; justify-content:center; align-items:center; min-height:100vh;">
+                          <img src="${f.imageBase64}" style="max-width:90%; max-height:90vh; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2);" />
+                        </body>
+                      </html>
+                    `);
+                  }
+                };
                 return (
-                <tr 
-                  key={i} 
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, originalIndex)}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, originalIndex)}
-                  onDragEnd={handleDragEnd}
-                  onContextMenu={(e) => handleContextMenu(e, originalIndex)}
-                  style={{ 
-                    transition: "background-color 0.2s",
-                    cursor: draggedFilamentIndex === originalIndex ? "grabbing" : "grab",
-                    opacity: draggedFilamentIndex === originalIndex ? 0.5 : 1
-                  }}
-                  onMouseEnter={(e) => {
-                    if (draggedFilamentIndex !== originalIndex) {
-                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (draggedFilamentIndex !== originalIndex) {
-                      e.currentTarget.style.backgroundColor = theme.colors.surface;
-                    }
-                  }}
-                >
-                  <td style={{ ...themeStyles.tableCell, padding: "8px", textAlign: "center" }}>
-                    {f.imageBase64 ? (
-                      <img 
-                        src={f.imageBase64} 
-                        alt={`${f.brand} ${f.type}`}
-                        style={{ 
-                          width: "60px", 
-                          height: "60px", 
+                  <tr 
+                    key={i} 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, originalIndex)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, originalIndex)}
+                    onDragEnd={handleDragEnd}
+                    onContextMenu={(e) => handleContextMenu(e, originalIndex)}
+                    style={{ 
+                      transition: "background-color 0.2s",
+                      cursor: draggedFilamentIndex === originalIndex ? "grabbing" : "grab",
+                      opacity: draggedFilamentIndex === originalIndex ? 0.5 : 1
+                    }}
+                    onMouseEnter={(e) => {
+                      if (draggedFilamentIndex !== originalIndex) {
+                        e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (draggedFilamentIndex !== originalIndex) {
+                        e.currentTarget.style.backgroundColor = theme.colors.surface;
+                      }
+                    }}
+                  >
+                    <td style={{ ...themeStyles.tableCell, padding: "8px", textAlign: "center" }}>
+                      <img
+                        src={previewSrc}
+                        alt={hasUploadedImage ? `${f.brand} ${f.type}` : t("filaments.placeholderAlt")}
+                        style={{
+                          width: "60px",
+                          height: "60px",
                           objectFit: "cover",
                           borderRadius: "6px",
                           border: `1px solid ${theme.colors.border}`,
-                          cursor: "pointer"
+                          cursor: hasUploadedImage ? "pointer" : "default",
+                          boxShadow: hasUploadedImage ? `0 2px 6px ${theme.colors.shadow}` : "none"
                         }}
-                        onClick={() => {
-                          // Nagyobb kép megjelenítése modal-ban vagy új ablakban
-                          const newWindow = window.open('', '_blank');
-                          if (newWindow) {
-                            newWindow.document.write(`
-                              <html>
-                                <head><title>${f.brand} ${f.type}</title></head>
-                                <body style="margin:0; padding:20px; background:#f5f5f5; display:flex; justify-content:center; align-items:center; min-height:100vh;">
-                                  <img src="${f.imageBase64}" style="max-width:90%; max-height:90vh; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2);" />
-                                </body>
-                              </html>
-                            `);
-                          }
-                        }}
-                        title={settings.language === "hu" ? "Kattints a nagyobb kép megtekintéséhez" : settings.language === "de" ? "Klicken Sie, um ein größeres Bild anzuzeigen" : "Click to view larger image"}
+                        onClick={handleThumbnailClick}
+                        title={
+                          hasUploadedImage
+                            ? settings.language === "hu"
+                              ? "Kattints a nagyobb kép megtekintéséhez"
+                              : settings.language === "de"
+                              ? "Klicken Sie, um ein größeres Bild anzuzeigen"
+                              : "Click to view larger image"
+                            : undefined
+                        }
                       />
-                    ) : (
-                      <span style={{ color: theme.colors.textMuted, fontSize: "24px" }}>📷</span>
-                    )}
-                  </td>
-                  <td style={themeStyles.tableCell}>{f.brand}</td>
-                  <td style={themeStyles.tableCell}>{f.type}</td>
-                  <td style={themeStyles.tableCell}>{f.color || "-"}</td>
+                    </td>
+                    <td style={themeStyles.tableCell}>{f.brand}</td>
+                    <td style={themeStyles.tableCell}>{f.type}</td>
+                    <td style={themeStyles.tableCell}>
+                      {f.color || f.colorHex ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span
+                            style={{
+                              width: "14px",
+                              height: "14px",
+                              borderRadius: "50%",
+                              backgroundColor: displayHex,
+                              border: "1px solid rgba(0,0,0,0.15)"
+                            }}
+                          />
+                          <span>{f.color || displayHex}</span>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
                   <td style={themeStyles.tableCell}>{f.weight}g</td>
                   <td style={themeStyles.tableCell}>
                     <strong style={{ color: theme.colors.success }}>

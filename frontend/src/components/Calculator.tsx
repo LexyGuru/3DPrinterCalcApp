@@ -1214,6 +1214,8 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                       brand: filament.brand,
                       type: filament.type,
                       color: filament.color,
+                      colorHex: filament.colorHex,
+                      imageBase64: filament.imageBase64,
                       usedGrams: sf.usedGrams,
                       pricePerKg: pricePerKgInOfferCurrency,
                       needsDrying: sf.needsDrying || false,

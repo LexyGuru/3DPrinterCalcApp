@@ -5,6 +5,7 @@ export interface Filament {
   density?: number;   // opcionális
   pricePerKg: number; // EUR
   color?: string;     // szín (opcionális)
+  colorHex?: string;  // szín hex kód (opcionális)
   imageBase64?: string; // Kép base64 stringként (opcionális)
 }
 
@@ -84,6 +85,7 @@ export interface OfferFilament {
   brand: string;
   type: string;
   color?: string;
+  colorHex?: string;
   usedGrams: number;
   pricePerKg: number; // EUR
   needsDrying?: boolean;

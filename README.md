@@ -13,6 +13,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🗂️ **Státusz dashboard** - Státusz kártyák, gyors szűrők és idővonal a legutóbbi státuszváltozásokról
 - 📝 **Státusz megjegyzések** - Minden státuszváltás opcionális jegyzettel és előzmény naplózással
 - 👁️ **PDF előnézet és sablonok** - Beépített PDF előnézet, választható sablonok és céges branding blokkok
+- 🎨 **Filament színkönyvtár** - Több mint 2000 gyári szín, márka és típus szerinti rögzíthető választópanellel
 - 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
 - 🌍 **Többnyelvű** - Magyar, Angol, Német nyelven
@@ -233,8 +234,14 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.4.0 (2025)
+- 🧵 **Filament adatbázis integráció** – 2 000+ gyári szín beépített JSON könyvtárból (filamentcolors.xyz snapshot), márkánként és anyagonként rendezve
+- 🪟 **Fix méretű választó panelek** – Gombbal nyíló, kereshető, görgethető márka- és típuslisták, amelyek kizárják egymást, így átláthatóbb az űrlap
+- 🎯 **Színválasztó fejlesztések** – Könyvtári elemek felismerésekor automatikusan beáll a finish és a hex kód, egyedi módra váltáskor külön mezők állnak rendelkezésre
+- 📄 **Dokumentáció frissítése** – Új bullet a fő feature listában a filament színkönyvtárhoz, README/FEATURE_SUGGESTIONS takarítás
+
 ### v0.3.9 (2025)
-- 🔍 **Árajánlat szűrő presetek** – Menthető, elnevezhető szűrő beállítások, alapértelmezett gyors presetek (Ma, Tegnap, Heti, Havi stb.) és egy kattintásos alkalmazás/törlés
+- 🔍 **Árajánlat szűrő presetek** – Menthető, elnevezhető szűrő beállítások, alapértelmezett gyors presetek (Ma, Tegnap, Heti, Mavi stb.) és egy kattintásos alkalmazás/törlés
 - 📝 **Státuszváltási megjegyzések** – Új modal az árajánlat státusz módosításához opcionális jegyzettel, amely eltárolódik a státusz előzményekben
 - 🖼️ **PDF export bővítés** – A filamentekhez tárolt képek megjelennek a PDF táblázatban, nyomtatásra optimalizált stílussal
 - 🧾 **Céges branding adatlap** – Cégnév, cím, adószám, bankszámlaszám, elérhetőség és logó feltöltése; automatikusan bekerül a PDF fejlécebe
@@ -431,7 +438,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.3.9
+**Verzió**: 0.4.0
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 
