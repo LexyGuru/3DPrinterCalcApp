@@ -9,6 +9,11 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🖨️ **Nyomtató kezelés** - Nyomtatók és AMS rendszerek kezelése
 - 💰 **Profit számítás** - Választható profit százalék (10%, 20%, 30%, 40%, 50%)
 - 📄 **Árajánlatok** - Mentés, kezelés és PDF export árajánlatokhoz (ügyfél név, elérhetőség, leírás)
+- 🧠 **Szűrő presetek** - Árajánlat szűrők mentése, gyors presetek alkalmazása, dátum/idő alapú automatikus filterek
+- 🗂️ **Státusz dashboard** - Státusz kártyák, gyors szűrők és idővonal a legutóbbi státuszváltozásokról
+- 📝 **Státusz megjegyzések** - Minden státuszváltás opcionális jegyzettel és előzmény naplózással
+- 👁️ **PDF előnézet és sablonok** - Beépített PDF előnézet, választható sablonok és céges branding blokkok
+- 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
 - 🌍 **Többnyelvű** - Magyar, Angol, Német nyelven
 - 💱 **Több pénznem** - EUR, HUF, USD
@@ -31,7 +36,8 @@ Az alkalmazás tartalmazza:
 - Nyomtatók kezelése
 - Kalkulátor költségszámításhoz
 - Árajánlatok lista és részletes nézet
-- PDF export funkció
+- Státusz dashboard és idővonal
+- PDF export és beépített előnézet
 
 ## 🚀 Telepítés
 

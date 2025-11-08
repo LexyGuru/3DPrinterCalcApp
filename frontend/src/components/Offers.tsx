@@ -737,6 +737,10 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     closeContextMenu();
   };
 
+  const closeOfferDetails = () => {
+    setSelectedOffer(null);
+  };
+
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("offers.title")}</h2>
@@ -1131,727 +1135,782 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
 
             {/* Kiválasztott árajánlat részletes nézete */}
             {selectedOffer && (
-              <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", gap: "16px", flexWrap: "wrap" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: "1 1 auto", minWidth: "240px" }}>
-                    <h3 style={{ 
-                      margin: 0, 
-                      fontSize: "22px", 
-                      fontWeight: "600", 
-                      color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                    }}>
-                      📄 {selectedOffer.customerName ? `${selectedOffer.customerName}` : settings.language === "hu" ? `Árajánlat #${selectedOffer.id}` : settings.language === "de" ? `Angebot #${selectedOffer.id}` : `Quote #${selectedOffer.id}`}
-                    </h3>
-                    {selectedOffer.status && (
-                      <span
-                        style={{
-                          padding: "6px 16px",
-                          fontSize: "12px",
-                          fontWeight: "700",
-                          borderRadius: "999px",
-                          backgroundColor: getStatusColor(selectedOffer.status) + "18",
-                          color: getStatusColor(selectedOffer.status),
-                          border: `2px solid ${getStatusColor(selectedOffer.status)}`,
-                          letterSpacing: "0.6px",
-                          textTransform: "uppercase"
-                        }}
-                      >
-                        {getStatusLabel(selectedOffer.status)}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                    {!editingOffer && (
-                      <Tooltip content={settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}>
-                        <button
-                          onClick={() => startEditOffer(selectedOffer)}
-                          onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                          onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
-                          style={{
-                            ...themeStyles.button,
-                            ...themeStyles.buttonSuccess,
-                            padding: "8px 16px",
-                            fontSize: "14px"
-                          }}
-                        >
-                          ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
-                        </button>
-                      </Tooltip>
-                    )}
-                    <Tooltip content={settings.language === "hu" ? "Árajánlat duplikálása" : settings.language === "de" ? "Angebot duplizieren" : "Duplicate offer"}>
-                      <button
-                        onClick={() => duplicateOffer(selectedOffer)}
-                        onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                        onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = "#6c757d 0 2px 4px"; }}
-                        style={{
-                          ...themeStyles.button,
-                          backgroundColor: theme.colors.secondary,
-                          color: "#fff",
-                          padding: "8px 16px",
-                          fontSize: "14px"
-                        }}
-                      >
-                        📋 {t("common.duplicate")}
-                      </button>
-                    </Tooltip>
-                    <Tooltip content={settings.language === "hu" ? "PDF export vagy nyomtatás" : settings.language === "de" ? "PDF-Export oder Drucken" : "PDF export or print"}>
-                      <button
-                        onClick={() => exportToPDF(selectedOffer)}
-                        onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                        onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
-                        style={{
-                          ...themeStyles.button,
-                          ...themeStyles.buttonPrimary
-                        }}
-                      >
-                        {t("offers.print")}
-                      </button>
-                    </Tooltip>
-                    <Tooltip content={settings.language === "hu" ? "PDF letöltése HTML fájlként" : settings.language === "de" ? "PDF als HTML-Datei herunterladen" : "Download PDF as HTML file"}>
-                      <button
-                        onClick={() => exportAsPDF(selectedOffer)}
-                        onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                        onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
-                        style={{
-                          ...themeStyles.button,
-                          ...themeStyles.buttonSuccess
-                        }}
-                      >
-                        {t("offers.downloadPDF")}
-                      </button>
-                    </Tooltip>
-                    <Tooltip content={t("offers.previewPDF")}
-                      >
-                      <button
-                        onClick={() => openPDFPreview(selectedOffer)}
-                        onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                        onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSecondary.boxShadow; }}
-                        style={{
-                          ...themeStyles.button,
-                          ...themeStyles.buttonSecondary,
-                          padding: "8px 16px"
-                        }}
-                      >
-                        {t("offers.previewPDF")}
-                      </button>
-                    </Tooltip>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "4px", minWidth: "160px" }}>
-                    {selectedOfferCreatedAt && (
-                      <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                        {selectedOfferCreatedAt.toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    )}
-                    {selectedOfferStatusDate && (
-                      <span style={{ fontSize: "11px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                        {settings.language === "hu" ? "Státusz frissítve:" : settings.language === "de" ? "Status aktualisiert:" : "Status updated:"}{" "}
-                        {selectedOfferStatusDate.toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
-                  gap: "14px",
-                  marginBottom: "18px"
-                }}>
-                  <div style={{
-                    backgroundColor: theme.colors.surfaceHover,
-                    border: `1px solid ${theme.colors.border}`,
-                    borderRadius: "12px",
-                    padding: "14px"
-                  }}>
-                    <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
-                      {settings.language === "hu" ? "Összköltség" : settings.language === "de" ? "Gesamtkosten" : "Total cost"}
-                    </span>
-                    <div style={{ fontSize: "20px", fontWeight: "700", color: theme.colors.primary, marginTop: "4px" }}>
-                      {convertCurrencyFromTo(selectedOffer.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
-                    </div>
-                  </div>
-                  <div style={{
-                    backgroundColor: theme.colors.surfaceHover,
-                    border: `1px solid ${theme.colors.border}`,
-                    borderRadius: "12px",
-                    padding: "14px"
-                  }}>
-                    <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
-                      {settings.language === "hu" ? "Nyomtatási idő" : settings.language === "de" ? "Druckzeit" : "Print time"}
-                    </span>
-                    <div style={{ fontSize: "16px", fontWeight: "600", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                      {selectedOffer.totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
-                    </div>
-                    <span style={{ fontSize: "11px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                      {selectedOffer.printerName} · {selectedOffer.printerPower}W
-                    </span>
-                  </div>
-                  <div style={{
-                    backgroundColor: theme.colors.surfaceHover,
-                    border: `1px solid ${theme.colors.border}`,
-                    borderRadius: "12px",
-                    padding: "14px"
-                  }}>
-                    <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
-                      {settings.language === "hu" ? "Ügyfél" : settings.language === "de" ? "Kunde" : "Customer"}
-                    </span>
-                    <div style={{ fontSize: "14px", fontWeight: "600", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                      {selectedOffer.customerName || (settings.language === "hu" ? "Nincs megadva" : settings.language === "de" ? "Nicht angegeben" : "Not specified")}
-                    </div>
-                    <span style={{ fontSize: "11px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                      {selectedOffer.customerContact || (settings.language === "hu" ? "Elérhetőség nélkül" : settings.language === "de" ? "Keine Kontaktdaten" : "No contact info")}
-                    </span>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
-                  {(["draft", "sent", "accepted", "rejected", "completed"] as OfferStatus[]).map(status => {
-                    if (selectedOffer.status === status) return null;
-                    const color = getStatusColor(status);
-                    return (
-                      <button
-                        key={status}
-                        onClick={() => {
-                          setStatusChangeOffer(selectedOffer);
-                          setStatusChangeTarget(status);
-                          setStatusChangeNote("");
-                        }}
-                        style={{
-                          padding: "8px 14px",
-                          fontSize: "12px",
-                          fontWeight: "600",
-                          backgroundColor: color + "18",
-                          color,
-                          border: `1px solid ${color}`,
-                          borderRadius: "999px",
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = color;
-                          e.currentTarget.style.color = "#fff";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = color + "18";
-                          e.currentTarget.style.color = color;
-                        }}
-                      >
-                        → {getStatusLabel(status)}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {editingOffer && editingOffer.id === selectedOffer.id ? (
-                  <div style={{ ...themeStyles.card, marginBottom: "20px", backgroundColor: theme.colors.primary + "20", border: `2px solid ${theme.colors.primary}` }}>
-                    <h4 style={{ marginTop: 0, marginBottom: "20px", fontSize: "18px", fontWeight: "600", color: theme.colors.text }}>
-                      ✏️ {settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}
-                    </h4>
-                    <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", flexWrap: "wrap" }}>
-                      <div style={{ width: "200px", flexShrink: 0 }}>
-                        <label style={{ 
-                          display: "block", 
-                          marginBottom: "8px", 
-                          fontWeight: "600", 
-                          fontSize: "14px", 
-                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-                          whiteSpace: "nowrap" 
-                        }}>
-                          {t("offers.customerName")} *
-                        </label>
-                        <input
-                          type="text"
-                          placeholder={t("offers.customerName")}
-                          value={editCustomerName}
-                          onChange={e => setEditCustomerName(e.target.value)}
-                          onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                          onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                          style={{ ...themeStyles.input, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}
-                        />
-                      </div>
-                      <div style={{ width: "200px", flexShrink: 0 }}>
-                        <label style={{ 
-                          display: "block", 
-                          marginBottom: "8px", 
-                          fontWeight: "600", 
-                          fontSize: "14px", 
-                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-                          whiteSpace: "nowrap" 
-                        }}>
-                          {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}
-                        </label>
-                        <input
-                          type="text"
-                          placeholder={settings.language === "hu" ? "Email vagy telefon" : settings.language === "de" ? "E-Mail oder Telefon" : "Email or phone"}
-                          value={editCustomerContact}
-                          onChange={e => setEditCustomerContact(e.target.value)}
-                          onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                          onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                          style={{ ...themeStyles.input, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}
-                        />
-                      </div>
-                      <div style={{ width: "150px", flexShrink: 0 }}>
-                        <label style={{ 
-                          display: "block", 
-                          marginBottom: "8px", 
-                          fontWeight: "600", 
-                          fontSize: "14px", 
-                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-                          whiteSpace: "nowrap" 
-                        }}>
-                          📈 {t("offers.profitPercentage")}
-                        </label>
-                        <select
-                          value={editProfitPercentage}
-                          onChange={e => setEditProfitPercentage(Number(e.target.value))}
-                          onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
-                          onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                          style={{ ...themeStyles.select, width: "100%", maxWidth: "150px", boxSizing: "border-box" }}
-                        >
-                          <option value={10}>10%</option>
-                          <option value={20}>20%</option>
-                          <option value={30}>30%</option>
-                          <option value={40}>40%</option>
-                          <option value={50}>50%</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div style={{ marginTop: "20px", width: "100%", maxWidth: "600px" }}>
-                      <label style={{ 
-                        display: "block", 
-                        marginBottom: "8px", 
-                        fontWeight: "600", 
-                        fontSize: "14px", 
-                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                      }}>
-                        {t("offers.description")}
-                      </label>
-                      <textarea
-                        placeholder={t("offers.description")}
-                        value={editDescription}
-                        onChange={e => setEditDescription(e.target.value)}
-                        onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                        style={{ ...themeStyles.input, width: "100%", maxWidth: "600px", minHeight: "100px", maxHeight: "200px", resize: "vertical", boxSizing: "border-box" }}
-                      />
-                    </div>
-                    
-                    {/* Filamentek szerkesztése */}
-                    <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
-                      <h5 style={{ marginTop: 0, marginBottom: "16px", fontSize: "16px", fontWeight: "600", color: theme.colors.text }}>
-                        🧵 {t("offers.filaments")}
-                      </h5>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                        {editFilaments.map((f, idx) => {
-                          return (
-                            <div key={idx} style={{ padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", border: `1px solid ${theme.colors.border}` }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                                <strong style={{ fontSize: "14px", color: theme.colors.text }}>
-                                  {f.brand} {f.type} {f.color ? `(${f.color})` : ""}
-                                </strong>
-                                {editFilaments.length > 1 && (
-                                  <button
-                                    onClick={() => {
-                                      const newFilaments = editFilaments.filter((_, i) => i !== idx);
-                                      setEditFilaments(newFilaments);
-                                    }}
-                                    style={{
-                                      ...themeStyles.button,
-                                      ...themeStyles.buttonDanger,
-                                      padding: "4px 8px",
-                                      fontSize: "12px"
-                                    }}
-                                  >
-                                    {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}
-                                  </button>
-                                )}
-                              </div>
-                              <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "flex-end" }}>
-                                <div style={{ width: "150px", flexShrink: 0 }}>
-                                  <label style={{ 
-                                    display: "block", 
-                                    marginBottom: "8px", 
-                                    fontWeight: "600", 
-                                    fontSize: "12px", 
-                                    color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                                  }}>
-                                    {t("calculator.usedGrams")}
-                                  </label>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="0.1"
-                                    value={f.usedGrams || ""}
-                                    onChange={e => {
-                                      const val = Number(e.target.value);
-                                      const validation = validateUsedGrams(val, settings.language);
-                                      if (validation.isValid) {
-                                        const newFilaments = [...editFilaments];
-                                        newFilaments[idx] = { ...f, usedGrams: val };
-                                        setEditFilaments(newFilaments);
-                                      } else if (validation.errorMessage) {
-                                        showToast(validation.errorMessage, "error");
-                                      }
-                                    }}
-                                    onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                                    onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                                    style={{ ...themeStyles.input, width: "100%", maxWidth: "150px", boxSizing: "border-box" }}
-                                  />
-                                </div>
-                                {f.needsDrying && (
-                                  <>
-                                    <div style={{ width: "120px", flexShrink: 0 }}>
-                                      <label style={{ 
-                                    display: "block", 
-                                    marginBottom: "8px", 
-                                    fontWeight: "600", 
-                                    fontSize: "12px", 
-                                    color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                                  }}>
-                                        {t("calculator.dryingTime")}
-                                      </label>
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        step="0.1"
-                                        value={f.dryingTime || ""}
-                                        onChange={e => {
-                                          const val = Number(e.target.value);
-                                          const validation = validateDryingTime(val, settings.language);
-                                          if (validation.isValid) {
-                                            const newFilaments = [...editFilaments];
-                                            newFilaments[idx] = { ...f, dryingTime: val };
-                                            setEditFilaments(newFilaments);
-                                          } else if (validation.errorMessage) {
-                                            showToast(validation.errorMessage, "error");
-                                          }
-                                        }}
-                                        onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                                        style={{ ...themeStyles.input, width: "100%", maxWidth: "120px", boxSizing: "border-box" }}
-                                      />
-                                    </div>
-                                    <div style={{ width: "120px", flexShrink: 0 }}>
-                                      <label style={{ 
-                                    display: "block", 
-                                    marginBottom: "8px", 
-                                    fontWeight: "600", 
-                                    fontSize: "12px", 
-                                    color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                                  }}>
-                                        {t("calculator.dryingPower")}
-                                      </label>
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        value={f.dryingPower || ""}
-                                        onChange={e => {
-                                          const val = Number(e.target.value);
-                                          const validation = validateDryingPower(val, settings.language);
-                                          if (validation.isValid) {
-                                            const newFilaments = [...editFilaments];
-                                            newFilaments[idx] = { ...f, dryingPower: val };
-                                            setEditFilaments(newFilaments);
-                                          } else if (validation.errorMessage) {
-                                            showToast(validation.errorMessage, "error");
-                                          }
-                                        }}
-                                        onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                                        style={{ ...themeStyles.input, width: "100%", maxWidth: "120px", boxSizing: "border-box" }}
-                                      />
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    
-                    <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
-                      <Tooltip content={settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}>
-                        <button
-                          onClick={saveEditOffer}
-                          onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                          onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
-                          style={{
-                            ...themeStyles.button,
-                            ...themeStyles.buttonSuccess,
-                            fontSize: "16px",
-                            padding: "14px 28px"
-                          }}
-                        >
-                          💾 {settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}
-                        </button>
-                      </Tooltip>
-                      <Tooltip content={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}>
-                        <button
-                          onClick={cancelEditOffer}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
-                          style={{
-                            ...themeStyles.button,
-                            ...themeStyles.buttonSecondary,
-                            padding: "8px 16px",
-                            fontSize: "12px"
-                          }}
-                        >
-                          {settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
-                        </button>
-                      </Tooltip>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div style={{ marginBottom: "20px", padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px" }}>
-                      {selectedOffer.customerName && (
-                        <div style={{ marginBottom: "12px" }}>
-                          <strong style={{ color: theme.colors.text }}>{t("offers.customerName")}:</strong> 
-                          <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerName}</span>
-                        </div>
-                      )}
-                      {selectedOffer.customerContact && (
-                        <div style={{ marginBottom: "12px" }}>
-                          <strong style={{ color: theme.colors.text }}>
-                            {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}:
-                          </strong> 
-                          <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerContact}</span>
-                        </div>
-                      )}
-                      {selectedOffer.description && (
-                        <div style={{ marginBottom: "12px" }}>
-                          <strong style={{ color: theme.colors.text }}>{t("offers.description")}:</strong> 
-                          <span style={{ marginLeft: "8px", color: theme.colors.text, wordWrap: "break-word", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{selectedOffer.description}</span>
-                        </div>
-                      )}
-                      <div style={{ marginBottom: "12px" }}>
-                        <strong style={{ color: theme.colors.text }}>{t("offers.date")}:</strong> 
-                        <span style={{ marginLeft: "8px", color: theme.colors.text }}>
-                          {new Date(selectedOffer.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
-                        </span>
-                        {selectedOffer.currentVersion && selectedOffer.currentVersion > 1 && (
-                          <span style={{ marginLeft: "12px", fontSize: "12px", color: theme.colors.textSecondary }}>
-                            ({settings.language === "hu" ? "Verzió" : settings.language === "de" ? "Version" : "Version"} {selectedOffer.currentVersion})
-                          </span>
-                        )}
-                      </div>
-
-                      <div style={{ marginBottom: "12px" }}>
-                        <label style={{ 
-                          display: "block", 
-                          marginBottom: "8px", 
-                          fontWeight: "600", 
-                          fontSize: "14px", 
-                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                        }}>
-                          📈 {t("offers.profitPercentage")}
-                        </label>
-                        <select
-                          value={selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}
-                          onChange={e => {
-                            const value = Number(e.target.value);
-                            const updatedOffers = offers.map(o => 
-                              o.id === selectedOffer.id ? { ...o, profitPercentage: value } : o
-                            );
-                            setOffers(updatedOffers);
-                            setSelectedOffer({ ...selectedOffer, profitPercentage: value });
-                          }}
-                          onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
-                          onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                          style={{ ...themeStyles.select, width: "100%", maxWidth: "300px" }}
-                        >
-                          <option value={10}>10%</option>
-                          <option value={20}>20%</option>
-                          <option value={30}>30% (alapértelmezett)</option>
-                          <option value={40}>40%</option>
-                          <option value={50}>50%</option>
-                        </select>
-                        <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
-                          Bevétel = Költségek × (1 + {selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}%) = {convertCurrencyFromTo(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100), selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div style={{ marginBottom: "20px", ...themeStyles.card, padding: "20px" }}>
-                  <strong style={{ display: "block", marginBottom: "12px", fontSize: "16px", color: theme.colors.text }}>
-                    🖨️ {t("offers.printer")}
-                  </strong>
-                  <div style={{ fontSize: "14px", color: theme.colors.text, lineHeight: "1.8" }}>
-                    <strong>{selectedOffer.printerName}</strong> ({selectedOffer.printerType}) - {selectedOffer.printerPower}W
-                    <br />
-                    <strong>{t("offers.printTime")}:</strong> {selectedOffer.printTimeHours}h {selectedOffer.printTimeMinutes}m {selectedOffer.printTimeSeconds}s
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: "20px", ...themeStyles.card, padding: "20px" }}>
-                  <strong style={{ display: "block", marginBottom: "12px", fontSize: "16px", color: theme.colors.text }}>
-                    🧵 {t("offers.filaments")}
-                  </strong>
-                  <ul style={{ marginTop: "10px", paddingLeft: "20px", listStyle: "none" }}>
-                    {selectedOffer.filaments.map((f, idx) => (
-                      <li key={idx} style={{ marginBottom: "12px", padding: "12px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", fontSize: "14px", color: theme.colors.text }}>
-                        <strong style={{ color: theme.colors.text }}>{f.brand} {f.type}</strong> {f.color ? `(${f.color})` : ""} - {f.usedGrams}g @ {convertCurrencyFromTo(f.pricePerKg, selectedOffer.currency || "EUR", settings.currency).toFixed(2)}{settings.currency === "HUF" ? "Ft" : settings.currency}/kg
-                        {f.needsDrying && (
-                          <div style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
-                            🌡️ Szárítás: {f.dryingTime}h @ {f.dryingPower}W
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div style={{ ...themeStyles.card, padding: "20px", backgroundColor: theme.colors.surface }}>
-                  <strong style={{ display: "block", marginBottom: "16px", fontSize: "16px", color: theme.colors.text }}>
-                    💰 {t("calculator.costBreakdown")}
-                  </strong>
-                  <div style={{ marginTop: "10px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-                      <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.filamentCost")}</span>
-                      <strong style={{ fontSize: "16px", color: theme.colors.success }}>{convertCurrencyFromTo(selectedOffer.costs.filamentCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-                      <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.electricityCost")}</span>
-                      <strong style={{ fontSize: "16px", color: "#ffc107" }}>{convertCurrencyFromTo(selectedOffer.costs.electricityCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-                    </div>
-                    {selectedOffer.costs.dryingCost > 0 && (
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-                        <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.dryingCost")}</span>
-                        <strong style={{ fontSize: "16px", color: theme.colors.primary }}>{convertCurrencyFromTo(selectedOffer.costs.dryingCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-                      </div>
-                    )}
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: `2px solid ${theme.colors.border}` }}>
-                      <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.usageCost")}</span>
-                      <strong style={{ fontSize: "16px", color: theme.colors.textMuted }}>{convertCurrencyFromTo(selectedOffer.costs.usageCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `2px solid ${theme.colors.border}` }}>
-                      <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.totalCost")}</span>
-                      <strong style={{ fontSize: "16px", color: theme.colors.text }}>{convertCurrencyFromTo(selectedOffer.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: theme.colors.surfaceHover, padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
-                      <span style={{ color: theme.colors.text }}>Bevétel ({selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}% profit):</span>
-                      <strong style={{ color: theme.colors.success }}>
-                        {convertCurrencyFromTo(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100), selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
-                      </strong>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", paddingTop: "12px", borderTop: `1px solid ${theme.colors.border}` }}>
-                      <span style={{ fontSize: "14px", color: theme.colors.text }}>Profit:</span>
-                      <strong style={{ fontSize: "18px", color: theme.colors.success, fontWeight: "bold" }}>
-                        {convertCurrencyFromTo(selectedOffer.costs.totalCost * ((selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100), selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Előzmények/Verziózás */}
-                {selectedOffer.history && selectedOffer.history.length > 0 && (
-                  <div style={{ ...themeStyles.card, padding: "20px", marginBottom: "20px" }}>
-                    <strong style={{ display: "block", marginBottom: "16px", fontSize: "16px", color: theme.colors.text }}>
-                      📜 {settings.language === "hu" ? "Előzmények" : settings.language === "de" ? "Verlauf" : "History"} ({selectedOffer.history.length})
-                    </strong>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "300px", overflowY: "auto" }}>
-                      {selectedOffer.history.map((historyEntry, idx) => (
-                        <div
-                          key={idx}
-                          style={{
-                            padding: "12px",
-                            backgroundColor: theme.colors.surfaceHover,
-                            borderRadius: "8px",
-                            border: `1px solid ${theme.colors.border}`
-                          }}
-                        >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                            <div>
-                              <strong style={{ fontSize: "14px", color: theme.colors.text }}>
-                                {settings.language === "hu" ? "Verzió" : settings.language === "de" ? "Version" : "Version"} {historyEntry.version}
-                              </strong>
-                              <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: theme.colors.textSecondary }}>
-                                {new Date(historyEntry.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")} {new Date(historyEntry.date).toLocaleTimeString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", { hour: "2-digit", minute: "2-digit" })}
-                              </p>
-                            </div>
-                          </div>
-                          <div style={{ fontSize: "12px", color: theme.colors.textSecondary, marginTop: "8px" }}>
-                            {historyEntry.customerName && (
-                              <div style={{ marginBottom: "4px" }}>
-                                <strong>{settings.language === "hu" ? "Ügyfél" : settings.language === "de" ? "Kunde" : "Customer"}:</strong> {historyEntry.customerName}
-                              </div>
-                            )}
-                            {historyEntry.profitPercentage !== undefined && (
-                              <div style={{ marginBottom: "4px" }}>
-                                <strong>{settings.language === "hu" ? "Profit" : settings.language === "de" ? "Gewinn" : "Profit"}:</strong> {historyEntry.profitPercentage}%
-                              </div>
-                            )}
-                            <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: `1px solid ${theme.colors.border}` }}>
-                              <strong>{settings.language === "hu" ? "Összköltség" : settings.language === "de" ? "Gesamtkosten" : "Total Cost"}:</strong>{" "}
-                              {convertCurrencyFromTo(historyEntry.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedOffer.statusHistory && selectedOffer.statusHistory.length > 0 && (
-                  <div style={{
-                    marginTop: "20px",
-                    padding: "12px",
-                    backgroundColor: theme.colors.surfaceHover,
-                    borderRadius: "8px",
-                    border: `1px solid ${theme.colors.border}`
-                  }}>
-                    <h4 style={{
-                      margin: "0 0 12px 0",
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
-                    }}>
-                      📜 {settings.language === "hu" ? "Státusz előzmények" : settings.language === "de" ? "Status-Verlauf" : "Status history"}
-                    </h4>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                      {selectedOffer.statusHistory.map((history, idx) => (
-                        <div
-                          key={`${history.status}-${history.date}-${idx}`}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            padding: "6px",
-                            backgroundColor: theme.colors.surface,
-                            borderRadius: "6px"
-                          }}
-                        >
-                          <span
-                            style={{
-                              padding: "4px 8px",
-                              fontSize: "10px",
-                              fontWeight: "700",
-                              borderRadius: "8px",
-                              backgroundColor: getStatusColor(history.status) + "20",
-                              color: getStatusColor(history.status),
-                              border: `1px solid ${getStatusColor(history.status)}`,
-                              textTransform: "uppercase"
-                            }}
-                          >
-                            {getStatusLabel(history.status)}
-                          </span>
-                          <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                            {new Date(history.date).toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
-                          </span>
-                          {history.note && (
-                            <span style={{ fontSize: "11px", color: theme.colors.textMuted, fontStyle: "italic" }}>
-                              — {history.note}
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="offer-details-title"
+                onClick={closeOfferDetails}
+                style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "rgba(0,0,0,0.45)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 1050,
+                  padding: "24px",
+                  boxSizing: "border-box",
+                }}
+              >
+                <div
+                  style={{
+                    width: "100%",
+                    maxWidth: "1100px",
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ ...themeStyles.card, position: "relative", minWidth: "360px" }}>
+                    <button
+                      onClick={closeOfferDetails}
+                      aria-label={t("common.close")}
+                      style={{
+                        position: "absolute",
+                        top: "12px",
+                        right: "12px",
+                        background: "none",
+                        border: "none",
+                        fontSize: "22px",
+                        cursor: "pointer",
+                        color: theme.colors.textMuted,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = theme.colors.text;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = theme.colors.textMuted;
+                      }}
+                    >
+                      ✕
+                    </button>
+                    <div style={{ paddingTop: "16px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", gap: "16px", flexWrap: "wrap" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: "1 1 auto", minWidth: "240px" }}>
+                          <h3 style={{ 
+                            margin: 0, 
+                            fontSize: "22px", 
+                            fontWeight: "600", 
+                            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                          }}>
+                            📄 {selectedOffer.customerName ? `${selectedOffer.customerName}` : settings.language === "hu" ? `Árajánlat #${selectedOffer.id}` : settings.language === "de" ? `Angebot #${selectedOffer.id}` : `Quote #${selectedOffer.id}`}
+                          </h3>
+                          {selectedOffer.status && (
+                            <span
+                              style={{
+                                padding: "6px 16px",
+                                fontSize: "12px",
+                                fontWeight: "700",
+                                borderRadius: "999px",
+                                backgroundColor: getStatusColor(selectedOffer.status) + "18",
+                                color: getStatusColor(selectedOffer.status),
+                                border: `2px solid ${getStatusColor(selectedOffer.status)}`,
+                                letterSpacing: "0.6px",
+                                textTransform: "uppercase"
+                              }}
+                            >
+                              {getStatusLabel(selectedOffer.status)}
                             </span>
                           )}
                         </div>
-                      ))}
+                        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                          {!editingOffer && (
+                            <Tooltip content={settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}>
+                              <button
+                                onClick={() => startEditOffer(selectedOffer)}
+                                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
+                                style={{
+                                  ...themeStyles.button,
+                                  ...themeStyles.buttonSuccess,
+                                  padding: "8px 16px",
+                                  fontSize: "14px"
+                                }}
+                              >
+                                ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
+                              </button>
+                            </Tooltip>
+                          )}
+                          <Tooltip content={settings.language === "hu" ? "Árajánlat duplikálása" : settings.language === "de" ? "Angebot duplizieren" : "Duplicate offer"}>
+                            <button
+                              onClick={() => duplicateOffer(selectedOffer)}
+                              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                              onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = "#6c757d 0 2px 4px"; }}
+                              style={{
+                                ...themeStyles.button,
+                                backgroundColor: theme.colors.secondary,
+                                color: "#fff",
+                                padding: "8px 16px",
+                                fontSize: "14px"
+                              }}
+                            >
+                              📋 {t("common.duplicate")}
+                            </button>
+                          </Tooltip>
+                          <Tooltip content={settings.language === "hu" ? "PDF export vagy nyomtatás" : settings.language === "de" ? "PDF-Export oder Drucken" : "PDF export or print"}>
+                            <button
+                              onClick={() => exportToPDF(selectedOffer)}
+                              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                              onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
+                              style={{
+                                ...themeStyles.button,
+                                ...themeStyles.buttonPrimary
+                              }}
+                            >
+                              {t("offers.print")}
+                            </button>
+                          </Tooltip>
+                          <Tooltip content={settings.language === "hu" ? "PDF letöltése HTML fájlként" : settings.language === "de" ? "PDF als HTML-Datei herunterladen" : "Download PDF as HTML file"}>
+                            <button
+                              onClick={() => exportAsPDF(selectedOffer)}
+                              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                              onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
+                              style={{
+                                ...themeStyles.button,
+                                ...themeStyles.buttonSuccess
+                              }}
+                            >
+                              {t("offers.downloadPDF")}
+                            </button>
+                          </Tooltip>
+                          <Tooltip content={t("offers.previewPDF")}
+                            >
+                            <button
+                              onClick={() => openPDFPreview(selectedOffer)}
+                              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                              onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSecondary.boxShadow; }}
+                              style={{
+                                ...themeStyles.button,
+                                ...themeStyles.buttonSecondary,
+                                padding: "8px 16px"
+                              }}
+                            >
+                              {t("offers.previewPDF")}
+                            </button>
+                          </Tooltip>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "4px", minWidth: "160px" }}>
+                          {selectedOfferCreatedAt && (
+                            <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
+                              {selectedOfferCreatedAt.toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          )}
+                          {selectedOfferStatusDate && (
+                            <span style={{ fontSize: "11px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
+                              {settings.language === "hu" ? "Státusz frissítve:" : settings.language === "de" ? "Status aktualisiert:" : "Status updated:"}{" "}
+                              {selectedOfferStatusDate.toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+                        gap: "14px",
+                        marginBottom: "18px"
+                      }}>
+                        <div style={{
+                          backgroundColor: theme.colors.surfaceHover,
+                          border: `1px solid ${theme.colors.border}`,
+                          borderRadius: "12px",
+                          padding: "14px"
+                        }}>
+                          <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
+                            {settings.language === "hu" ? "Összköltség" : settings.language === "de" ? "Gesamtkosten" : "Total cost"}
+                          </span>
+                          <div style={{ fontSize: "20px", fontWeight: "700", color: theme.colors.primary, marginTop: "4px" }}>
+                            {convertCurrencyFromTo(selectedOffer.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
+                          </div>
+                        </div>
+                        <div style={{
+                          backgroundColor: theme.colors.surfaceHover,
+                          border: `1px solid ${theme.colors.border}`,
+                          borderRadius: "12px",
+                          padding: "14px"
+                        }}>
+                          <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
+                            {settings.language === "hu" ? "Nyomtatási idő" : settings.language === "de" ? "Druckzeit" : "Print time"}
+                          </span>
+                          <div style={{ fontSize: "16px", fontWeight: "600", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
+                            {selectedOffer.totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
+                          </div>
+                          <span style={{ fontSize: "11px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
+                            {selectedOffer.printerName} · {selectedOffer.printerPower}W
+                          </span>
+                        </div>
+                        <div style={{
+                          backgroundColor: theme.colors.surfaceHover,
+                          border: `1px solid ${theme.colors.border}`,
+                          borderRadius: "12px",
+                          padding: "14px"
+                        }}>
+                          <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
+                            {settings.language === "hu" ? "Ügyfél" : settings.language === "de" ? "Kunde" : "Customer"}
+                          </span>
+                          <div style={{ fontSize: "14px", fontWeight: "600", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
+                            {selectedOffer.customerName || (settings.language === "hu" ? "Nincs megadva" : settings.language === "de" ? "Nicht angegeben" : "Not specified")}
+                          </div>
+                          <span style={{ fontSize: "11px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
+                            {selectedOffer.customerContact || (settings.language === "hu" ? "Elérhetőség nélkül" : settings.language === "de" ? "Keine Kontaktdaten" : "No contact info")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
+                        {(["draft", "sent", "accepted", "rejected", "completed"] as OfferStatus[]).map(status => {
+                          if (selectedOffer.status === status) return null;
+                          const color = getStatusColor(status);
+                          return (
+                            <button
+                              key={status}
+                              onClick={() => {
+                                setStatusChangeOffer(selectedOffer);
+                                setStatusChangeTarget(status);
+                                setStatusChangeNote("");
+                              }}
+                              style={{
+                                padding: "8px 14px",
+                                fontSize: "12px",
+                                fontWeight: "600",
+                                backgroundColor: color + "18",
+                                color,
+                                border: `1px solid ${color}`,
+                                borderRadius: "999px",
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = color;
+                                e.currentTarget.style.color = "#fff";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = color + "18";
+                                e.currentTarget.style.color = color;
+                              }}
+                            >
+                              → {getStatusLabel(status)}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {editingOffer && editingOffer.id === selectedOffer.id ? (
+                        <div style={{ ...themeStyles.card, marginBottom: "20px", backgroundColor: theme.colors.primary + "20", border: `2px solid ${theme.colors.primary}` }}>
+                          <h4 style={{ marginTop: 0, marginBottom: "20px", fontSize: "18px", fontWeight: "600", color: theme.colors.text }}>
+                            ✏️ {settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}
+                          </h4>
+                          <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", flexWrap: "wrap" }}>
+                            <div style={{ width: "200px", flexShrink: 0 }}>
+                              <label style={{ 
+                                display: "block", 
+                                marginBottom: "8px", 
+                                fontWeight: "600", 
+                                fontSize: "14px", 
+                                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                                whiteSpace: "nowrap" 
+                              }}>
+                                {t("offers.customerName")} *
+                              </label>
+                              <input
+                                type="text"
+                                placeholder={t("offers.customerName")}
+                                value={editCustomerName}
+                                onChange={e => setEditCustomerName(e.target.value)}
+                                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                style={{ ...themeStyles.input, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}
+                              />
+                            </div>
+                            <div style={{ width: "200px", flexShrink: 0 }}>
+                              <label style={{ 
+                                display: "block", 
+                                marginBottom: "8px", 
+                                fontWeight: "600", 
+                                fontSize: "14px", 
+                                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                                whiteSpace: "nowrap" 
+                              }}>
+                                {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}
+                              </label>
+                              <input
+                                type="text"
+                                placeholder={settings.language === "hu" ? "Email vagy telefon" : settings.language === "de" ? "E-Mail oder Telefon" : "Email or phone"}
+                                value={editCustomerContact}
+                                onChange={e => setEditCustomerContact(e.target.value)}
+                                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                style={{ ...themeStyles.input, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}
+                              />
+                            </div>
+                            <div style={{ width: "150px", flexShrink: 0 }}>
+                              <label style={{ 
+                                display: "block", 
+                                marginBottom: "8px", 
+                                fontWeight: "600", 
+                                fontSize: "14px", 
+                                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                                whiteSpace: "nowrap" 
+                              }}>
+                                📈 {t("offers.profitPercentage")}
+                              </label>
+                              <select
+                                value={editProfitPercentage}
+                                onChange={e => setEditProfitPercentage(Number(e.target.value))}
+                                onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+                                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                style={{ ...themeStyles.select, width: "100%", maxWidth: "150px", boxSizing: "border-box" }}
+                              >
+                                <option value={10}>10%</option>
+                                <option value={20}>20%</option>
+                                <option value={30}>30%</option>
+                                <option value={40}>40%</option>
+                                <option value={50}>50%</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div style={{ marginTop: "20px", width: "100%", maxWidth: "600px" }}>
+                            <label style={{ 
+                              display: "block", 
+                              marginBottom: "8px", 
+                              fontWeight: "600", 
+                              fontSize: "14px", 
+                              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                            }}>
+                              {t("offers.description")}
+                            </label>
+                            <textarea
+                              placeholder={t("offers.description")}
+                              value={editDescription}
+                              onChange={e => setEditDescription(e.target.value)}
+                              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                              style={{ ...themeStyles.input, width: "100%", maxWidth: "600px", minHeight: "100px", maxHeight: "200px", resize: "vertical", boxSizing: "border-box" }}
+                            />
+                          </div>
+                          
+                          {/* Filamentek szerkesztése */}
+                          <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
+                            <h5 style={{ marginTop: 0, marginBottom: "16px", fontSize: "16px", fontWeight: "600", color: theme.colors.text }}>
+                              🧵 {t("offers.filaments")}
+                            </h5>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                              {editFilaments.map((f, idx) => {
+                                return (
+                                  <div key={idx} style={{ padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", border: `1px solid ${theme.colors.border}` }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                                      <strong style={{ fontSize: "14px", color: theme.colors.text }}>
+                                        {f.brand} {f.type} {f.color ? `(${f.color})` : ""}
+                                      </strong>
+                                      {editFilaments.length > 1 && (
+                                        <button
+                                          onClick={() => {
+                                            const newFilaments = editFilaments.filter((_, i) => i !== idx);
+                                            setEditFilaments(newFilaments);
+                                          }}
+                                          style={{
+                                            ...themeStyles.button,
+                                            ...themeStyles.buttonDanger,
+                                            padding: "4px 8px",
+                                            fontSize: "12px"
+                                          }}
+                                        >
+                                          {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}
+                                        </button>
+                                      )}
+                                    </div>
+                                    <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "flex-end" }}>
+                                      <div style={{ width: "150px", flexShrink: 0 }}>
+                                        <label style={{ 
+                                          display: "block", 
+                                          marginBottom: "8px", 
+                                          fontWeight: "600", 
+                                          fontSize: "12px", 
+                                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                                        }}>
+                                          {t("calculator.usedGrams")}
+                                        </label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="0.1"
+                                          value={f.usedGrams || ""}
+                                          onChange={e => {
+                                            const val = Number(e.target.value);
+                                            const validation = validateUsedGrams(val, settings.language);
+                                            if (validation.isValid) {
+                                              const newFilaments = [...editFilaments];
+                                              newFilaments[idx] = { ...f, usedGrams: val };
+                                              setEditFilaments(newFilaments);
+                                            } else if (validation.errorMessage) {
+                                              showToast(validation.errorMessage, "error");
+                                            }
+                                          }}
+                                          onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                          onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                          style={{ ...themeStyles.input, width: "100%", maxWidth: "150px", boxSizing: "border-box" }}
+                                        />
+                                      </div>
+                                      {f.needsDrying && (
+                                        <>
+                                          <div style={{ width: "120px", flexShrink: 0 }}>
+                                            <label style={{ 
+                                          display: "block", 
+                                          marginBottom: "8px", 
+                                          fontWeight: "600", 
+                                          fontSize: "12px", 
+                                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                                        }}>
+                                              {t("calculator.dryingTime")}
+                                            </label>
+                                            <input
+                                              type="number"
+                                              min="0"
+                                              step="0.1"
+                                              value={f.dryingTime || ""}
+                                              onChange={e => {
+                                                const val = Number(e.target.value);
+                                                const validation = validateDryingTime(val, settings.language);
+                                                if (validation.isValid) {
+                                                  const newFilaments = [...editFilaments];
+                                                  newFilaments[idx] = { ...f, dryingTime: val };
+                                                  setEditFilaments(newFilaments);
+                                                } else if (validation.errorMessage) {
+                                                  showToast(validation.errorMessage, "error");
+                                                }
+                                              }}
+                                              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                              style={{ ...themeStyles.input, width: "100%", maxWidth: "120px", boxSizing: "border-box" }}
+                                            />
+                                          </div>
+                                          <div style={{ width: "120px", flexShrink: 0 }}>
+                                            <label style={{ 
+                                          display: "block", 
+                                          marginBottom: "8px", 
+                                          fontWeight: "600", 
+                                          fontSize: "12px", 
+                                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                                        }}>
+                                              {t("calculator.dryingPower")}
+                                            </label>
+                                            <input
+                                              type="number"
+                                              min="0"
+                                              value={f.dryingPower || ""}
+                                              onChange={e => {
+                                                const val = Number(e.target.value);
+                                                const validation = validateDryingPower(val, settings.language);
+                                                if (validation.isValid) {
+                                                  const newFilaments = [...editFilaments];
+                                                  newFilaments[idx] = { ...f, dryingPower: val };
+                                                  setEditFilaments(newFilaments);
+                                                } else if (validation.errorMessage) {
+                                                  showToast(validation.errorMessage, "error");
+                                                }
+                                              }}
+                                              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                              style={{ ...themeStyles.input, width: "100%", maxWidth: "120px", boxSizing: "border-box" }}
+                                            />
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          
+                          <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
+                            <Tooltip content={settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}>
+                              <button
+                                onClick={saveEditOffer}
+                                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
+                                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
+                                style={{
+                                  ...themeStyles.button,
+                                  ...themeStyles.buttonSuccess,
+                                  fontSize: "16px",
+                                  padding: "14px 28px"
+                                }}
+                              >
+                                💾 {settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}
+                              </button>
+                            </Tooltip>
+                            <Tooltip content={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}>
+                              <button
+                                onClick={cancelEditOffer}
+                                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                                style={{
+                                  ...themeStyles.button,
+                                  ...themeStyles.buttonSecondary,
+                                  padding: "8px 16px",
+                                  fontSize: "12px"
+                                }}
+                              >
+                                {settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+                              </button>
+                            </Tooltip>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ marginBottom: "20px", padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px" }}>
+                            {selectedOffer.customerName && (
+                              <div style={{ marginBottom: "12px" }}>
+                                <strong style={{ color: theme.colors.text }}>{t("offers.customerName")}:</strong> 
+                                <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerName}</span>
+                              </div>
+                            )}
+                            {selectedOffer.customerContact && (
+                              <div style={{ marginBottom: "12px" }}>
+                                <strong style={{ color: theme.colors.text }}>
+                                  {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}:
+                                </strong> 
+                                <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerContact}</span>
+                              </div>
+                            )}
+                            {selectedOffer.description && (
+                              <div style={{ marginBottom: "12px" }}>
+                                <strong style={{ color: theme.colors.text }}>{t("offers.description")}:</strong> 
+                                <span style={{ marginLeft: "8px", color: theme.colors.text, wordWrap: "break-word", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{selectedOffer.description}</span>
+                              </div>
+                            )}
+                            <div style={{ marginBottom: "12px" }}>
+                              <strong style={{ color: theme.colors.text }}>{t("offers.date")}:</strong> 
+                              <span style={{ marginLeft: "8px", color: theme.colors.text }}>
+                                {new Date(selectedOffer.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
+                              </span>
+                              {selectedOffer.currentVersion && selectedOffer.currentVersion > 1 && (
+                                <span style={{ marginLeft: "12px", fontSize: "12px", color: theme.colors.textSecondary }}>
+                                  ({settings.language === "hu" ? "Verzió" : settings.language === "de" ? "Version" : "Version"} {selectedOffer.currentVersion})
+                                </span>
+                              )}
+                            </div>
+
+                            <div style={{ marginBottom: "12px" }}>
+                              <label style={{ 
+                                display: "block", 
+                                marginBottom: "8px", 
+                                fontWeight: "600", 
+                                fontSize: "14px", 
+                                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                              }}>
+                                📈 {t("offers.profitPercentage")}
+                              </label>
+                              <select
+                                value={selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}
+                                onChange={e => {
+                                  const value = Number(e.target.value);
+                                  const updatedOffers = offers.map(o => 
+                                    o.id === selectedOffer.id ? { ...o, profitPercentage: value } : o
+                                  );
+                                  setOffers(updatedOffers);
+                                  setSelectedOffer({ ...selectedOffer, profitPercentage: value });
+                                }}
+                                onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+                                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                style={{ ...themeStyles.select, width: "100%", maxWidth: "300px" }}
+                              >
+                                <option value={10}>10%</option>
+                                <option value={20}>20%</option>
+                                <option value={30}>30% (alapértelmezett)</option>
+                                <option value={40}>40%</option>
+                                <option value={50}>50%</option>
+                              </select>
+                              <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
+                                Bevétel = Költségek × (1 + {selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}%) = {convertCurrencyFromTo(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100), selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div style={{ marginBottom: "20px", ...themeStyles.card, padding: "20px" }}>
+                            <strong style={{ display: "block", marginBottom: "12px", fontSize: "16px", color: theme.colors.text }}>
+                              🖨️ {t("offers.printer")}
+                            </strong>
+                            <div style={{ fontSize: "14px", color: theme.colors.text, lineHeight: "1.8" }}>
+                              <strong>{selectedOffer.printerName}</strong> ({selectedOffer.printerType}) - {selectedOffer.printerPower}W
+                              <br />
+                              <strong>{t("offers.printTime")}:</strong> {selectedOffer.printTimeHours}h {selectedOffer.printTimeMinutes}m {selectedOffer.printTimeSeconds}s
+                            </div>
+                          </div>
+
+                          <div style={{ marginBottom: "20px", ...themeStyles.card, padding: "20px" }}>
+                            <strong style={{ display: "block", marginBottom: "12px", fontSize: "16px", color: theme.colors.text }}>
+                              🧵 {t("offers.filaments")}
+                            </strong>
+                            <ul style={{ marginTop: "10px", paddingLeft: "20px", listStyle: "none" }}>
+                              {selectedOffer.filaments.map((f, idx) => (
+                                <li key={idx} style={{ marginBottom: "12px", padding: "12px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", fontSize: "14px", color: theme.colors.text }}>
+                                  <strong style={{ color: theme.colors.text }}>{f.brand} {f.type}</strong> {f.color ? `(${f.color})` : ""} - {f.usedGrams}g @ {convertCurrencyFromTo(f.pricePerKg, selectedOffer.currency || "EUR", settings.currency).toFixed(2)}{settings.currency === "HUF" ? "Ft" : settings.currency}/kg
+                                  {f.needsDrying && (
+                                    <div style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
+                                      🌡️ Szárítás: {f.dryingTime}h @ {f.dryingPower}W
+                                    </div>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div style={{ ...themeStyles.card, padding: "20px", backgroundColor: theme.colors.surface }}>
+                            <strong style={{ display: "block", marginBottom: "16px", fontSize: "16px", color: theme.colors.text }}>
+                              💰 {t("calculator.costBreakdown")}
+                            </strong>
+                            <div style={{ marginTop: "10px" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
+                                <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.filamentCost")}</span>
+                                <strong style={{ fontSize: "16px", color: theme.colors.success }}>{convertCurrencyFromTo(selectedOffer.costs.filamentCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
+                                <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.electricityCost")}</span>
+                                <strong style={{ fontSize: "16px", color: "#ffc107" }}>{convertCurrencyFromTo(selectedOffer.costs.electricityCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+                              </div>
+                              {selectedOffer.costs.dryingCost > 0 && (
+                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
+                                  <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.dryingCost")}</span>
+                                  <strong style={{ fontSize: "16px", color: theme.colors.primary }}>{convertCurrencyFromTo(selectedOffer.costs.dryingCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+                                </div>
+                              )}
+                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: `2px solid ${theme.colors.border}` }}>
+                                <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.usageCost")}</span>
+                                <strong style={{ fontSize: "16px", color: theme.colors.textMuted }}>{convertCurrencyFromTo(selectedOffer.costs.usageCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `2px solid ${theme.colors.border}` }}>
+                                <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.totalCost")}</span>
+                                <strong style={{ fontSize: "16px", color: theme.colors.text }}>{convertCurrencyFromTo(selectedOffer.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: theme.colors.surfaceHover, padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
+                                <span style={{ color: theme.colors.text }}>Bevétel ({selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}% profit):</span>
+                                <strong style={{ color: theme.colors.success }}>
+                                  {convertCurrencyFromTo(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100), selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
+                                </strong>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", paddingTop: "12px", borderTop: `1px solid ${theme.colors.border}` }}>
+                                <span style={{ fontSize: "14px", color: theme.colors.text }}>Profit:</span>
+                                <strong style={{ fontSize: "18px", color: theme.colors.success, fontWeight: "bold" }}>
+                                  {convertCurrencyFromTo(selectedOffer.costs.totalCost * ((selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100), selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
+                                </strong>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Előzmények/Verziózás */}
+                          {selectedOffer.history && selectedOffer.history.length > 0 && (
+                            <div style={{ ...themeStyles.card, padding: "20px", marginBottom: "20px" }}>
+                              <strong style={{ display: "block", marginBottom: "16px", fontSize: "16px", color: theme.colors.text }}>
+                                📜 {settings.language === "hu" ? "Előzmények" : settings.language === "de" ? "Verlauf" : "History"} ({selectedOffer.history.length})
+                              </strong>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "300px", overflowY: "auto" }}>
+                                {selectedOffer.history.map((historyEntry, idx) => (
+                                  <div
+                                    key={idx}
+                                    style={{
+                                      padding: "12px",
+                                      backgroundColor: theme.colors.surfaceHover,
+                                      borderRadius: "8px",
+                                      border: `1px solid ${theme.colors.border}`
+                                    }}
+                                  >
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                                      <div>
+                                        <strong style={{ fontSize: "14px", color: theme.colors.text }}>
+                                          {settings.language === "hu" ? "Verzió" : settings.language === "de" ? "Version" : "Version"} {historyEntry.version}
+                                        </strong>
+                                        <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: theme.colors.textSecondary }}>
+                                          {new Date(historyEntry.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")} {new Date(historyEntry.date).toLocaleTimeString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div style={{ fontSize: "12px", color: theme.colors.textSecondary, marginTop: "8px" }}>
+                                      {historyEntry.customerName && (
+                                        <div style={{ marginBottom: "4px" }}>
+                                          <strong>{settings.language === "hu" ? "Ügyfél" : settings.language === "de" ? "Kunde" : "Customer"}:</strong> {historyEntry.customerName}
+                                        </div>
+                                      )}
+                                      {historyEntry.profitPercentage !== undefined && (
+                                        <div style={{ marginBottom: "4px" }}>
+                                          <strong>{settings.language === "hu" ? "Profit" : settings.language === "de" ? "Gewinn" : "Profit"}:</strong> {historyEntry.profitPercentage}%
+                                        </div>
+                                      )}
+                                      <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: `1px solid ${theme.colors.border}` }}>
+                                        <strong>{settings.language === "hu" ? "Összköltség" : settings.language === "de" ? "Gesamtkosten" : "Total Cost"}:</strong>{" "}
+                                        {convertCurrencyFromTo(historyEntry.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedOffer.statusHistory && selectedOffer.statusHistory.length > 0 && (
+                            <div style={{
+                              marginTop: "20px",
+                              padding: "12px",
+                              backgroundColor: theme.colors.surfaceHover,
+                              borderRadius: "8px",
+                              border: `1px solid ${theme.colors.border}`
+                            }}>
+                              <h4 style={{
+                                margin: "0 0 12px 0",
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
+                              }}>
+                                📜 {settings.language === "hu" ? "Státusz előzmények" : settings.language === "de" ? "Status-Verlauf" : "Status history"}
+                              </h4>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                {selectedOffer.statusHistory.map((history, idx) => (
+                                  <div
+                                    key={`${history.status}-${history.date}-${idx}`}
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      padding: "6px",
+                                      backgroundColor: theme.colors.surface,
+                                      borderRadius: "6px"
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        padding: "4px 8px",
+                                        fontSize: "10px",
+                                        fontWeight: "700",
+                                        borderRadius: "8px",
+                                        backgroundColor: getStatusColor(history.status) + "20",
+                                        color: getStatusColor(history.status),
+                                        border: `1px solid ${getStatusColor(history.status)}`,
+                                        textTransform: "uppercase"
+                                      }}
+                                    >
+                                      {getStatusLabel(history.status)}
+                                    </span>
+                                    <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                                      {new Date(history.date).toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
+                                    </span>
+                                    {history.note && (
+                                      <span style={{ fontSize: "11px", color: theme.colors.textMuted, fontStyle: "italic" }}>
+                                        — {history.note}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
-                )}
-                  </>
-                )}
+                </div>
               </div>
             )}
           </div>

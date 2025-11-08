@@ -1,124 +1,16 @@
 # Fejlesztési javaslatok - 3DPrinterCalcApp
 
-## ✅ Már implementált funkciók
-
-### v0.3.9-ben implementálva:
-- ✅ **Szűrő preset rendszer** - Árajánlat szűrők mentése, alapértelmezett gyors presetek, alkalmazás/törlés, meta információk (időbélyeg, keresőkifejezés) tárolása
-- ✅ **Státusz megjegyzés modal** - Státuszváltás megerősítése opcionális megjegyzéssel, ami bekerül a státusz előzmények közé
-- ✅ **PDF filament képek** - A filamentekhez feltöltött képek megjelennek a PDF exportban, optimalizált táblázatstílussal
-- ✅ **Céges branding beállítások** - Cégnév, cím, adószám, bankszámlaszám, elérhetőség és logó tárolása; automatikusan bekerül a PDF fejlécebe
-- ✅ **PDF sablon & előnézet** - Választható Modern/Minimalista/Professzionális sablonok, valamint beépített PDF előnézet gomb az árajánlat részleteinél
-- ✅ **Státusz dashboard** - Státusz kártyák összesítéssel, gyors státusz-szűrők és legutóbbi státuszváltások idővonala
-
-### v0.3.8-ban implementálva:
-- ✅ **Riport számok formázás javítása** - 2 tizedesjegyig formázás a riportban (konzisztens a kezdőlappal)
-- ✅ **Beállítások tab navigáció javítása** - Hátter és betűszín javítása gradient témáknál
-
-### v0.3.7-ben implementálva:
-- ✅ **Dizájn modernizálás** - Teljes vizuális átalakítás animációkkal és új témákkal (Gradient, Neon, Cyberpunk, Sunset, Ocean)
-- ✅ **Framer Motion animációk** - FadeIn, SlideIn, Stagger, HoverLift animációk integrálva
-- ✅ **Glassmorphism effekt** - Blur + átlátszó háttér gradient témáknál
-- ✅ **Neon glow effekt** - Neon/cyberpunk témáknál
-- ✅ **Színezés javítások** - Jobb kontraszt és olvashatóság minden témához
-- ✅ **Táblázat stílusok javítása** - Homályosabb háttér, jobb szöveg kontraszt (#333)
-- ✅ **Kártyák háttérszínek javítása** - Homályosabb háttér (rgba(255,255,255,0.75)), blur(12px)
-- ✅ **Home oldal modernizálás** - Heti/havi/éves statisztikák, időszak összehasonlítás
-- ✅ **Dátum szűrés javítás** - Pontosabb időszak szűrés (idő nullázása, felső határ)
-- ✅ **Sidebar modernizálás** - Ikonok, glassmorphism, neon glow effektek
-- ✅ **ConfirmDialog modernizálás** - Téma prop hozzáadva, harmonizált színezés
-
-### v0.3.6-ban implementálva:
-- ✅ **Settings UI átrendezése** - Tab rendszer (Általános, Megjelenés, Speciális, Adatkezelés) jobb UX-ért
-- ✅ **Fordítások javítása** - Minden hardcoded magyar szöveg lefordítva (HU/EN/DE)
-- ✅ **Verzió történet cache** - Fizikai mentés localStorage-ba, 1 óránkénti GitHub ellenőrzés
-- ✅ **Okos fordítás** - Csak új release-eket fordítja le, régi fordításokat használja cache-ből
-- ✅ **LibreTranslate eltávolítva** - Csak MyMemory API (400-as hibák megszűntek)
-- ✅ **Hibaszámláló auto-reset** - 5 perc után automatikusan resetelődik
-- 🐛 **Build hibák javítása** - JSX indentációs problémák javítva
-
-### v0.3.5-ben implementálva:
-- ✅ **MyMemory API integráció** - Ingyenes fordító API LibreTranslate helyett (GET request, nincs CORS probléma)
-- ✅ **GitHub releases oldal megnyitása** - Gomb a GitHub releases oldal megnyitásához rate limit esetén
-- ✅ **Rate limit hibakezelés javítása** - Egyértelmű hibaüzenetek (HU/EN/DE) és retry gomb
-- 🐛 **Build hibák javítása** - Unused import-ok eltávolítása (offerCalc.ts)
-
-### v0.3.4-ben implementálva:
-- ✅ **Input validáció fejlesztése** - Központi validációs utility, Calculator, Filaments, Printers komponensekben
-- ✅ **Performance optimalizálás** - Lazy loading, useMemo, useCallback optimalizálás
-- ✅ **Code splitting** - Route-based code splitting komponenseknél
-- ✅ **Platform specifikus inicializálás** - macOS, Windows, Linux platform specifikus inicializálás alapok
-
-### v0.3.3-ban implementálva:
-- ✅ **Drag & Drop funkciók** - Árajánlatok, filamentek és nyomtatók átrendezése húzással
-- ✅ **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, PDF export)
-
-### v0.3.2-ban implementálva:
-- ✅ **Template funkciók** - Kalkulációk mentése és betöltése template-ként
-- ✅ **Előzmények/Verziózás árajánlatokhoz** - Árajánlatok verziózása, előzmények megtekintése
-- ✅ **Duplikáció javítás** - Duplikált CSV/JSON export/import funkciók eltávolítása
-
-### v0.3.1-ben implementálva:
-- ✅ **Input validáció fejlesztése** - Negatív számok eltiltása, maximum értékek beállítása
-- ✅ **Tömeges import/export (CSV/JSON)** - Filamentek és nyomtatók tömeges exportálása/importálása
-- ✅ **Empty states javítása** - Informatív üres állapotok megjelenítése
-
-### v0.3.0-ban implementálva:
-- ✅ **Árajánlat szerkesztés** - Mentett árajánlatok szerkesztése (ügyfél név, elérhetőség, leírás, profit százalék)
-- ✅ **Statisztikák export funkció** - Statisztikák exportálása JSON vagy CSV formátumban
-- ✅ **Riport generálás** - Heti/havi/éves/összes riport generálása JSON formátumban
-- ✅ **Verzió előzmények megjelenítése** - Verzió előzmények megtekintése a beállításokban
-
-### v0.2.55-ban implementálva:
-- ✅ **Console/Log funkció** - Console menüpont hibakereséshez és logok megtekintéséhez
-- ✅ **Gyorsbillentyűk** - `Ctrl/Cmd+N` (új), `Ctrl/Cmd+S` (mentés), `Escape` (mégse)
-- ✅ **Teljes logolás** - Minden kritikus művelet logolva (mentés, export, import, törlés, PDF export, frissítés)
-- ✅ **Frissítés gomb javítás** - Tauri shell plugin használata megbízható működéshez
-- ✅ **Toast értesítések** - Sikeres műveletek után értesítések
-- ✅ **Megerősítő dialógusok** - Törlés előtt megerősítés
-- ✅ **Keresés és szűrés** - Filamentek, nyomtatók és árajánlatok keresése
-- ✅ **Duplikálás** - Árajánlatok könnyű duplikálása
-- ✅ **Témaváltás** - Több téma támogatás (light, dark, blue, green, purple, orange)
-- ✅ **Teljes nyomtató szerkesztés** - Nyomtatók részletes szerkesztése, több AMS hozzáadása
-- ✅ **Responsive layout** - Dinamikus alkalmazkodás az ablakmérethez
-- ✅ **Loading states** - Betöltési állapotok megjelenítése
-- ✅ **Backup és restore** - Adatok biztonsági mentése és visszaállítása
-- ✅ **Error boundaries** - Alkalmazás szintű hibakezelés
-- ✅ **Automatikus mentés** - Debounced automatikus mentés beállítható intervallummal
-- ✅ **Értesítési beállítások** - Toast értesítések be/ki kapcsolása és időtartam beállítása
-- ✅ **Shortcut help menü** - Gyorsbillentyűk listája (`Ctrl/Cmd+?`)
-- ✅ **Animációk és transitions** - Smooth transitions és animációk
-- ✅ **Tooltip-ek** - Kontextuális segítség minden fontos elemhez
-
----
-
 ## 🎯 Prioritás szerint rendezett javaslatok
 
 ### 🔴 Magas prioritás (UX/Funkcionalitás javítások)
 
 #### 1. **PDF export fejlesztése**
 - **Mit**: 
-  - ✅ Céges információ blokkok (név, cím, adószám, bankszámlaszám, elérhetőség) – v0.3.9
-  - ✅ Logo hozzáadása a PDF-hez – v0.3.9
-  - ✅ Több PDF template (modern, minimalista, professzionális) – v0.3.9
-  - ✅ PDF preview előnézet mentés előtt – v0.3.9
-  - ✅ Filament képek megjelenítése – v0.3.9 (nyomtató kép opcionális)
   - Nyomtató kép és további sablon testreszabás (szín/fejléc szerkesztés)
 - **Előny**: Professzionálisabb árajánlatok, jobb brand megjelenés
 - **Becsült idő**: 8-12 óra
 - **Komplexitás**: Közepes
-
-#### 2. **Statisztikák grafikonok bővítése**
-- **Mit**: 
-- ✅ Időbeli trend grafikonok (bevétel, költség, profit) – v0.3.9
-- ✅ Filament típusok szerinti bontás (torta diagram) – v0.3.9
-- ✅ Nyomtató szerinti bontás (oszlop diagram) – v0.3.9
-- ✅ Havi/havi összehasonlítás grafikon (dinamikus heti/havi/éves trendválasztó) – v0.3.9
-- ✅ Export grafikonok képként (PNG, SVG) + PDF export – v0.3.9
-- **Előny**: Jobb adatvizualizáció, könnyebb elemzés
-- **Becsült idő**: 10-14 óra
-- **Komplexitás**: Magas
-
-#### 3. **Árajánlatok email küldés** ❌ **NEM IMPLEMENTÁLJUK**
+#### 2. **Árajánlatok email küldés** ❌ **NEM IMPLEMENTÁLJUK**
 - **Mit**: 
   - Email küldés közvetlenül az alkalmazásból
   - Email template testreszabás
@@ -131,7 +23,7 @@
 - **❌ Kizárva**: Komplex implementáció, biztonsági kockázatok, alternatíva: PDF export
 - **Részletek**: Lásd [EXCLUDED_FEATURES.md](EXCLUDED_FEATURES.md)
 
-#### 4. **Filamentek kép feltöltés**
+#### 3. **Filamentek kép feltöltés**
 - **Mit**: 
   - Kép feltöltés filamentekhez (szín preview)
   - Kép tárolás lokálisan vagy cloud-ban
@@ -146,10 +38,6 @@
 
 #### 1. **Árajánlat státusz követés**
 - **Mit**: 
-  - ✅ Árajánlat státuszok (Tervezés, Küldve, Elfogadva, Elutasítva, Befejezve)
-  - ✅ Státusz változás dátum követés (statusUpdatedAt + idővonal) – v0.3.9
-  - ✅ Státusz szűrés (haladó és gyors státusz gombok) – v0.3.9
-  - ✅ Státusz alapú statisztikák (kártyák, utolsó változások) – v0.3.9
   - Automatikus emlékeztető elutasított árajánlatokra
 - **Előny**: Jobb árajánlat kezelés, könnyebb követés
 - **Becsült idő**: 8-10 óra
@@ -157,7 +45,6 @@
 
 #### 2. **Felhasználói profil és beállítások**
 - **Mit**: 
-  - Céges információk (név, cím, adószám, bankszámlaszám, logo)
   - Alapértelmezett beállítások (profit százalék, pénznem, nyelv)
   - Profil kép feltöltés
   - Beállítások export/import
