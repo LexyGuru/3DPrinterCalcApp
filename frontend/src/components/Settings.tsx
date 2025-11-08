@@ -92,6 +92,8 @@ export const SettingsPage: React.FC<Props> = ({
   const [editingLibraryId, setEditingLibraryId] = useState<string | null>(null);
   const [libraryDraft, setLibraryDraft] = useState<LibraryDraft>(createEmptyLibraryDraft);
   const [libraryModalOpen, setLibraryModalOpen] = useState(false);
+  const [libraryExporting, setLibraryExporting] = useState(false);
+  const [libraryImporting, setLibraryImporting] = useState(false);
   const FINISH_OPTIONS: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
   const MAX_LIBRARY_DISPLAY = 400;
   type ConfirmDialogConfig = {
@@ -527,6 +529,101 @@ export const SettingsPage: React.FC<Props> = ({
         }
       },
     });
+  };
+
+  const handleLibraryExportToFile = async () => {
+    console.log("[Settings] handleLibraryExportToFile invoked");
+    try {
+      setLibraryExporting(true);
+      ensureLibraryOverridesLoaded();
+      const snapshot = getLibrarySnapshot();
+      console.log("[Settings] handleLibraryExportToFile snapshot", { count: snapshot.length });
+      const defaultFileName = `filament-library-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+      const filePath = await save({
+        defaultPath: defaultFileName,
+        filters: [
+          {
+            name: "JSON",
+            extensions: ["json"],
+          },
+        ],
+      });
+      if (!filePath) {
+        console.log("[Settings] handleLibraryExportToFile cancelled by user");
+        return;
+      }
+      await writeTextFile(filePath, JSON.stringify(snapshot, null, 2));
+      showToast(
+        localize(
+          "Filament könyvtár sikeresen exportálva.",
+          "Filamentbibliothek erfolgreich exportiert.",
+          "Filament library exported successfully."
+        ),
+        "success"
+      );
+    } catch (error) {
+      console.error("[Settings] handleLibraryExportToFile failed", error);
+      showToast(
+        localize(
+          "Nem sikerült exportálni a filament könyvtárat.",
+          "Filamentbibliothek konnte nicht exportiert werden.",
+          "Failed to export filament library."
+        ),
+        "error"
+      );
+    } finally {
+      setLibraryExporting(false);
+    }
+  };
+
+  const handleLibraryImportFromFile = async () => {
+    console.log("[Settings] handleLibraryImportFromFile invoked");
+    try {
+      setLibraryImporting(true);
+      const filePath = await open({
+        filters: [
+          {
+            name: "JSON",
+            extensions: ["json"],
+          },
+        ],
+      });
+      if (!filePath || Array.isArray(filePath)) {
+        console.log("[Settings] handleLibraryImportFromFile cancelled or invalid path", { filePath });
+        return;
+      }
+      const content = await readTextFile(filePath);
+      const parsed = JSON.parse(content);
+      if (!Array.isArray(parsed)) {
+        throw new Error("Invalid filament library format");
+      }
+      console.log("[Settings] handleLibraryImportFromFile parsed entries", { count: parsed.length });
+      await persistLibraryEntries(parsed as RawLibraryEntry[]);
+      const snapshot = sortLibraryEntries(getLibrarySnapshot());
+      setLibraryEntriesState(snapshot);
+      setLibraryDirty(false);
+      setLibraryInitialized(true);
+      showToast(
+        localize(
+          "Filament könyvtár sikeresen importálva.",
+          "Filamentbibliothek erfolgreich importiert.",
+          "Filament library imported successfully."
+        ),
+        "success"
+      );
+    } catch (error) {
+      console.error("[Settings] handleLibraryImportFromFile failed", error);
+      showToast(
+        localize(
+          "Nem sikerült importálni a filament könyvtárat.",
+          "Filamentbibliothek konnte nicht importiert werden.",
+          "Failed to import filament library."
+        ),
+        "error"
+      );
+    } finally {
+      setLibraryImporting(false);
+    }
   };
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -2375,6 +2472,64 @@ export const SettingsPage: React.FC<Props> = ({
                   })}
                 </div>
               </div>
+
+        <div style={{ ...themeStyles.card, marginTop: "24px" }}>
+          <h3
+            style={{
+              marginTop: 0,
+              marginBottom: "12px",
+              fontSize: "20px",
+              fontWeight: "600",
+              color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+            }}
+          >
+            🧵 {localize("Filament könyvtár mentése", "Filamentbibliothek sichern", "Save filament library")}
+          </h3>
+          <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
+            {localize(
+              "Exportáld a színkönyvtárat egy külön JSON fájlba, majd töltsd vissza később vagy egy másik gépen.",
+              "Exportiere die Farbbibliothek in eine separate JSON-Datei und importiere sie später oder auf einem anderen Rechner.",
+              "Export the filament color library to a standalone JSON file and re-import it later or on another machine."
+            )}
+          </p>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <button
+              onClick={handleLibraryExportToFile}
+              disabled={libraryExporting}
+              style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonPrimary,
+                opacity: libraryExporting ? 0.7 : 1,
+                minWidth: "200px",
+              }}
+            >
+              {libraryExporting
+                ? localize("Exportálás...", "Export läuft...", "Exporting...")
+                : localize("Könyvtár exportálása", "Bibliothek exportieren", "Export library")}
+            </button>
+            <button
+              onClick={handleLibraryImportFromFile}
+              disabled={libraryImporting}
+              style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonSuccess,
+                opacity: libraryImporting ? 0.7 : 1,
+                minWidth: "200px",
+              }}
+            >
+              {libraryImporting
+                ? localize("Importálás...", "Import läuft...", "Importing...")
+                : localize("Könyvtár importálása", "Bibliothek importieren", "Import library")}
+            </button>
+          </div>
+          <p style={{ marginTop: "12px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {localize(
+              "Az importálás felülírja a jelenleg tárolt filament bejegyzéseket.",
+              "Der Import überschreibt die aktuell gespeicherten Filamente.",
+              "Importing will overwrite the currently stored filament entries."
+            )}
+          </p>
+        </div>
             </div>
           </div>
         )}
