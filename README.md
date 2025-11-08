@@ -14,6 +14,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 📝 **Státusz megjegyzések** - Minden státuszváltás opcionális jegyzettel és előzmény naplózással
 - 👁️ **PDF előnézet és sablonok** - Beépített PDF előnézet, választható sablonok és céges branding blokkok
 - 🎨 **Filament színkönyvtár** - Több mint 2000 gyári szín, márka és típus szerinti rögzíthető választópanellel
+- 💾 **Filament könyvtár szerkesztő** - Modal alapú hozzáadás/szerkesztés, duplikátum-figyelmeztetés és tartós mentés `filamentLibrary.json` fájlba
 - 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
 - 🌍 **Többnyelvű** - Magyar, Angol, Német nyelven
@@ -238,6 +239,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 - 🧵 **Filament adatbázis integráció** – 2 000+ gyári szín beépített JSON könyvtárból (filamentcolors.xyz snapshot), márkánként és anyagonként rendezve
 - 🪟 **Fix méretű választó panelek** – Gombbal nyíló, kereshető, görgethető márka- és típuslisták, amelyek kizárják egymást, így átláthatóbb az űrlap
 - 🎯 **Színválasztó fejlesztések** – Könyvtári elemek felismerésekor automatikusan beáll a finish és a hex kód, egyedi módra váltáskor külön mezők állnak rendelkezésre
+- 💾 **Filament könyvtár szerkesztő** – Új beállítási fül popup űrlappal, duplikációkezeléssel és Tauri FS alapú tartós `filamentLibrary.json` mentéssel
 - 📄 **Dokumentáció frissítése** – Új bullet a fő feature listában a filament színkönyvtárhoz, README/FEATURE_SUGGESTIONS takarítás
 
 ### v0.3.9 (2025)

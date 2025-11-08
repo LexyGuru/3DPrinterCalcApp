@@ -14,8 +14,26 @@
     "store:allow-load",
     "dialog:allow-save",
     "dialog:allow-open",
-    "fs:allow-read-text-file",
-    "fs:allow-write-text-file",
+    {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [
+        { "path": "$APPCONFIG/filamentLibrary.json" },
+        { "path": "$APPCONFIG/filamentLibrary*.json" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [
+        { "path": "$APPCONFIG/filamentLibrary.json" },
+        { "path": "$APPCONFIG/filamentLibrary*.json" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-create",
+      "allow": [
+        { "path": "$APPCONFIG/filamentLibrary.json" }
+      ]
+    },
     "shell:allow-open"
   ]
 }

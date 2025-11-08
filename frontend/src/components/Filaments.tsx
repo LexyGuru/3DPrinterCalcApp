@@ -27,6 +27,9 @@ import {
   getLibraryColorOptions,
   findLibraryColorByLabel,
   resolveLibraryHexFromName,
+  subscribeToLibraryChanges,
+  ensureLibraryOverridesLoaded,
+  ensureLibraryEntry,
 } from "../utils/filamentLibrary";
 
 interface Props {
@@ -61,8 +64,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [typePanelOpen, setTypePanelOpen] = useState(false);
   const [brandFilter, setBrandFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
-  const BRAND_LIMIT = 120;
-  const TYPE_LIMIT = 120;
+  const [libraryVersion, setLibraryVersion] = useState(0);
+  const LIBRARY_FINISHES: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
   const brandSelectPlaceholder =
     settings.language === "hu"
       ? "Válassz márkát..."
@@ -99,30 +102,22 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       : settings.language === "de"
       ? "← Zurück zu den Typen"
       : "← Back to types";
-  const colorSelectPlaceholder =
-    settings.language === "hu"
-      ? "Válassz színt..."
-      : settings.language === "de"
-      ? "Farbe auswählen..."
-      : "Select color...";
-  const colorCustomOptionLabel =
-    settings.language === "hu"
-      ? "➕ Egyedi szín megadása"
-      : settings.language === "de"
-      ? "➕ Eigene Farbe hinzufügen"
-      : "➕ Add custom color";
-  const colorBackToListLabel =
-    settings.language === "hu"
-      ? "← Vissza a színekhez"
-      : settings.language === "de"
-      ? "← Zurück zu den Farben"
-      : "← Back to colors";
-  const allBrands = useMemo(() => getAllBrands(), []);
-  const allMaterials = useMemo(() => getAllMaterials(), []);
+  useEffect(() => {
+    ensureLibraryOverridesLoaded();
+    const unsubscribe = subscribeToLibraryChanges(() => {
+      setLibraryVersion(prev => prev + 1);
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const allBrands = useMemo(() => getAllBrands(), [libraryVersion]);
+  const allMaterials = useMemo(() => getAllMaterials(), [libraryVersion]);
 
   const materialsForBrand = useMemo(
     () => getMaterialsForBrand(!useCustomBrand ? brand : undefined),
-    [brand, useCustomBrand]
+    [brand, useCustomBrand, libraryVersion]
   );
 
   const libraryColorOptions = useMemo(() => {
@@ -132,7 +127,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       return [] as FilamentColorOption[];
     }
     return getLibraryColorOptions(brandForLookup, typeForLookup);
-  }, [brand, type, useCustomBrand, useCustomType]);
+  }, [brand, type, useCustomBrand, useCustomType, libraryVersion]);
 
   const colorOptions = useMemo<FilamentColorOption[]>(() => {
     if (libraryColorOptions.length > 0) {
@@ -146,8 +141,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   );
   const filteredBrands = useMemo<string[]>(() => {
     const term = brandFilter.trim().toLowerCase();
-    const list = term ? allBrands.filter(option => option.toLowerCase().includes(term)) : allBrands;
-    return list.length > BRAND_LIMIT ? list.slice(0, BRAND_LIMIT) : list;
+    return term ? allBrands.filter(option => option.toLowerCase().includes(term)) : allBrands;
   }, [brandFilter, allBrands]);
   const materialsBase = useMemo(
     () => (useCustomBrand ? allMaterials : materialsForBrand),
@@ -155,8 +149,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   );
   const filteredMaterials = useMemo<string[]>(() => {
     const term = typeFilter.trim().toLowerCase();
-    const list = term ? materialsBase.filter(option => option.toLowerCase().includes(term)) : materialsBase;
-    return list.length > TYPE_LIMIT ? list.slice(0, TYPE_LIMIT) : list;
+    return term ? materialsBase.filter(option => option.toLowerCase().includes(term)) : materialsBase;
   }, [typeFilter, materialsBase]);
   const finishOptions = useMemo(() => {
     const finishes = new Set<string>();
@@ -540,6 +533,15 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   };
 
   const addFilament = async () => {
+    console.log("[Filaments] addFilament invoked", {
+      brand,
+      type,
+      weight,
+      pricePerKg,
+      color,
+      colorHex,
+      imageProvided: !!imagePreview,
+    });
     if (!brand || !type || !pricePerKg) {
       showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek töltsd ki az összes kötelező mezőt!" : settings.language === "de" ? "Bitte füllen Sie alle Pflichtfelder aus!" : "Please fill in all required fields!"), "error");
       return;
@@ -568,6 +570,40 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     }
     
     const normalizedSaveHex = normalizeHex(colorHex) || undefined;
+    const optionHex = selectedColorOption ? normalizeHex(selectedColorOption.hex) : undefined;
+    const presetHex = color ? resolveColorHexFromName(color) : undefined;
+    const finalLibraryHex = normalizedSaveHex || optionHex || presetHex;
+    const libraryFinish = LIBRARY_FINISHES.includes(selectedFinish as FilamentFinish)
+      ? (selectedFinish as FilamentFinish)
+      : "standard";
+
+    if (color) {
+      console.log("[Filaments] Syncing color into library", {
+        brand,
+        type,
+        color,
+        finalLibraryHex,
+        libraryFinish,
+      });
+      try {
+        await ensureLibraryEntry({
+          manufacturer: brand,
+          material: type,
+          color,
+          hex: finalLibraryHex,
+          finish: libraryFinish,
+          baseLabel: color,
+          sourceLanguage: settings.language,
+        });
+      } catch (error) {
+        console.warn("[Filaments] Failed to sync filament with library", error);
+      }
+    } else {
+      console.warn("[Filaments] Skipping library sync because color is empty", {
+        brand,
+        type,
+      });
+    }
 
     if (editingIndex !== null) {
       // Szerkesztési mód: frissítjük a filamentet
