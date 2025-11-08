@@ -435,29 +435,53 @@ export const SettingsPage: React.FC<Props> = ({
 
     console.log("[Settings] handleLibraryAddOrUpdate upserting entry", entry);
 
-    setLibraryEntriesState(prev => {
-      const updated = editingLibraryId
-        ? prev.map(existing => (existing.id === editingLibraryId ? entry : existing))
-        : [...prev, entry];
-      console.log("[Settings] handleLibraryAddOrUpdate updated entries", {
-        before: prev.length,
-        after: updated.length,
-      });
-      return sortLibraryEntries(updated);
-    });
-    setLibraryDirty(true);
-    console.log("[Settings] handleLibraryAddOrUpdate completed", {
-      dirty: true,
-      editing: !!editingLibraryId,
-    });
-    showToast(
+    const updatedEntries = sortLibraryEntries(
       editingLibraryId
-        ? localize("Szín frissítve a könyvtárban", "Farbe in der Bibliothek aktualisiert", "Color updated in library")
-        : localize("Szín hozzáadva a könyvtárhoz", "Farbe zur Bibliothek hinzugefügt", "Color added to library"),
-      "success"
+        ? libraryEntriesState.map(existing => (existing.id === editingLibraryId ? entry : existing))
+        : [...libraryEntriesState, entry]
     );
-    closeLibraryModal();
-    console.log("[Settings] handleLibraryAddOrUpdate modal closed");
+
+    console.log("[Settings] handleLibraryAddOrUpdate updated entries", {
+      before: libraryEntriesState.length,
+      after: updatedEntries.length,
+    });
+
+    let dirtyAfter = libraryDirty;
+
+    try {
+      setLibrarySaving(true);
+      console.log("[Settings] handleLibraryAddOrUpdate persisting entries", {
+        total: updatedEntries.length,
+      });
+      await persistLibraryEntries(updatedEntries);
+      const snapshot = sortLibraryEntries(getLibrarySnapshot());
+      console.log("[Settings] handleLibraryAddOrUpdate received snapshot", {
+        snapshotCount: snapshot.length,
+      });
+      setLibraryEntriesState(snapshot);
+      setLibraryDirty(false);
+      dirtyAfter = false;
+      console.log("[Settings] handleLibraryAddOrUpdate persisted successfully");
+      showToast(
+        editingLibraryId
+          ? localize("Szín frissítve a könyvtárban", "Farbe in der Bibliothek aktualisiert", "Color updated in library")
+          : localize("Szín hozzáadva a könyvtárhoz", "Farbe zur Bibliothek hinzugefügt", "Color added to library"),
+        "success"
+      );
+      closeLibraryModal();
+      console.log("[Settings] handleLibraryAddOrUpdate modal closed");
+    } catch (error) {
+      console.error("[Settings] handleLibraryAddOrUpdate failed to persist entries", error);
+      setLibraryDirty(true);
+      dirtyAfter = true;
+      showToast(localize("Mentés sikertelen", "Speichern fehlgeschlagen", "Save failed"), "error");
+    } finally {
+      setLibrarySaving(false);
+      console.log("[Settings] handleLibraryAddOrUpdate completed", {
+        dirty: dirtyAfter,
+        editing: !!editingLibraryId,
+      });
+    }
   };
 
   const handleLibrarySave = async () => {
