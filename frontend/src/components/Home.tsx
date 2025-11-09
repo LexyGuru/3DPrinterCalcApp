@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import type { Settings, Offer } from "../types";
+import { defaultAnimationSettings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { convertCurrency, convertCurrencyFromTo } from "../utils/currency";
@@ -53,6 +54,17 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
   const trendChartRef = useRef<SVGSVGElement | null>(null);
   const filamentChartRef = useRef<SVGSVGElement | null>(null);
   const printerChartRef = useRef<SVGSVGElement | null>(null);
+  const animationSettings = useMemo(
+    () => ({
+      ...defaultAnimationSettings,
+      ...(settings.animationSettings ?? {}),
+    }),
+    [settings.animationSettings]
+  );
+  const interactionsEnabled = animationSettings.microInteractions;
+  const microInteractionStyle = animationSettings.microInteractionStyle;
+  const hoverScale = microInteractionStyle === "playful" ? 1.07 : microInteractionStyle === "expressive" ? 1.05 : 1.03;
+  const hoverTranslate = microInteractionStyle === "playful" ? -4 : microInteractionStyle === "expressive" ? -3 : -2;
   
   // Helper függvény az időszak szűréséhez
   const filterOffersByPeriod = (offers: Offer[], period: "all" | "week" | "month" | "year") => {
@@ -775,7 +787,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
     
     return (
       <FadeIn delay={delay} duration={0.5}>
-        <HoverLift>
+        <HoverLift intensity={microInteractionStyle} disabled={!interactionsEnabled}>
           <div style={{
             backgroundColor: cardBg,
             borderRadius: "20px",
@@ -1224,16 +1236,18 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                       transform: selectedPeriod === period ? "scale(1.02)" : "scale(1)",
                     }}
                     onMouseEnter={(e) => {
-                      if (selectedPeriod !== period) {
-                        e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
-                        e.currentTarget.style.transform = "scale(1.05)";
+                      if (!interactionsEnabled || selectedPeriod === period) {
+                        return;
                       }
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                      e.currentTarget.style.transform = `scale(${hoverScale.toFixed(3)})`;
                     }}
                     onMouseLeave={(e) => {
-                      if (selectedPeriod !== period) {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.transform = "scale(1)";
+                      if (!interactionsEnabled || selectedPeriod === period) {
+                        return;
                       }
+                      e.currentTarget.style.backgroundColor = "transparent";
+                      e.currentTarget.style.transform = "scale(1)";
                     }}
                   >
                     {period === "all" ? (settings.language === "hu" ? "Összes" : settings.language === "de" ? "Alle" : "All") :
@@ -1271,11 +1285,13 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     gap: "6px",
                   }}
                   onMouseEnter={(e) => {
+                    if (!interactionsEnabled) return;
                     e.currentTarget.style.backgroundColor = theme.colors.successHover;
-                    e.currentTarget.style.transform = "translateY(-2px) scale(1.02)";
+                    e.currentTarget.style.transform = `translateY(${hoverTranslate}px) scale(${hoverScale.toFixed(3)})`;
                     e.currentTarget.style.boxShadow = `0 4px 12px ${theme.colors.shadowHover}`;
                   }}
                   onMouseLeave={(e) => {
+                    if (!interactionsEnabled) return;
                     e.currentTarget.style.backgroundColor = theme.colors.success;
                     e.currentTarget.style.transform = "translateY(0) scale(1)";
                     e.currentTarget.style.boxShadow = `0 2px 8px ${theme.colors.shadow}`;
@@ -1334,11 +1350,13 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     gap: "6px",
                   }}
                   onMouseEnter={(e) => {
+                    if (!interactionsEnabled) return;
                     e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
-                    e.currentTarget.style.transform = "translateY(-2px) scale(1.02)";
+                    e.currentTarget.style.transform = `translateY(${hoverTranslate}px) scale(${hoverScale.toFixed(3)})`;
                     e.currentTarget.style.boxShadow = `0 4px 12px ${theme.colors.shadowHover}`;
                   }}
                   onMouseLeave={(e) => {
+                    if (!interactionsEnabled) return;
                     e.currentTarget.style.backgroundColor = theme.colors.primary;
                     e.currentTarget.style.transform = "translateY(0) scale(1)";
                     e.currentTarget.style.boxShadow = `0 2px 8px ${theme.colors.shadow}`;
@@ -2572,13 +2590,15 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                       gap: "8px"
                     }}
                     onMouseEnter={(e) => {
+                      if (!interactionsEnabled) return;
                       e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
-                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.transform = `translateY(${hoverTranslate}px) scale(${hoverScale.toFixed(3)})`;
                       e.currentTarget.style.boxShadow = `0 4px 12px ${theme.colors.shadowHover}`;
                     }}
                     onMouseLeave={(e) => {
+                      if (!interactionsEnabled) return;
                       e.currentTarget.style.backgroundColor = theme.colors.primary;
-                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.transform = "translateY(0) scale(1)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >

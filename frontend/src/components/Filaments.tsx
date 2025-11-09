@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { Filament, Settings, ColorMode } from "../types";
+import { defaultAnimationSettings } from "../types";
 import type { Theme } from "../utils/themes";
 import { filamentPrice } from "../utils/filamentCalc";
 import { useTranslation } from "../utils/translations";
@@ -62,6 +63,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [useCustomBrand, setUseCustomBrand] = useState(false);
   const [useCustomType, setUseCustomType] = useState(false);
   const [useCustomColor, setUseCustomColor] = useState(false);
+  const animationConfig = useMemo(
+    () => ({
+      ...defaultAnimationSettings,
+      ...(settings.animationSettings ?? {}),
+    }),
+    [settings.animationSettings]
+  );
+  const interactionsEnabled = animationConfig.microInteractions;
   const [brandPanelOpen, setBrandPanelOpen] = useState(false);
   const [typePanelOpen, setTypePanelOpen] = useState(false);
   const [brandFilter, setBrandFilter] = useState("");
@@ -909,8 +918,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           <Tooltip content={settings.language === "hu" ? "Új filament hozzáadása (Ctrl/Cmd+N)" : settings.language === "de" ? "Neues Filament hinzufügen (Strg/Cmd+N)" : "Add new filament (Ctrl/Cmd+N)"}>
             <button
               onClick={() => setShowAddForm(true)}
-              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
+              onMouseEnter={(e) => {
+                if (!interactionsEnabled) return;
+                Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
+              }}
+              onMouseLeave={(e) => {
+                if (!interactionsEnabled) return;
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.transform = "translateY(0)";
+                btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow;
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
@@ -946,8 +963,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           {editingIndex !== null && (
             <button 
               onClick={cancelEdit}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+              onMouseEnter={(e) => {
+                if (!interactionsEnabled) return;
+                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                if (!interactionsEnabled) return;
+                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
+              }}
               style={{ 
                 ...themeStyles.button,
                 ...themeStyles.buttonSecondary,
@@ -1048,14 +1071,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                                 cursor: "pointer",
                               }}
                               onMouseEnter={e => {
-                                if (!isSelected) {
-                                  e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                                if (!interactionsEnabled || isSelected) {
+                                  return;
                                 }
+                                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
                               }}
                               onMouseLeave={e => {
-                                if (!isSelected) {
-                                  e.currentTarget.style.backgroundColor = "transparent";
+                                if (!interactionsEnabled || isSelected) {
+                                  return;
                                 }
+                                e.currentTarget.style.backgroundColor = "transparent";
                               }}
                             >
                               {option}
@@ -1211,14 +1236,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                                 cursor: "pointer",
                               }}
                               onMouseEnter={e => {
-                                if (!isSelected) {
-                                  e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                                if (!interactionsEnabled || isSelected) {
+                                  return;
                                 }
+                                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
                               }}
                               onMouseLeave={e => {
-                                if (!isSelected) {
-                                  e.currentTarget.style.backgroundColor = "transparent";
+                                if (!interactionsEnabled || isSelected) {
+                                  return;
                                 }
+                                e.currentTarget.style.backgroundColor = "transparent";
                               }}
                             >
                               {option}
@@ -1635,10 +1662,12 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               gap: "12px"
               }}
               onMouseEnter={(e) => {
+                if (!interactionsEnabled) return;
                 e.currentTarget.style.borderColor = theme.colors.primary;
                 e.currentTarget.style.backgroundColor = theme.colors.primary + "10";
               }}
               onMouseLeave={(e) => {
+                if (!interactionsEnabled) return;
                 e.currentTarget.style.borderColor = theme.colors.border;
                 e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
               }}
@@ -1677,8 +1706,17 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           <Tooltip content={settings.language === "hu" ? (editingIndex !== null ? "Mentés (Ctrl/Cmd+S)" : "Hozzáadás (Ctrl/Cmd+S)") : settings.language === "de" ? (editingIndex !== null ? "Speichern (Strg/Cmd+S)" : "Hinzufügen (Strg/Cmd+S)") : (editingIndex !== null ? "Save (Ctrl/Cmd+S)" : "Add (Ctrl/Cmd+S)")}>
             <button 
               onClick={addFilament}
-              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-              onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = editingIndex !== null ? themeStyles.buttonSuccess.boxShadow : themeStyles.buttonPrimary.boxShadow; }}
+              onMouseEnter={(e) => {
+                if (!interactionsEnabled) return;
+                Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
+              }}
+              onMouseLeave={(e) => {
+                if (!interactionsEnabled) return;
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.transform = "translateY(0)";
+                btn.style.boxShadow =
+                  editingIndex !== null ? themeStyles.buttonSuccess.boxShadow : themeStyles.buttonPrimary.boxShadow;
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
@@ -1700,8 +1738,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             <Tooltip content={settings.language === "hu" ? "Mégse (Escape)" : settings.language === "de" ? "Abbrechen (Escape)" : "Cancel (Escape)"}>
               <button
                 onClick={() => setShowAddForm(false)}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                onMouseEnter={(e) => {
+                  if (!interactionsEnabled) return;
+                  (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!interactionsEnabled) return;
+                  (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();

@@ -54,7 +54,83 @@ export type ThemeName =
   | "neon"
   | "cyberpunk"
   | "sunset"
-  | "ocean";
+  | "ocean"
+  | "forest"
+  | "charcoal"
+  | "pastel"
+  | "midnight"
+  | `custom:${string}`;
+
+export type PageTransitionStyle = "fade" | "slide" | "scale" | "flip" | "parallax";
+export type FeedbackAnimationStyle = "subtle" | "emphasis" | "pulse" | "none";
+export type MicroInteractionStyle = "subtle" | "expressive" | "playful";
+
+export interface AnimationSettings {
+  microInteractions: boolean;
+  microInteractionStyle: MicroInteractionStyle;
+  pageTransition: PageTransitionStyle;
+  loadingSkeletons: boolean;
+  feedbackAnimations: FeedbackAnimationStyle;
+  smoothScroll: boolean;
+}
+
+export interface CustomThemeGradient {
+  start: string;
+  end: string;
+  angle: number;
+}
+
+export interface CustomThemeDefinition {
+  id: string;
+  name: string;
+  description?: string;
+  palette: {
+    background: string;
+    surface: string;
+    primary: string;
+    secondary: string;
+    success: string;
+    danger: string;
+    text: string;
+    textMuted: string;
+  };
+  gradient?: CustomThemeGradient;
+}
+
+export interface ThemeSettings {
+  customThemes: CustomThemeDefinition[];
+  activeCustomThemeId?: string;
+  autoApplyGradientText?: boolean;
+}
+
+export const defaultAnimationSettings: AnimationSettings = {
+  microInteractions: true,
+  microInteractionStyle: "expressive",
+  pageTransition: "fade",
+  loadingSkeletons: true,
+  feedbackAnimations: "subtle",
+  smoothScroll: true,
+};
+
+export const createEmptyCustomThemeDefinition = (): CustomThemeDefinition => ({
+  id: `custom-${Date.now().toString(36)}`,
+  name: "Új téma",
+  palette: {
+    background: "#1f2933",
+    surface: "#27323f",
+    primary: "#4f46e5",
+    secondary: "#0ea5e9",
+    success: "#22c55e",
+    danger: "#ef4444",
+    text: "#f8fafc",
+    textMuted: "#cbd5f5",
+  },
+  gradient: {
+    start: "#4f46e5",
+    end: "#0ea5e9",
+    angle: 135,
+  },
+});
 
 export interface Settings {
   currency: "EUR" | "HUF" | "USD";
@@ -69,6 +145,8 @@ export interface Settings {
   notificationDuration?: number; // Toast értesítés időtartama (ms)
   companyInfo?: CompanyInfo;
   pdfTemplate?: PdfTemplate;
+  animationSettings?: AnimationSettings;
+  themeSettings?: ThemeSettings;
 }
 
 export const defaultSettings: Settings = {
@@ -83,6 +161,12 @@ export const defaultSettings: Settings = {
   notificationDuration: 3000, // Alapértelmezett 3 másodperc
   companyInfo: {},
   pdfTemplate: "modern",
+  animationSettings: { ...defaultAnimationSettings },
+  themeSettings: {
+    customThemes: [],
+    activeCustomThemeId: undefined,
+    autoApplyGradientText: true,
+  },
 };
 
 export interface OfferFilament {

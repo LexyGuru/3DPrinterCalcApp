@@ -2,10 +2,28 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import type { Settings, Printer, Filament, Offer, CompanyInfo, PdfTemplate } from "../types";
+import type {
+  Settings,
+  Printer,
+  Filament,
+  Offer,
+  CompanyInfo,
+  PdfTemplate,
+  AnimationSettings,
+  ThemeSettings,
+  CustomThemeDefinition,
+} from "../types";
+import { defaultAnimationSettings, createEmptyCustomThemeDefinition } from "../types";
 import { useTranslation } from "../utils/translations";
 import { useToast } from "./Toast";
-import { themes, type ThemeName, type Theme } from "../utils/themes";
+import {
+  type ThemeName,
+  type Theme,
+  listAvailableThemes,
+  buildThemeFromDefinition,
+  themeToCustomDefinition,
+  DEFAULT_THEME_NAME,
+} from "../utils/themes";
 import { createBackup, restoreBackup } from "../utils/backup";
 import { ShortcutHelp } from "./ShortcutHelp";
 import { Tooltip } from "./Tooltip";
@@ -54,6 +72,7 @@ export const SettingsPage: React.FC<Props> = ({
   const { showToast } = useToast();
   const localize = (hu: string, de: string, en: string) =>
     settings.language === "hu" ? hu : settings.language === "de" ? de : en;
+  const CUSTOM_THEME_PREFIX = "custom:";
   const [exportFilaments, setExportFilaments] = useState(false);
   const [exportPrinters, setExportPrinters] = useState(false);
   const [exportOffers, setExportOffers] = useState(false);
@@ -102,6 +121,21 @@ export const SettingsPage: React.FC<Props> = ({
   const [libraryImporting, setLibraryImporting] = useState(false);
   const FINISH_OPTIONS: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
   const MAX_LIBRARY_DISPLAY = 400;
+  const themeSettingsState = useMemo<ThemeSettings>(() => ({
+    customThemes: settings.themeSettings?.customThemes ?? [],
+    activeCustomThemeId: settings.themeSettings?.activeCustomThemeId,
+    autoApplyGradientText: settings.themeSettings?.autoApplyGradientText ?? true,
+  }), [settings.themeSettings]);
+  const customThemes = themeSettingsState.customThemes;
+  const animationSettings = useMemo<AnimationSettings>(() => ({
+    ...defaultAnimationSettings,
+    ...(settings.animationSettings ?? {}),
+  }), [settings.animationSettings]);
+  const [customThemeEditorOpen, setCustomThemeEditorOpen] = useState(false);
+  const [editingCustomThemeIdState, setEditingCustomThemeIdState] = useState<string | null>(null);
+  const [customThemeDraft, setCustomThemeDraft] = useState<CustomThemeDefinition>(
+    createEmptyCustomThemeDefinition()
+  );
   type ConfirmDialogConfig = {
     title: string;
     message: string;
@@ -119,6 +153,17 @@ export const SettingsPage: React.FC<Props> = ({
   const handleConfirmDialogCancel = () => {
     setConfirmDialogConfig(null);
   };
+
+  useEffect(() => {
+    if (!editingCustomThemeIdState) {
+      return;
+    }
+    const existing = customThemes.find(theme => theme.id === editingCustomThemeIdState);
+    if (existing) {
+      setCustomThemeDraft(JSON.parse(JSON.stringify(existing)) as CustomThemeDefinition);
+      setCustomThemeEditorOpen(true);
+    }
+  }, [editingCustomThemeIdState, customThemes]);
 
   const handleConfirmDialogConfirm = async () => {
     if (!confirmDialogConfig) return;
@@ -138,6 +183,558 @@ export const SettingsPage: React.FC<Props> = ({
       );
     }
   };
+
+  const ensureThemeSettings = (overrides?: Partial<ThemeSettings>): ThemeSettings => {
+    const base: ThemeSettings = {
+      customThemes,
+      activeCustomThemeId: themeSettingsState.activeCustomThemeId,
+      autoApplyGradientText: themeSettingsState.autoApplyGradientText ?? true,
+    };
+    if (!overrides) {
+      return base;
+    }
+    return {
+      customThemes: overrides.customThemes ?? base.customThemes,
+      activeCustomThemeId:
+        overrides.activeCustomThemeId !== undefined
+          ? overrides.activeCustomThemeId
+          : base.activeCustomThemeId,
+      autoApplyGradientText:
+        overrides.autoApplyGradientText !== undefined
+          ? overrides.autoApplyGradientText
+          : base.autoApplyGradientText,
+    };
+  };
+
+  const updateAnimationSetting = <K extends keyof AnimationSettings>(
+    key: K,
+    value: AnimationSettings[K]
+  ) => {
+    onChange({
+      ...settings,
+      animationSettings: {
+        ...defaultAnimationSettings,
+        ...(settings.animationSettings ?? {}),
+        [key]: value,
+      },
+    });
+  };
+
+  const handleThemeSelect = (themeName: ThemeName) => {
+    const isCustom = themeName.startsWith(CUSTOM_THEME_PREFIX);
+    const nextThemeSettings = ensureThemeSettings({
+      activeCustomThemeId: isCustom ? themeName.replace(CUSTOM_THEME_PREFIX, "") : undefined,
+    });
+    onChange({
+      ...settings,
+      theme: themeName,
+      themeSettings: nextThemeSettings,
+    });
+  };
+
+  const clampNumber = (value: number, min: number, max: number) =>
+    Math.min(max, Math.max(min, value));
+
+  const normalizeColorInput = (value: string, fallback: string) => {
+    const trimmed = (value ?? "").trim();
+    if (!trimmed) return fallback;
+    const prefixed = trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
+    if (/^#([0-9A-Fa-f]{6})$/.test(prefixed)) {
+      return prefixed.toUpperCase();
+    }
+    if (/^#([0-9A-Fa-f]{3})$/.test(prefixed)) {
+      const [, shortHex] = prefixed.match(/^#([0-9A-Fa-f]{3})$/) ?? [];
+      if (shortHex) {
+        const expanded = shortHex
+          .split("")
+          .map(char => char + char)
+          .join("")
+          .toUpperCase();
+        return `#${expanded}`;
+      }
+    }
+    return fallback;
+  };
+
+  const sanitizeCustomThemeDefinition = (draft: CustomThemeDefinition): CustomThemeDefinition => {
+    const cleanedPalette = {
+      background: normalizeColorInput(draft.palette.background, "#1f2933"),
+      surface: normalizeColorInput(draft.palette.surface, "#27323f"),
+      primary: normalizeColorInput(draft.palette.primary, "#4f46e5"),
+      secondary: normalizeColorInput(draft.palette.secondary, "#0ea5e9"),
+      success: normalizeColorInput(draft.palette.success, "#22c55e"),
+      danger: normalizeColorInput(draft.palette.danger, "#ef4444"),
+      text: normalizeColorInput(draft.palette.text, "#f8fafc"),
+      textMuted: normalizeColorInput(
+        draft.palette.textMuted,
+        normalizeColorInput(draft.palette.text, "#f8fafc")
+      ),
+    };
+    const sanitized: CustomThemeDefinition = {
+      ...draft,
+      name: draft.name.trim() || "Custom theme",
+      description: draft.description?.trim() || undefined,
+      palette: cleanedPalette,
+      gradient: draft.gradient
+        ? {
+            start: normalizeColorInput(draft.gradient.start, cleanedPalette.primary),
+            end: normalizeColorInput(draft.gradient.end, cleanedPalette.secondary),
+            angle: clampNumber(
+              typeof draft.gradient.angle === "number" ? draft.gradient.angle : 135,
+              0,
+              360
+            ),
+          }
+        : undefined,
+    };
+    return sanitized;
+  };
+
+  const handleCustomThemePaletteChange = (
+    key: keyof CustomThemeDefinition["palette"],
+    value: string
+  ) => {
+    setCustomThemeDraft(prev => ({
+      ...prev,
+      palette: {
+        ...prev.palette,
+        [key]: value,
+      },
+    }));
+  };
+
+  const handleCustomThemeGradientToggle = (enabled: boolean) => {
+    setCustomThemeDraft(prev => ({
+      ...prev,
+      gradient: enabled
+        ? prev.gradient ?? {
+            start: prev.palette.primary,
+            end: prev.palette.secondary,
+            angle: 135,
+          }
+        : undefined,
+    }));
+  };
+
+  type RequiredGradient = NonNullable<CustomThemeDefinition["gradient"]>;
+
+  const handleCustomThemeGradientChange = <K extends keyof RequiredGradient>(
+    key: K,
+    value: RequiredGradient[K]
+  ) => {
+    setCustomThemeDraft(prev => ({
+      ...prev,
+      gradient: {
+        ...(prev.gradient ?? {
+          start: prev.palette.primary,
+          end: prev.palette.secondary,
+          angle: 135,
+        }),
+        [key]: value,
+      },
+    }));
+  };
+
+  const closeCustomThemeEditor = () => {
+    setCustomThemeEditorOpen(false);
+    setEditingCustomThemeIdState(null);
+    setCustomThemeDraft(createEmptyCustomThemeDefinition());
+  };
+
+  const beginNewCustomTheme = () => {
+    const draft = createEmptyCustomThemeDefinition();
+    setCustomThemeDraft(draft);
+    setEditingCustomThemeIdState(draft.id);
+    setCustomThemeEditorOpen(true);
+  };
+
+  const handleSaveCustomTheme = () => {
+    const sanitizedDraft = sanitizeCustomThemeDefinition({
+      ...customThemeDraft,
+      id: editingCustomThemeIdState ?? customThemeDraft.id,
+    });
+    if (!sanitizedDraft.name.trim()) {
+      showToast(
+        localize(
+          "A téma neve nem lehet üres.",
+          "Der Name des Themes darf nicht leer sein.",
+          "Theme name cannot be empty."
+        ),
+        "error"
+      );
+      return;
+    }
+    const exists = editingCustomThemeIdState
+      ? customThemes.some(theme => theme.id === editingCustomThemeIdState)
+      : false;
+    const themeId = exists ? editingCustomThemeIdState! : sanitizedDraft.id;
+    const normalizedDraft: CustomThemeDefinition = {
+      ...sanitizedDraft,
+      id: themeId,
+    };
+
+    const nextCustomThemes = exists
+      ? customThemes.map(theme => (theme.id === themeId ? normalizedDraft : theme))
+      : [...customThemes, normalizedDraft];
+
+    const shouldActivate =
+      !exists || settings.theme === (`${CUSTOM_THEME_PREFIX}${themeId}` as ThemeName);
+
+    const nextThemeSettings = ensureThemeSettings({
+      customThemes: nextCustomThemes,
+      activeCustomThemeId: shouldActivate
+        ? themeId
+        : themeSettingsState.activeCustomThemeId &&
+          nextCustomThemes.some(theme => theme.id === themeSettingsState.activeCustomThemeId)
+        ? themeSettingsState.activeCustomThemeId
+        : undefined,
+    });
+
+    const nextThemeName: ThemeName = shouldActivate
+      ? (`${CUSTOM_THEME_PREFIX}${themeId}` as ThemeName)
+      : ((settings.theme as ThemeName | undefined) ?? DEFAULT_THEME_NAME);
+
+    onChange({
+      ...settings,
+      theme: nextThemeName,
+      themeSettings: nextThemeSettings,
+    });
+
+    closeCustomThemeEditor();
+    showToast(
+      localize(
+        "Egyedi téma elmentve.",
+        "Benutzerdefiniertes Theme gespeichert.",
+        "Custom theme saved."
+      ),
+      "success"
+    );
+  };
+
+  const handleCustomThemeDelete = (themeId: string) => {
+    const target = customThemes.find(theme => theme.id === themeId);
+    if (!target) return;
+    openConfirmDialog({
+      title: localize(
+        "Egyedi téma törlése",
+        "Benutzerdefiniertes Theme löschen",
+        "Delete custom theme"
+      ),
+      message: localize(
+        `Biztosan törlöd a(z) "${target.name}" témát?`,
+        `Möchtest du das Theme „${target.name}“ wirklich löschen?`,
+        `Are you sure you want to delete the "${target.name}" theme?`
+      ),
+      type: "danger",
+      confirmText: localize("Törlés", "Löschen", "Delete"),
+      cancelText: localize("Mégse", "Abbrechen", "Cancel"),
+      onConfirm: () => {
+        const nextCustomThemes = customThemes.filter(theme => theme.id !== themeId);
+        let nextThemeName: ThemeName =
+          (settings.theme as ThemeName | undefined) ?? DEFAULT_THEME_NAME;
+        let nextActiveId = themeSettingsState.activeCustomThemeId;
+        if (settings.theme === (`${CUSTOM_THEME_PREFIX}${themeId}` as ThemeName)) {
+          nextThemeName = DEFAULT_THEME_NAME;
+          nextActiveId = undefined;
+        } else if (nextActiveId === themeId) {
+          nextActiveId = undefined;
+        }
+        const nextThemeSettings = ensureThemeSettings({
+          customThemes: nextCustomThemes,
+          activeCustomThemeId: nextActiveId,
+        });
+        onChange({
+          ...settings,
+          theme: nextThemeName,
+          themeSettings: nextThemeSettings,
+        });
+        if (editingCustomThemeIdState === themeId) {
+          closeCustomThemeEditor();
+        }
+        showToast(
+          localize(
+            "Egyedi téma törölve.",
+            "Benutzerdefiniertes Theme gelöscht.",
+            "Custom theme deleted."
+          ),
+          "success"
+        );
+      },
+    });
+  };
+
+  const handleCustomThemeExport = async (theme: CustomThemeDefinition) => {
+    try {
+      const filePath = await save({
+        defaultPath: `${theme.name.replace(/\s+/g, "_")}.json`,
+        filters: [{ name: "JSON", extensions: ["json"] }],
+      });
+      if (!filePath) {
+        return;
+      }
+      await writeTextFile(filePath, JSON.stringify(theme, null, 2));
+      showToast(
+        localize(
+          "Téma exportálva.",
+          "Theme exportiert.",
+          "Theme exported."
+        ),
+        "success"
+      );
+    } catch (error) {
+      console.error("[Settings] handleCustomThemeExport failed", error);
+      showToast(
+        localize(
+          "Nem sikerült exportálni a témát.",
+          "Theme konnte nicht exportiert werden.",
+          "Failed to export theme."
+        ),
+        "error"
+      );
+    }
+  };
+
+  const handleCopyCustomTheme = async (theme: CustomThemeDefinition) => {
+    try {
+      if (!navigator.clipboard) {
+        throw new Error("Clipboard API unavailable");
+      }
+      await navigator.clipboard.writeText(JSON.stringify(theme, null, 2));
+      showToast(
+        localize(
+          "Téma JSON a vágólapra másolva.",
+          "Theme JSON wurde in die Zwischenablage kopiert.",
+          "Theme JSON copied to clipboard."
+        ),
+        "success"
+      );
+    } catch (error) {
+      console.error("[Settings] handleCopyCustomTheme failed", error);
+      showToast(
+        localize(
+          "Nem sikerült a vágólapra másolni.",
+          "Kopieren in die Zwischenablage fehlgeschlagen.",
+          "Failed to copy to clipboard."
+        ),
+        "error"
+      );
+    }
+  };
+
+  const handleDuplicateActiveTheme = () => {
+    try {
+      const nextId = `duplicate-${Date.now().toString(36)}`;
+      const baseName = theme.displayName[settings.language] ?? theme.displayName.en ?? "Theme";
+      const duplicateDefinition = sanitizeCustomThemeDefinition(
+        themeToCustomDefinition(theme, {
+          id: nextId,
+          name: `${baseName} ${localize("másolat", "Kopie", "copy")}`,
+          description: localize(
+            "Aktuális téma másolata testreszabáshoz.",
+            "Kopie des aktuellen Themes zur weiteren Anpassung.",
+            "Copy of current theme for customization."
+          ),
+        })
+      );
+      const nextCustomThemes = [...customThemes, duplicateDefinition];
+      const nextThemeSettings = ensureThemeSettings({
+        customThemes: nextCustomThemes,
+        activeCustomThemeId: duplicateDefinition.id,
+      });
+      onChange({
+        ...settings,
+        theme: `${CUSTOM_THEME_PREFIX}${duplicateDefinition.id}` as ThemeName,
+        themeSettings: nextThemeSettings,
+      });
+      showToast(
+        localize(
+          "Téma másolva az egyedi listába.",
+          "Theme wurde in die benutzerdefinierte Liste kopiert.",
+          "Theme duplicated into your custom list."
+        ),
+        "success"
+      );
+      setEditingCustomThemeIdState(duplicateDefinition.id);
+      setCustomThemeDraft(JSON.parse(JSON.stringify(duplicateDefinition)) as CustomThemeDefinition);
+      setCustomThemeEditorOpen(true);
+    } catch (error) {
+      console.error("[Settings] handleDuplicateActiveTheme failed", error);
+      showToast(
+        localize(
+          "Nem sikerült duplikálni a témát.",
+          "Theme konnte nicht dupliziert werden.",
+          "Failed to duplicate theme."
+        ),
+        "error"
+      );
+    }
+  };
+
+  const handleCustomThemeImport = async () => {
+    try {
+      const filePath = await open({
+        filters: [{ name: "JSON", extensions: ["json"] }],
+      });
+      if (!filePath || Array.isArray(filePath)) {
+        return;
+      }
+      const content = await readTextFile(filePath);
+      const parsed = JSON.parse(content);
+      const importedArray: CustomThemeDefinition[] = Array.isArray(parsed)
+        ? parsed
+        : [parsed];
+      const sanitizedImported = importedArray
+        .map((raw, index) => {
+          const template = createEmptyCustomThemeDefinition();
+          const definition: CustomThemeDefinition = {
+            id:
+              typeof raw.id === "string" && raw.id.trim()
+                ? raw.id.trim()
+                : `${template.id}-${index}`,
+            name: typeof raw.name === "string" && raw.name.trim()
+              ? raw.name.trim()
+              : `Imported theme ${index + 1}`,
+            description:
+              typeof raw.description === "string" && raw.description.trim()
+                ? raw.description.trim()
+                : undefined,
+            palette: {
+              background: raw?.palette?.background ?? template.palette.background,
+              surface: raw?.palette?.surface ?? template.palette.surface,
+              primary: raw?.palette?.primary ?? template.palette.primary,
+              secondary: raw?.palette?.secondary ?? template.palette.secondary,
+              success: raw?.palette?.success ?? template.palette.success,
+              danger: raw?.palette?.danger ?? template.palette.danger,
+              text: raw?.palette?.text ?? template.palette.text,
+              textMuted: raw?.palette?.textMuted ?? template.palette.textMuted,
+            },
+            gradient: raw?.gradient
+              ? {
+                  start: raw.gradient.start ?? template.gradient?.start ?? template.palette.primary,
+                  end: raw.gradient.end ?? template.gradient?.end ?? template.palette.secondary,
+                  angle:
+                    typeof raw.gradient.angle === "number"
+                      ? raw.gradient.angle
+                      : template.gradient?.angle ?? 135,
+                }
+              : undefined,
+          };
+          return sanitizeCustomThemeDefinition(definition);
+        })
+        .filter(Boolean);
+
+      if (!sanitizedImported.length) {
+        throw new Error("No valid custom themes found in file");
+      }
+
+      const mergedMap = new Map<string, CustomThemeDefinition>();
+      customThemes.forEach(theme => mergedMap.set(theme.id, theme));
+      sanitizedImported.forEach(theme => mergedMap.set(theme.id, theme));
+      const nextCustomThemes = Array.from(mergedMap.values());
+
+      const nextThemeSettings = ensureThemeSettings({
+        customThemes: nextCustomThemes,
+      });
+
+      onChange({
+        ...settings,
+        themeSettings: nextThemeSettings,
+      });
+
+      showToast(
+        localize(
+          "Egyedi témák importálva.",
+          "Benutzerdefinierte Themes importiert.",
+          "Custom themes imported."
+        ),
+        "success"
+      );
+    } catch (error) {
+      console.error("[Settings] handleCustomThemeImport failed", error);
+      showToast(
+        localize(
+          "Nem sikerült importálni a témát.",
+          "Theme konnte nicht importiert werden.",
+          "Failed to import theme."
+        ),
+        "error"
+      );
+    }
+  };
+
+  const handleExportAllCustomThemes = async () => {
+    if (!customThemes.length) {
+      showToast(
+        localize(
+          "Nincs exportálható egyedi téma.",
+          "Keine benutzerdefinierten Themes zum Exportieren vorhanden.",
+          "No custom themes to export."
+        ),
+        "info"
+      );
+      return;
+    }
+    try {
+      const filePath = await save({
+        defaultPath: "custom-themes.json",
+        filters: [{ name: "JSON", extensions: ["json"] }],
+      });
+      if (!filePath) {
+        return;
+      }
+      await writeTextFile(filePath, JSON.stringify(customThemes, null, 2));
+      showToast(
+        localize(
+          "Egyedi témák exportálva.",
+          "Benutzerdefinierte Themes exportiert.",
+          "Custom themes exported."
+        ),
+        "success"
+      );
+    } catch (error) {
+      console.error("[Settings] handleExportAllCustomThemes failed", error);
+      showToast(
+        localize(
+          "Nem sikerült exportálni a témákat.",
+          "Themes konnten nicht exportiert werden.",
+          "Failed to export themes."
+        ),
+        "error"
+      );
+    }
+  };
+
+  const availableThemes = useMemo(
+    () => listAvailableThemes(settings.themeSettings),
+    [settings.themeSettings]
+  );
+  const activeThemeName: ThemeName =
+    (settings.theme as ThemeName | undefined) ?? DEFAULT_THEME_NAME;
+  const interactionsEnabled = animationSettings.microInteractions;
+  const microInteractionStyle = animationSettings.microInteractionStyle;
+  const hoverTransform = useMemo(() => {
+    switch (microInteractionStyle) {
+      case "playful":
+        return "scale(1.07) translateY(-6px) rotate(-0.4deg)";
+      case "subtle":
+        return "scale(1.02) translateY(-2px)";
+      case "expressive":
+      default:
+        return "scale(1.045) translateY(-4px)";
+    }
+  }, [microInteractionStyle]);
+  const hoverShadowStrength = useMemo(() => {
+    switch (microInteractionStyle) {
+      case "playful":
+        return 1.35;
+      case "subtle":
+        return 1.05;
+      case "expressive":
+      default:
+        return 1.18;
+    }
+  }, [microInteractionStyle]);
+  const activeCustomThemeId = themeSettingsState.activeCustomThemeId;
 
   const normalizeForCompare = (value?: string | null) => (value ?? "").trim().toLowerCase();
   const sortLibraryEntries = (entries: RawLibraryEntry[]) =>
@@ -1706,172 +2303,647 @@ export const SettingsPage: React.FC<Props> = ({
 
         {/* Display Tab */}
         {activeTab === "display" && (
-          <div>
-        <div style={{ marginBottom: "0" }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: "12px", 
-            fontWeight: "600", 
-            fontSize: "16px", 
-            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-          }}>
-            🎨 {t("settings.theme")}
-          </label>
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-            gap: "16px",
-            marginBottom: "20px"
-          }}>
-            {(["light", "dark", "blue", "green", "purple", "orange", "gradient", "neon", "cyberpunk", "sunset", "ocean"] as ThemeName[]).map((themeName) => {
-              const themeOption = themes[themeName];
-              const isSelected = (settings.theme || "light") === themeName;
-              const isGradientTheme = themeOption.colors.background?.includes('gradient');
-              const isNeonTheme = themeName === 'neon' || themeName === 'cyberpunk';
-              
-              return (
-                <button
-                  key={themeName}
-                  onClick={() => onChange({ ...settings, theme: themeName })}
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            <div style={{ ...themeStyles.card, padding: "24px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "16px",
+                  fontWeight: 600,
+                  fontSize: "16px",
+                  color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+                }}
+              >
+                🎨 {t("settings.theme")}
+              </label>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                  gap: "16px",
+                  marginBottom: "16px",
+                }}
+              >
+                {availableThemes.map(themeOption => {
+                  const themeName = themeOption.name as ThemeName;
+                  const isSelected = activeThemeName === themeName;
+                  const isGradientTheme =
+                    !!themeOption.colors.gradient ||
+                    themeOption.colors.background?.includes("gradient");
+                  const isNeonTheme =
+                    themeName === "neon" ||
+                    themeName === "cyberpunk" ||
+                    themeOption.colors.primary === "#ff00ff";
+                  const customDefinition = themeName.startsWith(CUSTOM_THEME_PREFIX)
+                    ? customThemes.find(theme => themeName.endsWith(theme.id))
+                    : undefined;
+
+                  return (
+                    <button
+                      key={themeOption.name}
+                      onClick={() => handleThemeSelect(themeName)}
+                      style={{
+                        ...themeStyles.button,
+                        ...(isGradientTheme
+                          ? {
+                              backgroundImage:
+                                themeOption.colors.gradient ??
+                                themeOption.colors.background,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              backgroundRepeat: "no-repeat",
+                            }
+                          : {
+                              backgroundColor: themeOption.colors.background,
+                            }),
+                        color:
+                          isGradientTheme ||
+                          themeOption.colors.background === "#1a1a1a" ||
+                          themeOption.colors.background === "#0a0a0f" ||
+                          themeOption.colors.background === "#0d0d0d"
+                            ? "#ffffff"
+                            : themeOption.colors.text,
+                        border: isSelected
+                          ? `3px solid ${
+                              themeOption.colors.sidebarActive || themeOption.colors.primary
+                            }`
+                          : `2px solid ${themeOption.colors.border}`,
+                        padding: "20px 16px",
+                        minHeight: "130px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "10px",
+                        boxShadow: isSelected
+                          ? isNeonTheme
+                            ? `0 0 20px ${themeOption.colors.shadow}, 0 4px 12px ${themeOption.colors.shadow}`
+                            : `0 4px 16px ${themeOption.colors.shadow}`
+                          : `0 2px 8px ${themeOption.colors.shadow}`,
+                        position: "relative" as const,
+                        overflow: "hidden" as const,
+                        transition: interactionsEnabled
+                          ? "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                          : "none",
+                        transform: isSelected ? "scale(1.05)" : "scale(1)",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!interactionsEnabled || isSelected) return;
+                        e.currentTarget.style.transform = hoverTransform;
+                        const expressiveShadow = isNeonTheme
+                          ? `0 0 ${Math.round(16 * hoverShadowStrength)}px ${themeOption.colors.shadow}, 0 4px ${Math.round(14 * hoverShadowStrength)}px ${themeOption.colors.shadow}`
+                          : `0 4px ${Math.round(12 * hoverShadowStrength)}px ${themeOption.colors.shadowHover}`;
+                        e.currentTarget.style.boxShadow = expressiveShadow;
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!interactionsEnabled || isSelected) return;
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow = `0 2px 8px ${themeOption.colors.shadow}`;
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: "8px",
+                          background: isGradientTheme
+                            ? themeOption.colors.gradient ??
+                              themeOption.colors.background
+                            : themeOption.colors.primary,
+                          opacity: 0.9,
+                        }}
+                      />
+
+                      <span
+                        style={{
+                          fontSize: "32px",
+                          filter: isGradientTheme
+                            ? "drop-shadow(0 2px 4px rgba(0,0,0,0.5))"
+                            : isNeonTheme && isSelected
+                            ? `drop-shadow(0 0 8px ${themeOption.colors.sidebarActive})`
+                            : "none",
+                          zIndex: 1,
+                        }}
+                      >
+                        {themeName === "light" && "☀️"}
+                        {themeName === "dark" && "🌙"}
+                        {themeName === "blue" && "💙"}
+                        {themeName === "green" && "💚"}
+                        {themeName === "purple" && "💜"}
+                        {themeName === "orange" && "🧡"}
+                        {themeName === "forest" && "🌲"}
+                        {themeName === "charcoal" && "🪨"}
+                        {themeName === "pastel" && "🌸"}
+                        {themeName === "midnight" && "🌃"}
+                        {themeName === "gradient" && "🌈"}
+                        {themeName === "neon" && "💡"}
+                        {themeName === "cyberpunk" && "🤖"}
+                        {themeName === "sunset" && "🌅"}
+                        {themeName === "ocean" && "🌊"}
+                        {themeName.startsWith(CUSTOM_THEME_PREFIX) && "🎨"}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: 600,
+                          zIndex: 1,
+                          textShadow: isGradientTheme
+                            ? "0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)"
+                            : isNeonTheme
+                            ? "0 1px 3px rgba(0,0,0,0.3)"
+                            : "none",
+                          color: isGradientTheme ? "#ffffff" : undefined,
+                        }}
+                      >
+                        {themeOption.displayName[settings.language]}
+                      </span>
+                      {customDefinition?.description && (
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            textAlign: "center",
+                            color: "#e2e8f0",
+                            opacity: 0.85,
+                            zIndex: 1,
+                          }}
+                        >
+                          {customDefinition.description}
+                        </span>
+                      )}
+                      {isSelected && (
+                        <span
+                          style={{
+                            fontSize: "16px",
+                            zIndex: 1,
+                            textShadow: isGradientTheme
+                              ? "0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)"
+                              : isNeonTheme
+                              ? "0 1px 3px rgba(0,0,0,0.3)"
+                              : "none",
+                            color: isGradientTheme ? "#ffffff" : undefined,
+                          }}
+                        >
+                          ✓
+                        </span>
+                      )}
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: "4px",
+                          backgroundColor:
+                            themeOption.colors.sidebarActive || themeOption.colors.primary,
+                          opacity: isSelected ? 1 : 0.5,
+                        }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+              <p
+                style={{
+                  marginTop: "12px",
+                  fontSize: "12px",
+                  color: theme.colors.background?.includes("gradient")
+                    ? "#4a5568"
+                    : theme.colors.textMuted,
+                }}
+              >
+                {t("settings.themeDescription")}
+              </p>
+            </div>
+
+            <div style={{ ...themeStyles.card, padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
+                ⚙️ {localize("Animációs beállítások", "Animations-Einstellungen", "Animation settings")}
+              </h3>
+              <p style={{ margin: 0, fontSize: "12px", color: theme.colors.textMuted }}>
+                {localize(
+                  "Válaszd ki, mennyire legyen dinamikus az alkalmazás. A finom animációk segítenek a visszajelzésekben, de kikapcsolhatók teljesítmény okokból.",
+                  "Lege fest, wie dynamisch die Benutzeroberfläche sein soll. Animierte Rückmeldungen können bei Bedarf deaktiviert werden.",
+                  "Control how dynamic the interface feels. You can turn off advanced effects if you prefer a calmer experience."
+                )}
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
+                  <input
+                    type="checkbox"
+                    checked={animationSettings.microInteractions}
+                    onChange={e => updateAnimationSetting("microInteractions", e.target.checked)}
+                  />
+                  {localize("Micro-interakciók engedélyezése", "Micro-Interaktionen aktivieren", "Enable micro-interactions")}
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
+                  <input
+                    type="checkbox"
+                    checked={animationSettings.loadingSkeletons}
+                    onChange={e => updateAnimationSetting("loadingSkeletons", e.target.checked)}
+                  />
+                  {localize("Csontsávos betöltés használata", "Skeleton-Loader verwenden", "Use loading skeletons")}
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
+                  <input
+                    type="checkbox"
+                    checked={animationSettings.smoothScroll}
+                    onChange={e => updateAnimationSetting("smoothScroll", e.target.checked)}
+                  />
+                  {localize("Finom görgetés engedélyezése", "Weiches Scrollen aktivieren", "Enable smooth scrolling")}
+                </label>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
+                    {localize("Micro-interakció stílusa", "Stil der Micro-Interaktionen", "Micro-interaction style")}
+                  </label>
+                  <select
+                    value={animationSettings.microInteractionStyle}
+                    onChange={e =>
+                      updateAnimationSetting(
+                        "microInteractionStyle",
+                        e.target.value as AnimationSettings["microInteractionStyle"]
+                      )
+                    }
+                    style={{ ...themeStyles.select, width: "100%", opacity: animationSettings.microInteractions ? 1 : 0.6 }}
+                    disabled={!animationSettings.microInteractions}
+                  >
+                    <option value="subtle">{localize("Visszafogott", "Zurückhaltend", "Subtle")}</option>
+                    <option value="expressive">{localize("Kifejező", "Ausdrucksstark", "Expressive")}</option>
+                    <option value="playful">{localize("Játékos", "Verspielt", "Playful")}</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
+                    {localize("Oldalváltási animáció", "Seitenwechsel-Animation", "Page transition animation")}
+                  </label>
+                  <select
+                    value={animationSettings.pageTransition}
+                    onChange={e =>
+                      updateAnimationSetting("pageTransition", e.target.value as AnimationSettings["pageTransition"])
+                    }
+                    style={{ ...themeStyles.select, width: "100%" }}
+                  >
+                    <option value="fade">{localize("Halványulás", "Ausblenden", "Fade")}</option>
+                    <option value="slide">{localize("Csúszás", "Schieben", "Slide")}</option>
+                    <option value="scale">{localize("Skálázás", "Skalierung", "Scale")}</option>
+                    <option value="flip">{localize("Flip", "Flip", "Flip")}</option>
+                    <option value="parallax">{localize("Parallaxis", "Parallaxe", "Parallax")}</option>
+                  </select>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
+                    {localize("Visszajelző animációk", "Feedback-Animationen", "Feedback animations")}
+                  </label>
+                  <select
+                    value={animationSettings.feedbackAnimations}
+                    onChange={e =>
+                      updateAnimationSetting(
+                        "feedbackAnimations",
+                        e.target.value as AnimationSettings["feedbackAnimations"]
+                      )
+                    }
+                    style={{ ...themeStyles.select, width: "100%" }}
+                  >
+                    <option value="subtle">{localize("Visszafogott", "Dezent", "Subtle")}</option>
+                    <option value="emphasis">{localize("Hangsúlyos", "Betont", "Emphasis")}</option>
+                    <option value="pulse">{localize("Pulzáló", "Pulsierend", "Pulse")}</option>
+                    <option value="none">{localize("Kikapcsolva", "Deaktiviert", "Disabled")}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ ...themeStyles.card, padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
+                    🎨 {localize("Egyedi témák", "Benutzerdefinierte Themes", "Custom themes")}
+                  </h3>
+                  <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: theme.colors.textMuted }}>
+                    {localize(
+                      "Állíts össze saját színpalettát, exportáld és oszd meg másokkal.",
+                      "Erstelle eigene Farbpaletten und teile sie mit anderen.",
+                      "Design your own palettes, export them and share with your team."
+                    )}
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button
+                    style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "8px 14px" }}
+                    onClick={handleCustomThemeImport}
+                  >
+                    📥 {localize("Importálás", "Importieren", "Import")}
+                  </button>
+                  <button
+                    style={{ ...themeStyles.button, padding: "8px 14px" }}
+                    onClick={handleExportAllCustomThemes}
+                    disabled={!customThemes.length}
+                  >
+                    📤 {localize("Exportálás", "Exportieren", "Export all")}
+                  </button>
+                  <button
+                    style={{ ...themeStyles.button, padding: "8px 14px" }}
+                    onClick={handleDuplicateActiveTheme}
+                  >
+                    📄 {localize("Aktív téma duplikálása", "Aktuelles Theme duplizieren", "Duplicate active theme")}
+                  </button>
+                  <button
+                    style={{ ...themeStyles.button, ...themeStyles.buttonPrimary, padding: "8px 14px" }}
+                    onClick={beginNewCustomTheme}
+                  >
+                    ➕ {localize("Új téma", "Neues Theme", "New theme")}
+                  </button>
+                </div>
+              </div>
+
+              <label style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: theme.colors.text }}>
+                <input
+                  type="checkbox"
+                  checked={themeSettingsState.autoApplyGradientText !== false}
+                  onChange={e =>
+                    onChange({
+                      ...settings,
+                      themeSettings: ensureThemeSettings({
+                        autoApplyGradientText: e.target.checked,
+                      }),
+                    })
+                  }
+                />
+                {localize(
+                  "Automatikus szövegkontraszt gradient háttérhez",
+                  "Automatischen Textkontrast für Gradienten aktivieren",
+                  "Auto-adjust text contrast on gradient backgrounds"
+                )}
+              </label>
+
+              {customThemes.length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "18px" }}>
+                  {customThemes.map(themeDefinition => {
+                    const previewTheme = buildThemeFromDefinition(themeDefinition);
+                    const customThemeName = `${CUSTOM_THEME_PREFIX}${themeDefinition.id}` as ThemeName;
+                    const isActive = activeThemeName === customThemeName || activeCustomThemeId === themeDefinition.id;
+                    const gradientPreview = previewTheme.colors.gradient ?? previewTheme.colors.background;
+                    return (
+                      <div
+                        key={themeDefinition.id}
+                        style={{
+                          borderRadius: "14px",
+                          padding: "18px",
+                          background: gradientPreview,
+                          boxShadow: isActive ? `0 4px 16px ${previewTheme.colors.shadow}` : `0 2px 8px ${previewTheme.colors.shadow}`,
+                          border: isActive
+                            ? `3px solid ${previewTheme.colors.primary}`
+                            : `1px solid ${previewTheme.colors.border}`,
+                          color: previewTheme.colors.text,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
+                        <strong style={{ fontSize: "15px" }}>{themeDefinition.name}</strong>
+                        {themeDefinition.description && (
+                          <span style={{ fontSize: "12px", opacity: 0.85 }}>{themeDefinition.description}</span>
+                        )}
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                          {Object.entries(themeDefinition.palette).map(([key, value]) => (
+                            <span
+                              key={`${themeDefinition.id}-${key}`}
+                              title={`${key}: ${value}`}
+                              style={{
+                                width: "22px",
+                                height: "22px",
+                                borderRadius: "50%",
+                                border: "1px solid rgba(0,0,0,0.25)",
+                                backgroundColor: value,
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                          <button
+                            style={{ ...themeStyles.button, padding: "6px 12px" }}
+                            onClick={() => handleThemeSelect(customThemeName)}
+                          >
+                            {localize("Alkalmazás", "Anwenden", "Apply")}
+                          </button>
+                          <button
+                            style={{ ...themeStyles.button, padding: "6px 12px" }}
+                            onClick={() => {
+                              setEditingCustomThemeIdState(themeDefinition.id);
+                              setCustomThemeDraft(JSON.parse(JSON.stringify(themeDefinition)) as CustomThemeDefinition);
+                              setCustomThemeEditorOpen(true);
+                            }}
+                          >
+                            {localize("Szerkesztés", "Bearbeiten", "Edit")}
+                          </button>
+                          <button
+                            style={{ ...themeStyles.button, padding: "6px 12px" }}
+                            onClick={() => handleCustomThemeExport(themeDefinition)}
+                          >
+                            {localize("Export", "Export", "Export")}
+                          </button>
+                          <button
+                            style={{ ...themeStyles.button, padding: "6px 12px" }}
+                            onClick={() => handleCopyCustomTheme(themeDefinition)}
+                          >
+                            {localize("Megosztás", "Teilen", "Share")}
+                          </button>
+                          <button
+                            style={{ ...themeStyles.button, ...themeStyles.buttonDanger, padding: "6px 12px" }}
+                            onClick={() => handleCustomThemeDelete(themeDefinition.id)}
+                          >
+                            {localize("Törlés", "Löschen", "Delete")}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {customThemeEditorOpen && (
+                <div
                   style={{
-                    ...themeStyles.button,
-                    ...(isGradientTheme
-                      ? {
-                          backgroundImage: themeOption.colors.background,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          backgroundRepeat: "no-repeat",
-                        }
-                      : {
-                          backgroundColor: themeOption.colors.background,
-                        }
-                    ),
-                    color: isGradientTheme || themeOption.colors.background === "#1a1a1a" || themeOption.colors.background === "#0a0a0f" || themeOption.colors.background === "#0d0d0d"
-                      ? "#ffffff"
-                      : themeOption.colors.text,
-                    border: isSelected 
-                      ? `3px solid ${themeOption.colors.sidebarActive || themeOption.colors.primary}`
-                      : `2px solid ${themeOption.colors.border}`,
-                    padding: "20px 16px",
-                    minHeight: "120px",
+                    marginTop: "16px",
+                    padding: "18px",
+                    borderRadius: "12px",
+                    backgroundColor: theme.colors.surfaceHover,
                     display: "flex",
                     flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "10px",
-                    boxShadow: isSelected 
-                      ? isNeonTheme
-                        ? `0 0 20px ${themeOption.colors.shadow}, 0 4px 12px ${themeOption.colors.shadow}`
-                        : `0 4px 16px ${themeOption.colors.shadow}`
-                      : `0 2px 8px ${themeOption.colors.shadow}`,
-                    position: "relative" as const,
-                    overflow: "hidden" as const,
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    transform: isSelected ? "scale(1.05)" : "scale(1)",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.transform = "scale(1.03) translateY(-2px)";
-                      e.currentTarget.style.boxShadow = isNeonTheme
-                        ? `0 0 15px ${themeOption.colors.shadow}, 0 4px 12px ${themeOption.colors.shadow}`
-                        : `0 4px 12px ${themeOption.colors.shadowHover}`;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.boxShadow = `0 2px 8px ${themeOption.colors.shadow}`;
-                    }
+                    gap: "14px",
                   }}
                 >
-                  {/* Szín preview sávok */}
-                  <div style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: "8px",
-                    ...(isGradientTheme
-                      ? {
-                          backgroundImage: themeOption.colors.background,
-                          backgroundSize: "cover",
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+                    <strong style={{ fontSize: "14px", color: theme.colors.text }}>
+                      {editingCustomThemeIdState && customThemes.some(theme => theme.id === editingCustomThemeIdState)
+                        ? localize("Téma szerkesztése", "Theme bearbeiten", "Edit theme")
+                        : localize("Új téma létrehozása", "Neues Theme erstellen", "Create new theme")}
+                    </strong>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        style={{ ...themeStyles.button, padding: "6px 12px" }}
+                        onClick={handleSaveCustomTheme}
+                      >
+                        💾 {localize("Mentés", "Speichern", "Save")}
+                      </button>
+                      <button
+                        style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "6px 12px" }}
+                        onClick={closeCustomThemeEditor}
+                      >
+                        ✕ {localize("Mégse", "Abbrechen", "Cancel")}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                        {localize("Téma neve", "Theme-Name", "Theme name")}
+                      </label>
+                      <input
+                        value={customThemeDraft.name}
+                        onChange={e =>
+                          setCustomThemeDraft(prev => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
                         }
-                      : {
-                          backgroundColor: themeOption.colors.primary,
+                        style={{ ...themeStyles.input }}
+                        placeholder={localize("Pl.: Aurora", "z. B.: Aurora", "e.g. Aurora")}
+                      />
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                        {localize("Leírás (opcionális)", "Beschreibung (optional)", "Description (optional)")}
+                      </label>
+                      <textarea
+                        value={customThemeDraft.description ?? ""}
+                        onChange={e =>
+                          setCustomThemeDraft(prev => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
                         }
-                    ),
-                    opacity: 0.8,
-                  }} />
-                  
-                  <span style={{ 
-                    fontSize: "32px",
-                    filter: isGradientTheme 
-                      ? "drop-shadow(0 2px 4px rgba(0,0,0,0.5))" 
-                      : (isNeonTheme && isSelected ? `drop-shadow(0 0 8px ${themeOption.colors.sidebarActive})` : "none"),
-                    zIndex: 1,
-                  }}>
-                    {themeName === "light" && "☀️"}
-                    {themeName === "dark" && "🌙"}
-                    {themeName === "blue" && "💙"}
-                    {themeName === "green" && "💚"}
-                    {themeName === "purple" && "💜"}
-                    {themeName === "orange" && "🧡"}
-                    {themeName === "gradient" && "🌈"}
-                    {themeName === "neon" && "💡"}
-                    {themeName === "cyberpunk" && "🤖"}
-                    {themeName === "sunset" && "🌅"}
-                    {themeName === "ocean" && "🌊"}
-                  </span>
-                  <span style={{ 
-                    fontSize: "14px", 
-                    fontWeight: "600",
-                    zIndex: 1,
-                    textShadow: isGradientTheme 
-                      ? "0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)"
-                      : isNeonTheme 
-                      ? "0 1px 3px rgba(0,0,0,0.3)"
-                      : "none",
-                    color: isGradientTheme ? "#ffffff" : undefined,
-                  }}>
-                    {themeOption.displayName[settings.language]}
-                  </span>
-                  {isSelected && (
-                    <span style={{ 
-                      fontSize: "16px",
-                      zIndex: 1,
-                      textShadow: isGradientTheme 
-                        ? "0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)"
-                        : isNeonTheme 
-                        ? "0 1px 3px rgba(0,0,0,0.3)"
-                        : "none",
-                      color: isGradientTheme ? "#ffffff" : undefined,
-                    }}>
-                      ✓
-                    </span>
-                  )}
-                  
-                  {/* Szín preview alsó rész */}
-                  <div style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: "4px",
-                    backgroundColor: themeOption.colors.sidebarActive || themeOption.colors.primary,
-                    opacity: isSelected ? 1 : 0.5,
-                  }} />
-                </button>
-              );
-            })}
-          </div>
-          <p style={{ 
-            marginTop: "12px", 
-            fontSize: "12px", 
-            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
-          }}>
-            {t("settings.themeDescription")}
-          </p>
-        </div>
+                        style={{ ...themeStyles.input, minHeight: "60px", resize: "vertical" as const }}
+                        placeholder={localize("Rövid megjegyzés a témáról.", "Kurze Notiz zum Theme.", "A short note about this theme.")}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
+                    {(
+                      [
+                        ["background", localize("Háttér", "Hintergrund", "Background")],
+                        ["surface", localize("Felület", "Oberfläche", "Surface")],
+                        ["primary", localize("Elsődleges", "Primärfarbe", "Primary")],
+                        ["secondary", localize("Másodlagos", "Sekundärfarbe", "Secondary")],
+                        ["success", localize("Siker", "Erfolg", "Success")],
+                        ["danger", localize("Hiba", "Fehler", "Danger")],
+                        ["text", localize("Szöveg", "Text", "Text")],
+                        ["textMuted", localize("Szöveg (halvány)", "Text (gedämpft)", "Muted text")],
+                      ] as Array<[keyof CustomThemeDefinition["palette"], string]>
+                    ).map(([key, label]) => (
+                      <div key={key} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>{label}</label>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <input
+                            type="color"
+                            value={customThemeDraft.palette[key]}
+                            onChange={e => handleCustomThemePaletteChange(key, e.target.value)}
+                            style={{ width: "42px", height: "28px", border: "none", cursor: "pointer" }}
+                          />
+                          <input
+                            value={customThemeDraft.palette[key]}
+                            onChange={e => handleCustomThemePaletteChange(key, e.target.value)}
+                            style={{ ...themeStyles.input, flex: 1 }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <label style={{ fontSize: "12px", color: theme.colors.textMuted, display: "flex", alignItems: "center", gap: "8px" }}>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(customThemeDraft.gradient)}
+                        onChange={e => handleCustomThemeGradientToggle(e.target.checked)}
+                      />
+                      {localize("Gradient háttér használata", "Gradient-Hintergrund verwenden", "Use gradient background")}
+                    </label>
+                    {customThemeDraft.gradient && (
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", alignItems: "center" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                            {localize("Gradient start", "Gradient-Start", "Gradient start")}
+                          </label>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <input
+                              type="color"
+                              value={customThemeDraft.gradient.start}
+                              onChange={e => handleCustomThemeGradientChange("start", e.target.value)}
+                              style={{ width: "42px", height: "28px", border: "none", cursor: "pointer" }}
+                            />
+                            <input
+                              value={customThemeDraft.gradient.start}
+                              onChange={e => handleCustomThemeGradientChange("start", e.target.value)}
+                              style={{ ...themeStyles.input, flex: 1 }}
+                            />
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                            {localize("Gradient vége", "Gradient-Ende", "Gradient end")}
+                          </label>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <input
+                              type="color"
+                              value={customThemeDraft.gradient.end}
+                              onChange={e => handleCustomThemeGradientChange("end", e.target.value)}
+                              style={{ width: "42px", height: "28px", border: "none", cursor: "pointer" }}
+                            />
+                            <input
+                              value={customThemeDraft.gradient.end}
+                              onChange={e => handleCustomThemeGradientChange("end", e.target.value)}
+                              style={{ ...themeStyles.input, flex: 1 }}
+                            />
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                            {localize("Szög", "Winkel", "Angle")} ({Math.round(customThemeDraft.gradient.angle)}°)
+                          </label>
+                          <input
+                            type="range"
+                            min={0}
+                            max={360}
+                            value={customThemeDraft.gradient.angle}
+                            onChange={e => handleCustomThemeGradientChange("angle", Number(e.target.value))}
+                          />
+                        </div>
+                        <div
+                          style={{
+                            borderRadius: "12px",
+                            height: "60px",
+                            background: buildThemeFromDefinition({
+                              ...customThemeDraft,
+                              id: customThemeDraft.id || "preview",
+                            }).colors.gradient ?? buildThemeFromDefinition(customThemeDraft).colors.background,
+                            border: `1px solid ${theme.colors.border}`,
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -2447,9 +3519,31 @@ export const SettingsPage: React.FC<Props> = ({
                   paddingRight: "4px"
                 }}>
                   {libraryLoading && (
-                    <p style={{ fontSize: "13px", color: theme.colors.textMuted }}>
-                      {localize("Betöltés...", "Wird geladen...", "Loading...")}
-                    </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <style>
+                        {`
+                          @keyframes library-skeleton-shimmer {
+                            0% { background-position: 200% 0; opacity: 0.5; }
+                            50% { opacity: 0.9; }
+                            100% { background-position: -200% 0; opacity: 0.5; }
+                          }
+                        `}
+                      </style>
+                      {Array.from({ length: 6 }).map((_, index) => (
+                        <div
+                          key={`library-skeleton-${index}`}
+                          style={{
+                            borderRadius: "12px",
+                            padding: "16px",
+                            minHeight: "72px",
+                            backgroundImage: `linear-gradient(90deg, ${theme.colors.surface} 0%, ${theme.colors.surfaceHover} 50%, ${theme.colors.surface} 100%)`,
+                            backgroundSize: "200% 100%",
+                            animation: "library-skeleton-shimmer 1.4s ease-in-out infinite",
+                            border: `1px solid ${theme.colors.border}`,
+                          }}
+                        />
+                      ))}
+                    </div>
                   )}
                   {!libraryLoading && filteredLibrary.entries.length === 0 && (
                     <p style={{ fontSize: "13px", color: theme.colors.textMuted }}>

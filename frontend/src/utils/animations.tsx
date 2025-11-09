@@ -1,6 +1,7 @@
 // Animációs utility komponensek framer-motion-mal
 
 import { motion } from "framer-motion";
+import type React from "react";
 import type { ReactNode } from "react";
 
 // Fade-in animáció
@@ -82,34 +83,51 @@ export const StaggerItem = ({ children }: { children: ReactNode }) => (
 );
 
 // Hover lift animáció
-export const HoverLift = ({ 
-  children, 
+export const HoverLift = ({
+  children,
   style,
   className,
   onClick,
   onMouseEnter,
   onMouseLeave,
-}: { 
+  intensity = "expressive",
+  disabled = false,
+}: {
   children: ReactNode;
   style?: React.CSSProperties;
   className?: string;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onMouseEnter?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onMouseLeave?: (e: React.MouseEvent<HTMLDivElement>) => void;
-}) => (
-  <motion.div
-    whileHover={{ y: -4, scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-    style={style}
-    className={className}
-    onClick={onClick}
-    onMouseEnter={onMouseEnter}
-    onMouseLeave={onMouseLeave}
-  >
-    {children}
-  </motion.div>
-);
+  intensity?: "subtle" | "expressive" | "playful";
+  disabled?: boolean;
+}) => {
+  const mapping = {
+    subtle: { hover: { y: -3, scale: 1.015, rotate: 0 }, tap: { scale: 0.99 }, transition: { stiffness: 260, damping: 20 } },
+    expressive: { hover: { y: -6, scale: 1.05, rotate: 0 }, tap: { scale: 0.97 }, transition: { stiffness: 240, damping: 18 } },
+    playful: { hover: { y: -8, scale: 1.08, rotate: 0.6 }, tap: { scale: 0.95 }, transition: { stiffness: 220, damping: 16 } },
+  } as const;
+  const config = mapping[intensity] ?? mapping.expressive;
+
+  return (
+    <motion.div
+      whileHover={disabled ? undefined : config.hover}
+      whileTap={disabled ? undefined : config.tap}
+      transition={
+        disabled
+          ? undefined
+          : { type: "spring", stiffness: config.transition.stiffness, damping: config.transition.damping, mass: intensity === "playful" ? 0.75 : 1 }
+      }
+      style={style}
+      className={className}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 // Pulse animáció
 export const Pulse = ({ children }: { children: ReactNode }) => (

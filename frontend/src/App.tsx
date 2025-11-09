@@ -5,6 +5,7 @@ import { UpdateChecker } from "./components/UpdateChecker";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
 import { LoadingSpinner } from "./components/LoadingSpinner";
+import { LoadingSkeletonPage } from "./components/LoadingSkeleton";
 
 // Lazy loading komponensek (code splitting)
 const Home = lazy(() => import("./components/Home").then(module => ({ default: module.Home })));
@@ -14,10 +15,11 @@ const Calculator = lazy(() => import("./components/Calculator").then(module => (
 const Offers = lazy(() => import("./components/Offers").then(module => ({ default: module.Offers })));
 const SettingsPage = lazy(() => import("./components/Settings").then(module => ({ default: module.SettingsPage })));
 const Console = lazy(() => import("./components/Console").then(module => ({ default: module.Console })));
-import type { Printer, Settings, Filament, Offer } from "./types";
+import type { Printer, Settings, Filament, Offer, ThemeName } from "./types";
 import { defaultSettings } from "./types";
 import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers } from "./utils/store";
-import { themes, getThemeStyles } from "./utils/themes";
+import { getThemeStyles, resolveTheme } from "./utils/themes";
+import { defaultAnimationSettings } from "./types";
 import { debounce } from "./utils/debounce";
 import { useKeyboardShortcut } from "./utils/keyboardShortcuts";
 import { ShortcutHelp } from "./components/ShortcutHelp";
@@ -150,12 +152,78 @@ export default function App() {
   }, []);
 
   // Get current theme (memoized)
-  const currentTheme = useMemo(() => {
-    const themeName = settings.theme || "light";
-    return themes[themeName];
-  }, [settings.theme]);
+  const currentTheme = useMemo(
+    () => resolveTheme((settings.theme as ThemeName | undefined) ?? "light", settings.themeSettings),
+    [settings.theme, settings.themeSettings]
+  );
 
   const themeStyles = useMemo(() => getThemeStyles(currentTheme), [currentTheme]);
+
+  const animationSettings = useMemo(
+    () => ({
+      ...defaultAnimationSettings,
+      ...(settings.animationSettings ?? {}),
+    }),
+    [settings.animationSettings]
+  );
+
+  const pageTransitionVariants = useMemo(() => {
+    switch (animationSettings.pageTransition) {
+      case "slide":
+        return {
+          initial: { opacity: 0, x: 36, y: 0, scale: 1 },
+          animate: { opacity: 1, x: 0, y: 0, scale: 1 },
+          exit: { opacity: 0, x: -24, y: 0, scale: 0.98 },
+        };
+      case "scale":
+        return {
+          initial: { opacity: 0, scale: 0.96, y: 6 },
+          animate: { opacity: 1, scale: 1, y: 0 },
+          exit: { opacity: 0, scale: 1.04, y: -12 },
+        };
+      case "flip":
+        return {
+          initial: { opacity: 0, rotateY: 75, scale: 0.96 },
+          animate: { opacity: 1, rotateY: 0, scale: 1 },
+          exit: { opacity: 0, rotateY: -75, scale: 0.96 },
+        };
+      case "parallax":
+        return {
+          initial: { opacity: 0, y: 48, scale: 0.94 },
+          animate: { opacity: 1, y: 0, scale: 1 },
+          exit: { opacity: 0, y: -36, scale: 0.98 },
+        };
+      case "fade":
+      default:
+        return {
+          initial: { opacity: 0, y: 12 },
+          animate: { opacity: 1, y: 0 },
+          exit: { opacity: 0, y: -12 },
+        };
+    }
+  }, [animationSettings.pageTransition]);
+
+  const pageTransitionTiming =
+    animationSettings.pageTransition === "scale"
+      ? { duration: 0.32, ease: "easeOut" as const }
+      : animationSettings.pageTransition === "slide"
+      ? { duration: 0.28, ease: "easeOut" as const }
+      : animationSettings.pageTransition === "flip"
+      ? { duration: 0.45, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
+      : animationSettings.pageTransition === "parallax"
+      ? { duration: 0.36, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }
+      : { duration: 0.24, ease: "easeOut" as const };
+
+  useEffect(() => {
+    if (animationSettings.smoothScroll) {
+      document.documentElement.style.scrollBehavior = "smooth";
+    } else {
+      document.documentElement.style.scrollBehavior = "auto";
+    }
+    return () => {
+      document.documentElement.style.scrollBehavior = "auto";
+    };
+  }, [animationSettings.smoothScroll]);
 
   // Shortcut help (Ctrl/Cmd + ?)
   useKeyboardShortcut("?", () => {
@@ -200,6 +268,19 @@ export default function App() {
   // Determine if this is a beta build from environment variable (set at build time)
   const isBeta = import.meta.env.VITE_IS_BETA === 'true';
 
+  const loadingMessage =
+    settings.language === "hu"
+      ? "Betöltés..."
+      : settings.language === "de"
+      ? "Laden..."
+      : "Loading...";
+
+  const loadingPlaceholder = animationSettings.loadingSkeletons ? (
+    <LoadingSkeletonPage theme={currentTheme} />
+  ) : (
+    <LoadingSpinner message={loadingMessage} />
+  );
+
   return (
     <ErrorBoundary>
       <ToastProvider settings={settings}>
@@ -235,20 +316,25 @@ export default function App() {
             left: "200px",
             width: "calc(100vw - 200px)",
             height: "100vh",
-            boxSizing: "border-box"
+            boxSizing: "border-box",
+            perspective: animationSettings.pageTransition === "flip" ? "1200px" : undefined,
           }}>
             {!isInitialized ? (
-              <LoadingSpinner message={settings.language === "hu" ? "Betöltés..." : settings.language === "de" ? "Laden..." : "Loading..."} />
+              loadingPlaceholder
             ) : (
-              <Suspense fallback={<LoadingSpinner message={settings.language === "hu" ? "Betöltés..." : settings.language === "de" ? "Laden..." : "Loading..."} />}>
+              <Suspense fallback={loadingPlaceholder}>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={activePage}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -12 }}
-                    transition={{ duration: 0.24, ease: "easeOut" }}
-                    style={{ height: "100%" }}
+                    initial={pageTransitionVariants.initial}
+                    animate={pageTransitionVariants.animate}
+                    exit={pageTransitionVariants.exit}
+                    transition={pageTransitionTiming}
+                    style={{
+                      height: "100%",
+                      transformStyle: animationSettings.pageTransition === "flip" ? "preserve-3d" : "flat",
+                      backfaceVisibility: "hidden",
+                    }}
                   >
                     {PageComponent}
                   </motion.div>

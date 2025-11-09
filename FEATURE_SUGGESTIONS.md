@@ -247,7 +247,7 @@
 - **Megjegyzés**: Az alkalmazás továbbra is resizable és adaptív, de mobil/tablet optimalizálás nem szükséges
 - **Részletek**: Lásd [EXCLUDED_FEATURES.md](EXCLUDED_FEATURES.md)
 
-### 3. **Animációk és transitions bővítése**
+### 3. **Animációk és transitions bővítése** ✅ *Megvalósítva v0.4.98*
 - **Mit**: 
   - Több micro-interaction animáció
   - Page transition animációk
@@ -257,8 +257,9 @@
 - **Előny**: Modern, professzionális megjelenés
 - **Becsült idő**: 6-8 óra
 - **Komplexitás**: Alacsony
+- **Eredmény**: Új animációs beállítások (stílus választó, flip/parallax átmenetek, pulzáló visszajelzések), Home/Settings micro-interaction frissítések és filament könyvtár skeleton lista.
 
-### 4. **Téma testreszabás**
+### 4. **Téma testreszabás** ✅ *Megvalósítva v0.4.98*
 - **Mit**: 
   - Egyedi színpaletta létrehozása
   - Téma export/import
@@ -268,6 +269,7 @@
 - **Előny**: Személyre szabható megjelenés
 - **Becsült idő**: 8-10 óra
 - **Komplexitás**: Közepes
+- **Eredmény**: Új beépített témák (Forest, Pastel, Charcoal, Midnight), aktív téma duplikálása, megosztási opció, továbbfejlesztett gradient szerkesztés és automatikus kontrasztkezelés.
 
 
 ## 🔐 Biztonság és adatvédelem

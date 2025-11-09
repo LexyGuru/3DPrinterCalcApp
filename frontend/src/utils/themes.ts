@@ -1,6 +1,74 @@
 // Téma rendszer - több modern dizájn
-import type { ThemeName } from "../types";
+import type { ThemeName, CustomThemeDefinition, ThemeSettings } from "../types";
+import { createEmptyCustomThemeDefinition } from "../types";
 export type { ThemeName };
+
+const CUSTOM_THEME_PREFIX = "custom:";
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const normalizeHex = (value: string, fallback = "#000000"): string => {
+  if (!value) return fallback;
+  const raw = value.trim().replace("#", "");
+  if (raw.length === 3) {
+    const expanded = raw
+      .split("")
+      .map(char => char + char)
+      .join("");
+    return `#${expanded.toUpperCase()}`;
+  }
+  if (raw.length === 6) {
+    return `#${raw.toUpperCase()}`;
+  }
+  return fallback;
+};
+
+const hexToRgb = (hex: string) => {
+  const normalized = normalizeHex(hex);
+  const value = parseInt(normalized.slice(1), 16);
+  return {
+    r: (value >> 16) & 255,
+    g: (value >> 8) & 255,
+    b: value & 255,
+  };
+};
+
+const rgbToHex = (r: number, g: number, b: number) =>
+  `#${[r, g, b]
+    .map(channel => clamp(Math.round(channel), 0, 255).toString(16).padStart(2, "0"))
+    .join("")
+    .toUpperCase()}`;
+
+const adjustColor = (hex: string, factor: number) => {
+  const { r, g, b } = hexToRgb(hex);
+  const adjust = (channel: number) =>
+    factor >= 0 ? channel + (255 - channel) * factor : channel * (1 + factor);
+  return rgbToHex(adjust(r), adjust(g), adjust(b));
+};
+
+const getRelativeLuminance = (hex: string) => {
+  const { r, g, b } = hexToRgb(hex);
+  const normalize = (channel: number) => {
+    const c = channel / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  const lum = 0.2126 * normalize(r) + 0.7152 * normalize(g) + 0.0722 * normalize(b);
+  return clamp(lum, 0, 1);
+};
+
+const chooseContrastingText = (background: string) => {
+  const luminance = getRelativeLuminance(background);
+  return luminance > 0.55 ? "#141920" : "#F9FAFB";
+};
+
+const deriveMutedText = (textColor: string, isLight: boolean) =>
+  isLight ? adjustColor(textColor, -0.45) : adjustColor(textColor, 0.4);
+
+const deriveSecondaryText = (textColor: string, isLight: boolean) =>
+  isLight ? adjustColor(textColor, -0.25) : adjustColor(textColor, 0.25);
+
+const buildGradientString = (start: string, end: string, angle: number) =>
+  `linear-gradient(${angle}deg, ${normalizeHex(start)} 0%, ${normalizeHex(end)} 100%)`;
 
 export interface Theme {
   name: ThemeName;
@@ -207,6 +275,46 @@ export const themes: Record<ThemeName, Theme> = {
       sidebarHover: "#2d482d",
     }
   },
+  forest: {
+    name: "forest",
+    displayName: {
+      hu: "Őserdő",
+      en: "Forest",
+      de: "Wald"
+    },
+    colors: {
+      background: "#15261a",
+      surface: "#203224",
+      surfaceHover: "#2a3f2d",
+      text: "#f5f7f2",
+      textSecondary: "#cfe3d3",
+      textMuted: "#9ab59e",
+      primary: "#37b26c",
+      primaryHover: "#2d9a5c",
+      success: "#4ade80",
+      successHover: "#32c266",
+      danger: "#f87171",
+      dangerHover: "#ef4444",
+      secondary: "#6b8e63",
+      secondaryHover: "#577552",
+      border: "#2f4635",
+      borderLight: "#3b5642",
+      shadow: "rgba(0,0,0,0.45)",
+      shadowHover: "rgba(0,0,0,0.6)",
+      inputBg: "#203224",
+      inputBorder: "#2f4635",
+      inputFocus: "#37b26c",
+      tableHeaderBg: "#1c2c20",
+      tableBorder: "#2f4635",
+      sidebarBg: "#101b13",
+      sidebarText: "#d9fbe4",
+      sidebarActive: "#37b26c",
+      sidebarHover: "#233727",
+      gradient: "linear-gradient(160deg, #1f8a4c 0%, #144d2d 100%)",
+      gradientStart: "#1f8a4c",
+      gradientEnd: "#144d2d",
+    }
+  },
   purple: {
     name: "purple",
     displayName: {
@@ -279,6 +387,123 @@ export const themes: Record<ThemeName, Theme> = {
       sidebarText: "#ffffff",
       sidebarActive: "#f39c12",
       sidebarHover: "#4d3d2d",
+    }
+  },
+  pastel: {
+    name: "pastel",
+    displayName: {
+      hu: "Pasztell",
+      en: "Pastel",
+      de: "Pastell"
+    },
+    colors: {
+      background: "#fdf2f8",
+      surface: "#ffffff",
+      surfaceHover: "#fce7f3",
+      text: "#3f3d56",
+      textSecondary: "#5b5873",
+      textMuted: "#8f8ba8",
+      primary: "#ec4899",
+      primaryHover: "#db2777",
+      success: "#10b981",
+      successHover: "#059669",
+      danger: "#f97316",
+      dangerHover: "#ea580c",
+      secondary: "#a855f7",
+      secondaryHover: "#9333ea",
+      border: "#f9a8d4",
+      borderLight: "#fce7f3",
+      shadow: "rgba(236, 72, 153, 0.25)",
+      shadowHover: "rgba(236, 72, 153, 0.35)",
+      inputBg: "#ffffff",
+      inputBorder: "#f9a8d4",
+      inputFocus: "#ec4899",
+      tableHeaderBg: "#fce7f3",
+      tableBorder: "#f9a8d4",
+      sidebarBg: "#db2777",
+      sidebarText: "#fdf2f8",
+      sidebarActive: "#fcd34d",
+      sidebarHover: "rgba(255,255,255,0.2)",
+      gradient: "linear-gradient(140deg, #f472b6 0%, #c084fc 40%, #38bdf8 100%)",
+      gradientStart: "#f472b6",
+      gradientEnd: "#38bdf8",
+    }
+  },
+  charcoal: {
+    name: "charcoal",
+    displayName: {
+      hu: "Szénfekete",
+      en: "Charcoal",
+      de: "Anthrazit"
+    },
+    colors: {
+      background: "#111316",
+      surface: "#1b1f24",
+      surfaceHover: "#242830",
+      text: "#f4f6fb",
+      textSecondary: "#c8ccd6",
+      textMuted: "#8f96a3",
+      primary: "#5eead4",
+      primaryHover: "#2dd4bf",
+      success: "#4ade80",
+      successHover: "#22c55e",
+      danger: "#f87171",
+      dangerHover: "#ef4444",
+      secondary: "#64748b",
+      secondaryHover: "#475569",
+      border: "#2a3038",
+      borderLight: "#343c46",
+      shadow: "rgba(0,0,0,0.55)",
+      shadowHover: "rgba(0,0,0,0.7)",
+      inputBg: "#1b1f24",
+      inputBorder: "#2a3038",
+      inputFocus: "#5eead4",
+      tableHeaderBg: "#161a1f",
+      tableBorder: "#2a3038",
+      sidebarBg: "#0b0d10",
+      sidebarText: "#e2e8f0",
+      sidebarActive: "#5eead4",
+      sidebarHover: "#1f242b",
+    }
+  },
+  midnight: {
+    name: "midnight",
+    displayName: {
+      hu: "Éjfél",
+      en: "Midnight",
+      de: "Mitternacht"
+    },
+    colors: {
+      background: "linear-gradient(160deg, #0f172a 0%, #111827 100%)",
+      surface: "rgba(30, 41, 59, 0.92)",
+      surfaceHover: "rgba(30, 41, 59, 0.98)",
+      text: "#f8fafc",
+      textSecondary: "#cbd5f5",
+      textMuted: "#94a3b8",
+      primary: "#38bdf8",
+      primaryHover: "#0ea5e9",
+      success: "#34d399",
+      successHover: "#10b981",
+      danger: "#f87171",
+      dangerHover: "#ef4444",
+      secondary: "#a855f7",
+      secondaryHover: "#7c3aed",
+      border: "rgba(148, 163, 184, 0.35)",
+      borderLight: "rgba(148, 163, 184, 0.18)",
+      shadow: "rgba(14, 165, 233, 0.25)",
+      shadowHover: "rgba(14, 165, 233, 0.35)",
+      inputBg: "rgba(30, 41, 59, 0.92)",
+      inputBorder: "rgba(148, 163, 184, 0.35)",
+      inputFocus: "#38bdf8",
+      tableHeaderBg: "rgba(148, 163, 184, 0.08)",
+      tableBorder: "rgba(148, 163, 184, 0.2)",
+      sidebarBg: "linear-gradient(200deg, #0f172a 0%, #1d2534 100%)",
+      sidebarText: "#f1f5f9",
+      sidebarActive: "#fbbf24",
+      sidebarHover: "rgba(241, 245, 249, 0.08)",
+      gradient: "linear-gradient(200deg, #0f172a 0%, #1e293b 100%)",
+      gradientStart: "#0f172a",
+      gradientEnd: "#1e293b",
     }
   },
   gradient: {
@@ -703,5 +928,172 @@ export const getThemeStyles = (theme: Theme) => {
     animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
   },
   };
+};
+
+export const DEFAULT_THEME_NAME: ThemeName = "light";
+
+export const buildThemeFromDefinition = (definition: CustomThemeDefinition): Theme => {
+  const {
+    id,
+    name,
+    description,
+    palette,
+    gradient,
+  } = definition;
+
+  const backgroundBase = normalizeHex(palette.background, "#1f2933");
+  const surfaceBase = normalizeHex(palette.surface, "#27323f");
+  const primaryBase = normalizeHex(palette.primary, "#4f46e5");
+  const secondaryBase = normalizeHex(palette.secondary, "#0ea5e9");
+  const successBase = normalizeHex(palette.success, "#22c55e");
+  const dangerBase = normalizeHex(palette.danger, "#ef4444");
+  const textBase = normalizeHex(palette.text, "#f8fafc");
+  const textMutedBase = normalizeHex(palette.textMuted, deriveMutedText(textBase, getRelativeLuminance(textBase) > 0.6));
+
+  const textIsLight = getRelativeLuminance(textBase) > 0.6;
+  const surfaceHover = adjustColor(surfaceBase, textIsLight ? -0.08 : 0.12);
+  const border = adjustColor(surfaceBase, textIsLight ? -0.35 : -0.25);
+  const borderLight = adjustColor(surfaceBase, textIsLight ? -0.2 : 0.35);
+  const shadow = textIsLight ? "rgba(0,0,0,0.45)" : "rgba(0,0,0,0.4)";
+  const shadowHover = textIsLight ? "rgba(0,0,0,0.65)" : "rgba(0,0,0,0.55)";
+
+  const sidebarBg = adjustColor(backgroundBase, -0.35);
+  const sidebarHover = adjustColor(sidebarBg, 0.12);
+  const sidebarText = chooseContrastingText(sidebarBg);
+
+  const gradientString = gradient
+    ? buildGradientString(gradient.start, gradient.end, gradient.angle ?? 135)
+    : undefined;
+
+  const themeName: ThemeName = `${CUSTOM_THEME_PREFIX}${id}`;
+
+  return {
+    name: themeName,
+    displayName: {
+      hu: name,
+      en: name,
+      de: name,
+    },
+    colors: {
+      background: gradientString ?? backgroundBase,
+      surface: surfaceBase,
+      surfaceHover,
+      text: textBase,
+      textSecondary: deriveSecondaryText(textBase, textIsLight),
+      textMuted: textMutedBase,
+      primary: primaryBase,
+      primaryHover: adjustColor(primaryBase, -0.12),
+      success: successBase,
+      successHover: adjustColor(successBase, -0.12),
+      danger: dangerBase,
+      dangerHover: adjustColor(dangerBase, -0.12),
+      secondary: secondaryBase,
+      secondaryHover: adjustColor(secondaryBase, -0.1),
+      border,
+      borderLight,
+      shadow,
+      shadowHover,
+      inputBg: surfaceBase,
+      inputBorder: border,
+      inputFocus: primaryBase,
+      tableHeaderBg: adjustColor(surfaceBase, textIsLight ? -0.05 : 0.05),
+      tableBorder: border,
+      sidebarBg,
+      sidebarText,
+      sidebarActive: primaryBase,
+      sidebarHover,
+      gradient: gradientString,
+      gradientStart: gradient ? normalizeHex(gradient.start) : undefined,
+      gradientEnd: gradient ? normalizeHex(gradient.end) : undefined,
+    },
+  };
+};
+
+const pickHexOrFallback = (value: string | undefined, fallback: string) =>
+  value && /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(value.trim())
+    ? normalizeHex(value)
+    : normalizeHex(fallback);
+
+export const themeToCustomDefinition = (
+  theme: Theme,
+  overrides?: Partial<Pick<CustomThemeDefinition, "name" | "description">> & { id?: string }
+): CustomThemeDefinition => {
+  const template = createEmptyCustomThemeDefinition();
+  const backgroundFallback = typeof theme.colors.background === "string" && theme.colors.background.startsWith("#")
+    ? theme.colors.background
+    : theme.colors.gradientStart ?? template.palette.background;
+  const definition: CustomThemeDefinition = {
+    id: overrides?.id ?? template.id,
+    name: overrides?.name ?? theme.displayName.en ?? theme.name,
+    description: overrides?.description ?? theme.displayName.hu,
+    palette: {
+      background: pickHexOrFallback(backgroundFallback, template.palette.background),
+      surface: pickHexOrFallback(
+        typeof theme.colors.surface === "string" ? theme.colors.surface : template.palette.surface,
+        template.palette.surface
+      ),
+      primary: pickHexOrFallback(
+        typeof theme.colors.primary === "string" ? theme.colors.primary : template.palette.primary,
+        template.palette.primary
+      ),
+      secondary: pickHexOrFallback(
+        typeof theme.colors.secondary === "string" ? theme.colors.secondary : template.palette.secondary,
+        template.palette.secondary
+      ),
+      success: pickHexOrFallback(
+        typeof theme.colors.success === "string" ? theme.colors.success : template.palette.success,
+        template.palette.success
+      ),
+      danger: pickHexOrFallback(
+        typeof theme.colors.danger === "string" ? theme.colors.danger : template.palette.danger,
+        template.palette.danger
+      ),
+      text: pickHexOrFallback(theme.colors.text, template.palette.text),
+      textMuted: pickHexOrFallback(theme.colors.textMuted, template.palette.textMuted),
+    },
+    gradient:
+      theme.colors.gradientStart && theme.colors.gradientEnd
+        ? {
+            start: normalizeHex(theme.colors.gradientStart),
+            end: normalizeHex(theme.colors.gradientEnd),
+            angle: 135,
+          }
+        : undefined,
+  };
+  return definition;
+};
+
+export const getCustomThemesRecord = (
+  themeSettings?: ThemeSettings
+): Record<ThemeName, Theme> => {
+  if (!themeSettings?.customThemes?.length) {
+    return {} as Record<ThemeName, Theme>;
+  }
+  const record: Record<ThemeName, Theme> = {} as Record<ThemeName, Theme>;
+  themeSettings.customThemes.forEach(definition => {
+    const theme = buildThemeFromDefinition(definition);
+    record[theme.name] = theme;
+  });
+  return record;
+};
+
+export const getAllThemes = (themeSettings?: ThemeSettings): Record<ThemeName, Theme> => {
+  return {
+    ...themes,
+    ...getCustomThemesRecord(themeSettings),
+  };
+};
+
+export const resolveTheme = (
+  themeName: ThemeName | undefined,
+  themeSettings?: ThemeSettings
+): Theme => {
+  const allThemes = getAllThemes(themeSettings);
+  const name = themeName && allThemes[themeName] ? themeName : DEFAULT_THEME_NAME;
+  return allThemes[name] ?? themes[DEFAULT_THEME_NAME];
+};
+
+export const listAvailableThemes = (themeSettings?: ThemeSettings): Theme[] => {
+  return Object.values(getAllThemes(themeSettings));
 };
 
