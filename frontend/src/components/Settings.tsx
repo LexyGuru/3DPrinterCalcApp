@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import type { Settings, Printer, Filament, Offer, CompanyInfo, PdfTemplate } from "../types";
@@ -21,6 +22,7 @@ import {
 } from "../utils/filamentLibrary";
 import type { FilamentFinish } from "../utils/filamentColors";
 import { getFinishLabel } from "../utils/filamentColors";
+import type { ColorMode } from "../types";
 import { translateText } from "../utils/translator";
 
 interface Props {
@@ -67,6 +69,8 @@ export const SettingsPage: React.FC<Props> = ({
     color: string;
     hex: string;
     finish: FilamentFinish;
+    colorMode: ColorMode;
+    multiColorHint: string;
     labels: { hu: string; en: string; de: string };
     baseLabel: string;
   };
@@ -77,6 +81,8 @@ export const SettingsPage: React.FC<Props> = ({
     color: "",
     hex: "#9CA3AF",
     finish: "standard",
+    colorMode: "solid",
+    multiColorHint: "",
     labels: { hu: "", en: "", de: "" },
     baseLabel: "",
   });
@@ -274,15 +280,39 @@ export const SettingsPage: React.FC<Props> = ({
   }, [duplicateGroups]);
 
   const sanitizeHexInput = (value: string) => {
-    const stripped = value.replace(/[^0-9a-fA-F]/g, "").slice(0, 6);
-    return `#${stripped}`.toUpperCase();
+    const stripped = value.replace(/[^0-9a-fA-F]/g, "").slice(0, 6).toUpperCase();
+    return stripped ? `#${stripped}` : "";
   };
 
   const handleLibraryDraftChange = <K extends keyof LibraryDraft>(field: K, value: LibraryDraft[K]) => {
-    setLibraryDraft(prev => ({
-      ...prev,
-      [field]: field === "hex" ? (sanitizeHexInput(String(value)) as LibraryDraft[K]) : value,
-    }));
+    setLibraryDraft(prev => {
+      if (field === "hex") {
+        return { ...prev, hex: sanitizeHexInput(String(value)) };
+      }
+      if (field === "colorMode") {
+        const nextMode = value as ColorMode;
+        const baseHint =
+          prev.baseLabel ||
+          prev.color ||
+          prev.labels.hu ||
+          prev.labels.en ||
+          prev.labels.de ||
+          "";
+        return {
+          ...prev,
+          colorMode: nextMode,
+          hex: nextMode === "multicolor" ? "" : prev.hex,
+          multiColorHint: nextMode === "multicolor" ? (prev.multiColorHint || baseHint) : prev.multiColorHint,
+        };
+      }
+      if (field === "multiColorHint") {
+        return { ...prev, multiColorHint: String(value) };
+      }
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
   };
 
   const handleLibraryBaseLabelChange = (value: string) => {
@@ -293,6 +323,7 @@ export const SettingsPage: React.FC<Props> = ({
         ...prev.labels,
         [settings.language]: value,
       },
+      multiColorHint: prev.colorMode === "multicolor" ? (prev.multiColorHint || value) : prev.multiColorHint,
     }));
   };
 
@@ -312,6 +343,8 @@ export const SettingsPage: React.FC<Props> = ({
       finish: FINISH_OPTIONS.includes((entry.finish as FilamentFinish) ?? "standard")
         ? ((entry.finish as FilamentFinish) ?? "standard")
         : "standard",
+      colorMode: (entry.colorMode as ColorMode) ?? "solid",
+      multiColorHint: entry.multiColorHint ?? baseLabel,
       labels,
       baseLabel,
     });
@@ -355,6 +388,9 @@ export const SettingsPage: React.FC<Props> = ({
     const trimmedMaterial = libraryDraft.material.trim();
     const trimmedColor = libraryDraft.color.trim();
     const sanitizedHex = sanitizeHexInput(libraryDraft.hex);
+    const isMulticolor = libraryDraft.colorMode === "multicolor";
+    const hasHexValue = Boolean(sanitizedHex);
+    const isValidHex = /^#[0-9A-F]{6}$/.test(sanitizedHex);
 
     if (!trimmedManufacturer || !trimmedMaterial || !trimmedColor) {
       console.warn("[Settings] handleLibraryAddOrUpdate missing required fields", {
@@ -366,8 +402,11 @@ export const SettingsPage: React.FC<Props> = ({
       return;
     }
 
-    if (!/^#[0-9A-F]{6}$/.test(sanitizedHex)) {
-      showToast(localize("Érvénytelen HEX kód", "Ungültiger HEX-Code", "Invalid HEX code"), "error");
+    if ((!isMulticolor && !isValidHex) || (isMulticolor && hasHexValue && !isValidHex)) {
+      showToast(
+        localize("Érvénytelen HEX kód", "Ungültiger HEX-Code", "Invalid HEX code"),
+        "error"
+      );
       return;
     }
 
@@ -424,6 +463,14 @@ export const SettingsPage: React.FC<Props> = ({
         })
     );
 
+    const finalHex = isValidHex ? sanitizedHex : "";
+    const colorMode = libraryDraft.colorMode;
+    const trimmedHint = libraryDraft.multiColorHint.trim();
+    const multiColorHint =
+      colorMode === "multicolor"
+        ? trimmedHint || baseLabel || trimmedColor
+        : trimmedHint || undefined;
+
     const entry: RawLibraryEntry = {
       id: targetId,
       manufacturer: trimmedManufacturer,
@@ -431,8 +478,10 @@ export const SettingsPage: React.FC<Props> = ({
       color: trimmedColor,
       name: trimmedColor,
       finish,
-      hex: sanitizedHex,
+      hex: finalHex || undefined,
       labels,
+      colorMode,
+      multiColorHint,
     };
 
     console.log("[Settings] handleLibraryAddOrUpdate upserting entry", entry);
@@ -2409,6 +2458,9 @@ export const SettingsPage: React.FC<Props> = ({
                   )}
                   {filteredLibrary.entries.map(entry => {
                     const isDuplicate = entry.id ? duplicateEntryIds.has(entry.id) : false;
+                    const isMulticolor = (entry.colorMode as ColorMode) === "multicolor";
+                    const hasValidHex = typeof entry.hex === "string" && /^#[0-9A-F]{6}$/i.test(entry.hex);
+                    const normalizedHexValue = hasValidHex ? (entry.hex as string) : "#e5e7eb";
                     return (
                       <div
                         key={entry.id}
@@ -2428,9 +2480,25 @@ export const SettingsPage: React.FC<Props> = ({
                               {entry.material}
                             </span>
                           </div>
-                          <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                            {getFinishLabel((entry.finish as FilamentFinish) || "standard", settings.language)}
-                          </span>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                            <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                              {getFinishLabel((entry.finish as FilamentFinish) || "standard", settings.language)}
+                            </span>
+                            {isMulticolor && (
+                              <span
+                                style={{
+                                  fontSize: "11px",
+                                  fontWeight: 600,
+                                  padding: "2px 8px",
+                                  borderRadius: "999px",
+                                  background: "linear-gradient(135deg, #F97316 0%, #EC4899 33%, #6366F1 66%, #22D3EE 100%)",
+                                  color: "#fff",
+                                }}
+                              >
+                                {localize("Többszínű", "Mehrfarbig", "Multicolor")}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "8px", flexWrap: "wrap" }}>
                           <span style={{
@@ -2438,7 +2506,14 @@ export const SettingsPage: React.FC<Props> = ({
                             height: "24px",
                             borderRadius: "50%",
                             border: `1px solid ${theme.colors.border}`,
-                            backgroundColor: entry.hex && /^#[0-9A-F]{6}$/i.test(entry.hex) ? entry.hex : "#e5e7eb",
+                            backgroundColor: isMulticolor
+                              ? "transparent"
+                              : hasValidHex
+                              ? normalizedHexValue
+                              : "#e5e7eb",
+                            backgroundImage: isMulticolor
+                              ? "linear-gradient(135deg, #F97316 0%, #EC4899 33%, #6366F1 66%, #22D3EE 100%)"
+                              : "none",
                           }} />
                           <div style={{ flex: "1", minWidth: "180px" }}>
                             <div style={{ fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
@@ -2451,7 +2526,15 @@ export const SettingsPage: React.FC<Props> = ({
                                 .join(" • ")}
                             </div>
                           </div>
-                          <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>{entry.hex}</span>
+                          <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                            {isMulticolor
+                              ? hasValidHex
+                                ? `${localize("Többszínű", "Mehrfarbig", "Multicolor")} • ${normalizedHexValue}`
+                                : localize("Többszínű", "Mehrfarbig", "Multicolor")
+                              : hasValidHex
+                              ? normalizedHexValue
+                              : localize("Nincs HEX", "Kein HEX", "No HEX")}
+                          </span>
                         </div>
                         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
                           <button
@@ -2535,14 +2618,16 @@ export const SettingsPage: React.FC<Props> = ({
         )}
       </div>
       
-      {showShortcutHelp && (
-        <ShortcutHelp
-          settings={settings}
-          theme={theme}
-          themeStyles={themeStyles}
-          onClose={() => setShowShortcutHelp(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showShortcutHelp && (
+          <ShortcutHelp
+            settings={settings}
+            theme={theme}
+            themeStyles={themeStyles}
+            onClose={() => setShowShortcutHelp(false)}
+          />
+        )}
+      </AnimatePresence>
       {showVersionHistory && (
         <VersionHistory
           settings={settings}
@@ -2551,34 +2636,45 @@ export const SettingsPage: React.FC<Props> = ({
           isBeta={import.meta.env.VITE_IS_BETA === 'true'}
         />
       )}
-      {libraryModalOpen && (
-        <div
-          onClick={closeLibraryModal}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(15, 23, 42, 0.45)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "24px",
-          }}
-        >
-          <div
-            onClick={event => event.stopPropagation()}
+      <AnimatePresence>
+        {libraryModalOpen && (
+          <motion.div
+            key="library-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={closeLibraryModal}
             style={{
-              ...themeStyles.card,
-              width: "min(640px, 90vw)",
-              maxHeight: "85vh",
-              overflowY: "auto",
-              position: "relative",
-              padding: "32px",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.45)",
+              zIndex: 1000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "24px",
+              backdropFilter: "blur(6px)",
             }}
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              onClick={(event) => event.stopPropagation()}
+              style={{
+                ...themeStyles.card,
+                width: "min(640px, 90vw)",
+                maxHeight: "85vh",
+                overflowY: "auto",
+                position: "relative",
+                padding: "32px",
+              }}
+            >
             <button
               onClick={closeLibraryModal}
               style={{
@@ -2645,6 +2741,46 @@ export const SettingsPage: React.FC<Props> = ({
                   placeholder={localize("Pl.: Deep Blue", "z. B.: Deep Blue", "e.g. Deep Blue")}
                 />
               </div>
+              <div>
+                <label style={{ display: "block", fontWeight: 600, fontSize: "14px", marginBottom: "6px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
+                  {localize("Szín mód", "Farbmodus", "Color mode")}
+                </label>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {(["solid", "multicolor"] as ColorMode[]).map(mode => {
+                    const isActive = libraryDraft.colorMode === mode;
+                    const label =
+                      mode === "solid"
+                        ? localize("Egyszínű", "Einfarbig", "Solid")
+                        : localize("Többszínű", "Mehrfarbig", "Multicolor");
+                    return (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => handleLibraryDraftChange("colorMode", mode)}
+                        style={{
+                          ...themeStyles.button,
+                          padding: "6px 14px",
+                          backgroundColor: isActive ? theme.colors.primary : theme.colors.surfaceHover,
+                          color: isActive ? "#fff" : theme.colors.text,
+                          border: `1px solid ${isActive ? theme.colors.primary : theme.colors.border}`,
+                          boxShadow: isActive ? `0 0 0 2px ${theme.colors.primary}33` : "none",
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {libraryDraft.colorMode === "multicolor" && (
+                  <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
+                    {localize(
+                      "A többszínű filamenteknél a HEX kód opcionális, a megjelenítéshez szivárvány jelölést használunk.",
+                      "Bei mehrfarbigen Filamenten ist der HEX-Code optional – die Anzeige verwendet ein Regenbogen-Symbol.",
+                      "For multicolor filaments the HEX code is optional; a rainbow indicator will be shown."
+                    )}
+                  </p>
+                )}
+              </div>
               <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
                 <div style={{ flex: "1 1 200px", minWidth: "200px", maxWidth: "240px" }}>
                   <label style={{ display: "block", fontWeight: 600, fontSize: "14px", marginBottom: "6px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
@@ -2673,11 +2809,37 @@ export const SettingsPage: React.FC<Props> = ({
                     onChange={e => handleLibraryDraftChange("hex", e.target.value)}
                     onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                     onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                    style={{ ...themeStyles.input, width: "100%" }}
-                    placeholder="#2563EB"
+                    style={{
+                      ...themeStyles.input,
+                      width: "100%",
+                      backgroundColor: libraryDraft.colorMode === "multicolor" ? theme.colors.surfaceHover : themeStyles.input.backgroundColor,
+                      cursor: libraryDraft.colorMode === "multicolor" ? "not-allowed" : "text",
+                      opacity: libraryDraft.colorMode === "multicolor" ? 0.7 : 1,
+                    }}
+                    placeholder={libraryDraft.colorMode === "multicolor"
+                      ? localize("Opció: HEX megadása", "Optional: HEX angeben", "Optional: provide HEX")
+                      : "#2563EB"}
+                    disabled={libraryDraft.colorMode === "multicolor"}
                   />
                 </div>
-                <div style={{ width: "40px", height: "40px", borderRadius: "10px", border: `1px solid ${theme.colors.border}`, backgroundColor: /^#[0-9A-F]{6}$/i.test(libraryDraft.hex) ? libraryDraft.hex : "#e5e7eb" }} />
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "10px",
+                    border: `1px solid ${theme.colors.border}`,
+                    backgroundColor:
+                      libraryDraft.colorMode === "multicolor"
+                        ? "transparent"
+                        : /^#[0-9A-F]{6}$/i.test(libraryDraft.hex)
+                        ? libraryDraft.hex
+                        : "#e5e7eb",
+                    backgroundImage:
+                      libraryDraft.colorMode === "multicolor"
+                        ? "linear-gradient(135deg, #F97316 0%, #EC4899 33%, #6366F1 66%, #22D3EE 100%)"
+                        : "none",
+                  }}
+                />
               </div>
               <div style={{ display: "grid", gap: "10px" }}>
                 <label style={{ fontWeight: 600, fontSize: "14px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
@@ -2717,9 +2879,10 @@ export const SettingsPage: React.FC<Props> = ({
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        </motion.div>
+        )}
+      </AnimatePresence>
       <ConfirmDialog
         isOpen={confirmDialogConfig !== null}
         title={confirmDialogConfig?.title ?? ""}

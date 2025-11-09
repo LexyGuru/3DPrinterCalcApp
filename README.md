@@ -235,6 +235,12 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+-### v0.4.55 (2025)
+- 🧵 **Multicolor filament támogatás** – A filament könyvtár és a kezelő UI most már külön jelöli a többszínű (rainbow/dual/tricolor) szálakat, megjegyzéssel és szivárvány előnézettel.
+- 🌐 **Automatikus fordítás a CSV importnál** – A külső adatbázisból importált színnevek magyar és német címkéket kapnak, így a színválasztó többnyelvű marad kézi szerkesztés nélkül.
+- 🔄 **Update könyvtár összevonás** – A `update_filamentLibrary.json` fájl tartalma induláskor automatikusan deduplikálva egyesül a meglévő könyvtárral, a felhasználói módosítások felülírása nélkül.
+- 📁 **CSV konverter frissítése** – A `convert-filament-csv.mjs` script már nem írja felül a tartós `filamentLibrary.json`-t, helyette update fájlt készít és többnyelvű címkéket generál.
+
 ### v0.4.0 (2025)
 - 🧵 **Filament adatbázis integráció** – 2 000+ gyári szín beépített JSON könyvtárból (filamentcolors.xyz snapshot), márkánként és anyagonként rendezve
 - 🪟 **Fix méretű választó panelek** – Gombbal nyíló, kereshető, görgethető márka- és típuslisták, amelyek kizárják egymást, így átláthatóbb az űrlap
@@ -440,7 +446,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.4.0
+**Verzió**: 0.4.55
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

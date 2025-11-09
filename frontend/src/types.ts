@@ -1,3 +1,5 @@
+export type ColorMode = "solid" | "multicolor";
+
 export interface Filament {
   brand: string;
   type: string;
@@ -7,6 +9,8 @@ export interface Filament {
   color?: string;     // szín (opcionális)
   colorHex?: string;  // szín hex kód (opcionális)
   imageBase64?: string; // Kép base64 stringként (opcionális)
+  colorMode?: ColorMode;
+  multiColorHint?: string;
 }
 
 export type Printer = {
@@ -92,6 +96,8 @@ export interface OfferFilament {
   dryingTime?: number;
   dryingPower?: number;
   imageBase64?: string;
+  colorMode?: ColorMode;
+  multiColorHint?: string;
 }
 
 export interface OfferHistory {

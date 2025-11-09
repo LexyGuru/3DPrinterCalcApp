@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./components/Sidebar";
 import { UpdateChecker } from "./components/UpdateChecker";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -240,18 +241,31 @@ export default function App() {
               <LoadingSpinner message={settings.language === "hu" ? "Betöltés..." : settings.language === "de" ? "Laden..." : "Loading..."} />
             ) : (
               <Suspense fallback={<LoadingSpinner message={settings.language === "hu" ? "Betöltés..." : settings.language === "de" ? "Laden..." : "Loading..."} />}>
-                {PageComponent}
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={activePage}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
+                    transition={{ duration: 0.24, ease: "easeOut" }}
+                    style={{ height: "100%" }}
+                  >
+                    {PageComponent}
+                  </motion.div>
+                </AnimatePresence>
               </Suspense>
             )}
           </main>
-          {showShortcutHelp && (
-            <ShortcutHelp
-              settings={settings}
-              theme={currentTheme}
-              themeStyles={themeStyles}
-              onClose={() => setShowShortcutHelp(false)}
-            />
-          )}
+          <AnimatePresence>
+            {showShortcutHelp && (
+              <ShortcutHelp
+                settings={settings}
+                theme={currentTheme}
+                themeStyles={themeStyles}
+                onClose={() => setShowShortcutHelp(false)}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </ToastProvider>
     </ErrorBoundary>

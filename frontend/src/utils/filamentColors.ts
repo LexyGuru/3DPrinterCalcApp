@@ -1,4 +1,4 @@
-import type { Settings } from "../types";
+import type { Settings, ColorMode } from "../types";
 
 export type FilamentFinish =
   | "standard"
@@ -17,6 +17,8 @@ export interface FilamentColorOption {
     en: string;
     de: string;
   };
+  colorMode?: ColorMode;
+  multiColorHint?: string;
 }
 
 export const DEFAULT_COLOR_HEX = "#9CA3AF";

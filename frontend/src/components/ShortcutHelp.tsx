@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import type { Settings } from "../types";
 import { useTranslation } from "../utils/translations";
 import { keyboardShortcuts } from "../utils/keyboardShortcuts";
@@ -10,7 +11,7 @@ interface Props {
   onClose: () => void;
 }
 
-export const ShortcutHelp: React.FC<Props> = ({ settings, theme, onClose }) => {
+export const ShortcutHelp: React.FC<Props> = ({ settings, theme, themeStyles: _themeStyles, onClose }) => {
   const t = useTranslation(settings.language);
   const [shortcuts, setShortcuts] = useState<any[]>([]);
 
@@ -48,7 +49,11 @@ export const ShortcutHelp: React.FC<Props> = ({ settings, theme, onClose }) => {
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       style={{
         position: "fixed",
         top: 0,
@@ -60,21 +65,15 @@ export const ShortcutHelp: React.FC<Props> = ({ settings, theme, onClose }) => {
         alignItems: "center",
         justifyContent: "center",
         zIndex: 10000,
-        animation: "fadeIn 0.2s ease-in-out",
+        backdropFilter: "blur(4px)",
       }}
       onClick={onClose}
     >
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-      `}</style>
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 24, scale: 0.96 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
         style={{
           backgroundColor: theme.colors.background,
           borderRadius: "12px",
@@ -83,8 +82,8 @@ export const ShortcutHelp: React.FC<Props> = ({ settings, theme, onClose }) => {
           maxHeight: "80vh",
           overflow: "auto",
           boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-          animation: "slideUp 0.3s ease-out",
           color: theme.colors.text,
+          width: "min(600px, 92vw)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -158,8 +157,8 @@ export const ShortcutHelp: React.FC<Props> = ({ settings, theme, onClose }) => {
         <div style={{ marginTop: "20px", paddingTop: "20px", borderTop: `1px solid ${theme.colors.border}`, fontSize: "12px", color: theme.colors.textMuted, textAlign: "center" }}>
           {t("shortcuts.closeHint")}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

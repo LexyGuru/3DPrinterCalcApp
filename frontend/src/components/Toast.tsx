@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { Settings } from "../types";
 
 interface ToastProps {
@@ -27,37 +28,25 @@ export const Toast: React.FC<ToastProps> = ({ message, type, onClose, duration =
   const color = colors[type];
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: 40, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 40, scale: 0.95 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
       style={{
-        position: "fixed",
-        top: "20px",
-        right: "20px",
         backgroundColor: color.bg,
         color: "#fff",
         padding: "12px 20px",
         borderRadius: "8px",
         boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-        zIndex: 10001,
         display: "flex",
         alignItems: "center",
         gap: "10px",
         minWidth: "250px",
-        maxWidth: "400px",
-        animation: "slideIn 0.3s ease-out",
+        maxWidth: "360px",
       }}
     >
-      <style>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-      `}</style>
       <span style={{ fontSize: "18px" }}>{color.icon}</span>
       <span style={{ flex: 1, fontWeight: "500" }}>{message}</span>
       <button
@@ -77,7 +66,7 @@ export const Toast: React.FC<ToastProps> = ({ message, type, onClose, duration =
       >
         ✕
       </button>
-    </div>
+    </motion.div>
   );
 };
 
@@ -111,17 +100,28 @@ export const ToastProvider: React.FC<{ children: React.ReactNode; settings?: Set
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div style={{ position: "fixed", top: "20px", right: "20px", zIndex: 10000, display: "flex", flexDirection: "column", gap: "8px" }}>
-        {toasts.map((toast, index) => (
-          <div key={toast.id} style={{ marginTop: index * 60 }}>
+      <div
+        style={{
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+          zIndex: 10000,
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+        }}
+      >
+        <AnimatePresence initial={false}>
+          {toasts.map((toast) => (
             <Toast
+              key={toast.id}
               message={toast.message}
               type={toast.type}
               onClose={() => removeToast(toast.id)}
               duration={notificationDuration}
             />
-          </div>
-        ))}
+          ))}
+        </AnimatePresence>
       </div>
     </ToastContext.Provider>
   );

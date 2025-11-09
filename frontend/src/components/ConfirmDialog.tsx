@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { commonStyles } from "../utils/styles";
 import type { Theme } from "../utils/themes";
 
@@ -22,10 +23,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   confirmText = "Igen",
   cancelText = "Mégse",
   type = "danger",
-  theme
+  theme,
 }) => {
-  if (!isOpen) return null;
-
   const isGradientBackground = theme?.colors.background?.includes('gradient');
   const dialogBg = isGradientBackground 
     ? "rgba(255, 255, 255, 0.98)" 
@@ -44,37 +43,48 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     : { backgroundColor: theme?.colors.primary || "#007bff", color: "#fff" };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 10000,
-        backdropFilter: isGradientBackground ? "blur(5px)" : "none",
-      }}
-      onClick={onCancel}
-    >
-      <div
-        style={{
-          backgroundColor: dialogBg,
-          borderRadius: "16px",
-          padding: "28px",
-          maxWidth: "400px",
-          width: "90%",
-          boxShadow: isGradientBackground
-            ? "0 8px 32px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)"
-            : "0 4px 20px rgba(0,0,0,0.3)",
-          border: isGradientBackground ? `1px solid ${theme?.colors.border || "rgba(0,0,0,0.1)"}` : "none",
-          backdropFilter: isGradientBackground ? "blur(20px)" : "none",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          key="confirm-dialog"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10000,
+            backdropFilter: isGradientBackground ? "blur(5px)" : "none",
+          }}
+          onClick={onCancel}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 24 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 24 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            style={{
+              backgroundColor: dialogBg,
+              borderRadius: "16px",
+              padding: "28px",
+              maxWidth: "400px",
+              width: "90%",
+              boxShadow: isGradientBackground
+                ? "0 8px 32px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1)"
+                : "0 4px 20px rgba(0,0,0,0.3)",
+              border: isGradientBackground ? `1px solid ${theme?.colors.border || "rgba(0,0,0,0.1)"}` : "none",
+              backdropFilter: isGradientBackground ? "blur(20px)" : "none",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
         <h3 style={{ 
           margin: "0 0 16px 0", 
           color: dialogTextColor, 
@@ -142,8 +152,10 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             {confirmText}
           </button>
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

@@ -1,5 +1,6 @@
 import rawLibrary from "../data/filamentLibrarySample.json";
 import type { FilamentColorOption, FilamentFinish } from "./filamentColors";
+import type { ColorMode } from "../types";
 import { normalizeHex } from "./filamentColors";
 import { translateText } from "./translator";
 import { BaseDirectory, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
@@ -12,6 +13,8 @@ export interface RawLibraryEntry {
   hex?: string | null;
   id?: string | null;
   finish?: string | null;
+  colorMode?: ColorMode | null;
+  multiColorHint?: string | null;
   labels?: {
     hu?: string | null;
     en?: string | null;
@@ -23,6 +26,8 @@ export interface LibraryColorOption extends FilamentColorOption {
   manufacturer: string;
   material: string;
   rawColor: string;
+  colorMode: ColorMode;
+  multiColorHint?: string;
 }
 
 type LibraryListener = () => void;
@@ -30,6 +35,44 @@ type LibraryListener = () => void;
 const CUSTOM_LIBRARY_FILE = "filamentLibrary.json";
 const FALLBACK_HEX = "#9CA3AF";
 const FINISH_WHITELIST: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
+
+const MULTICOLOR_KEYWORDS: RegExp[] = [
+  /rainbow/i,
+  /multi[\s-]?color/i,
+  /multicolou?r/i,
+  /dual[\s-]?color/i,
+  /bi[\s-]?color/i,
+  /tri[\s-]?color/i,
+  /tricolou?r/i,
+  /color\s*(?:shift|change)/i,
+  /gradient/i,
+  /mix(?:ed)?\s*color/i,
+  /rainblow/i,
+  /marble\s*(?:blend|mix)?/i,
+  /silk\s*rainbow/i,
+];
+
+const detectColorMode = (entry: RawLibraryEntry, normalizedHex: string): { colorMode: ColorMode; multiColorHint?: string } => {
+  if (entry.colorMode === "multicolor") {
+    return { colorMode: "multicolor", multiColorHint: entry.multiColorHint ?? entry.color ?? entry.name ?? undefined };
+  }
+  const candidates = [
+    entry.color,
+    entry.name,
+    entry.labels?.hu,
+    entry.labels?.en,
+    entry.labels?.de,
+  ];
+  const keywordMatch = candidates.some(value => value && MULTICOLOR_KEYWORDS.some(regex => regex.test(value)));
+  if (keywordMatch) {
+    const hintSource = candidates.find(value => value && MULTICOLOR_KEYWORDS.some(regex => regex.test(value)));
+    return { colorMode: "multicolor", multiColorHint: entry.multiColorHint ?? hintSource ?? undefined };
+  }
+  if (!normalizedHex) {
+    return { colorMode: "multicolor", multiColorHint: entry.multiColorHint ?? entry.color ?? entry.name ?? undefined };
+  }
+  return { colorMode: "solid" };
+};
 
 const normalizeText = (value?: string | null) => value?.trim() ?? "";
 const normalizeHexOrFallback = (value?: string | null) => normalizeHex(value) || FALLBACK_HEX;
@@ -81,6 +124,10 @@ const normalizeRawEntry = (entry: RawLibraryEntry): RawLibraryEntry => {
     normalizeText(entry.id) ||
     generateLibraryId(manufacturer, material, finish, rawColor || labels.en);
 
+  const normalizedHexValue = normalizeHex(entry.hex);
+  const { colorMode, multiColorHint } = detectColorMode(entry, normalizedHexValue);
+  const hex = normalizedHexValue || "";
+
   return {
     id,
     manufacturer,
@@ -88,8 +135,10 @@ const normalizeRawEntry = (entry: RawLibraryEntry): RawLibraryEntry => {
     color: rawColor,
     name: normalizeText(entry.name) || rawColor,
     finish,
-    hex: normalizeHexOrFallback(entry.hex),
+    hex,
     labels,
+    colorMode,
+    multiColorHint,
   };
 };
 
@@ -123,6 +172,8 @@ const rebuildIndex = (entries: RawLibraryEntry[], notify = true) => {
     manufacturer: entry.manufacturer ?? "Unknown",
     material: entry.material ?? "Unknown",
     rawColor: entry.color ?? entry.name ?? "",
+    colorMode: (entry.colorMode as ColorMode) ?? "solid",
+    multiColorHint: entry.multiColorHint ?? undefined,
   }));
   allBrands = uniqueSorted(libraryEntries.map(entry => entry.manufacturer));
   allMaterials = uniqueSorted(libraryEntries.map(entry => entry.material));
@@ -156,6 +207,8 @@ const dedupeRawEntries = (entries: RawLibraryEntry[]): RawLibraryEntry[] => {
       finish: normalized.finish,
       hex: normalizeHexOrFallback(normalized.hex),
       labels: normalized.labels,
+      colorMode: normalized.colorMode,
+      multiColorHint: normalized.multiColorHint,
     });
   });
   return Array.from(map.values());
@@ -166,17 +219,18 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
     baseDir: "AppConfig",
     file: CUSTOM_LIBRARY_FILE,
   });
+  let baseEntries: RawLibraryEntry[] | null = null;
   try {
     const content = await readTextFile(CUSTOM_LIBRARY_FILE, {
       baseDir: BaseDirectory.AppConfig,
     });
     const parsed = JSON.parse(content);
     if (Array.isArray(parsed)) {
-      console.log("[FilamentLibrary] Loaded library entries", { count: parsed.length });
-      return parsed as RawLibraryEntry[];
+      baseEntries = parsed as RawLibraryEntry[];
+      console.log("[FilamentLibrary] Loaded base library entries", { count: baseEntries.length });
     }
   } catch (error) {
-    console.error("[FilamentLibrary] Failed to read library file", error);
+    console.error("[FilamentLibrary] Failed to read base library file", error);
     try {
       const defaults = rawLibrary as RawLibraryEntry[];
       console.warn("[FilamentLibrary] Recreating library file from bundled defaults", { count: defaults.length });
@@ -187,12 +241,46 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
           baseDir: BaseDirectory.AppConfig,
         }
       );
-      return defaults;
+      baseEntries = defaults;
     } catch (writeError) {
       console.error("[FilamentLibrary] Failed to recreate library file", writeError);
     }
   }
-  return rawLibrary as RawLibraryEntry[];
+
+  if (!baseEntries) {
+    baseEntries = rawLibrary as RawLibraryEntry[];
+  }
+
+  let updateEntries: RawLibraryEntry[] = [];
+  try {
+    const updateContent = await readTextFile("update_filamentLibrary.json", {
+      baseDir: BaseDirectory.AppConfig,
+    });
+    const parsed = JSON.parse(updateContent);
+    if (Array.isArray(parsed)) {
+      updateEntries = parsed as RawLibraryEntry[];
+      console.log("[FilamentLibrary] Loaded update library entries", { count: updateEntries.length });
+    }
+  } catch (error) {
+    if ((error as { code?: string }).code !== "ENOENT") {
+      console.warn("[FilamentLibrary] Update filament library not applied", error);
+    } else {
+      console.log("[FilamentLibrary] No update filament library found");
+    }
+  }
+
+  if (!updateEntries.length) {
+    return baseEntries;
+  }
+
+  console.log("[FilamentLibrary] Merging base library with update entries");
+  const merged = dedupeRawEntries([...baseEntries, ...updateEntries]);
+  console.log("[FilamentLibrary] Merge completed", {
+    base: baseEntries.length,
+    updates: updateEntries.length,
+    result: merged.length,
+  });
+  return merged;
 };
 
 const writeLibraryToDisk = async (entries: RawLibraryEntry[]) => {
@@ -397,6 +485,8 @@ export interface EnsureLibraryEntryOptions {
   finish?: string;
   baseLabel?: string;
   sourceLanguage?: string;
+  colorMode?: ColorMode;
+  multiColorHint?: string;
 }
 
 const FILAMENT_FINISHES: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
@@ -446,6 +536,10 @@ export const ensureLibraryEntry = async (options: EnsureLibraryEntryOptions) => 
   );
 
   const resolvedHex = options.hex ? normalizeHex(options.hex) : undefined;
+  const requestedColorMode = options.colorMode === "multicolor" ? "multicolor" : "solid";
+  const colorMode: ColorMode =
+    requestedColorMode === "multicolor" || (!resolvedHex && !options.hex) ? "multicolor" : "solid";
+  const multiColorHint = options.multiColorHint ?? (colorMode === "multicolor" ? baseLabel : undefined);
 
   const entry: RawLibraryEntry = {
     id: generateLibraryId(manufacturer, material, finish, color),
@@ -456,6 +550,8 @@ export const ensureLibraryEntry = async (options: EnsureLibraryEntryOptions) => 
     finish,
     hex: resolvedHex,
     labels,
+    colorMode,
+    multiColorHint,
   };
 
   const updated = dedupeRawEntries([...currentEntries, entry]);

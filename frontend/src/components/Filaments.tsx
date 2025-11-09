@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import type { Filament, Settings } from "../types";
+import type { Filament, Settings, ColorMode } from "../types";
 import type { Theme } from "../utils/themes";
 import { filamentPrice } from "../utils/filamentCalc";
 import { useTranslation } from "../utils/translations";
@@ -49,6 +49,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [pricePerKg, setPricePerKg] = useState<number>(0);
   const [color, setColor] = useState("");
   const [colorHex, setColorHex] = useState<string>("");
+  const [colorMode, setColorMode] = useState<ColorMode>("solid");
+  const [multiColorHint, setMultiColorHint] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
@@ -227,6 +229,10 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       if (!normalizedSelectedHex && matchedHex) {
         setColorHex(matchedHex);
       }
+      const nextMode = (libraryMatch.colorMode as ColorMode) ?? "solid";
+      setColorMode(nextMode);
+      const localized = libraryMatch.labels?.[settings.language] ?? libraryMatch.rawColor ?? color;
+      setMultiColorHint(nextMode === "multicolor" ? libraryMatch.multiColorHint ?? localized ?? "" : "");
       return;
     }
 
@@ -237,11 +243,15 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       if (!normalizedSelectedHex && matchedHex) {
         setColorHex(matchedHex);
       }
+      const nextMode = (presetMatch.colorMode as ColorMode) ?? "solid";
+      setColorMode(nextMode);
+      const localized = getLocalizedColorLabel(presetMatch, settings.language);
+      setMultiColorHint(nextMode === "multicolor" ? presetMatch.multiColorHint ?? localized ?? "" : "");
       return;
     }
 
     setSelectedFinish("all");
-  }, [brand, type, color, normalizedSelectedHex]);
+  }, [brand, type, color, normalizedSelectedHex, settings.language]);
 
   useEffect(() => {
     if (!color || useCustomColor) {
@@ -330,6 +340,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setPricePerKg(0);
     setColor("");
     setColorHex("");
+    setColorMode("solid");
+    setMultiColorHint("");
     setImagePreview(null);
     setEditingIndex(null);
     setShowAddForm(false);
@@ -348,6 +360,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       setUseCustomColor(true);
     }
     setColor(value);
+    if (colorMode === "multicolor") {
+      setMultiColorHint(prev => (prev ? prev : value));
+    }
     const extractedHex = extractHexFromString(value);
     if (extractedHex) {
       const normalized = normalizeHex(extractedHex);
@@ -364,6 +379,24 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       setColorHex(normalized);
       setColor(normalized);
       setSelectedFinish("all");
+    }
+  };
+
+  const handleColorModeChange = (mode: ColorMode) => {
+    setColorMode(mode);
+    if (mode === "multicolor") {
+      if (!multiColorHint) {
+        const baseHint =
+          color ||
+          (selectedColorOption ? getLocalizedColorLabel(selectedColorOption, settings.language) : "") ||
+          "";
+        setMultiColorHint(baseHint);
+      }
+      if (normalizedSelectedHex) {
+        setColorHex("");
+      }
+    } else {
+      setMultiColorHint("");
     }
   };
 
@@ -428,6 +461,10 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       setColorHex(optionHex);
       setColor(getLocalizedColorLabel(option, settings.language));
       setSelectedFinish(option.finish);
+      const nextMode = (option.colorMode as ColorMode) ?? "solid";
+      setColorMode(nextMode);
+      const localized = getLocalizedColorLabel(option, settings.language);
+      setMultiColorHint(nextMode === "multicolor" ? option.multiColorHint ?? localized ?? "" : "");
     }
   };
 
@@ -576,6 +613,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     const libraryFinish = LIBRARY_FINISHES.includes(selectedFinish as FilamentFinish)
       ? (selectedFinish as FilamentFinish)
       : "standard";
+    const entryColorMode = colorMode;
+    const entryMultiColorHint = multiColorHint.trim();
 
     if (color) {
       console.log("[Filaments] Syncing color into library", {
@@ -584,6 +623,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         color,
         finalLibraryHex,
         libraryFinish,
+        entryColorMode,
+        entryMultiColorHint,
       });
       try {
         await ensureLibraryEntry({
@@ -594,6 +635,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           finish: libraryFinish,
           baseLabel: color,
           sourceLanguage: settings.language,
+          colorMode: entryColorMode,
+          multiColorHint: entryMultiColorHint,
         });
       } catch (error) {
         console.warn("[Filaments] Failed to sync filament with library", error);
@@ -616,7 +659,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         pricePerKg, 
         color: color || undefined,
         colorHex: normalizedSaveHex,
-        imageBase64: optimizedImage
+        imageBase64: optimizedImage,
+        colorMode: entryColorMode,
+        multiColorHint: entryColorMode === "multicolor" ? entryMultiColorHint || color || undefined : undefined,
       };
       setFilaments(updated);
       console.log("✅ Filament sikeresen frissítve", { index: editingIndex });
@@ -632,7 +677,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         pricePerKg, 
         color: color || undefined,
         colorHex: normalizedSaveHex,
-        imageBase64: optimizedImage
+        imageBase64: optimizedImage,
+        colorMode: entryColorMode,
+        multiColorHint: entryColorMode === "multicolor" ? entryMultiColorHint || color || undefined : undefined,
       }]);
       console.log("✅ Filament sikeresen hozzáadva", { brand, type });
       showToast(t("common.filamentAdded"), "success");
@@ -666,6 +713,15 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     const shouldUseCustomColor = !libraryMatch && !presetMatch;
     setUseCustomColor(shouldUseCustomColor);
     setSelectedFinish(libraryMatch?.finish ?? presetMatch?.finish ?? "all");
+    const detectedMode = (filament.colorMode as ColorMode) ?? (libraryMatch?.colorMode as ColorMode) ?? (presetMatch?.colorMode as ColorMode) ?? "solid";
+    setColorMode(detectedMode);
+    const detectedHint =
+      filament.multiColorHint ||
+      libraryMatch?.multiColorHint ||
+      presetMatch?.multiColorHint ||
+      filament.color ||
+      "";
+    setMultiColorHint(detectedMode === "multicolor" ? detectedHint : "");
     setImagePreview(filament.imageBase64 || null);
     setEditingIndex(index);
   };
@@ -1325,11 +1381,94 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 type="color"
                 value={fallbackHex}
                 onChange={e => handleCustomColorPick(e.target.value)}
-                style={{ width: "36px", height: "24px", border: "none", background: "none", cursor: "pointer" }}
+                disabled={colorMode === "multicolor"}
+                style={{
+                  width: "36px",
+                  height: "24px",
+                  border: "none",
+                  background: "none",
+                  cursor: colorMode === "multicolor" ? "not-allowed" : "pointer",
+                  opacity: colorMode === "multicolor" ? 0.6 : 1,
+                }}
                 aria-label={t("filaments.customColor")}
               />
-              <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>{fallbackHex}</span>
+              <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                {colorMode === "multicolor"
+                  ? settings.language === "hu"
+                    ? "Többszínű"
+                    : settings.language === "de"
+                    ? "Mehrfarbig"
+                    : "Multicolor"
+                  : fallbackHex}
+              </span>
             </div>
+            <div style={{ marginTop: "12px", display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
+                {settings.language === "hu" ? "Szín mód" : settings.language === "de" ? "Farbmodus" : "Color mode"}
+              </span>
+              {(["solid", "multicolor"] as ColorMode[]).map(mode => {
+                const isActive = colorMode === mode;
+                const label =
+                  mode === "solid"
+                    ? settings.language === "hu"
+                      ? "Egyszínű"
+                      : settings.language === "de"
+                      ? "Einfarbig"
+                      : "Solid"
+                    : settings.language === "hu"
+                    ? "Többszínű"
+                    : settings.language === "de"
+                    ? "Mehrfarbig"
+                    : "Multicolor";
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => handleColorModeChange(mode)}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      fontSize: "12px",
+                      border: `1px solid ${isActive ? theme.colors.primary : theme.colors.border}`,
+                      backgroundColor: isActive ? theme.colors.primary : theme.colors.surfaceHover,
+                      color: isActive ? "#fff" : theme.colors.text,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            {colorMode === "multicolor" && (
+              <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                  {settings.language === "hu"
+                    ? "Opció: rövid megjegyzés a színkombinációról"
+                    : settings.language === "de"
+                    ? "Optional: kurze Notiz zur Farbkombination"
+                    : "Optional: short note about the color mix"}
+                </span>
+                <input
+                  value={multiColorHint}
+                  onChange={e => setMultiColorHint(e.target.value)}
+                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = theme.colors.inputBorder;
+                    e.target.style.boxShadow = "none";
+                  }}
+                  placeholder={
+                    settings.language === "hu"
+                      ? "Pl.: Rainbow / Dual Silk"
+                      : settings.language === "de"
+                      ? "z. B.: Rainbow / Dual Silk"
+                      : "e.g. Rainbow / Dual Silk"
+                  }
+                  style={{ ...themeStyles.input, width: "60%" }}
+                />
+              </div>
+            )}
             {paletteColorOptions.length > 0 && (
               <div style={{ marginTop: "14px" }}>
                 <strong style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
@@ -1383,6 +1522,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "12px" }}>
                   {filteredPaletteOptions.map(option => {
                     const optionHex = getOptionHex(option);
+                    const optionIsMulticolor = option.colorMode === "multicolor";
+                    const optionGradient = "linear-gradient(135deg, #F97316 0%, #EC4899 33%, #6366F1 66%, #22D3EE 100%)";
                     const localizedLabel = getLocalizedColorLabel(option, settings.language);
                     const isActive = !useCustomColor && selectedColorOptionId === option.id;
                     return (
@@ -1396,9 +1537,18 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                           gap: "8px",
                           padding: "8px 12px",
                           borderRadius: "12px",
-                          border: isActive ? `2px solid ${optionHex}` : `1px solid ${theme.colors.border}`,
-                          backgroundColor: isActive ? optionHex : theme.colors.surfaceHover,
-                          color: isActive ? "#fff" : theme.colors.text,
+                          border: isActive
+                            ? `2px solid ${optionIsMulticolor ? theme.colors.primary : optionHex}`
+                            : `1px solid ${theme.colors.border}`,
+                          background:
+                            isActive && optionIsMulticolor
+                              ? optionGradient
+                              : isActive
+                              ? optionHex
+                              : optionIsMulticolor
+                              ? optionGradient
+                              : theme.colors.surfaceHover,
+                          color: isActive || optionIsMulticolor ? "#fff" : theme.colors.text,
                           cursor: "pointer",
                           transition: "all 0.2s"
                         }}
@@ -1408,7 +1558,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                             width: "14px",
                             height: "14px",
                             borderRadius: "50%",
-                            backgroundColor: optionHex,
+                            backgroundColor: optionIsMulticolor ? "transparent" : optionHex,
+                            backgroundImage: optionIsMulticolor ? optionGradient : "none",
                             border: "1px solid rgba(0,0,0,0.15)"
                           }}
                         />
@@ -1598,9 +1749,25 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     nameBasedHex ||
                     ""
                 ) || DEFAULT_COLOR_HEX;
+                const filamentColorMode = (f.colorMode as ColorMode) ?? (f.multiColorHint ? "multicolor" : "solid");
+                const isMulticolor = filamentColorMode === "multicolor";
                 const displayHex = resolvedHex;
                 const previewSrc = f.imageBase64 || getFilamentPlaceholder(resolvedHex);
                 const hasUploadedImage = Boolean(f.imageBase64);
+                const multiLabel =
+                  settings.language === "hu"
+                    ? "Többszínű"
+                    : settings.language === "de"
+                    ? "Mehrfarbig"
+                    : "Multicolor";
+                const swatchGradient = "linear-gradient(135deg, #F97316 0%, #EC4899 33%, #6366F1 66%, #22D3EE 100%)";
+                const displayName =
+                  f.color || (isMulticolor ? f.multiColorHint || multiLabel : displayHex);
+                const secondaryText = isMulticolor
+                  ? f.multiColorHint
+                    ? `${multiLabel} • ${f.multiColorHint}`
+                    : multiLabel
+                  : displayHex;
                 const handleThumbnailClick = () => {
                   if (!f.imageBase64) return;
                   const newWindow = window.open("", "_blank");
@@ -1668,18 +1835,24 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     <td style={themeStyles.tableCell}>{f.brand}</td>
                     <td style={themeStyles.tableCell}>{f.type}</td>
                     <td style={themeStyles.tableCell}>
-                      {f.color || f.colorHex ? (
+                      {displayName ? (
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           <span
                             style={{
-                              width: "14px",
-                              height: "14px",
+                              width: "18px",
+                              height: "18px",
                               borderRadius: "50%",
-                              backgroundColor: displayHex,
-                              border: "1px solid rgba(0,0,0,0.15)"
+                              backgroundColor: isMulticolor ? "transparent" : displayHex,
+                              backgroundImage: isMulticolor ? swatchGradient : "none",
+                              border: "1px solid rgba(0,0,0,0.15)",
                             }}
                           />
-                          <span>{f.color || displayHex}</span>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                            <span>{displayName}</span>
+                            <span style={{ fontSize: "11px", color: theme.colors.textMuted }}>
+                              {secondaryText}
+                            </span>
+                          </div>
                         </div>
                       ) : (
                         "-"
