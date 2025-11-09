@@ -318,15 +318,16 @@
 - **Becsült idő**: 12-16 óra
 - **Komplexitás**: Magas
 
-### 4. **Slicer integráció**
+### 4. **Slicer integráció (v0.5.0 cél)**
 - **Mit**: 
-  - PrusaSlicer, Cura integráció
-  - Automatikus G-code generálás
-  - Print time importálás
-  - Filament fogyasztás importálás
-- **Előny**: Automatizált munkafolyamat, pontosabb számítások
-- **Becsült idő**: 16-20 óra
-- **Komplexitás**: Magas
+  - PrusaSlicer, Cura, OrcaSlicer, Qidi Studio támogatás (első kör)
+  - G-code / JSON / projektfájl metaadatainak beolvasása (idő, filament mennyiség, profil)
+  - Import flow a kalkulátor/árajánlat modulba (adat preview + egyeztetés filament/nyomtató könyvtárral)
+  - Slicer dokumentum verzió jelölés az ajánlatnál (projekt naplózás)
+  - Parser moduláris bővítése a későbbi slicerekhez
+- **Előny**: Automatizált munkafolyamat, pontosabb számítások, kevesebb kézi adatbevitel
+- **Becsült idő**: 20-24 óra
+- **Komplexitás**: Magas (multi-formátum parsing, UX integráció, könyvtár egyeztetés)
 
 ### 5. **API végpontok létrehozása**
 - **Mit**: 
