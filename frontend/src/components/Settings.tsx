@@ -2866,21 +2866,6 @@ export const SettingsPage: React.FC<Props> = ({
                   >
                     ➕ {localize("Új téma", "Neues Theme", "New theme")}
                   </button>
-                </div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <button
-                    style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "8px 14px" }}
-                    onClick={handleSlicerImport}
-                  >
-                    🧾{" "}
-                    {localize(
-                      "Slicer adatok importálása",
-                      "Slicer-Daten importieren",
-                      "Import slicer data"
-                    )}
-                  </button>
-                </div>
-                <div style={{ marginTop: "12px" }}>{renderSlicerImportSummary()}</div>
               </div>
 
               <label style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: theme.colors.text }}>
@@ -3477,6 +3462,57 @@ export const SettingsPage: React.FC<Props> = ({
           <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
             {t("settings.importDescription")}
           </p>
+          <div
+            style={{
+              marginBottom: "20px",
+              padding: "16px",
+              borderRadius: "12px",
+              border: `1px solid ${theme.colors.border}`,
+              backgroundColor: theme.colors.surfaceHover,
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
+              <div style={{ flex: "1 1 220px" }}>
+                <strong style={{ display: "block", fontSize: "14px", color: theme.colors.text }}>
+                  {localize(
+                    "Slicer adat import",
+                    "Slicer-Datenimport",
+                    "Slicer data import"
+                  )}
+                </strong>
+                <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                  {localize(
+                    "Tölts be G-code vagy JSON exportot (Prusa, Cura, Orca, Qidi) és emeld át az idő/filament adatokat.",
+                    "Lade G-code- oder JSON-Exporte (Prusa, Cura, Orca, Qidi) und übernimm Zeit/Filamentdaten.",
+                    "Load G-code or JSON exports (Prusa, Cura, Orca, Qidi) and capture time/filament data."
+                  )}
+                </span>
+              </div>
+              <button
+                style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "8px 14px", minWidth: "200px" }}
+                onClick={handleSlicerImport}
+              >
+                🧾{" "}
+                {localize(
+                  "Slicer adatok importálása",
+                  "Slicer-Daten importieren",
+                  "Import slicer data"
+                )}
+              </button>
+            </div>
+            {renderSlicerImportSummary()}
+          </div>
           <p style={{ marginBottom: "16px", fontSize: "12px", color: "#dc3545", fontWeight: "600" }}>
             ⚠️ {settings.language === "hu" ? "Figyelem: Az importálás felülírja a jelenlegi adatokat!" : settings.language === "de" ? "Warnung: Der Import überschreibt die aktuellen Daten!" : "Warning: Import will overwrite current data!"}
           </p>
