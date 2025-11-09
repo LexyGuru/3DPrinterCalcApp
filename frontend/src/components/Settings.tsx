@@ -29,6 +29,7 @@ import { ShortcutHelp } from "./ShortcutHelp";
 import { Tooltip } from "./Tooltip";
 import { VersionHistory } from "./VersionHistory";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { parseSlicerFile, type SlicerJobData, SlicerParseError } from "../utils/slicerImport";
 import type { RawLibraryEntry } from "../utils/filamentLibrary";
 import {
   getLibrarySnapshot,
@@ -79,6 +80,7 @@ export const SettingsPage: React.FC<Props> = ({
   const [importFilaments, setImportFilaments] = useState(false);
   const [importPrinters, setImportPrinters] = useState(false);
   const [importOffers, setImportOffers] = useState(false);
+  const [lastSlicerImport, setLastSlicerImport] = useState<SlicerJobData | null>(null);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "display" | "advanced" | "data" | "library">("general");
@@ -1659,6 +1661,212 @@ export const SettingsPage: React.FC<Props> = ({
     }
   };
 
+  const handleSlicerImport = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [
+          {
+            name: "Slicer export",
+            extensions: ["gcode", "json"],
+          },
+        ],
+      });
+
+      if (!selected) {
+        console.log("[SlicerImport] megszakítva (nincs fájl kiválasztva)");
+        return;
+      }
+
+      const filePath = Array.isArray(selected) ? selected[0] : selected;
+      if (!filePath || typeof filePath !== "string") {
+        showToast(
+          localize("Érvénytelen fájl kiválasztás.", "Ungültige Dateiauswahl.", "Invalid file selection."),
+          "error"
+        );
+        return;
+      }
+
+      if (filePath.toLowerCase().endsWith(".3mf")) {
+        showToast(
+          localize(
+            "A 3MF projektfájlok importja még fejlesztés alatt áll. Exportálj G-code vagy JSON meta fájlt a slicerből.",
+            "3MF Projektdateien werden noch nicht unterstützt. Exportiere bitte eine G-code- oder JSON-Datei aus dem Slicer.",
+            "3MF project files are not supported yet. Please export a G-code or JSON meta file from the slicer."
+          ),
+          "error"
+        );
+        return;
+      }
+
+      console.log("[SlicerImport] fájl olvasása", { filePath });
+      const fileContent = await readTextFile(filePath);
+      const job = await parseSlicerFile(filePath, fileContent);
+
+      setLastSlicerImport(job);
+
+      const successMessage = localize(
+        "Slicer adatok importálva.",
+        "Slicer-Daten importiert.",
+        "Slicer data imported."
+      );
+      showToast(successMessage, "success");
+
+      console.log("[SlicerImport] siker", job);
+    } catch (error) {
+      if (error instanceof SlicerParseError) {
+        showToast(
+          localize(
+            `Sikertelen slicer import: ${error.message}`,
+            `Slicer-Import fehlgeschlagen: ${error.message}`,
+            `Could not import slicer metadata: ${error.message}`
+          ),
+          "error"
+        );
+      } else {
+        showToast(
+          localize(
+            "Ismeretlen hiba történt a slicer import során.",
+            "Beim Slicer-Import ist ein unbekannter Fehler aufgetreten.",
+            "An unknown error occurred while importing slicer data."
+          ),
+          "error"
+        );
+        console.error("[SlicerImport] ismeretlen hiba", error);
+      }
+    }
+  };
+  const renderSlicerImportSummary = () => {
+    if (!lastSlicerImport) {
+      return (
+        <p style={{ margin: 0, fontSize: "13px", color: theme.colors.textMuted }}>
+          {localize(
+            "Még nincs slicer adat importálva.",
+            "Es wurden noch keine Slicer-Daten importiert.",
+            "No slicer data has been imported yet."
+          )}
+        </p>
+      );
+    }
+
+    const baseCardStyle: React.CSSProperties = {
+      borderRadius: "12px",
+      padding: "12px 16px",
+      backgroundColor: theme.colors.surface,
+      border: `1px solid ${theme.colors.border}`,
+      boxShadow: `0 2px 8px ${theme.colors.shadow}`,
+      display: "flex",
+      flexDirection: "column",
+      gap: "4px",
+      minHeight: "72px",
+      justifyContent: "center",
+    };
+
+    const seconds = lastSlicerImport.estimatedPrintTimeSec ?? 0;
+    const printTimeHour = Math.floor(seconds / 3600);
+    const printTimeMin = Math.floor((seconds % 3600) / 60);
+    const printTimeSec = seconds % 60;
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gap: "12px",
+          marginTop: "12px",
+        }}
+      >
+        <div style={baseCardStyle}>
+          <strong style={{ fontSize: "13px", color: theme.colors.text }}>
+            {localize("Slicer", "Slicer", "Slicer")}
+          </strong>
+          <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+            {lastSlicerImport.slicer === "prusa-slicer"
+              ? "PrusaSlicer"
+              : lastSlicerImport.slicer === "cura"
+              ? "Cura"
+              : lastSlicerImport.slicer === "orca-slicer"
+              ? "OrcaSlicer"
+              : lastSlicerImport.slicer === "qidi-studio"
+              ? "Qidi Studio"
+              : "Ismeretlen"}
+          </span>
+        </div>
+        <div style={baseCardStyle}>
+          <strong style={{ fontSize: "13px", color: theme.colors.text }}>
+            {localize("Becsült idő", "Geschätzte Zeit", "Estimated time")}
+          </strong>
+          <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+            {lastSlicerImport.estimatedPrintTimeSec
+              ? `${printTimeHour}h ${printTimeMin}m ${printTimeSec}s`
+              : localize("ismeretlen", "unbekannt", "unknown")}
+          </span>
+        </div>
+        <div style={baseCardStyle}>
+          <strong style={{ fontSize: "13px", color: theme.colors.text }}>
+            {localize("Filament mennyiség", "Filamentmenge", "Filament amount")}
+          </strong>
+          <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+            {lastSlicerImport.filamentUsedGrams
+              ? `${lastSlicerImport.filamentUsedGrams.toFixed(2)} g`
+              : lastSlicerImport.filamentUsedMeters
+              ? `${lastSlicerImport.filamentUsedMeters.toFixed(2)} m`
+              : localize("ismeretlen", "unbekannt", "unknown")}
+          </span>
+        </div>
+        {lastSlicerImport.material && (
+          <div style={baseCardStyle}>
+            <strong style={{ fontSize: "13px", color: theme.colors.text }}>
+              {localize("Anyag", "Material", "Material")}
+            </strong>
+            <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+              {lastSlicerImport.material}
+            </span>
+          </div>
+        )}
+        {lastSlicerImport.profileName && (
+          <div style={baseCardStyle}>
+            <strong style={{ fontSize: "13px", color: theme.colors.text }}>
+              {localize("Profil", "Profil", "Profile")}
+            </strong>
+            <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+              {lastSlicerImport.profileName}
+            </span>
+          </div>
+        )}
+        {lastSlicerImport.projectName && (
+          <div style={baseCardStyle}>
+            <strong style={{ fontSize: "13px", color: theme.colors.text }}>
+              {localize("Projekt", "Projekt", "Project")}
+            </strong>
+            <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+              {lastSlicerImport.projectName}
+            </span>
+          </div>
+        )}
+        {lastSlicerImport.warnings.length > 0 && (
+          <div
+            style={{
+              ...baseCardStyle,
+              border: `1px solid ${theme.colors.danger}`,
+            }}
+          >
+            <strong style={{ fontSize: "13px", color: theme.colors.danger }}>
+              {localize("Figyelmeztetések", "Warnungen", "Warnings")}
+            </strong>
+            <ul style={{ margin: "6px 0 0", paddingLeft: "16px", color: theme.colors.textMuted }}>
+              {lastSlicerImport.warnings.map((warning, index) => (
+                <li key={`slicer-warning-${index}`} style={{ fontSize: "12px" }}>
+                  {warning}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Tab style
   const isGradientBackground = theme.colors.background?.includes('gradient');
   const tabButtonStyle = (isActive: boolean) => ({
@@ -2659,6 +2867,20 @@ export const SettingsPage: React.FC<Props> = ({
                     ➕ {localize("Új téma", "Neues Theme", "New theme")}
                   </button>
                 </div>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button
+                    style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "8px 14px" }}
+                    onClick={handleSlicerImport}
+                  >
+                    🧾{" "}
+                    {localize(
+                      "Slicer adatok importálása",
+                      "Slicer-Daten importieren",
+                      "Import slicer data"
+                    )}
+                  </button>
+                </div>
+                <div style={{ marginTop: "12px" }}>{renderSlicerImportSummary()}</div>
               </div>
 
               <label style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: theme.colors.text }}>
