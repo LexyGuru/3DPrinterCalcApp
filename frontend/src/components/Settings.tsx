@@ -883,19 +883,18 @@ export const SettingsPage: React.FC<Props> = ({
   const handleLibraryDelete = (id: string | undefined) => {
     if (!id) return;
     const entry = libraryEntriesState.find(item => item.id === id);
-    const descriptorHu = entry ? `${entry.manufacturer ?? "?"} / ${entry.material ?? "?"} – ${entry.color ?? entry.name ?? entry.labels?.hu ?? entry.labels?.en ?? id}` : id;
-    const descriptorDe = entry ? `${entry.manufacturer ?? "?"} / ${entry.material ?? "?"} – ${entry.color ?? entry.name ?? entry.labels?.de ?? entry.labels?.en ?? id}` : id;
-    const descriptorEn = entry ? `${entry.manufacturer ?? "?"} / ${entry.material ?? "?"} – ${entry.color ?? entry.name ?? entry.labels?.en ?? id}` : id;
+    const descriptor =
+      entry
+        ? `${entry.manufacturer ?? "?"} / ${entry.material ?? "?"} – ${
+            entry.labels?.[settings.language] ?? entry.color ?? entry.name ?? entry.labels?.en ?? id
+          }`
+        : id;
 
     openConfirmDialog({
-      title: localize("Szín törlése", "Farbe löschen", "Delete color"),
-      message: localize(
-        `Biztosan törlöd a következő színt: ${descriptorHu}?`,
-        `Möchtest du folgende Farbe löschen: ${descriptorDe}?`,
-        `Are you sure you want to delete the following color: ${descriptorEn}?`
-      ),
-      confirmText: localize("Törlés", "Löschen", "Delete"),
-      cancelText: localize("Mégse", "Abbrechen", "Cancel"),
+      title: t("settings.library.confirmDelete.title"),
+      message: t("settings.library.confirmDelete.message").replace("{descriptor}", descriptor),
+      confirmText: t("common.delete"),
+      cancelText: t("common.cancel"),
       type: "danger",
       onConfirm: async () => {
         setLibraryEntriesState(prev => prev.filter(entry => entry.id !== id));
@@ -927,15 +926,12 @@ export const SettingsPage: React.FC<Props> = ({
         trimmedMaterial,
         trimmedColor,
       });
-      showToast(localize("Minden kötelező mezőt ki kell tölteni", "Bitte fülle alle Pflichtfelder aus", "Please fill in all required fields"), "error");
+      showToast(t("settings.library.validation.requiredFields"), "error");
       return;
     }
 
     if ((!isMulticolor && !isValidHex) || (isMulticolor && hasHexValue && !isValidHex)) {
-      showToast(
-        localize("Érvénytelen HEX kód", "Ungültiger HEX-Code", "Invalid HEX code"),
-        "error"
-      );
+      showToast(t("settings.library.validation.invalidHex"), "error");
       return;
     }
 
@@ -944,12 +940,12 @@ export const SettingsPage: React.FC<Props> = ({
     const targetId = editingLibraryId ?? proposedId;
 
     if (!editingLibraryId && libraryEntriesState.some(entry => entry.id === targetId)) {
-      showToast(localize("Ez a szín már létezik a könyvtárban", "Diese Farbe existiert bereits in der Bibliothek", "This color already exists in the library"), "error");
+      showToast(t("settings.library.validation.duplicateEntry"), "error");
       return;
     }
 
     if (editingLibraryId && targetId !== editingLibraryId && libraryEntriesState.some(entry => entry.id === targetId)) {
-      showToast(localize("Az új azonosító már létezik", "Die neue ID ist bereits vorhanden", "The new identifier already exists"), "error");
+      showToast(t("settings.library.validation.duplicateId"), "error");
       return;
     }
 
@@ -964,7 +960,7 @@ export const SettingsPage: React.FC<Props> = ({
 
     if (!baseLabel) {
       console.warn("[Settings] handleLibraryAddOrUpdate missing base label");
-      showToast(localize("Adj meg egy megjelenő címkét", "Bitte gib einen Anzeigenamen an", "Please provide a display label"), "error");
+      showToast(t("settings.library.validation.labelRequired"), "error");
       return;
     }
 
@@ -1042,19 +1038,14 @@ export const SettingsPage: React.FC<Props> = ({
       setLibraryDirty(false);
       dirtyAfter = false;
       console.log("[Settings] handleLibraryAddOrUpdate persisted successfully");
-      showToast(
-        editingLibraryId
-          ? localize("Szín frissítve a könyvtárban", "Farbe in der Bibliothek aktualisiert", "Color updated in library")
-          : localize("Szín hozzáadva a könyvtárhoz", "Farbe zur Bibliothek hinzugefügt", "Color added to library"),
-        "success"
-      );
+      showToast(editingLibraryId ? t("settings.library.toast.updated") : t("settings.library.toast.added"), "success");
       closeLibraryModal();
       console.log("[Settings] handleLibraryAddOrUpdate modal closed");
     } catch (error) {
       console.error("[Settings] handleLibraryAddOrUpdate failed to persist entries", error);
       setLibraryDirty(true);
       dirtyAfter = true;
-      showToast(localize("Mentés sikertelen", "Speichern fehlgeschlagen", "Save failed"), "error");
+      showToast(t("settings.library.toast.saveFailed"), "error");
     } finally {
       setLibrarySaving(false);
       console.log("[Settings] handleLibraryAddOrUpdate completed", {
@@ -1072,10 +1063,10 @@ export const SettingsPage: React.FC<Props> = ({
       setLibrarySaving(true);
       await persistLibraryEntries(libraryEntriesState);
       setLibraryDirty(false);
-      showToast(localize("Könyvtár elmentve", "Bibliothek gespeichert", "Library saved"), "success");
+      showToast(t("settings.library.toast.saveSuccess"), "success");
     } catch (error) {
       console.error("[Settings] Failed to persist library entries", error);
-      showToast(localize("Mentés sikertelen", "Speichern fehlgeschlagen", "Save failed"), "error");
+      showToast(t("settings.library.toast.saveFailed"), "error");
     } finally {
       setLibrarySaving(false);
     }
@@ -1083,14 +1074,10 @@ export const SettingsPage: React.FC<Props> = ({
 
   const handleLibraryReset = () => {
     openConfirmDialog({
-      title: localize("Könyvtár visszaállítása", "Bibliothek zurücksetzen", "Reset library"),
-      message: localize(
-        "Biztosan visszaállítod a gyári színlistát? Minden saját bejegyzés el fog veszni.",
-        "Möchtest du die Farbliste wirklich zurücksetzen? Alle eigenen Einträge gehen verloren.",
-        "Reset the color library to defaults? All custom entries will be lost."
-      ),
-      confirmText: localize("Visszaállítás", "Zurücksetzen", "Reset"),
-      cancelText: localize("Mégse", "Abbrechen", "Cancel"),
+      title: t("settings.library.reset.title"),
+      message: t("settings.library.reset.message"),
+      confirmText: t("settings.library.reset.confirm"),
+      cancelText: t("common.cancel"),
       type: "danger",
       onConfirm: async () => {
         try {
@@ -1098,10 +1085,10 @@ export const SettingsPage: React.FC<Props> = ({
           await resetLibraryToDefaults();
           loadLibraryEntries();
           closeLibraryModal();
-          showToast(localize("Könyvtár visszaállítva", "Bibliothek zurückgesetzt", "Library reset to defaults"), "success");
+          showToast(t("settings.library.toast.resetSuccess"), "success");
         } catch (error) {
           console.error("[Settings] Failed to reset library", error);
-          showToast(localize("Nem sikerült visszaállítani", "Zurücksetzen fehlgeschlagen", "Failed to reset library"), "error");
+          showToast(t("settings.library.toast.resetFailed"), "error");
         } finally {
           setLibraryLoading(false);
         }
@@ -1131,24 +1118,10 @@ export const SettingsPage: React.FC<Props> = ({
         return;
       }
       await writeTextFile(filePath, JSON.stringify(snapshot, null, 2));
-      showToast(
-        localize(
-          "Filament könyvtár sikeresen exportálva.",
-          "Filamentbibliothek erfolgreich exportiert.",
-          "Filament library exported successfully."
-        ),
-        "success"
-      );
+      showToast(t("settings.library.export.success"), "success");
     } catch (error) {
       console.error("[Settings] handleLibraryExportToFile failed", error);
-      showToast(
-        localize(
-          "Nem sikerült exportálni a filament könyvtárat.",
-          "Filamentbibliothek konnte nicht exportiert werden.",
-          "Failed to export filament library."
-        ),
-        "error"
-      );
+      showToast(t("settings.library.export.error"), "error");
     } finally {
       setLibraryExporting(false);
     }
@@ -1181,24 +1154,10 @@ export const SettingsPage: React.FC<Props> = ({
       setLibraryEntriesState(snapshot);
       setLibraryDirty(false);
       setLibraryInitialized(true);
-      showToast(
-        localize(
-          "Filament könyvtár sikeresen importálva.",
-          "Filamentbibliothek erfolgreich importiert.",
-          "Filament library imported successfully."
-        ),
-        "success"
-      );
+      showToast(t("settings.library.import.success"), "success");
     } catch (error) {
       console.error("[Settings] handleLibraryImportFromFile failed", error);
-      showToast(
-        localize(
-          "Nem sikerült importálni a filament könyvtárat.",
-          "Filamentbibliothek konnte nicht importiert werden.",
-          "Failed to import filament library."
-        ),
-        "error"
-      );
+      showToast(t("settings.library.import.error"), "error");
     } finally {
       setLibraryImporting(false);
     }
@@ -1619,14 +1578,10 @@ export const SettingsPage: React.FC<Props> = ({
       return;
     }
     openConfirmDialog({
-      title: localize("Duplikált bejegyzések törlése", "Duplikate löschen", "Delete duplicates"),
-      message: localize(
-        "Biztosan törlöd az összes duplikált bejegyzést? Minden csoport első eleme megmarad.",
-        "Möchtest du wirklich alle doppelten Einträge löschen? Der jeweils erste Eintrag bleibt erhalten.",
-        "Are you sure you want to delete all duplicate entries? The first entry of each group will remain."
-      ),
-      confirmText: localize("Duplikáltak törlése", "Duplikate löschen", "Delete duplicates"),
-      cancelText: localize("Mégse", "Abbrechen", "Cancel"),
+      title: t("settings.library.duplicates.title"),
+      message: t("settings.library.duplicates.message"),
+      confirmText: t("settings.library.duplicates.confirm"),
+      cancelText: t("common.cancel"),
       type: "danger",
       onConfirm: async () => {
         const duplicateIds = new Set<string>();
@@ -1643,7 +1598,7 @@ export const SettingsPage: React.FC<Props> = ({
         setLibraryEntriesState(prev => prev.filter(entry => !entry.id || !duplicateIds.has(entry.id)));
         setLibraryDirty(true);
         setLibraryModalOpen(false);
-        showToast(localize("Duplikált bejegyzések törölve.", "Doppelte Einträge wurden gelöscht.", "Duplicate entries deleted."), "success");
+        showToast(t("settings.library.duplicates.toast"), "success");
       },
     });
   };
@@ -1653,7 +1608,7 @@ export const SettingsPage: React.FC<Props> = ({
       title: t("settings.backupRestore"),
       message: t("backup.confirmRestore"),
       confirmText: t("settings.backupRestore"),
-      cancelText: localize("Mégse", "Abbrechen", "Cancel"),
+      cancelText: t("common.cancel"),
       type: "warning",
       onConfirm: async () => {
         try {
