@@ -79,42 +79,15 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [typeFilter, setTypeFilter] = useState("");
   const [libraryVersion, setLibraryVersion] = useState(0);
   const LIBRARY_FINISHES: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
-  const brandSelectPlaceholder =
-    settings.language === "hu"
-      ? "Válassz márkát..."
-      : settings.language === "de"
-      ? "Marke auswählen..."
-      : "Select brand...";
-  const brandCustomOptionLabel =
-    settings.language === "hu"
-      ? "➕ Új márka hozzáadása"
-      : settings.language === "de"
-      ? "➕ Neue Marke hinzufügen"
-      : "➕ Add new brand";
-  const brandBackToListLabel =
-    settings.language === "hu"
-      ? "← Vissza a márkákhoz"
-      : settings.language === "de"
-      ? "← Zurück zu den Marken"
-      : "← Back to brands";
-  const typeSelectPlaceholder =
-    settings.language === "hu"
-      ? "Válassz típust..."
-      : settings.language === "de"
-      ? "Typ auswählen..."
-      : "Select type...";
-  const typeCustomOptionLabel =
-    settings.language === "hu"
-      ? "➕ Új típus hozzáadása"
-      : settings.language === "de"
-      ? "➕ Neuen Typ hinzufügen"
-      : "➕ Add new type";
-  const typeBackToListLabel =
-    settings.language === "hu"
-      ? "← Vissza a típusokhoz"
-      : settings.language === "de"
-      ? "← Zurück zu den Typen"
-      : "← Back to types";
+  const brandSelectPlaceholder = t("filaments.brandSelect.placeholder");
+  const brandCustomOptionLabel = t("filaments.brandSelect.addNew");
+  const brandBackToListLabel = t("filaments.brandSelect.backToList");
+  const typeSelectPlaceholder = t("filaments.typeSelect.placeholder");
+  const typeCustomOptionLabel = t("filaments.typeSelect.addNew");
+  const typeBackToListLabel = t("filaments.typeSelect.backToList");
+  const shortSearchPlaceholder = t("filaments.search.shortPlaceholder");
+  const noMatchesLabel = t("filaments.search.noMatches");
+  const multicolorLabel = t("filaments.multicolor.label");
   useEffect(() => {
     ensureLibraryOverridesLoaded();
     const unsubscribe = subscribeToLibraryChanges(() => {
@@ -396,14 +369,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     }
     const numeric = Number(sanitized);
     if (Number.isNaN(numeric)) {
-      showToast(
-        settings.language === "hu"
-          ? "Érvénytelen árformátum. Használj pontot tizedeselválasztónak (példa: 14.11)."
-          : settings.language === "de"
-          ? "Ungültiges Preisformat. Bitte verwende einen Punkt als Dezimaltrennzeichen (z.B. 14.11)."
-          : "Invalid price format. Please use a dot as decimal separator (e.g. 14.11).",
-        "error"
-      );
+      showToast(t("filaments.validation.invalidPriceFormat"), "error");
       setPricePerKgRaw("");
       setPricePerKg(0);
       return;
@@ -558,24 +524,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     if (!file) return;
 
     // Ellenőrizzük a fájl típusát
-    if (!file.type.startsWith('image/')) {
-      showToast(
-        settings.language === "hu" ? "Csak kép fájlok tölthetők fel!" :
-        settings.language === "de" ? "Nur Bilddateien können hochgeladen werden!" :
-        "Only image files can be uploaded!",
-        "error"
-      );
+    if (!file.type.startsWith("image/")) {
+      showToast(t("filaments.upload.invalidType"), "error");
       return;
     }
 
     // Ellenőrizzük a fájl méretét (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      showToast(
-        settings.language === "hu" ? "A kép mérete nem lehet nagyobb 5MB-nál!" :
-        settings.language === "de" ? "Die Bildgröße darf 5 MB nicht überschreiten!" :
-        "Image size cannot exceed 5MB!",
-        "error"
-      );
+      showToast(t("filaments.upload.sizeExceeded"), "error");
       return;
     }
 
@@ -644,12 +600,12 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       imageProvided: !!imagePreview,
     });
     if (!brand || !type || !pricePerKg) {
-      showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek töltsd ki az összes kötelező mezőt!" : settings.language === "de" ? "Bitte füllen Sie alle Pflichtfelder aus!" : "Please fill in all required fields!"), "error");
+      showToast(`${t("common.error")}: ${t("filaments.validation.requiredFields")}`, "error");
       return;
     }
     
     if (weight <= 0 || pricePerKg <= 0) {
-      showToast(t("common.error") + ": " + (settings.language === "hu" ? "A súly és az ár pozitív szám kell legyen!" : settings.language === "de" ? "Gewicht und Preis müssen positive Zahlen sein!" : "Weight and price must be positive numbers!"), "error");
+      showToast(`${t("common.error")}: ${t("filaments.validation.positiveNumbers")}`, "error");
       return;
     }
     
@@ -660,12 +616,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         optimizedImage = await optimizeImage(imagePreview, 800, 800, 0.8);
       } catch (error) {
         console.error("❌ Kép optimalizálás hiba:", error);
-        showToast(
-          settings.language === "hu" ? "Hiba a kép optimalizálása során, az eredeti kép használata..." :
-          settings.language === "de" ? "Fehler bei der Bildoptimierung, ursprüngliches Bild wird verwendet..." :
-          "Error optimizing image, using original...",
-          "error"
-        );
+        showToast(t("filaments.upload.optimizeError"), "error");
         optimizedImage = imagePreview;
       }
     }
@@ -832,14 +783,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       console.warn("[Filaments] Failed to open price search via shell plugin", error);
       const fallbackWindow = window.open(url, "_blank", "noopener,noreferrer");
       if (!fallbackWindow) {
-        showToast(
-          settings.language === "hu"
-            ? "Nem sikerült megnyitni a böngészőt az árkereséshez."
-            : settings.language === "de"
-            ? "Der Browser konnte für die Preissuche nicht geöffnet werden."
-            : "Could not open the browser for price search.",
-          "error"
-        );
+        showToast(t("filaments.priceSearch.error"), "error");
       }
     }
   };
@@ -915,12 +859,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setFilaments(newFilaments);
     setDraggedFilamentIndex(null);
     console.log("🔄 Filamentek átrendezve", { draggedIndex: draggedFilamentIndex, targetIndex });
-    showToast(
-      settings.language === "hu" ? "Filamentek átrendezve" :
-      settings.language === "de" ? "Filamente neu angeordnet" :
-      "Filaments reordered",
-      "success"
-    );
+    showToast(t("filaments.toast.reordered"), "success");
   };
 
   const handleDragEnd = () => {
@@ -966,9 +905,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("filaments.title")}</h2>
-      <p style={themeStyles.pageSubtitle}>
-        {settings.language === "hu" ? "Filamentek kezelése és szerkesztése" : settings.language === "de" ? "Filamente verwalten und bearbeiten" : "Manage and edit filaments"}
-      </p>
+      <p style={themeStyles.pageSubtitle}>{t("filaments.subtitle")}</p>
       
       {/* Kereső mező */}
       {filaments.length > 0 && (
@@ -980,21 +917,21 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             fontSize: "14px", 
             color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
           }}>
-            🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
+            🔍 {t("filaments.search.label")}
           </label>
           <input
             type="text"
-            placeholder={settings.language === "hu" ? "Keresés márka, típus vagy szín alapján..." : settings.language === "de" ? "Suche nach Marke, Typ oder Farbe..." : "Search by brand, type or color..."}
+            placeholder={t("filaments.search.placeholder")}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
             onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
             style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
-            aria-label={settings.language === "hu" ? "Keresés filamentek között" : settings.language === "de" ? "Filamente durchsuchen" : "Search filaments"}
+            aria-label={t("filaments.search.ariaLabel")}
             aria-describedby="filament-search-description"
           />
           <span id="filament-search-description" style={{ display: "none" }}>
-            {settings.language === "hu" ? "Keresés filamentek között márka, típus vagy szín alapján" : settings.language === "de" ? "Filamente nach Marke, Typ oder Farbe durchsuchen" : "Search filaments by brand, type or color"}
+            {t("filaments.search.description")}
           </span>
         </div>
       )}
@@ -1002,7 +939,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       {/* Új filament hozzáadása gomb */}
       {!showAddForm && editingIndex === null && (
         <div style={{ marginBottom: "24px" }}>
-          <Tooltip content={settings.language === "hu" ? "Új filament hozzáadása (Ctrl/Cmd+N)" : settings.language === "de" ? "Neues Filament hinzufügen (Strg/Cmd+N)" : "Add new filament (Ctrl/Cmd+N)"}>
+          <Tooltip content={t("filaments.tooltip.addShortcut")}>
             <button
               onClick={() => setShowAddForm(true)}
               onMouseEnter={(e) => {
@@ -1027,7 +964,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 fontSize: "16px",
                 padding: "14px 28px"
               }}
-              aria-label={settings.language === "hu" ? "Új filament hozzáadása" : settings.language === "de" ? "Neues Filament hinzufügen" : "Add new filament"}
+              aria-label={t("filaments.actions.addAria")}
             >
               ➕ {t("filaments.addTitle")}
             </button>
@@ -1121,7 +1058,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                       type="text"
                       value={brandFilter}
                       onChange={e => setBrandFilter(e.target.value)}
-                      placeholder={settings.language === "hu" ? "Keresés..." : settings.language === "de" ? "Suchen..." : "Search..."}
+                      placeholder={shortSearchPlaceholder}
                       style={{
                         ...themeStyles.input,
                         ...panelInputStyle,
@@ -1176,11 +1113,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                         })
                       ) : (
                         <div style={{ padding: "10px", fontSize: "12px", color: theme.colors.textMuted }}>
-                          {settings.language === "hu"
-                            ? "Nincs találat."
-                            : settings.language === "de"
-                            ? "Keine Treffer."
-                            : "No matches."}
+                          {noMatchesLabel}
                         </div>
                       )}
                     </div>
@@ -1286,7 +1219,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                       type="text"
                       value={typeFilter}
                       onChange={e => setTypeFilter(e.target.value)}
-                      placeholder={settings.language === "hu" ? "Keresés..." : settings.language === "de" ? "Suchen..." : "Search..."}
+                      placeholder={shortSearchPlaceholder}
                       style={{
                         ...themeStyles.input,
                         ...panelInputStyle,
@@ -1341,11 +1274,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                         })
                       ) : (
                         <div style={{ padding: "10px", fontSize: "12px", color: theme.colors.textMuted }}>
-                          {settings.language === "hu"
-                            ? "Nincs találat."
-                            : settings.language === "de"
-                            ? "Keine Treffer."
-                            : "No matches."}
+                          {noMatchesLabel}
                         </div>
                       )}
                     </div>
@@ -1434,7 +1363,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               aria-describedby="filament-weight-description"
             />
             <span id="filament-weight-description" style={{ display: "none" }}>
-              {settings.language === "hu" ? "Filament súlya grammban (1-10000)" : settings.language === "de" ? "Filamentgewicht in Gramm (1-10000)" : "Filament weight in grams (1-10000)"}
+              {t("filaments.weightDescription")}
             </span>
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
@@ -1505,33 +1434,19 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 aria-label={t("filaments.customColor")}
               />
               <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                {colorMode === "multicolor"
-                  ? settings.language === "hu"
-                    ? "Többszínű"
-                    : settings.language === "de"
-                    ? "Mehrfarbig"
-                    : "Multicolor"
-                  : fallbackHex}
+                {colorMode === "multicolor" ? multicolorLabel : fallbackHex}
               </span>
             </div>
             <div style={{ marginTop: "12px", display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-              <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                {settings.language === "hu" ? "Szín mód" : settings.language === "de" ? "Farbmodus" : "Color mode"}
+              <span style={{ fontSize: "12px", color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
+                {t("filaments.colorMode.label")}
               </span>
               {(["solid", "multicolor"] as ColorMode[]).map(mode => {
                 const isActive = colorMode === mode;
                 const label =
                   mode === "solid"
-                    ? settings.language === "hu"
-                      ? "Egyszínű"
-                      : settings.language === "de"
-                      ? "Einfarbig"
-                      : "Solid"
-                    : settings.language === "hu"
-                    ? "Többszínű"
-                    : settings.language === "de"
-                    ? "Mehrfarbig"
-                    : "Multicolor";
+                    ? t("filaments.colorMode.option.solid")
+                    : t("filaments.colorMode.option.multicolor");
                 return (
                   <button
                     key={mode}
@@ -1556,11 +1471,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             {colorMode === "multicolor" && (
               <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "6px" }}>
                 <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                  {settings.language === "hu"
-                    ? "Opció: rövid megjegyzés a színkombinációról"
-                    : settings.language === "de"
-                    ? "Optional: kurze Notiz zur Farbkombination"
-                    : "Optional: short note about the color mix"}
+                  {t("filaments.colorMode.note")}
                 </span>
                 <input
                   value={multiColorHint}
@@ -1570,13 +1481,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     e.target.style.borderColor = theme.colors.inputBorder;
                     e.target.style.boxShadow = "none";
                   }}
-                  placeholder={
-                    settings.language === "hu"
-                      ? "Pl.: Rainbow / Dual Silk"
-                      : settings.language === "de"
-                      ? "z. B.: Rainbow / Dual Silk"
-                      : "e.g. Rainbow / Dual Silk"
-                  }
+                  placeholder={t("filaments.colorMode.placeholder")}
                   style={{ ...themeStyles.input, width: "60%" }}
                 />
               </div>
@@ -1687,14 +1592,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         
         {/* Kép feltöltés */}
         <div style={{ marginTop: "20px" }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: "8px", 
-            fontWeight: "600", 
-            fontSize: "14px", 
-            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-          }}>
-            📷 {settings.language === "hu" ? "Kép (opcionális)" : settings.language === "de" ? "Bild (optional)" : "Image (optional)"}
+          <label
+            style={{
+              display: "block",
+              marginBottom: "8px",
+              fontWeight: "600",
+              fontSize: "14px",
+              color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+            }}
+          >
+            📷 {t("filaments.image.label")}
           </label>
           {imagePreview ? (
             <div style={{ position: "relative", display: "inline-block", marginBottom: "8px" }}>
@@ -1726,7 +1633,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                   boxShadow: `0 2px 4px ${theme.colors.shadow}`,
                 }}
               >
-                ✕ {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Remove"}
+                ✕ {t("filaments.image.remove")}
               </button>
             </div>
           ) : (
@@ -1768,27 +1675,31 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 alt={t("filaments.placeholderAlt")}
                 style={{ width: "80px", height: "80px" }}
               />
-              <span style={{ 
-                fontSize: "14px", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
-                display: "block",
-                maxWidth: "220px"
-              }}>
-                {settings.language === "hu" ? "Kattints a kép feltöltéséhez" : settings.language === "de" ? "Klicken Sie, um ein Bild hochzuladen" : "Click to upload image"}
+              <span
+                style={{
+                  fontSize: "14px",
+                  color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+                  display: "block",
+                  maxWidth: "220px",
+                }}
+              >
+                {t("filaments.image.uploadPrompt")}
               </span>
-              <span style={{ 
-                fontSize: "11px", 
-                color: theme.colors.textMuted,
-                display: "block",
-                marginTop: "4px"
-              }}>
-                {settings.language === "hu" ? "Max. 5MB, JPG/PNG/WebP" : settings.language === "de" ? "Max. 5MB, JPG/PNG/WebP" : "Max. 5MB, JPG/PNG/WebP"}
+              <span
+                style={{
+                  fontSize: "11px",
+                  color: theme.colors.textMuted,
+                  display: "block",
+                  marginTop: "4px",
+                }}
+              >
+                {t("filaments.image.uploadLimit")}
               </span>
             </label>
           )}
         </div>
         <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
-          <Tooltip content={settings.language === "hu" ? (editingIndex !== null ? "Mentés (Ctrl/Cmd+S)" : "Hozzáadás (Ctrl/Cmd+S)") : settings.language === "de" ? (editingIndex !== null ? "Speichern (Strg/Cmd+S)" : "Hinzufügen (Strg/Cmd+S)") : (editingIndex !== null ? "Save (Ctrl/Cmd+S)" : "Add (Ctrl/Cmd+S)")}>
+          <Tooltip content={editingIndex !== null ? t("filaments.tooltip.saveShortcut") : t("filaments.tooltip.addShortcut")}>
             <button 
               onClick={addFilament}
               onMouseEnter={(e) => {
@@ -1814,13 +1725,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 fontSize: "16px",
                 padding: "14px 28px"
               }}
-              aria-label={editingIndex !== null ? (settings.language === "hu" ? "Filament mentése" : settings.language === "de" ? "Filament speichern" : "Save filament") : (settings.language === "hu" ? "Filament hozzáadása" : settings.language === "de" ? "Filament hinzufügen" : "Add filament")}
+              aria-label={editingIndex !== null ? t("filaments.actions.saveAria") : t("filaments.actions.addAria")}
             >
               {editingIndex !== null ? t("filaments.save") : "➕ " + t("filaments.add")}
             </button>
           </Tooltip>
           {showAddForm && editingIndex === null && (
-            <Tooltip content={settings.language === "hu" ? "Mégse (Escape)" : settings.language === "de" ? "Abbrechen (Escape)" : "Cancel (Escape)"}>
+            <Tooltip content={t("filaments.tooltip.cancelShortcut")}>
               <button
                 onClick={() => setShowAddForm(false)}
                 onMouseEnter={(e) => {
@@ -1844,7 +1755,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                   fontSize: "12px",
                   marginLeft: "10px"
                 }}
-                aria-label={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+                aria-label={t("filaments.actions.cancelAria")}
               >
                 {t("filaments.cancel")}
               </button>
@@ -1883,12 +1794,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 const displayHex = resolvedHex;
                 const previewSrc = f.imageBase64 || getFilamentPlaceholder(resolvedHex);
                 const hasUploadedImage = Boolean(f.imageBase64);
-                const multiLabel =
-                  settings.language === "hu"
-                    ? "Többszínű"
-                    : settings.language === "de"
-                    ? "Mehrfarbig"
-                    : "Multicolor";
+                const multiLabel = multicolorLabel;
                 const swatchGradient = "linear-gradient(135deg, #F97316 0%, #EC4899 33%, #6366F1 66%, #22D3EE 100%)";
                 const displayName =
                   f.color || (isMulticolor ? f.multiColorHint || multiLabel : displayHex);
@@ -1950,15 +1856,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                           boxShadow: hasUploadedImage ? `0 2px 6px ${theme.colors.shadow}` : "none"
                         }}
                         onClick={handleThumbnailClick}
-                        title={
-                          hasUploadedImage
-                            ? settings.language === "hu"
-                              ? "Kattints a nagyobb kép megtekintéséhez"
-                              : settings.language === "de"
-                              ? "Klicken Sie, um ein größeres Bild anzuzeigen"
-                              : "Click to view larger image"
-                            : undefined
-                        }
+                        title={hasUploadedImage ? t("filaments.tooltip.viewImage") : undefined}
                       />
                     </td>
                     <td style={themeStyles.tableCell}>{f.brand}</td>
@@ -2023,7 +1921,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                           🔍
                         </button>
                       </Tooltip>
-                      <Tooltip content={settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}>
+                      <Tooltip content={t("filaments.tooltip.edit")}>
                         <button 
                           onClick={() => startEdit(originalIndex)}
                           disabled={editingIndex !== null && editingIndex !== originalIndex}
@@ -2041,7 +1939,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                           {t("filaments.edit")}
                         </button>
                       </Tooltip>
-                      <Tooltip content={settings.language === "hu" ? "Filament törlése" : settings.language === "de" ? "Filament löschen" : "Delete filament"}>
+                      <Tooltip content={t("filaments.tooltip.delete")}>
                         <button 
                           onClick={() => deleteFilament(originalIndex)}
                           onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
@@ -2067,12 +1965,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       ) : filaments.length > 0 && searchTerm ? (
         <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
-          <p style={{ 
-            margin: 0, 
-            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
-            fontSize: "16px" 
-          }}>
-            {settings.language === "hu" ? "Nincs találat a keresési kifejezésre." : settings.language === "de" ? "Keine Ergebnisse für den Suchbegriff." : "No results found for the search term."}
+          <p
+            style={{
+              margin: 0,
+              color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted,
+              fontSize: "16px",
+            }}
+          >
+            {t("filaments.search.noResults")}
           </p>
         </div>
       ) : (
@@ -2148,7 +2048,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
-              ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
+              ✏️ {t("filaments.edit")}
             </button>
             <div style={{ height: "1px", backgroundColor: theme.colors.border, margin: "4px 0" }} />
             <button
@@ -2171,7 +2071,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
-              🗑️ {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}
+              🗑️ {t("common.delete")}
             </button>
           </div>
         </div>
