@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.5.0"
+version = "0.5.11"
 description = "A Tauri App"
 authors = ["Lekszikov Miklós (LexyGuru)"]
 license = "MIT OR Proprietary"

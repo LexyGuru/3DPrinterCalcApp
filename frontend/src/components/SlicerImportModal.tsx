@@ -6,6 +6,7 @@ import { useToast } from "./Toast";
 import { parseSlicerFile, type SlicerJobData, SlicerParseError } from "../utils/slicerImport";
 import type { Settings, Offer, ColorMode } from "../types";
 import type { Theme } from "../utils/themes";
+import { useTranslation } from "../utils/translations";
 
 interface SlicerImportModalProps {
   isOpen: boolean;
@@ -25,8 +26,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
   onCreateOffer,
 }) => {
   const { showToast } = useToast();
-  const localize = (hu: string, de: string, en: string) =>
-    settings.language === "hu" ? hu : settings.language === "de" ? de : en;
+  const t = useTranslation(settings.language);
   const [lastImport, setLastImport] = useState<SlicerJobData | null>(null);
   const [isImporting, setIsImporting] = useState(false);
 
@@ -52,22 +52,12 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
 
       const filePath = Array.isArray(selected) ? selected[0] : selected;
       if (!filePath || typeof filePath !== "string") {
-        showToast(
-          localize("Érvénytelen fájl kiválasztás.", "Ungültige Dateiauswahl.", "Invalid file selection."),
-          "error"
-        );
+        showToast(t("slicerImport.invalidSelection"), "error");
         return;
       }
 
       if (filePath.toLowerCase().endsWith(".3mf")) {
-        showToast(
-          localize(
-            "A 3MF projektfájlok importja még fejlesztés alatt áll. Exportálj G-code vagy JSON meta fájlt a slicerből.",
-            "3MF-Projektdateien werden noch nicht unterstützt. Exportiere bitte eine G-code- oder JSON-Datei aus dem Slicer.",
-            "3MF project files are not supported yet. Please export a G-code or JSON meta file from the slicer."
-          ),
-          "error"
-        );
+        showToast(t("slicerImport.unsupported3mf"), "error");
         return;
       }
 
@@ -75,27 +65,13 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
       const job = await parseSlicerFile(filePath, fileContent);
       setLastImport(job);
 
-      showToast(localize("Slicer adatok importálva.", "Slicer-Daten importiert.", "Slicer data imported."), "success");
+      showToast(t("slicerImport.importSuccess"), "success");
     } catch (error) {
       if (error instanceof SlicerParseError) {
-        showToast(
-          localize(
-            `Sikertelen slicer import: ${error.message}`,
-            `Slicer-Import fehlgeschlagen: ${error.message}`,
-            `Could not import slicer metadata: ${error.message}`
-          ),
-          "error"
-        );
+        showToast(t("slicerImport.importFailedPrefix") + error.message, "error");
       } else {
         console.error("[SlicerImportModal] unknown error", error);
-        showToast(
-          localize(
-            "Ismeretlen hiba történt a slicer import során.",
-            "Beim Slicer-Import ist ein unbekannter Fehler aufgetreten.",
-            "An unknown error occurred while importing slicer data."
-          ),
-          "error"
-        );
+        showToast(t("slicerImport.unknownError"), "error");
       }
     } finally {
       setIsImporting(false);
@@ -104,26 +80,12 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
 
   const handleCreateOfferDraft = () => {
     if (!lastImport) {
-      showToast(
-        localize(
-          "Előbb importálj slicer adatokat!",
-          "Bitte importiere zuerst Slicer-Daten!",
-          "Import slicer data first!"
-        ),
-        "error"
-      );
+      showToast(t("slicerImport.noDataForDraft"), "error");
       return;
     }
 
     if (!onCreateOffer) {
-      showToast(
-        localize(
-          "Az árajánlat mentéséhez nyisd meg a kalkulátort az alkalmazás fő nézetéből.",
-          "Zum Speichern des Angebots bitte die Kalkulationsansicht verwenden.",
-          "Open the calculator view to save quotes."
-        ),
-        "error"
-      );
+      showToast(t("slicerImport.openCalculatorHint"), "error");
       return;
     }
 
@@ -153,9 +115,8 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
 
       const offerFilaments: Offer["filaments"] = gramsSource.map((grams, index) => {
         const extruderId = lastImport.extrudersUsed?.[index];
-        const extruderLabel = extruderId !== undefined
-          ? `E${extruderId}`
-          : `${localize("Extruder", "Extruder", "Extruder")} ${index + 1}`;
+        const extruderLabel =
+          extruderId !== undefined ? `E${extruderId}` : `${t("common.extruder")} ${index + 1}`;
         const meters = lastImport.filamentPerExtruderMeters?.[index] ?? (index === 0 ? lastImport.filamentUsedMeters : undefined);
         const millimeters = lastImport.filamentPerExtruderMillimeters?.[index] ?? (index === 0 ? lastImport.filamentUsedMillimeters : undefined);
         const amountSummary = [
@@ -168,7 +129,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
 
         const hintPrefix = multiExtruder
           ? `${extruderLabel} – ${fileName}`
-          : `${localize("Importált adat", "Importierte Daten", "Imported data")} – ${fileName}`;
+          : `${t("slicerImport.importedData")} – ${fileName}`;
 
         return {
           brand: "",
@@ -182,11 +143,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
       });
 
       const createdAt = new Date().toISOString();
-      const statusNote = localize(
-        "Slicer importból létrehozva",
-        "Über Slicer-Import erstellt",
-        "Created from slicer import"
-      );
+      const statusNote = t("slicerImport.statusNote");
 
       const totalWeight = sumNumbers(lastImport.totalHeaderGrams) ?? sumNumbers(gramsSource) ?? 0;
       const totalLengthMeters = (() => {
@@ -202,8 +159,8 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
       const newOffer: Offer = {
         id: Date.now(),
         date: createdAt,
-        printerName: localize("Slicer import", "Slicer-Import", "Slicer import"),
-        printerType: localize("Ismeretlen", "Unbekannt", "Unknown"),
+        printerName: t("slicerImport.defaultPrinterName"),
+        printerType: t("common.unknown"),
         printerPower: 0,
         printTimeHours: printTimeHour,
         printTimeMinutes: printTimeMin,
@@ -219,7 +176,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
         },
         currency: settings.currency,
         profitPercentage: 30,
-        description: `${localize("Importált fájl", "Importierte Datei", "Imported file")}: ${fileName}`,
+        description: `${t("slicerImport.importedFilePrefix")}: ${fileName}`,
         status: "draft",
         statusUpdatedAt: createdAt,
         statusHistory: [
@@ -241,35 +198,19 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
       };
 
       onCreateOffer(newOffer);
-      showToast(
-        localize(
-          "Árajánlat piszkozat létrehozva. Nyisd meg az Árajánlatok menüt a részletekhez.",
-          "Angebotsentwurf erstellt. Öffne den Angebotsbereich für Details.",
-          "Quote draft created. Open the Offers section to review it."
-        ),
-        "success"
-      );
+      showToast(t("slicerImport.draftCreated"), "success");
       onClose();
       setLastImport(null);
     } catch (error) {
       console.error("[SlicerImportModal] failed to create offer draft", error);
-      showToast(
-        localize(
-          "Nem sikerült létrehozni az árajánlat piszkozatot.",
-          "Entwurf konnte nicht erstellt werden.",
-          "Failed to create quote draft."
-        ),
-        "error"
-      );
+      showToast(t("slicerImport.draftFailed"), "error");
     }
   };
 
   const renderSummary = () => {
     if (!lastImport) {
       return (
-        <p style={{ margin: 0, fontSize: "13px", color: theme.colors.textMuted }}>
-          {localize("Még nincs slicer adat importálva.", "Es wurden noch keine Slicer-Daten importiert.", "No slicer data has been imported yet.")}
-        </p>
+        <p style={{ margin: 0, fontSize: "13px", color: theme.colors.textMuted }}>{t("slicerImport.noSummary")}</p>
       );
     }
 
@@ -301,7 +242,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
         }}
       >
         <div style={baseCardStyle}>
-          <strong style={{ fontSize: "13px", color: theme.colors.text }}>{localize("Slicer", "Slicer", "Slicer")}</strong>
+          <strong style={{ fontSize: "13px", color: theme.colors.text }}>{t("slicerImport.summary.slicer")}</strong>
           <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
             {lastImport.slicer === "prusa-slicer"
               ? "PrusaSlicer"
@@ -311,19 +252,19 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
               ? "OrcaSlicer"
               : lastImport.slicer === "qidi-studio"
               ? "Qidi Studio"
-              : localize("Ismeretlen", "Unbekannt", "Unknown")}
+              : t("common.unknown")}
           </span>
         </div>
         <div style={baseCardStyle}>
-          <strong style={{ fontSize: "13px", color: theme.colors.text }}>{localize("Becsült idő", "Geschätzte Zeit", "Estimated time")}</strong>
+          <strong style={{ fontSize: "13px", color: theme.colors.text }}>{t("slicerImport.summary.estimatedTime")}</strong>
           <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
             {lastImport.estimatedPrintTimeSec
               ? `${printTimeHour}h ${printTimeMin}m ${printTimeSec}s`
-              : localize("ismeretlen", "unbekannt", "unknown")}
+              : t("common.unknownLower")}
           </span>
         </div>
         <div style={baseCardStyle}>
-          <strong style={{ fontSize: "13px", color: theme.colors.text }}>{localize("Filament mennyiség", "Filamentmenge", "Filament amount")}</strong>
+          <strong style={{ fontSize: "13px", color: theme.colors.text }}>{t("slicerImport.summary.filamentAmount")}</strong>
           <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
             {sumNumbers(lastImport.totalHeaderGrams) !== undefined
               ? `${(sumNumbers(lastImport.totalHeaderGrams) ?? 0).toFixed(2)} g`
@@ -331,31 +272,31 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
               ? `${lastImport.filamentUsedGrams.toFixed(2)} g`
               : lastImport.filamentUsedMeters
               ? `${lastImport.filamentUsedMeters.toFixed(2)} m`
-              : localize("ismeretlen", "unbekannt", "unknown")}
+              : t("common.unknownLower")}
           </span>
         </div>
         {lastImport.material && (
           <div style={baseCardStyle}>
-            <strong style={{ fontSize: "13px", color: theme.colors.text }}>{localize("Anyag", "Material", "Material")}</strong>
+            <strong style={{ fontSize: "13px", color: theme.colors.text }}>{t("slicerImport.summary.material")}</strong>
             <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>{lastImport.material}</span>
           </div>
         )}
         {lastImport.profileName && (
           <div style={baseCardStyle}>
-            <strong style={{ fontSize: "13px", color: theme.colors.text }}>{localize("Profil", "Profil", "Profile")}</strong>
+            <strong style={{ fontSize: "13px", color: theme.colors.text }}>{t("slicerImport.summary.profile")}</strong>
             <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>{lastImport.profileName}</span>
           </div>
         )}
         {lastImport.projectName && (
           <div style={baseCardStyle}>
-            <strong style={{ fontSize: "13px", color: theme.colors.text }}>{localize("Projekt", "Projekt", "Project")}</strong>
+            <strong style={{ fontSize: "13px", color: theme.colors.text }}>{t("slicerImport.summary.project")}</strong>
             <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>{lastImport.projectName}</span>
           </div>
         )}
         {lastImport.warnings.length > 0 && (
           <div style={{ ...baseCardStyle, border: `1px solid ${theme.colors.danger}` }}>
             <strong style={{ fontSize: "13px", color: theme.colors.danger }}>
-              {localize("Figyelmeztetések", "Warnungen", "Warnings")}
+              {t("slicerImport.summary.warnings")}
             </strong>
             <ul style={{ margin: "6px 0 0", paddingLeft: "16px", color: theme.colors.textMuted }}>
               {lastImport.warnings.map((warning, index) => (
@@ -368,13 +309,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
         )}
         {lastImport.filamentPerExtruderGrams && lastImport.filamentPerExtruderGrams.length > 1 && (
           <div style={{ ...baseCardStyle, gridColumn: "1 / -1", padding: "16px", gap: "8px" }}>
-            <strong style={{ fontSize: "13px", color: theme.colors.text }}>
-              {localize(
-                "Filament csere részletei",
-                "Filamentwechsel Details",
-                "Filament swap details"
-              )}
-            </strong>
+            <strong style={{ fontSize: "13px", color: theme.colors.text }}>{t("slicerImport.summary.swapDetails")}</strong>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {lastImport.filamentPerExtruderGrams.map((grams, index) => {
                 const extruderId = lastImport.extrudersUsed?.[index];
@@ -394,7 +329,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
                 return (
                   <div key={`filament-extruder-${index}`} style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                     <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.text }}>
-                      {localize("Extruder", "Extruder", "Extruder")} {extruderLabel}
+                      {t("common.extruder")} {extruderLabel}
                     </span>
                     <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>{amountSummary}</span>
                   </div>
@@ -415,7 +350,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
           >
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
               <strong style={{ fontSize: "13px", color: theme.colors.text }}>
-                {localize("Teljes filament tömeg", "Gesamtfilamentgewicht", "Total filament weight")}
+                {t("slicerImport.summary.totalWeight")}
               </strong>
               <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
                 {lastImport.totalHeaderGrams?.length
@@ -427,7 +362,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
               <strong style={{ fontSize: "13px", color: theme.colors.text }}>
-                {localize("Teljes filament hossz", "Gesamte Filamentlänge", "Total filament length")}
+                {t("slicerImport.summary.totalLength")}
               </strong>
               <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
                 {lastImport.totalHeaderMillimeters?.length
@@ -439,7 +374,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
               <strong style={{ fontSize: "13px", color: theme.colors.text }}>
-                {localize("Teljes filament térfogat", "Gesamtvolumen", "Total filament volume")}
+                {t("slicerImport.summary.totalVolume")}
               </strong>
               <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
                 {`${(lastImport.totalVolumeCm3 ?? 0).toFixed(2)} cm³`}
@@ -505,7 +440,7 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
                 fontSize: "20px",
                 cursor: "pointer",
               }}
-              aria-label={localize("Bezárás", "Schließen", "Close")}
+            aria-label={t("common.close")}
             >
               ✕
             </button>
@@ -518,15 +453,11 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
                   fontWeight: 600,
                   color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
                 }}
-              >
-                🧾 {localize("Slicer adatok importálása", "Slicer-Daten importieren", "Import slicer data")}
+            >
+              🧾 {t("slicerImport.modal.title")}
               </h3>
               <p style={{ margin: "8px 0 0", fontSize: "13px", color: theme.colors.textMuted }}>
-                {localize(
-                  "Tölts be G-code vagy JSON exportot (Prusa, Cura, Orca, Qidi) és emeld át az idő/filament adatokat.",
-                  "Lade G-code- oder JSON-Exporte (Prusa, Cura, Orca, Qidi) und übernimm Zeit/Filamentdaten.",
-                  "Load G-code or JSON exports (Prusa, Cura, Orca, Qidi) to capture time and filament usage data."
-                )}
+              {t("slicerImport.modal.description")}
               </p>
             </div>
 
@@ -542,16 +473,10 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
                   opacity: isImporting ? 0.65 : 1,
                 }}
               >
-                {isImporting
-                  ? localize("Importálás...", "Import läuft...", "Importing...")
-                  : localize("Slicer fájl kiválasztása", "Slicer-Datei auswählen", "Choose slicer file")}
+              {isImporting ? t("slicerImport.actions.selecting") : t("slicerImport.actions.selectFile")}
               </button>
               <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                {localize(
-                  "Támogatott formátumok: G-code és JSON meta fájlok (PrusaSlicer, Cura, OrcaSlicer, Qidi Studio).",
-                  "Unterstützte Formate: G-code und JSON-Metadateien (PrusaSlicer, Cura, OrcaSlicer, Qidi Studio).",
-                  "Supported formats: G-code and JSON metadata exports (PrusaSlicer, Cura, OrcaSlicer, Qidi Studio)."
-                )}
+              {t("slicerImport.supportedFormats")}
               </span>
             </div>
 
@@ -568,14 +493,10 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
                     minWidth: "220px",
                   }}
                 >
-                  {localize("Árajánlat piszkozat létrehozása", "Angebotsentwurf erstellen", "Create quote draft")}
+                {t("slicerImport.actions.createDraft")}
                 </button>
                 <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                  {localize(
-                    "Az importált idő- és filament adatokkal új piszkozat jön létre az Árajánlatok menüben.",
-                    "Mit den importierten Zeit- und Filamentdaten wird ein Entwurf im Angebotsbereich erstellt.",
-                    "Creates a draft in the Offers section using the imported time and filament data."
-                  )}
+                {t("slicerImport.actions.createDraftDescription")}
                 </span>
               </div>
             )}

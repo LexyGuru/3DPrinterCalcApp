@@ -237,6 +237,11 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.5.11 (2025)
+- 🗂️ **Nyelvi modulárisítás** – Új `languages/` könyvtárba szervezett fordítási fájlokkal bővítettük az appot, így könnyebb új nyelveket felvenni és a meglévő szövegeket kezelni.
+- 🌍 **Egységesített UI fordítások** – A slicer import teljes felülete mostantól a központi fordítási rendszerből dolgozik, minden gomb, hibaüzenet és összefoglaló lokalizálva van.
+- 🔁 **Nyelvválasztó frissítés** – A Beállításokban a nyelvválasztó a feltárt nyelvi fájlok alapján töltődik fel, így a jövőben elég egy új nyelvi fájlt hozzáadni.
+
 ### v0.5.0 (2025)
 - 🔎 **Filament ár-összehasonlító gomb** – Minden saját filamenthez nagyító ikon társul, amely megnyitja a Google/Bing keresést a márka/típus/szín alapján, gyors linket adva az aktuális árakhoz.
 - 💶 **Tizedesár támogatás** – A filamentek ármezője mostantól elfogadja a tizedeseket (14.11 € stb.), a bevitel automatikusan validálva és formázva mentődik.
@@ -459,7 +464,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.5.0
+**Verzió**: 0.5.11
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

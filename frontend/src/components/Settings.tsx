@@ -14,7 +14,7 @@ import type {
   CustomThemeDefinition,
 } from "../types";
 import { defaultAnimationSettings, createEmptyCustomThemeDefinition } from "../types";
-import { useTranslation } from "../utils/translations";
+import { useTranslation, availableLanguages } from "../utils/translations";
 import { useToast } from "./Toast";
 import {
   type ThemeName,
@@ -2495,16 +2495,21 @@ export const SettingsPage: React.FC<Props> = ({
               🌐 {t("settings.language")}
             </label>
           </Tooltip>
-          <select 
-            value={settings.language} 
+          <select
+            value={settings.language}
             onChange={handleLanguageChange}
             onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
-            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+            onBlur={(e) => {
+              e.target.style.borderColor = theme.colors.inputBorder;
+              e.target.style.boxShadow = "none";
+            }}
             style={{ ...themeStyles.select, width: "100%", maxWidth: "300px" }}
           >
-            <option value="hu">🇭🇺 Magyar</option>
-            <option value="de">🇩🇪 Deutsch</option>
-            <option value="en">🇬🇧 English</option>
+            {availableLanguages.map(language => (
+              <option key={language.code} value={language.code}>
+                {language.flag ? `${language.flag} ${language.label}` : language.label}
+              </option>
+            ))}
           </select>
         </div>
         

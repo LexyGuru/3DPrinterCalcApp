@@ -4,17 +4,16 @@
 
 |                     |                                                                 |
 |---------------------|-----------------------------------------------------------------|
-| **Aktuális verzió** | `v0.4.98`                                                       |
+| **Aktuális verzió** | `v0.5.11`                                                       |
 | **Platformok**      | macOS · Linux · Windows (Tauri natív build)                     |
 | **Technológiák**    | Frontend: React 19 · TypeScript · Vite · Framer Motion          |
 |                     | Backend: Rust · Tauri v2 · Tauri Plugins                        |
 | **Fő cél**          | 3D nyomtatási költségszámítás, árajánlat-kezelés és riportálás  |
 
-> **Legutóbbi újdonságok (v0.4.98)**  
-> - Flip/parallax oldalváltások, mikrointerakció stíluskapcsoló, pulzáló visszajelzések  
-> - Filament könyvtár skeleton lista, finomhangolt hover állapotok  
-> - Forest · Pastel · Charcoal · Midnight témák és azonnali téma duplikálás  
-> - Gradient/kontraszt workflow fejlesztések, gyors megosztási lehetőségek  
+> **Legutóbbi újdonságok (v0.5.11)**  
+> - Külön `languages/` könyvtárba szervezett fordítási fájlok, dinamikus nyelvválasztó  
+> - A slicer import teljes felülete és hibaüzenetei központi fordításból dolgoznak  
+> - Egyszerűsödött új nyelvek felvétele, minden UI-szöveg egyetlen registry-ből érhető el  
 
 ---
 
@@ -264,6 +263,6 @@ cargo tauri dev
 
 ---
 
-**Verzió**: `0.4.98`  
+**Verzió**: `0.5.11`
 Ha kérdésed van vagy hibát találsz, nyiss issue-t a GitHub repóban! 🎯
 
