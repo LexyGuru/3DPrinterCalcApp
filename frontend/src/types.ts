@@ -237,6 +237,15 @@ export interface Offer {
   status?: OfferStatus; // Árajánlat státusz
   statusHistory?: OfferStatusHistory[]; // Státusz előzmények
   statusUpdatedAt?: string; // Utolsó státuszváltás dátuma
+  totalFilamentWeightSummary?: {
+    perExtruder?: number[];
+    total?: number;
+  };
+  totalFilamentLengthSummary?: {
+    perExtruderMm?: number[];
+    totalMeters?: number;
+  };
+  totalFilamentVolumeCm3?: number;
 }
 
 export interface CalculationTemplate {

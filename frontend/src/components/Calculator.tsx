@@ -7,6 +7,7 @@ import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
 import { saveTemplates, loadTemplates } from "../utils/store";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { SlicerImportModal } from "./SlicerImportModal";
 import { validatePrintTime, validateUsedGrams, validateDryingTime, validateDryingPower, validateProfitPercentage } from "../utils/validation";
 
 interface SelectedFilament {
@@ -45,6 +46,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
   const [templateDescription, setTemplateDescription] = useState("");
   const [showTemplateList, setShowTemplateList] = useState(false);
   const [deleteTemplateId, setDeleteTemplateId] = useState<number | null>(null);
+  const [showSlicerImportModal, setShowSlicerImportModal] = useState(false);
 
   const selectedPrinter = useMemo(() => {
     if (selectedPrinterId === "") return null;
@@ -288,6 +290,21 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
     }
   };
 
+  const handleCreateOfferFromSlicer = (offer: Offer) => {
+    if (onSaveOffer) {
+      onSaveOffer(offer);
+    } else {
+      showToast(
+        settings.language === "hu"
+          ? "Az árajánlat mentéséhez nyisd meg az alkalmazást teljes módban."
+          : settings.language === "de"
+          ? "Zum Speichern des Angebots bitte die volle Anwendung öffnen."
+          : "Open the full application to save quotes.",
+        "error"
+      );
+    }
+  };
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px", flexWrap: "wrap", gap: "20px" }}>
@@ -354,6 +371,29 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               }}
             >
               💾 {settings.language === "hu" ? "Template mentése" : settings.language === "de" ? "Template speichern" : "Save template"}
+            </button>
+          </Tooltip>
+          <Tooltip content={settings.language === "hu" ? "G-code importálása" : settings.language === "de" ? "G-code importieren" : "Import G-code"}>
+            <button
+              onClick={() => setShowSlicerImportModal(true)}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "6px",
+                border: `1px solid ${theme.colors.border}`,
+                backgroundColor: theme.colors.surface,
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                fontSize: "12px",
+                cursor: "pointer",
+                transition: "all 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surface;
+              }}
+            >
+              🧾 {settings.language === "hu" ? "G-code import" : settings.language === "de" ? "G-code Import" : "G-code import"}
             </button>
           </Tooltip>
         </div>
@@ -1292,6 +1332,15 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
           </div>
         </div>
       )}
+
+      <SlicerImportModal
+        isOpen={showSlicerImportModal}
+        onClose={() => setShowSlicerImportModal(false)}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+        onCreateOffer={handleCreateOfferFromSlicer}
+      />
 
       <ConfirmDialog
         isOpen={deleteTemplateId !== null}

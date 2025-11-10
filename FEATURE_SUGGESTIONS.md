@@ -150,6 +150,16 @@
 - **Komplexitás**: Magas
 - **❌ Kizárva**: Nagy komplexitás, API költségek, privacy kérdések, alternatíva: template-ek
 - **Részletek**: Lásd [EXCLUDED_FEATURES.md](EXCLUDED_FEATURES.md)
+
+#### 7. **G-code 3D előnézet**
+- **Mit**: 
+  - WebGL alapú 3D modell megjelenítés slicer G-code alapján
+  - Rétegenkénti (layer by layer) vizualizáció
+  - Kamera mozgatás, nagyítás, elrejtés/kiemelés egyes extruderekhez
+  - Importált állományok gyors ellenőrzése a kalkulátorban
+- **Előny**: Jobb vizuális visszajelzés, egyszerű ellenőrzés a becslés előtt
+- **Becsült idő**: 12-16 óra
+- **Komplexitás**: Magas (Three.js/WebGL integráció, teljesítmény optimalizálás)
 ## 🛠️ Technikai javítások és optimalizálás
 
 ### 1. **TypeScript strict mode**

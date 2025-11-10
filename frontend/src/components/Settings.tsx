@@ -29,7 +29,6 @@ import { ShortcutHelp } from "./ShortcutHelp";
 import { Tooltip } from "./Tooltip";
 import { VersionHistory } from "./VersionHistory";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { parseSlicerFile, type SlicerJobData, SlicerParseError } from "../utils/slicerImport";
 import type { RawLibraryEntry } from "../utils/filamentLibrary";
 import {
   getLibrarySnapshot,
@@ -52,7 +51,7 @@ interface Props {
   filaments: Filament[];
   setFilaments: (filaments: Filament[]) => void;
   offers: Offer[];
-  setOffers: (offers: Offer[]) => void;
+  setOffers: React.Dispatch<React.SetStateAction<Offer[]>>;
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
@@ -80,7 +79,6 @@ export const SettingsPage: React.FC<Props> = ({
   const [importFilaments, setImportFilaments] = useState(false);
   const [importPrinters, setImportPrinters] = useState(false);
   const [importOffers, setImportOffers] = useState(false);
-  const [lastSlicerImport, setLastSlicerImport] = useState<SlicerJobData | null>(null);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "display" | "advanced" | "data" | "library">("general");
@@ -1661,211 +1659,8 @@ export const SettingsPage: React.FC<Props> = ({
     }
   };
 
-  const handleSlicerImport = async () => {
-    try {
-      const selected = await open({
-        multiple: false,
-        filters: [
-          {
-            name: "Slicer export",
-            extensions: ["gcode", "json"],
-          },
-        ],
-      });
 
-      if (!selected) {
-        console.log("[SlicerImport] megszakítva (nincs fájl kiválasztva)");
-        return;
-      }
 
-      const filePath = Array.isArray(selected) ? selected[0] : selected;
-      if (!filePath || typeof filePath !== "string") {
-        showToast(
-          localize("Érvénytelen fájl kiválasztás.", "Ungültige Dateiauswahl.", "Invalid file selection."),
-          "error"
-        );
-        return;
-      }
-
-      if (filePath.toLowerCase().endsWith(".3mf")) {
-        showToast(
-          localize(
-            "A 3MF projektfájlok importja még fejlesztés alatt áll. Exportálj G-code vagy JSON meta fájlt a slicerből.",
-            "3MF Projektdateien werden noch nicht unterstützt. Exportiere bitte eine G-code- oder JSON-Datei aus dem Slicer.",
-            "3MF project files are not supported yet. Please export a G-code or JSON meta file from the slicer."
-          ),
-          "error"
-        );
-        return;
-      }
-
-      console.log("[SlicerImport] fájl olvasása", { filePath });
-      const fileContent = await readTextFile(filePath);
-      const job = await parseSlicerFile(filePath, fileContent);
-
-      setLastSlicerImport(job);
-
-      const successMessage = localize(
-        "Slicer adatok importálva.",
-        "Slicer-Daten importiert.",
-        "Slicer data imported."
-      );
-      showToast(successMessage, "success");
-
-      console.log("[SlicerImport] siker", job);
-    } catch (error) {
-      if (error instanceof SlicerParseError) {
-        showToast(
-          localize(
-            `Sikertelen slicer import: ${error.message}`,
-            `Slicer-Import fehlgeschlagen: ${error.message}`,
-            `Could not import slicer metadata: ${error.message}`
-          ),
-          "error"
-        );
-      } else {
-        showToast(
-          localize(
-            "Ismeretlen hiba történt a slicer import során.",
-            "Beim Slicer-Import ist ein unbekannter Fehler aufgetreten.",
-            "An unknown error occurred while importing slicer data."
-          ),
-          "error"
-        );
-        console.error("[SlicerImport] ismeretlen hiba", error);
-      }
-    }
-  };
-  const renderSlicerImportSummary = () => {
-    if (!lastSlicerImport) {
-      return (
-        <p style={{ margin: 0, fontSize: "13px", color: theme.colors.textMuted }}>
-          {localize(
-            "Még nincs slicer adat importálva.",
-            "Es wurden noch keine Slicer-Daten importiert.",
-            "No slicer data has been imported yet."
-          )}
-        </p>
-      );
-    }
-
-    const baseCardStyle: React.CSSProperties = {
-      borderRadius: "12px",
-      padding: "12px 16px",
-      backgroundColor: theme.colors.surface,
-      border: `1px solid ${theme.colors.border}`,
-      boxShadow: `0 2px 8px ${theme.colors.shadow}`,
-      display: "flex",
-      flexDirection: "column",
-      gap: "4px",
-      minHeight: "72px",
-      justifyContent: "center",
-    };
-
-    const seconds = lastSlicerImport.estimatedPrintTimeSec ?? 0;
-    const printTimeHour = Math.floor(seconds / 3600);
-    const printTimeMin = Math.floor((seconds % 3600) / 60);
-    const printTimeSec = seconds % 60;
-
-    return (
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-          gap: "12px",
-          marginTop: "12px",
-        }}
-      >
-        <div style={baseCardStyle}>
-          <strong style={{ fontSize: "13px", color: theme.colors.text }}>
-            {localize("Slicer", "Slicer", "Slicer")}
-          </strong>
-          <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-            {lastSlicerImport.slicer === "prusa-slicer"
-              ? "PrusaSlicer"
-              : lastSlicerImport.slicer === "cura"
-              ? "Cura"
-              : lastSlicerImport.slicer === "orca-slicer"
-              ? "OrcaSlicer"
-              : lastSlicerImport.slicer === "qidi-studio"
-              ? "Qidi Studio"
-              : "Ismeretlen"}
-          </span>
-        </div>
-        <div style={baseCardStyle}>
-          <strong style={{ fontSize: "13px", color: theme.colors.text }}>
-            {localize("Becsült idő", "Geschätzte Zeit", "Estimated time")}
-          </strong>
-          <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-            {lastSlicerImport.estimatedPrintTimeSec
-              ? `${printTimeHour}h ${printTimeMin}m ${printTimeSec}s`
-              : localize("ismeretlen", "unbekannt", "unknown")}
-          </span>
-        </div>
-        <div style={baseCardStyle}>
-          <strong style={{ fontSize: "13px", color: theme.colors.text }}>
-            {localize("Filament mennyiség", "Filamentmenge", "Filament amount")}
-          </strong>
-          <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-            {lastSlicerImport.filamentUsedGrams
-              ? `${lastSlicerImport.filamentUsedGrams.toFixed(2)} g`
-              : lastSlicerImport.filamentUsedMeters
-              ? `${lastSlicerImport.filamentUsedMeters.toFixed(2)} m`
-              : localize("ismeretlen", "unbekannt", "unknown")}
-          </span>
-        </div>
-        {lastSlicerImport.material && (
-          <div style={baseCardStyle}>
-            <strong style={{ fontSize: "13px", color: theme.colors.text }}>
-              {localize("Anyag", "Material", "Material")}
-            </strong>
-            <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-              {lastSlicerImport.material}
-            </span>
-          </div>
-        )}
-        {lastSlicerImport.profileName && (
-          <div style={baseCardStyle}>
-            <strong style={{ fontSize: "13px", color: theme.colors.text }}>
-              {localize("Profil", "Profil", "Profile")}
-            </strong>
-            <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-              {lastSlicerImport.profileName}
-            </span>
-          </div>
-        )}
-        {lastSlicerImport.projectName && (
-          <div style={baseCardStyle}>
-            <strong style={{ fontSize: "13px", color: theme.colors.text }}>
-              {localize("Projekt", "Projekt", "Project")}
-            </strong>
-            <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-              {lastSlicerImport.projectName}
-            </span>
-          </div>
-        )}
-        {lastSlicerImport.warnings.length > 0 && (
-          <div
-            style={{
-              ...baseCardStyle,
-              border: `1px solid ${theme.colors.danger}`,
-            }}
-          >
-            <strong style={{ fontSize: "13px", color: theme.colors.danger }}>
-              {localize("Figyelmeztetések", "Warnungen", "Warnings")}
-            </strong>
-            <ul style={{ margin: "6px 0 0", paddingLeft: "16px", color: theme.colors.textMuted }}>
-              {lastSlicerImport.warnings.map((warning, index) => (
-                <li key={`slicer-warning-${index}`} style={{ fontSize: "12px" }}>
-                  {warning}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-    );
-  };
 
   // Tab style
   const isGradientBackground = theme.colors.background?.includes('gradient');
@@ -1943,6 +1738,641 @@ export const SettingsPage: React.FC<Props> = ({
         }
       },
     });
+  };
+
+  const renderDisplayTab = () => {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+        {renderThemeSelectionCard()}
+        {renderAnimationSettingsCard()}
+        {renderCustomThemesCard()}
+      </div>
+    );
+  };
+
+  const renderThemeSelectionCard = () => {
+    return (
+      <div style={{ ...themeStyles.card, padding: "24px" }}>
+        <label
+          style={{
+            display: "block",
+            marginBottom: "16px",
+            fontWeight: 600,
+            fontSize: "16px",
+            color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+          }}
+        >
+          🎨 {t("settings.theme")}
+        </label>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+            gap: "16px",
+            marginBottom: "16px",
+          }}
+        >
+          {availableThemes.map(themeOption => {
+            const themeName = themeOption.name as ThemeName;
+            const isSelected = activeThemeName === themeName;
+            const isGradientTheme =
+              Boolean(themeOption.colors.gradient) || themeOption.colors.background?.includes("gradient");
+            const isNeonTheme =
+              themeName === "neon" || themeName === "cyberpunk" || themeOption.colors.primary === "#ff00ff";
+            const customDefinition = themeName.startsWith(CUSTOM_THEME_PREFIX)
+              ? customThemes.find(theme => themeName.endsWith(theme.id))
+              : undefined;
+
+            return (
+              <button
+                key={themeOption.name}
+                onClick={() => handleThemeSelect(themeName)}
+                style={{
+                  ...themeStyles.button,
+                  ...(isGradientTheme
+                    ? {
+                        backgroundImage: themeOption.colors.gradient ?? themeOption.colors.background,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
+                      }
+                    : {
+                        backgroundColor: themeOption.colors.background,
+                      }),
+                  color:
+                    isGradientTheme ||
+                    themeOption.colors.background === "#1a1a1a" ||
+                    themeOption.colors.background === "#0a0a0f" ||
+                    themeOption.colors.background === "#0d0d0d"
+                      ? "#ffffff"
+                      : themeOption.colors.text,
+                  border: isSelected
+                    ? `3px solid ${themeOption.colors.sidebarActive || themeOption.colors.primary}`
+                    : `2px solid ${themeOption.colors.border}`,
+                  padding: "20px 16px",
+                  minHeight: "130px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "10px",
+                  boxShadow: isSelected
+                    ? isNeonTheme
+                      ? `0 0 20px ${themeOption.colors.shadow}, 0 4px 12px ${themeOption.colors.shadow}`
+                      : `0 4px 16px ${themeOption.colors.shadow}`
+                    : `0 2px 8px ${themeOption.colors.shadow}`,
+                  position: "relative" as const,
+                  overflow: "hidden" as const,
+                  transition: interactionsEnabled ? "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" : "none",
+                  transform: isSelected ? "scale(1.05)" : "scale(1)",
+                }}
+                onMouseEnter={event => {
+                  if (!interactionsEnabled || isSelected) return;
+                  event.currentTarget.style.transform = hoverTransform;
+                  const expressiveShadow = isNeonTheme
+                    ? `0 0 ${Math.round(16 * hoverShadowStrength)}px ${themeOption.colors.shadow}, 0 4px ${Math.round(14 * hoverShadowStrength)}px ${themeOption.colors.shadow}`
+                    : `0 4px ${Math.round(12 * hoverShadowStrength)}px ${themeOption.colors.shadowHover}`;
+                  event.currentTarget.style.boxShadow = expressiveShadow;
+                }}
+                onMouseLeave={event => {
+                  if (!interactionsEnabled || isSelected) return;
+                  event.currentTarget.style.transform = "scale(1)";
+                  event.currentTarget.style.boxShadow = `0 2px 8px ${themeOption.colors.shadow}`;
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: "8px",
+                    background: isGradientTheme
+                      ? themeOption.colors.gradient ?? themeOption.colors.background
+                      : themeOption.colors.primary,
+                    opacity: 0.9,
+                  }}
+                />
+
+                <span
+                  style={{
+                    fontSize: "32px",
+                    filter: isGradientTheme
+                      ? "drop-shadow(0 2px 4px rgba(0,0,0,0.5))"
+                      : isNeonTheme && isSelected
+                      ? `drop-shadow(0 0 8px ${themeOption.colors.sidebarActive})`
+                      : "none",
+                    zIndex: 1,
+                  }}
+                >
+                  {themeName === "light" && "☀️"}
+                  {themeName === "dark" && "🌙"}
+                  {themeName === "blue" && "💙"}
+                  {themeName === "green" && "💚"}
+                  {themeName === "purple" && "💜"}
+                  {themeName === "orange" && "🧡"}
+                  {themeName === "forest" && "🌲"}
+                  {themeName === "charcoal" && "🪨"}
+                  {themeName === "pastel" && "🌸"}
+                  {themeName === "midnight" && "🌃"}
+                  {themeName === "gradient" && "🌈"}
+                  {themeName === "neon" && "💡"}
+                  {themeName === "cyberpunk" && "🤖"}
+                  {themeName === "sunset" && "🌅"}
+                  {themeName === "ocean" && "🌊"}
+                  {themeName.startsWith(CUSTOM_THEME_PREFIX) && "🎨"}
+                </span>
+                <span
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    zIndex: 1,
+                    textShadow: isGradientTheme
+                      ? "0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)"
+                      : isNeonTheme
+                      ? "0 1px 3px rgba(0,0,0,0.3)"
+                      : "none",
+                    color: isGradientTheme ? "#ffffff" : undefined,
+                  }}
+                >
+                  {themeOption.displayName[settings.language]}
+                </span>
+                {customDefinition?.description && (
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      textAlign: "center",
+                      color: "#e2e8f0",
+                      opacity: 0.85,
+                      zIndex: 1,
+                    }}
+                  >
+                    {customDefinition.description}
+                  </span>
+                )}
+                {isSelected && (
+                  <span
+                    style={{
+                      fontSize: "16px",
+                      zIndex: 1,
+                      textShadow: isGradientTheme
+                        ? "0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)"
+                        : isNeonTheme
+                        ? "0 1px 3px rgba(0,0,0,0.3)"
+                        : "none",
+                      color: isGradientTheme ? "#ffffff" : undefined,
+                    }}
+                  >
+                    ✓
+                  </span>
+                )}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: "4px",
+                    backgroundColor: themeOption.colors.sidebarActive || themeOption.colors.primary,
+                    opacity: isSelected ? 1 : 0.5,
+                  }}
+                />
+              </button>
+            );
+          })}
+        </div>
+        <p
+          style={{
+            marginTop: "12px",
+            fontSize: "12px",
+            color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted,
+          }}
+        >
+          {t("settings.themeDescription")}
+        </p>
+      </div>
+    );
+  };
+
+  const renderAnimationSettingsCard = () => {
+    return (
+      <div style={{ ...themeStyles.card, padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
+          ⚙️ {localize("Animációs beállítások", "Animations-Einstellungen", "Animation settings")}
+        </h3>
+        <p style={{ margin: 0, fontSize: "12px", color: theme.colors.textMuted }}>
+          {localize(
+            "Válaszd ki, mennyire legyen dinamikus az alkalmazás. A finom animációk segítenek a visszajelzésekben, de kikapcsolhatók teljesítmény okokból.",
+            "Lege fest, wie dynamisch die Benutzeroberfläche sein soll. Animierte Rückmeldungen können bei Bedarf deaktiviert werden.",
+            "Control how dynamic the interface feels. You can turn off advanced effects if you prefer a calmer experience."
+          )}
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
+            <input
+              type="checkbox"
+              checked={animationSettings.microInteractions}
+              onChange={event => updateAnimationSetting("microInteractions", event.target.checked)}
+            />
+            {localize("Micro-interakciók engedélyezése", "Micro-Interaktionen aktivieren", "Enable micro-interactions")}
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
+            <input
+              type="checkbox"
+              checked={animationSettings.loadingSkeletons}
+              onChange={event => updateAnimationSetting("loadingSkeletons", event.target.checked)}
+            />
+            {localize("Csontsávos betöltés használata", "Skeleton-Loader verwenden", "Use loading skeletons")}
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
+            <input
+              type="checkbox"
+              checked={animationSettings.smoothScroll}
+              onChange={event => updateAnimationSetting("smoothScroll", event.target.checked)}
+            />
+            {localize("Finom görgetés engedélyezése", "Weiches Scrollen aktivieren", "Enable smooth scrolling")}
+          </label>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
+              {localize("Micro-interakció stílusa", "Stil der Micro-Interaktionen", "Micro-interaction style")}
+            </label>
+            <select
+              value={animationSettings.microInteractionStyle}
+              onChange={event =>
+                updateAnimationSetting(
+                  "microInteractionStyle",
+                  event.target.value as AnimationSettings["microInteractionStyle"]
+                )
+              }
+              style={{
+                ...themeStyles.select,
+                width: "100%",
+                opacity: animationSettings.microInteractions ? 1 : 0.6,
+              }}
+              disabled={!animationSettings.microInteractions}
+            >
+              <option value="subtle">{localize("Visszafogott", "Zurückhaltend", "Subtle")}</option>
+              <option value="expressive">{localize("Kifejező", "Ausdrucksstark", "Expressive")}</option>
+              <option value="playful">{localize("Játékos", "Verspielt", "Playful")}</option>
+            </select>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
+              {localize("Oldalváltási animáció", "Seitenwechsel-Animation", "Page transition animation")}
+            </label>
+            <select
+              value={animationSettings.pageTransition}
+              onChange={event =>
+                updateAnimationSetting("pageTransition", event.target.value as AnimationSettings["pageTransition"])
+              }
+              style={{ ...themeStyles.select, width: "100%" }}
+            >
+              <option value="fade">{localize("Halványulás", "Ausblenden", "Fade")}</option>
+              <option value="slide">{localize("Csúszás", "Schieben", "Slide")}</option>
+              <option value="scale">{localize("Skálázás", "Skalierung", "Scale")}</option>
+              <option value="flip">{localize("Flip", "Flip", "Flip")}</option>
+              <option value="parallax">{localize("Parallaxis", "Parallaxe", "Parallax")}</option>
+            </select>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
+              {localize("Visszajelző animációk", "Feedback-Animationen", "Feedback animations")}
+            </label>
+            <select
+              value={animationSettings.feedbackAnimations}
+              onChange={event =>
+                updateAnimationSetting(
+                  "feedbackAnimations",
+                  event.target.value as AnimationSettings["feedbackAnimations"]
+                )
+              }
+              style={{ ...themeStyles.select, width: "100%" }}
+            >
+              <option value="subtle">{localize("Visszafogott", "Dezent", "Subtle")}</option>
+              <option value="emphasis">{localize("Hangsúlyos", "Betont", "Emphasis")}</option>
+              <option value="pulse">{localize("Pulzáló", "Pulsierend", "Pulse")}</option>
+              <option value="none">{localize("Kikapcsolva", "Deaktiviert", "Disabled")}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderCustomThemesCard = () => {
+    return (
+      <div style={{ ...themeStyles.card, padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
+              🎨 {localize("Egyedi témák", "Benutzerdefinierte Themes", "Custom themes")}
+            </h3>
+            <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: theme.colors.textMuted }}>
+              {localize(
+                "Állíts össze saját színpalettát, exportáld és oszd meg másokkal.",
+                "Erstelle eigene Farbpaletten und teile sie mit anderen.",
+                "Design your own palettes, export them and share with your team."
+              )}
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "8px 14px" }} onClick={handleCustomThemeImport}>
+              📥 {localize("Importálás", "Importieren", "Import")}
+            </button>
+            <button
+              style={{ ...themeStyles.button, padding: "8px 14px" }}
+              onClick={handleExportAllCustomThemes}
+              disabled={!customThemes.length}
+            >
+              📤 {localize("Exportálás", "Exportieren", "Export all")}
+            </button>
+            <button style={{ ...themeStyles.button, padding: "8px 14px" }} onClick={handleDuplicateActiveTheme}>
+              📄 {localize("Aktív téma duplikálása", "Aktuelles Theme duplizieren", "Duplicate active theme")}
+            </button>
+            <button style={{ ...themeStyles.button, ...themeStyles.buttonPrimary, padding: "8px 14px" }} onClick={beginNewCustomTheme}>
+              ➕ {localize("Új téma", "Neues Theme", "New theme")}
+            </button>
+          </div>
+        </div>
+
+        <label style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: theme.colors.text }}>
+          <input
+            type="checkbox"
+            checked={themeSettingsState.autoApplyGradientText !== false}
+            onChange={event =>
+              onChange({
+                ...settings,
+                themeSettings: ensureThemeSettings({
+                  autoApplyGradientText: event.target.checked,
+                }),
+              })
+            }
+          />
+          {localize(
+            "Automatikus szövegkontraszt gradient háttérhez",
+            "Automatischen Textkontrast für Gradienten aktivieren",
+            "Auto-adjust text contrast on gradient backgrounds"
+          )}
+        </label>
+
+        {customThemes.length > 0 && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "18px" }}>
+            {customThemes.map(themeDefinition => {
+              const previewTheme = buildThemeFromDefinition(themeDefinition);
+              const customThemeName = `${CUSTOM_THEME_PREFIX}${themeDefinition.id}` as ThemeName;
+              const isActive = activeThemeName === customThemeName || activeCustomThemeId === themeDefinition.id;
+              const gradientPreview = previewTheme.colors.gradient ?? previewTheme.colors.background;
+
+              return (
+                <div
+                  key={themeDefinition.id}
+                  style={{
+                    borderRadius: "14px",
+                    padding: "18px",
+                    background: gradientPreview,
+                    boxShadow: isActive ? `0 4px 16px ${previewTheme.colors.shadow}` : `0 2px 8px ${previewTheme.colors.shadow}`,
+                    border: isActive
+                      ? `3px solid ${previewTheme.colors.primary}`
+                      : `1px solid ${previewTheme.colors.border}`,
+                    color: previewTheme.colors.text,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <strong style={{ fontSize: "15px" }}>{themeDefinition.name}</strong>
+                  {themeDefinition.description && (
+                    <span style={{ fontSize: "12px", opacity: 0.85 }}>{themeDefinition.description}</span>
+                  )}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    {Object.entries(themeDefinition.palette).map(([key, value]) => (
+                      <span
+                        key={`${themeDefinition.id}-${key}`}
+                        title={`${key}: ${value}`}
+                        style={{
+                          width: "22px",
+                          height: "22px",
+                          borderRadius: "50%",
+                          border: "1px solid rgba(0,0,0,0.25)",
+                          backgroundColor: value,
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                    <button style={{ ...themeStyles.button, padding: "6px 12px" }} onClick={() => handleThemeSelect(customThemeName)}>
+                      {localize("Alkalmazás", "Anwenden", "Apply")}
+                    </button>
+                    <button
+                      style={{ ...themeStyles.button, padding: "6px 12px" }}
+                      onClick={() => {
+                        setEditingCustomThemeIdState(themeDefinition.id);
+                        setCustomThemeDraft(JSON.parse(JSON.stringify(themeDefinition)) as CustomThemeDefinition);
+                        setCustomThemeEditorOpen(true);
+                      }}
+                    >
+                      {localize("Szerkesztés", "Bearbeiten", "Edit")}
+                    </button>
+                    <button
+                      style={{ ...themeStyles.button, padding: "6px 12px" }}
+                      onClick={() => handleCustomThemeExport(themeDefinition)}
+                    >
+                      {localize("Export", "Export", "Export")}
+                    </button>
+                    <button
+                      style={{ ...themeStyles.button, padding: "6px 12px" }}
+                      onClick={() => handleCopyCustomTheme(themeDefinition)}
+                    >
+                      {localize("Megosztás", "Teilen", "Share")}
+                    </button>
+                    <button
+                      style={{ ...themeStyles.button, ...themeStyles.buttonDanger, padding: "6px 12px" }}
+                      onClick={() => handleCustomThemeDelete(themeDefinition.id)}
+                    >
+                      {localize("Törlés", "Löschen", "Delete")}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {customThemeEditorOpen && (
+          <div
+            style={{
+              marginTop: "16px",
+              padding: "18px",
+              borderRadius: "12px",
+              backgroundColor: theme.colors.surfaceHover,
+              display: "flex",
+              flexDirection: "column",
+              gap: "14px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+              <strong style={{ fontSize: "14px", color: theme.colors.text }}>
+                {editingCustomThemeIdState && customThemes.some(theme => theme.id === editingCustomThemeIdState)
+                  ? localize("Téma szerkesztése", "Theme bearbeiten", "Edit theme")
+                  : localize("Új téma létrehozása", "Neues Theme erstellen", "Create new theme")}
+              </strong>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button style={{ ...themeStyles.button, padding: "6px 12px" }} onClick={handleSaveCustomTheme}>
+                  💾 {localize("Mentés", "Speichern", "Save")}
+                </button>
+                <button style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "6px 12px" }} onClick={closeCustomThemeEditor}>
+                  ✕ {localize("Mégse", "Abbrechen", "Cancel")}
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                  {localize("Téma neve", "Theme-Name", "Theme name")}
+                </label>
+                <input
+                  value={customThemeDraft.name}
+                  onChange={event =>
+                    setCustomThemeDraft(prev => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  style={{ ...themeStyles.input }}
+                  placeholder={localize("Pl.: Aurora", "z. B.: Aurora", "e.g. Aurora")}
+                />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                  {localize("Leírás (opcionális)", "Beschreibung (optional)", "Description (optional)")}
+                </label>
+                <textarea
+                  value={customThemeDraft.description ?? ""}
+                  onChange={event =>
+                    setCustomThemeDraft(prev => ({
+                      ...prev,
+                      description: event.target.value,
+                    }))
+                  }
+                  style={{ ...themeStyles.input, minHeight: "60px", resize: "vertical" as const }}
+                  placeholder={localize("Rövid megjegyzés a témáról.", "Kurze Notiz zum Theme.", "A short note about this theme.")}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
+              {([
+                ["background", localize("Háttér", "Hintergrund", "Background")],
+                ["surface", localize("Felület", "Oberfläche", "Surface")],
+                ["primary", localize("Elsődleges", "Primärfarbe", "Primary")],
+                ["secondary", localize("Másodlagos", "Sekundärfarbe", "Secondary")],
+                ["success", localize("Siker", "Erfolg", "Success")],
+                ["danger", localize("Hiba", "Fehler", "Danger")],
+                ["text", localize("Szöveg", "Text", "Text")],
+                ["textMuted", localize("Szöveg (halvány)", "Text (gedämpft)", "Muted text")],
+              ] as Array<[keyof CustomThemeDefinition["palette"], string]>).map(([key, label]) => (
+                <div key={key} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>{label}</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <input
+                      type="color"
+                      value={customThemeDraft.palette[key]}
+                      onChange={event => handleCustomThemePaletteChange(key, event.target.value)}
+                      style={{ width: "42px", height: "28px", border: "none", cursor: "pointer" }}
+                    />
+                    <input
+                      value={customThemeDraft.palette[key]}
+                      onChange={event => handleCustomThemePaletteChange(key, event.target.value)}
+                      style={{ ...themeStyles.input, flex: 1 }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <label style={{ fontSize: "12px", color: theme.colors.textMuted, display: "flex", alignItems: "center", gap: "8px" }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(customThemeDraft.gradient)}
+                  onChange={event => handleCustomThemeGradientToggle(event.target.checked)}
+                />
+                {localize("Gradient háttér használata", "Gradient-Hintergrund verwenden", "Use gradient background")}
+              </label>
+              {customThemeDraft.gradient && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", alignItems: "center" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                      {localize("Gradient start", "Gradient-Start", "Gradient start")}
+                    </label>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <input
+                        type="color"
+                        value={customThemeDraft.gradient.start}
+                        onChange={event => handleCustomThemeGradientChange("start", event.target.value)}
+                        style={{ width: "42px", height: "28px", border: "none", cursor: "pointer" }}
+                      />
+                      <input
+                        value={customThemeDraft.gradient.start}
+                        onChange={event => handleCustomThemeGradientChange("start", event.target.value)}
+                        style={{ ...themeStyles.input, flex: 1 }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                      {localize("Gradient vége", "Gradient-Ende", "Gradient end")}
+                    </label>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <input
+                        type="color"
+                        value={customThemeDraft.gradient.end}
+                        onChange={event => handleCustomThemeGradientChange("end", event.target.value)}
+                        style={{ width: "42px", height: "28px", border: "none", cursor: "pointer" }}
+                      />
+                      <input
+                        value={customThemeDraft.gradient.end}
+                        onChange={event => handleCustomThemeGradientChange("end", event.target.value)}
+                        style={{ ...themeStyles.input, flex: 1 }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                      {localize("Szög", "Winkel", "Angle")} ({Math.round(customThemeDraft.gradient.angle)}°)
+                    </label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      value={customThemeDraft.gradient.angle}
+                      onChange={event => handleCustomThemeGradientChange("angle", Number(event.target.value))}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      borderRadius: "12px",
+                      height: "60px",
+                      background: buildThemeFromDefinition({
+                        ...customThemeDraft,
+                        id: customThemeDraft.id || "preview",
+                      }).colors.gradient ?? buildThemeFromDefinition(customThemeDraft).colors.background,
+                      border: `1px solid ${theme.colors.border}`,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -2510,649 +2940,7 @@ export const SettingsPage: React.FC<Props> = ({
         )}
 
         {/* Display Tab */}
-        {activeTab === "display" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-            <div style={{ ...themeStyles.card, padding: "24px" }}>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "16px",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
-                }}
-              >
-                🎨 {t("settings.theme")}
-              </label>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-                  gap: "16px",
-                  marginBottom: "16px",
-                }}
-              >
-                {availableThemes.map(themeOption => {
-                  const themeName = themeOption.name as ThemeName;
-                  const isSelected = activeThemeName === themeName;
-                  const isGradientTheme =
-                    !!themeOption.colors.gradient ||
-                    themeOption.colors.background?.includes("gradient");
-                  const isNeonTheme =
-                    themeName === "neon" ||
-                    themeName === "cyberpunk" ||
-                    themeOption.colors.primary === "#ff00ff";
-                  const customDefinition = themeName.startsWith(CUSTOM_THEME_PREFIX)
-                    ? customThemes.find(theme => themeName.endsWith(theme.id))
-                    : undefined;
-
-                  return (
-                    <button
-                      key={themeOption.name}
-                      onClick={() => handleThemeSelect(themeName)}
-                      style={{
-                        ...themeStyles.button,
-                        ...(isGradientTheme
-                          ? {
-                              backgroundImage:
-                                themeOption.colors.gradient ??
-                                themeOption.colors.background,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                              backgroundRepeat: "no-repeat",
-                            }
-                          : {
-                              backgroundColor: themeOption.colors.background,
-                            }),
-                        color:
-                          isGradientTheme ||
-                          themeOption.colors.background === "#1a1a1a" ||
-                          themeOption.colors.background === "#0a0a0f" ||
-                          themeOption.colors.background === "#0d0d0d"
-                            ? "#ffffff"
-                            : themeOption.colors.text,
-                        border: isSelected
-                          ? `3px solid ${
-                              themeOption.colors.sidebarActive || themeOption.colors.primary
-                            }`
-                          : `2px solid ${themeOption.colors.border}`,
-                        padding: "20px 16px",
-                        minHeight: "130px",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "10px",
-                        boxShadow: isSelected
-                          ? isNeonTheme
-                            ? `0 0 20px ${themeOption.colors.shadow}, 0 4px 12px ${themeOption.colors.shadow}`
-                            : `0 4px 16px ${themeOption.colors.shadow}`
-                          : `0 2px 8px ${themeOption.colors.shadow}`,
-                        position: "relative" as const,
-                        overflow: "hidden" as const,
-                        transition: interactionsEnabled
-                          ? "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                          : "none",
-                        transform: isSelected ? "scale(1.05)" : "scale(1)",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!interactionsEnabled || isSelected) return;
-                        e.currentTarget.style.transform = hoverTransform;
-                        const expressiveShadow = isNeonTheme
-                          ? `0 0 ${Math.round(16 * hoverShadowStrength)}px ${themeOption.colors.shadow}, 0 4px ${Math.round(14 * hoverShadowStrength)}px ${themeOption.colors.shadow}`
-                          : `0 4px ${Math.round(12 * hoverShadowStrength)}px ${themeOption.colors.shadowHover}`;
-                        e.currentTarget.style.boxShadow = expressiveShadow;
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!interactionsEnabled || isSelected) return;
-                        e.currentTarget.style.transform = "scale(1)";
-                        e.currentTarget.style.boxShadow = `0 2px 8px ${themeOption.colors.shadow}`;
-                      }}
-                    >
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: "8px",
-                          background: isGradientTheme
-                            ? themeOption.colors.gradient ??
-                              themeOption.colors.background
-                            : themeOption.colors.primary,
-                          opacity: 0.9,
-                        }}
-                      />
-
-                      <span
-                        style={{
-                          fontSize: "32px",
-                          filter: isGradientTheme
-                            ? "drop-shadow(0 2px 4px rgba(0,0,0,0.5))"
-                            : isNeonTheme && isSelected
-                            ? `drop-shadow(0 0 8px ${themeOption.colors.sidebarActive})`
-                            : "none",
-                          zIndex: 1,
-                        }}
-                      >
-                        {themeName === "light" && "☀️"}
-                        {themeName === "dark" && "🌙"}
-                        {themeName === "blue" && "💙"}
-                        {themeName === "green" && "💚"}
-                        {themeName === "purple" && "💜"}
-                        {themeName === "orange" && "🧡"}
-                        {themeName === "forest" && "🌲"}
-                        {themeName === "charcoal" && "🪨"}
-                        {themeName === "pastel" && "🌸"}
-                        {themeName === "midnight" && "🌃"}
-                        {themeName === "gradient" && "🌈"}
-                        {themeName === "neon" && "💡"}
-                        {themeName === "cyberpunk" && "🤖"}
-                        {themeName === "sunset" && "🌅"}
-                        {themeName === "ocean" && "🌊"}
-                        {themeName.startsWith(CUSTOM_THEME_PREFIX) && "🎨"}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          fontWeight: 600,
-                          zIndex: 1,
-                          textShadow: isGradientTheme
-                            ? "0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)"
-                            : isNeonTheme
-                            ? "0 1px 3px rgba(0,0,0,0.3)"
-                            : "none",
-                          color: isGradientTheme ? "#ffffff" : undefined,
-                        }}
-                      >
-                        {themeOption.displayName[settings.language]}
-                      </span>
-                      {customDefinition?.description && (
-                        <span
-                          style={{
-                            fontSize: "11px",
-                            textAlign: "center",
-                            color: "#e2e8f0",
-                            opacity: 0.85,
-                            zIndex: 1,
-                          }}
-                        >
-                          {customDefinition.description}
-                        </span>
-                      )}
-                      {isSelected && (
-                        <span
-                          style={{
-                            fontSize: "16px",
-                            zIndex: 1,
-                            textShadow: isGradientTheme
-                              ? "0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)"
-                              : isNeonTheme
-                              ? "0 1px 3px rgba(0,0,0,0.3)"
-                              : "none",
-                            color: isGradientTheme ? "#ffffff" : undefined,
-                          }}
-                        >
-                          ✓
-                        </span>
-                      )}
-                      <div
-                        style={{
-                          position: "absolute",
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          height: "4px",
-                          backgroundColor:
-                            themeOption.colors.sidebarActive || themeOption.colors.primary,
-                          opacity: isSelected ? 1 : 0.5,
-                        }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-              <p
-                style={{
-                  marginTop: "12px",
-                  fontSize: "12px",
-                  color: theme.colors.background?.includes("gradient")
-                    ? "#4a5568"
-                    : theme.colors.textMuted,
-                }}
-              >
-                {t("settings.themeDescription")}
-              </p>
-            </div>
-
-            <div style={{ ...themeStyles.card, padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
-              <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
-                ⚙️ {localize("Animációs beállítások", "Animations-Einstellungen", "Animation settings")}
-              </h3>
-              <p style={{ margin: 0, fontSize: "12px", color: theme.colors.textMuted }}>
-                {localize(
-                  "Válaszd ki, mennyire legyen dinamikus az alkalmazás. A finom animációk segítenek a visszajelzésekben, de kikapcsolhatók teljesítmény okokból.",
-                  "Lege fest, wie dynamisch die Benutzeroberfläche sein soll. Animierte Rückmeldungen können bei Bedarf deaktiviert werden.",
-                  "Control how dynamic the interface feels. You can turn off advanced effects if you prefer a calmer experience."
-                )}
-              </p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
-                  <input
-                    type="checkbox"
-                    checked={animationSettings.microInteractions}
-                    onChange={e => updateAnimationSetting("microInteractions", e.target.checked)}
-                  />
-                  {localize("Micro-interakciók engedélyezése", "Micro-Interaktionen aktivieren", "Enable micro-interactions")}
-                </label>
-                <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
-                  <input
-                    type="checkbox"
-                    checked={animationSettings.loadingSkeletons}
-                    onChange={e => updateAnimationSetting("loadingSkeletons", e.target.checked)}
-                  />
-                  {localize("Csontsávos betöltés használata", "Skeleton-Loader verwenden", "Use loading skeletons")}
-                </label>
-                <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
-                  <input
-                    type="checkbox"
-                    checked={animationSettings.smoothScroll}
-                    onChange={e => updateAnimationSetting("smoothScroll", e.target.checked)}
-                  />
-                  {localize("Finom görgetés engedélyezése", "Weiches Scrollen aktivieren", "Enable smooth scrolling")}
-                </label>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
-                    {localize("Micro-interakció stílusa", "Stil der Micro-Interaktionen", "Micro-interaction style")}
-                  </label>
-                  <select
-                    value={animationSettings.microInteractionStyle}
-                    onChange={e =>
-                      updateAnimationSetting(
-                        "microInteractionStyle",
-                        e.target.value as AnimationSettings["microInteractionStyle"]
-                      )
-                    }
-                    style={{ ...themeStyles.select, width: "100%", opacity: animationSettings.microInteractions ? 1 : 0.6 }}
-                    disabled={!animationSettings.microInteractions}
-                  >
-                    <option value="subtle">{localize("Visszafogott", "Zurückhaltend", "Subtle")}</option>
-                    <option value="expressive">{localize("Kifejező", "Ausdrucksstark", "Expressive")}</option>
-                    <option value="playful">{localize("Játékos", "Verspielt", "Playful")}</option>
-                  </select>
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
-                    {localize("Oldalváltási animáció", "Seitenwechsel-Animation", "Page transition animation")}
-                  </label>
-                  <select
-                    value={animationSettings.pageTransition}
-                    onChange={e =>
-                      updateAnimationSetting("pageTransition", e.target.value as AnimationSettings["pageTransition"])
-                    }
-                    style={{ ...themeStyles.select, width: "100%" }}
-                  >
-                    <option value="fade">{localize("Halványulás", "Ausblenden", "Fade")}</option>
-                    <option value="slide">{localize("Csúszás", "Schieben", "Slide")}</option>
-                    <option value="scale">{localize("Skálázás", "Skalierung", "Scale")}</option>
-                    <option value="flip">{localize("Flip", "Flip", "Flip")}</option>
-                    <option value="parallax">{localize("Parallaxis", "Parallaxe", "Parallax")}</option>
-                  </select>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
-                    {localize("Visszajelző animációk", "Feedback-Animationen", "Feedback animations")}
-                  </label>
-                  <select
-                    value={animationSettings.feedbackAnimations}
-                    onChange={e =>
-                      updateAnimationSetting(
-                        "feedbackAnimations",
-                        e.target.value as AnimationSettings["feedbackAnimations"]
-                      )
-                    }
-                    style={{ ...themeStyles.select, width: "100%" }}
-                  >
-                    <option value="subtle">{localize("Visszafogott", "Dezent", "Subtle")}</option>
-                    <option value="emphasis">{localize("Hangsúlyos", "Betont", "Emphasis")}</option>
-                    <option value="pulse">{localize("Pulzáló", "Pulsierend", "Pulse")}</option>
-                    <option value="none">{localize("Kikapcsolva", "Deaktiviert", "Disabled")}</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ ...themeStyles.card, padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
-                    🎨 {localize("Egyedi témák", "Benutzerdefinierte Themes", "Custom themes")}
-                  </h3>
-                  <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: theme.colors.textMuted }}>
-                    {localize(
-                      "Állíts össze saját színpalettát, exportáld és oszd meg másokkal.",
-                      "Erstelle eigene Farbpaletten und teile sie mit anderen.",
-                      "Design your own palettes, export them and share with your team."
-                    )}
-                  </p>
-                </div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <button
-                    style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "8px 14px" }}
-                    onClick={handleCustomThemeImport}
-                  >
-                    📥 {localize("Importálás", "Importieren", "Import")}
-                  </button>
-                  <button
-                    style={{ ...themeStyles.button, padding: "8px 14px" }}
-                    onClick={handleExportAllCustomThemes}
-                    disabled={!customThemes.length}
-                  >
-                    📤 {localize("Exportálás", "Exportieren", "Export all")}
-                  </button>
-                  <button
-                    style={{ ...themeStyles.button, padding: "8px 14px" }}
-                    onClick={handleDuplicateActiveTheme}
-                  >
-                    📄 {localize("Aktív téma duplikálása", "Aktuelles Theme duplizieren", "Duplicate active theme")}
-                  </button>
-                  <button
-                    style={{ ...themeStyles.button, ...themeStyles.buttonPrimary, padding: "8px 14px" }}
-                    onClick={beginNewCustomTheme}
-                  >
-                    ➕ {localize("Új téma", "Neues Theme", "New theme")}
-                  </button>
-              </div>
-
-              <label style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: theme.colors.text }}>
-                <input
-                  type="checkbox"
-                  checked={themeSettingsState.autoApplyGradientText !== false}
-                  onChange={e =>
-                    onChange({
-                      ...settings,
-                      themeSettings: ensureThemeSettings({
-                        autoApplyGradientText: e.target.checked,
-                      }),
-                    })
-                  }
-                />
-                {localize(
-                  "Automatikus szövegkontraszt gradient háttérhez",
-                  "Automatischen Textkontrast für Gradienten aktivieren",
-                  "Auto-adjust text contrast on gradient backgrounds"
-                )}
-              </label>
-
-              {customThemes.length > 0 && (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "18px" }}>
-                  {customThemes.map(themeDefinition => {
-                    const previewTheme = buildThemeFromDefinition(themeDefinition);
-                    const customThemeName = `${CUSTOM_THEME_PREFIX}${themeDefinition.id}` as ThemeName;
-                    const isActive = activeThemeName === customThemeName || activeCustomThemeId === themeDefinition.id;
-                    const gradientPreview = previewTheme.colors.gradient ?? previewTheme.colors.background;
-                    return (
-                      <div
-                        key={themeDefinition.id}
-                        style={{
-                          borderRadius: "14px",
-                          padding: "18px",
-                          background: gradientPreview,
-                          boxShadow: isActive ? `0 4px 16px ${previewTheme.colors.shadow}` : `0 2px 8px ${previewTheme.colors.shadow}`,
-                          border: isActive
-                            ? `3px solid ${previewTheme.colors.primary}`
-                            : `1px solid ${previewTheme.colors.border}`,
-                          color: previewTheme.colors.text,
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "10px",
-                        }}
-                      >
-                        <strong style={{ fontSize: "15px" }}>{themeDefinition.name}</strong>
-                        {themeDefinition.description && (
-                          <span style={{ fontSize: "12px", opacity: 0.85 }}>{themeDefinition.description}</span>
-                        )}
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                          {Object.entries(themeDefinition.palette).map(([key, value]) => (
-                            <span
-                              key={`${themeDefinition.id}-${key}`}
-                              title={`${key}: ${value}`}
-                              style={{
-                                width: "22px",
-                                height: "22px",
-                                borderRadius: "50%",
-                                border: "1px solid rgba(0,0,0,0.25)",
-                                backgroundColor: value,
-                                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                              }}
-                            />
-                          ))}
-                        </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                          <button
-                            style={{ ...themeStyles.button, padding: "6px 12px" }}
-                            onClick={() => handleThemeSelect(customThemeName)}
-                          >
-                            {localize("Alkalmazás", "Anwenden", "Apply")}
-                          </button>
-                          <button
-                            style={{ ...themeStyles.button, padding: "6px 12px" }}
-                            onClick={() => {
-                              setEditingCustomThemeIdState(themeDefinition.id);
-                              setCustomThemeDraft(JSON.parse(JSON.stringify(themeDefinition)) as CustomThemeDefinition);
-                              setCustomThemeEditorOpen(true);
-                            }}
-                          >
-                            {localize("Szerkesztés", "Bearbeiten", "Edit")}
-                          </button>
-                          <button
-                            style={{ ...themeStyles.button, padding: "6px 12px" }}
-                            onClick={() => handleCustomThemeExport(themeDefinition)}
-                          >
-                            {localize("Export", "Export", "Export")}
-                          </button>
-                          <button
-                            style={{ ...themeStyles.button, padding: "6px 12px" }}
-                            onClick={() => handleCopyCustomTheme(themeDefinition)}
-                          >
-                            {localize("Megosztás", "Teilen", "Share")}
-                          </button>
-                          <button
-                            style={{ ...themeStyles.button, ...themeStyles.buttonDanger, padding: "6px 12px" }}
-                            onClick={() => handleCustomThemeDelete(themeDefinition.id)}
-                          >
-                            {localize("Törlés", "Löschen", "Delete")}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {customThemeEditorOpen && (
-                <div
-                  style={{
-                    marginTop: "16px",
-                    padding: "18px",
-                    borderRadius: "12px",
-                    backgroundColor: theme.colors.surfaceHover,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "14px",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
-                    <strong style={{ fontSize: "14px", color: theme.colors.text }}>
-                      {editingCustomThemeIdState && customThemes.some(theme => theme.id === editingCustomThemeIdState)
-                        ? localize("Téma szerkesztése", "Theme bearbeiten", "Edit theme")
-                        : localize("Új téma létrehozása", "Neues Theme erstellen", "Create new theme")}
-                    </strong>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        style={{ ...themeStyles.button, padding: "6px 12px" }}
-                        onClick={handleSaveCustomTheme}
-                      >
-                        💾 {localize("Mentés", "Speichern", "Save")}
-                      </button>
-                      <button
-                        style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "6px 12px" }}
-                        onClick={closeCustomThemeEditor}
-                      >
-                        ✕ {localize("Mégse", "Abbrechen", "Cancel")}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                      <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                        {localize("Téma neve", "Theme-Name", "Theme name")}
-                      </label>
-                      <input
-                        value={customThemeDraft.name}
-                        onChange={e =>
-                          setCustomThemeDraft(prev => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        style={{ ...themeStyles.input }}
-                        placeholder={localize("Pl.: Aurora", "z. B.: Aurora", "e.g. Aurora")}
-                      />
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                      <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                        {localize("Leírás (opcionális)", "Beschreibung (optional)", "Description (optional)")}
-                      </label>
-                      <textarea
-                        value={customThemeDraft.description ?? ""}
-                        onChange={e =>
-                          setCustomThemeDraft(prev => ({
-                            ...prev,
-                            description: e.target.value,
-                          }))
-                        }
-                        style={{ ...themeStyles.input, minHeight: "60px", resize: "vertical" as const }}
-                        placeholder={localize("Rövid megjegyzés a témáról.", "Kurze Notiz zum Theme.", "A short note about this theme.")}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
-                    {(
-                      [
-                        ["background", localize("Háttér", "Hintergrund", "Background")],
-                        ["surface", localize("Felület", "Oberfläche", "Surface")],
-                        ["primary", localize("Elsődleges", "Primärfarbe", "Primary")],
-                        ["secondary", localize("Másodlagos", "Sekundärfarbe", "Secondary")],
-                        ["success", localize("Siker", "Erfolg", "Success")],
-                        ["danger", localize("Hiba", "Fehler", "Danger")],
-                        ["text", localize("Szöveg", "Text", "Text")],
-                        ["textMuted", localize("Szöveg (halvány)", "Text (gedämpft)", "Muted text")],
-                      ] as Array<[keyof CustomThemeDefinition["palette"], string]>
-                    ).map(([key, label]) => (
-                      <div key={key} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>{label}</label>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <input
-                            type="color"
-                            value={customThemeDraft.palette[key]}
-                            onChange={e => handleCustomThemePaletteChange(key, e.target.value)}
-                            style={{ width: "42px", height: "28px", border: "none", cursor: "pointer" }}
-                          />
-                          <input
-                            value={customThemeDraft.palette[key]}
-                            onChange={e => handleCustomThemePaletteChange(key, e.target.value)}
-                            style={{ ...themeStyles.input, flex: 1 }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    <label style={{ fontSize: "12px", color: theme.colors.textMuted, display: "flex", alignItems: "center", gap: "8px" }}>
-                      <input
-                        type="checkbox"
-                        checked={Boolean(customThemeDraft.gradient)}
-                        onChange={e => handleCustomThemeGradientToggle(e.target.checked)}
-                      />
-                      {localize("Gradient háttér használata", "Gradient-Hintergrund verwenden", "Use gradient background")}
-                    </label>
-                    {customThemeDraft.gradient && (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", alignItems: "center" }}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                          <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                            {localize("Gradient start", "Gradient-Start", "Gradient start")}
-                          </label>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <input
-                              type="color"
-                              value={customThemeDraft.gradient.start}
-                              onChange={e => handleCustomThemeGradientChange("start", e.target.value)}
-                              style={{ width: "42px", height: "28px", border: "none", cursor: "pointer" }}
-                            />
-                            <input
-                              value={customThemeDraft.gradient.start}
-                              onChange={e => handleCustomThemeGradientChange("start", e.target.value)}
-                              style={{ ...themeStyles.input, flex: 1 }}
-                            />
-                          </div>
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                          <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                            {localize("Gradient vége", "Gradient-Ende", "Gradient end")}
-                          </label>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <input
-                              type="color"
-                              value={customThemeDraft.gradient.end}
-                              onChange={e => handleCustomThemeGradientChange("end", e.target.value)}
-                              style={{ width: "42px", height: "28px", border: "none", cursor: "pointer" }}
-                            />
-                            <input
-                              value={customThemeDraft.gradient.end}
-                              onChange={e => handleCustomThemeGradientChange("end", e.target.value)}
-                              style={{ ...themeStyles.input, flex: 1 }}
-                            />
-                          </div>
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                          <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                            {localize("Szög", "Winkel", "Angle")} ({Math.round(customThemeDraft.gradient.angle)}°)
-                          </label>
-                          <input
-                            type="range"
-                            min={0}
-                            max={360}
-                            value={customThemeDraft.gradient.angle}
-                            onChange={e => handleCustomThemeGradientChange("angle", Number(e.target.value))}
-                          />
-                        </div>
-                        <div
-                          style={{
-                            borderRadius: "12px",
-                            height: "60px",
-                            background: buildThemeFromDefinition({
-                              ...customThemeDraft,
-                              id: customThemeDraft.id || "preview",
-                            }).colors.gradient ?? buildThemeFromDefinition(customThemeDraft).colors.background,
-                            border: `1px solid ${theme.colors.border}`,
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+         {activeTab === "display" && renderDisplayTab()}
 
         {/* Advanced Tab */}
         {activeTab === "advanced" && (
@@ -3462,57 +3250,6 @@ export const SettingsPage: React.FC<Props> = ({
           <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
             {t("settings.importDescription")}
           </p>
-          <div
-            style={{
-              marginBottom: "20px",
-              padding: "16px",
-              borderRadius: "12px",
-              border: `1px solid ${theme.colors.border}`,
-              backgroundColor: theme.colors.surfaceHover,
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "12px",
-              }}
-            >
-              <div style={{ flex: "1 1 220px" }}>
-                <strong style={{ display: "block", fontSize: "14px", color: theme.colors.text }}>
-                  {localize(
-                    "Slicer adat import",
-                    "Slicer-Datenimport",
-                    "Slicer data import"
-                  )}
-                </strong>
-                <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                  {localize(
-                    "Tölts be G-code vagy JSON exportot (Prusa, Cura, Orca, Qidi) és emeld át az idő/filament adatokat.",
-                    "Lade G-code- oder JSON-Exporte (Prusa, Cura, Orca, Qidi) und übernimm Zeit/Filamentdaten.",
-                    "Load G-code or JSON exports (Prusa, Cura, Orca, Qidi) and capture time/filament data."
-                  )}
-                </span>
-              </div>
-              <button
-                style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "8px 14px", minWidth: "200px" }}
-                onClick={handleSlicerImport}
-              >
-                🧾{" "}
-                {localize(
-                  "Slicer adatok importálása",
-                  "Slicer-Daten importieren",
-                  "Import slicer data"
-                )}
-              </button>
-            </div>
-            {renderSlicerImportSummary()}
-          </div>
           <p style={{ marginBottom: "16px", fontSize: "12px", color: "#dc3545", fontWeight: "600" }}>
             ⚠️ {settings.language === "hu" ? "Figyelem: Az importálás felülírja a jelenlegi adatokat!" : settings.language === "de" ? "Warnung: Der Import überschreibt die aktuellen Daten!" : "Warning: Import will overwrite current data!"}
           </p>

@@ -27,6 +27,14 @@ export interface SlicerJobData {
   bedTemperature?: number;
   warnings: string[];
   rawMeta?: Record<string, unknown>;
+  extrudersUsed?: number[];
+  filamentPerExtruderGrams?: number[];
+  filamentPerExtruderMillimeters?: number[];
+  filamentPerExtruderMeters?: number[];
+  totalHeaderGrams?: number[];
+  totalHeaderMillimeters?: number[];
+  totalHeaderVolumeCm3?: number[];
+  totalVolumeCm3?: number;
 }
 
 export class SlicerParseError extends Error {
@@ -47,20 +55,27 @@ const GCODE_TIME_KEYS = [
   ";TOTAL_TIME:",
   "; PRINT_TIME:",
   ";PRINT_TIME:",
+  "; estimated printing time (normal mode) =",
 ];
 const FILAMENT_USED_G_KEYS = [
   "; filament used [g] =",
   ";FILAMENT_USED:",
   "; FILAMENT_USED:",
   "; total filament weight =",
+  "; total filament weight [g] :",
+  "; total filament used [g] =",
   ";FilamentWeight: ",
 ];
 const FILAMENT_USED_MM_KEYS = [
   "; filament used [mm] =",
   ";FilamentLength: ",
   "; FILAMENT_USED_MM:",
+  "; total filament length [mm] :",
 ];
 const FILAMENT_USED_M_KEYS = ["; filament_used =", ";total_filament_used ="];
+const TOTAL_FILAMENT_WEIGHT_KEYS = ["; total filament weight [g] :"];
+const TOTAL_FILAMENT_LENGTH_KEYS = ["; total filament length [mm] :"];
+const TOTAL_FILAMENT_VOLUME_KEYS = ["; total filament volume [cm^3] :"];
 
 /**
  * Fő belépési pont: automatikus slicer detektálás és metaadat kinyerés.
@@ -157,6 +172,47 @@ function isLikelyGcode(filePath: string, content: string): boolean {
   );
 }
 
+function parseDurationString(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  const colonParts = trimmed.split(":");
+  if (colonParts.length >= 2 && colonParts.length <= 3 && colonParts.every(part => /^\d+$/.test(part.trim()))) {
+    const reversed = colonParts.map(part => parseInt(part.trim(), 10)).reverse();
+    let total = 0;
+    if (reversed[0]) total += reversed[0];
+    if (reversed[1]) total += reversed[1] * 60;
+    if (reversed[2]) total += reversed[2] * 3600;
+    return total;
+  }
+
+  const pattern = /(?<value>\d+)\s*(?<unit>h|hr|hrs|hour|hours|m|min|mins|minute|minutes|s|sec|secs|second|seconds)/gi;
+  let match: RegExpExecArray | null;
+  let totalSeconds = 0;
+  let matched = false;
+  while ((match = pattern.exec(trimmed)) !== null) {
+    matched = true;
+    const numeric = parseInt(match.groups?.value ?? "0", 10);
+    const unit = match.groups?.unit?.toLowerCase();
+    if (!Number.isFinite(numeric)) continue;
+    if (!unit) continue;
+    if (unit.startsWith("h")) {
+      totalSeconds += numeric * 3600;
+    } else if (unit.startsWith("m")) {
+      totalSeconds += numeric * 60;
+    } else if (unit.startsWith("s")) {
+      totalSeconds += numeric;
+    }
+  }
+  if (matched) {
+    return totalSeconds;
+  }
+
+  const numeric = Number(trimmed);
+  return Number.isFinite(numeric) ? numeric : undefined;
+}
+
 function parseGcodeMeta(content: string, detection: DetectionResult): Partial<SlicerJobData> {
   const lines = content.split(/\r?\n/);
   let projectName: string | undefined;
@@ -167,12 +223,25 @@ function parseGcodeMeta(content: string, detection: DetectionResult): Partial<Sl
   let filamentUsedMillimeters: number | undefined;
   let filamentUsedMeters: number | undefined;
   const warnings: string[] = [];
+  let extrudersUsed: number[] | undefined;
+  let filamentPerExtruderGrams: number[] | undefined;
+  let filamentPerExtruderMillimeters: number[] | undefined;
+  let filamentPerExtruderMeters: number[] | undefined;
+  let totalHeaderGrams: number[] | undefined;
+  let totalHeaderMillimeters: number[] | undefined;
+  let totalHeaderVolumeCm3: number[] | undefined;
 
-  const takeNumber = (line: string, prefix: string) => {
-    const value = line.split(prefix)[1]?.trim();
-    if (!value) return undefined;
-    const numeric = parseFloat(value.replace(/[^0-9.+-]/g, ""));
-    return Number.isFinite(numeric) ? numeric : undefined;
+  const extractNumbers = (value: string) => {
+    const matches = value.match(/[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?/g);
+    return matches ? matches.map(Number).filter(num => Number.isFinite(num)) : [];
+  };
+
+  const takeNumber = (line: string, prefix: string, mode: "first" | "sum" = "first") => {
+    const remainder = line.split(prefix)[1]?.trim();
+    if (!remainder) return undefined;
+    const numbers = extractNumbers(remainder);
+    if (!numbers.length) return undefined;
+    return mode === "sum" ? numbers.reduce((acc, value) => acc + value, 0) : numbers[0];
   };
 
   for (const line of lines) {
@@ -192,46 +261,88 @@ function parseGcodeMeta(content: string, detection: DetectionResult): Partial<Sl
       if (value) material = value.trim();
     }
 
+    if (!extrudersUsed && trimmed.toLowerCase().startsWith("; used_extruders")) {
+      const parts = trimmed.split("=")[1]?.trim();
+      if (parts) {
+        const parsed = parts
+          .split(/[;,\s]+/)
+          .map(token => parseInt(token, 10))
+          .filter(num => Number.isFinite(num));
+        if (parsed.length) {
+          extrudersUsed = parsed;
+        }
+      }
+    }
+
     if (!estimatedPrintTimeSec) {
       const timeEntry = GCODE_TIME_KEYS.find(key => trimmed.startsWith(key));
       if (timeEntry) {
-        const numeric = takeNumber(trimmed, timeEntry);
-        if (numeric !== undefined) {
-          estimatedPrintTimeSec = Math.round(numeric);
+        const rawValue = trimmed.slice(timeEntry.length).trim();
+        const durationSeconds = parseDurationString(rawValue);
+        if (durationSeconds !== undefined && Number.isFinite(durationSeconds)) {
+          estimatedPrintTimeSec = Math.round(durationSeconds);
+        } else {
+          const numeric = takeNumber(trimmed, timeEntry);
+          if (numeric !== undefined) {
+            estimatedPrintTimeSec = Math.round(numeric);
+          }
         }
       }
     }
 
-    if (!filamentUsedGrams) {
-      const grammEntry = FILAMENT_USED_G_KEYS.find(key => trimmed.startsWith(key));
-      if (grammEntry) {
-        const numeric = takeNumber(trimmed, grammEntry);
-        if (numeric !== undefined) {
-          filamentUsedGrams = numeric;
-        }
+    const grammEntry = FILAMENT_USED_G_KEYS.find(key => trimmed.startsWith(key));
+    if (grammEntry) {
+      const numbers = extractNumbers(trimmed.slice(grammEntry.length));
+      if (numbers.length) {
+        filamentPerExtruderGrams ??= numbers;
+        filamentUsedGrams = numbers.reduce((acc, value) => acc + value, 0);
       }
     }
 
-    if (!filamentUsedMillimeters) {
-      const mmEntry = FILAMENT_USED_MM_KEYS.find(key => trimmed.startsWith(key));
-      if (mmEntry) {
-        const numeric = takeNumber(trimmed, mmEntry);
-        if (numeric !== undefined) {
-          filamentUsedMillimeters = numeric;
-          filamentUsedMeters = numeric / 1000;
-        }
+    const totalWeightEntry = TOTAL_FILAMENT_WEIGHT_KEYS.find(key => trimmed.startsWith(key));
+    if (totalWeightEntry) {
+      const numbers = extractNumbers(trimmed.slice(totalWeightEntry.length));
+      if (numbers.length) {
+        totalHeaderGrams = numbers;
       }
     }
 
-    if (!filamentUsedMeters) {
-      const mEntry = FILAMENT_USED_M_KEYS.find(key => trimmed.startsWith(key));
-      if (mEntry) {
-        const cleaned = trimmed.slice(mEntry.length).trim();
-        const parsed = parseFloat(cleaned.replace(/[^0-9.+-]/g, ""));
-        if (Number.isFinite(parsed)) {
-          filamentUsedMeters = parsed;
-          filamentUsedMillimeters ??= parsed * 1000;
-        }
+    const mmEntry = FILAMENT_USED_MM_KEYS.find(key => trimmed.startsWith(key));
+    if (mmEntry) {
+      const numbers = extractNumbers(trimmed.slice(mmEntry.length));
+      if (numbers.length) {
+        filamentPerExtruderMillimeters ??= numbers;
+        filamentUsedMillimeters = numbers.reduce((acc, value) => acc + value, 0);
+        filamentPerExtruderMeters ??= numbers.map(value => value / 1000);
+        filamentUsedMeters = numbers.reduce((acc, value) => acc + value, 0) / 1000;
+      }
+    }
+
+    const totalLengthEntry = TOTAL_FILAMENT_LENGTH_KEYS.find(key => trimmed.startsWith(key));
+    if (totalLengthEntry) {
+      const numbers = extractNumbers(trimmed.slice(totalLengthEntry.length));
+      if (numbers.length) {
+        totalHeaderMillimeters = numbers;
+      }
+    }
+
+    const mEntry = FILAMENT_USED_M_KEYS.find(key => trimmed.startsWith(key));
+    if (mEntry) {
+      const numbers = extractNumbers(trimmed.slice(mEntry.length));
+      if (numbers.length) {
+        filamentPerExtruderMeters ??= numbers;
+        const total = numbers.reduce((acc, value) => acc + value, 0);
+        filamentUsedMeters = total;
+        filamentPerExtruderMillimeters ??= numbers.map(value => value * 1000);
+        filamentUsedMillimeters ??= total * 1000;
+      }
+    }
+
+    const totalVolumeEntry = TOTAL_FILAMENT_VOLUME_KEYS.find(key => trimmed.startsWith(key));
+    if (totalVolumeEntry) {
+      const numbers = extractNumbers(trimmed.slice(totalVolumeEntry.length));
+      if (numbers.length) {
+        totalHeaderVolumeCm3 = numbers;
       }
     }
   }
@@ -247,6 +358,74 @@ function parseGcodeMeta(content: string, detection: DetectionResult): Partial<Sl
     );
   }
 
+  if (material) {
+    const uniqueMaterials = Array.from(
+      new Set(
+        material
+          .split(/[;,]/)
+          .map(token => token.trim())
+          .filter(Boolean)
+      )
+    );
+    if (uniqueMaterials.length) {
+      material = uniqueMaterials.join(", ");
+    }
+  }
+
+  if (filamentPerExtruderMillimeters && !filamentPerExtruderMeters) {
+    filamentPerExtruderMeters = filamentPerExtruderMillimeters.map(value => value / 1000);
+  }
+  if (filamentPerExtruderMeters && !filamentPerExtruderMillimeters) {
+    filamentPerExtruderMillimeters = filamentPerExtruderMeters.map(value => value * 1000);
+  }
+  if (!filamentUsedGrams && filamentPerExtruderGrams) {
+    filamentUsedGrams = filamentPerExtruderGrams.reduce((acc, value) => acc + value, 0);
+  }
+  if (!filamentUsedMillimeters && filamentPerExtruderMillimeters) {
+    filamentUsedMillimeters = filamentPerExtruderMillimeters.reduce((acc, value) => acc + value, 0);
+  }
+  if (!filamentUsedMeters && filamentPerExtruderMeters) {
+    filamentUsedMeters = filamentPerExtruderMeters.reduce((acc, value) => acc + value, 0);
+  }
+
+  if (totalHeaderGrams && totalHeaderGrams.length) {
+    filamentPerExtruderGrams = totalHeaderGrams;
+    filamentUsedGrams = totalHeaderGrams.reduce((acc, value) => acc + value, 0);
+  } else if (!filamentUsedGrams && filamentPerExtruderGrams) {
+    filamentUsedGrams = filamentPerExtruderGrams.reduce((acc, value) => acc + value, 0);
+  }
+
+  if (totalHeaderMillimeters && totalHeaderMillimeters.length) {
+    filamentPerExtruderMillimeters = totalHeaderMillimeters;
+    filamentUsedMillimeters = totalHeaderMillimeters.reduce((acc, value) => acc + value, 0);
+    filamentPerExtruderMeters = totalHeaderMillimeters.map(value => value / 1000);
+    filamentUsedMeters = filamentUsedMillimeters / 1000;
+  } else {
+    if (filamentPerExtruderMillimeters && !filamentPerExtruderMeters) {
+      filamentPerExtruderMeters = filamentPerExtruderMillimeters.map(value => value / 1000);
+    }
+    if (filamentPerExtruderMeters && !filamentPerExtruderMillimeters) {
+      filamentPerExtruderMillimeters = filamentPerExtruderMeters.map(value => value * 1000);
+    }
+    if (!filamentUsedMillimeters && filamentPerExtruderMillimeters) {
+      filamentUsedMillimeters = filamentPerExtruderMillimeters.reduce((acc, value) => acc + value, 0);
+    }
+    if (!filamentUsedMeters && filamentPerExtruderMeters) {
+      filamentUsedMeters = filamentPerExtruderMeters.reduce((acc, value) => acc + value, 0);
+    }
+  }
+
+  const totalVolume = totalHeaderVolumeCm3 && totalHeaderVolumeCm3.length
+    ? totalHeaderVolumeCm3.reduce((acc, value) => acc + value, 0)
+    : undefined;
+
+  if (filamentUsedMillimeters !== undefined && filamentUsedMeters === undefined) {
+    filamentUsedMeters = filamentUsedMillimeters / 1000;
+  }
+  if (filamentUsedMeters !== undefined && filamentUsedMillimeters === undefined) {
+    filamentUsedMillimeters = filamentUsedMeters * 1000;
+  }
+
   return {
     projectName,
     profileName,
@@ -259,6 +438,14 @@ function parseGcodeMeta(content: string, detection: DetectionResult): Partial<Sl
     rawMeta: {
       detection: detection.reasons,
     },
+    extrudersUsed,
+    filamentPerExtruderGrams,
+    filamentPerExtruderMillimeters,
+    filamentPerExtruderMeters,
+    totalHeaderGrams,
+    totalHeaderMillimeters,
+    totalHeaderVolumeCm3,
+    totalVolumeCm3: totalVolume,
   };
 }
 
