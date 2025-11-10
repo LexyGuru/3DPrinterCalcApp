@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { open } from "@tauri-apps/plugin-shell";
 import type { Filament, Settings, ColorMode } from "../types";
 import { defaultAnimationSettings } from "../types";
 import type { Theme } from "../utils/themes";
@@ -48,6 +49,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [type, setType] = useState("");
   const [weight, setWeight] = useState<number>(1000);
   const [pricePerKg, setPricePerKg] = useState<number>(0);
+  const [pricePerKgRaw, setPricePerKgRaw] = useState<string>("");
   const [color, setColor] = useState("");
   const [colorHex, setColorHex] = useState<string>("");
   const [colorMode, setColorMode] = useState<ColorMode>("solid");
@@ -347,6 +349,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setType("");
     setWeight(1000);
     setPricePerKg(0);
+    setPricePerKgRaw("");
     setColor("");
     setColorHex("");
     setColorMode("solid");
@@ -362,6 +365,58 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setTypePanelOpen(false);
     setBrandFilter("");
     setTypeFilter("");
+  };
+
+  const formatPriceForInput = (value: number): string => {
+    if (typeof value !== "number" || Number.isNaN(value)) {
+      return "";
+    }
+    const rounded = Math.round((value + Number.EPSILON) * 100) / 100;
+    return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(2);
+  };
+
+  const handlePriceInputChange = (rawValue: string) => {
+    const sanitized = rawValue.replace(/,/g, ".").replace(/\s+/g, "");
+    setPricePerKgRaw(sanitized);
+    if (sanitized === "") {
+      setPricePerKg(0);
+      return;
+    }
+    const numeric = Number(sanitized);
+    if (Number.isNaN(numeric)) {
+      return;
+    }
+    setPricePerKg(numeric);
+  };
+
+  const handlePriceInputBlur = () => {
+    const sanitized = pricePerKgRaw.trim();
+    if (sanitized === "") {
+      return;
+    }
+    const numeric = Number(sanitized);
+    if (Number.isNaN(numeric)) {
+      showToast(
+        settings.language === "hu"
+          ? "Érvénytelen árformátum. Használj pontot tizedeselválasztónak (példa: 14.11)."
+          : settings.language === "de"
+          ? "Ungültiges Preisformat. Bitte verwende einen Punkt als Dezimaltrennzeichen (z.B. 14.11)."
+          : "Invalid price format. Please use a dot as decimal separator (e.g. 14.11).",
+        "error"
+      );
+      setPricePerKgRaw("");
+      setPricePerKg(0);
+      return;
+    }
+    const validation = validateFilamentPrice(numeric, settings.language);
+    if (!validation.isValid) {
+      if (validation.errorMessage) {
+        showToast(validation.errorMessage, "error");
+      }
+      return;
+    }
+    setPricePerKg(numeric);
+    setPricePerKgRaw(formatPriceForInput(numeric));
   };
 
   const handleColorInputChange = (value: string) => {
@@ -702,6 +757,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setType(filament.type);
     setWeight(filament.weight);
     setPricePerKg(filament.pricePerKg);
+    setPricePerKgRaw(formatPriceForInput(filament.pricePerKg));
     setColor(filament.color || "");
     setBrandPanelOpen(false);
     setTypePanelOpen(false);
@@ -755,6 +811,37 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     console.log("✅ Filament sikeresen törölve", { index });
     showToast(t("common.filamentDeleted"), "success");
     setDeleteConfirmIndex(null);
+  };
+
+  const handleOpenPriceSearch = async (filament: Filament) => {
+    const queryParts = [filament.brand, filament.type, filament.color]
+      .filter(Boolean)
+      .map(part => part?.toString().trim())
+      .filter(Boolean) as string[];
+    const currencyHint =
+      settings.currency === "EUR"
+        ? "EUR"
+        : settings.currency === "HUF"
+        ? "HUF"
+        : "USD";
+    const query = encodeURIComponent(`${queryParts.join(" ")} filament price ${currencyHint}`);
+    const url = `https://www.google.com/search?q=${query}`;
+    try {
+      await open(url);
+    } catch (error) {
+      console.warn("[Filaments] Failed to open price search via shell plugin", error);
+      const fallbackWindow = window.open(url, "_blank", "noopener,noreferrer");
+      if (!fallbackWindow) {
+        showToast(
+          settings.language === "hu"
+            ? "Nem sikerült megnyitni a böngészőt az árkereséshez."
+            : settings.language === "de"
+            ? "Der Browser konnte für die Preissuche nicht geöffnet werden."
+            : "Could not open the browser for price search.",
+          "error"
+        );
+      }
+    }
   };
 
   // Szűrés a keresési kifejezés alapján
@@ -1365,19 +1452,17 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               type="number" 
               step="0.01"
               min="0"
+              inputMode="decimal"
+              lang="en-US"
               placeholder={t("filaments.pricePerKg")} 
-              value={pricePerKg} 
-              onChange={e => {
-                const val = Number(e.target.value);
-                const validation = validateFilamentPrice(val, settings.language);
-                if (validation.isValid) {
-                  setPricePerKg(val);
-                } else if (validation.errorMessage) {
-                  showToast(validation.errorMessage, "error");
-                }
-              }}
+              value={pricePerKgRaw}
+              onChange={e => handlePriceInputChange(e.target.value)}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              onBlur={(e) => {
+                e.target.style.borderColor = theme.colors.inputBorder;
+                e.target.style.boxShadow = "none";
+                handlePriceInputBlur();
+              }}
               style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
@@ -1909,7 +1994,35 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     </strong>
                   </td>
                   <td style={themeStyles.tableCell}>
-                    <div style={{ display: "flex", gap: "8px" }}>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <Tooltip content={t("filaments.priceSearch")}>
+                        <button
+                          onClick={() => void handleOpenPriceSearch(f)}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                            e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.backgroundColor = theme.colors.surface;
+                          }}
+                          style={{
+                            ...themeStyles.button,
+                            padding: "8px 12px",
+                            fontSize: "14px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: theme.colors.surface,
+                            color: theme.colors.text,
+                            border: `1px solid ${theme.colors.border}`,
+                            minWidth: "40px"
+                          }}
+                          aria-label={t("filaments.priceSearch")}
+                        >
+                          🔍
+                        </button>
+                      </Tooltip>
                       <Tooltip content={settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}>
                         <button 
                           onClick={() => startEdit(originalIndex)}

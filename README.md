@@ -27,6 +27,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - ✅ **Megerősítő dialógusok** - Törlés előtt megerősítés kérése
 - 🔔 **Toast értesítések** - Sikeres műveletek után értesítések
 - 🔍 **Keresés és szűrés** - Filamentek, nyomtatók és árajánlatok keresése
+- 🔎 **Online ár-összehasonlítás** - Egy kattintással Google/Bing találatokat nyitsz a kiválasztott filamenthez, az ár azonnal frissíthető
 - 📋 **Duplikálás** - Árajánlatok könnyű duplikálása
 - 🖱️ **Drag & Drop** - Árajánlatok, filamentek és nyomtatók átrendezése húzással
 - 📱 **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, export)
@@ -235,6 +236,11 @@ Lekszikov Miklós (LexyGuru)
 A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
 ## 📋 Verziótörténet
+
+### v0.5.0 (2025)
+- 🔎 **Filament ár-összehasonlító gomb** – Minden saját filamenthez nagyító ikon társul, amely megnyitja a Google/Bing keresést a márka/típus/szín alapján, gyors linket adva az aktuális árakhoz.
+- 💶 **Tizedesár támogatás** – A filamentek ármezője mostantól elfogadja a tizedeseket (14.11 € stb.), a bevitel automatikusan validálva és formázva mentődik.
+- 🌐 **Fordított keresés fallback** – Ha a Tauri shell nem tudja megnyitni a böngészőt, az alkalmazás automatikusan új lapot nyit, így a keresés minden platformon működik.
 
 ### v0.4.99 (2025)
 - 🧾 **Kalkulátorba épített G-code import** – Új modális `SlicerImportModal` a kalkulátor tetején, amely G-code/JSON exportokból egy kattintással átemeli a nyomtatási időt, filament mennyiséget és árajánlat piszkozatot hoz létre.
@@ -453,7 +459,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.4.98
+**Verzió**: 0.5.0
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

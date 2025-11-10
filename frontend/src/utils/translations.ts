@@ -19,6 +19,7 @@ export type TranslationKey =
   | "filaments.type"
   | "filaments.weight"
   | "filaments.pricePerKg"
+  | "filaments.priceSearch"
   | "filaments.add"
   | "filaments.delete"
   | "filaments.empty"
@@ -244,6 +245,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "filaments.type": "Típus:",
     "filaments.weight": "Súly (g):",
     "filaments.pricePerKg": "Ár (€/kg):",
+    "filaments.priceSearch": "Ár keresése (Google/Bing)",
     "filaments.add": "Hozzáadás",
     "filaments.delete": "❌ Törlés",
     "filaments.empty": "Nincs hozzáadott filament. Add hozzá az elsőt!",
@@ -464,6 +466,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "filaments.type": "Type:",
     "filaments.weight": "Weight (g):",
     "filaments.pricePerKg": "Price (€/kg):",
+    "filaments.priceSearch": "Search price online (Google/Bing)",
     "filaments.add": "Add",
     "filaments.delete": "❌ Delete",
     "filaments.empty": "No filaments added. Add the first one!",
@@ -684,6 +687,7 @@ export const translations: Record<Settings["language"], Record<TranslationKey, s
     "filaments.type": "Typ:",
     "filaments.weight": "Gewicht (g):",
     "filaments.pricePerKg": "Preis (€/kg):",
+    "filaments.priceSearch": "Preis online suchen (Google/Bing)",
     "filaments.add": "Hinzufügen",
     "filaments.delete": "❌ Löschen",
     "filaments.empty": "Keine Filamente hinzugefügt. Fügen Sie das erste hinzu!",
