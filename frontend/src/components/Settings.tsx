@@ -347,14 +347,7 @@ export const SettingsPage: React.FC<Props> = ({
       id: editingCustomThemeIdState ?? customThemeDraft.id,
     });
     if (!sanitizedDraft.name.trim()) {
-      showToast(
-        localize(
-          "A téma neve nem lehet üres.",
-          "Der Name des Themes darf nicht leer sein.",
-          "Theme name cannot be empty."
-        ),
-        "error"
-      );
+      showToast(t("settings.theme.validation.nameRequired"), "error");
       return;
     }
     const exists = editingCustomThemeIdState
@@ -491,14 +484,7 @@ export const SettingsPage: React.FC<Props> = ({
       setCustomThemeEditorOpen(true);
     } catch (error) {
       console.error("[Settings] handleDuplicateActiveTheme failed", error);
-      showToast(
-        localize(
-          "Nem sikerült duplikálni a témát.",
-          "Theme konnte nicht dupliziert werden.",
-          "Failed to duplicate theme."
-        ),
-        "error"
-      );
+      showToast(t("settings.theme.toast.duplicateFailed"), "error");
     }
   };
 
@@ -573,37 +559,16 @@ export const SettingsPage: React.FC<Props> = ({
         themeSettings: nextThemeSettings,
       });
 
-      showToast(
-        localize(
-          "Egyedi témák importálva.",
-          "Benutzerdefinierte Themes importiert.",
-          "Custom themes imported."
-        ),
-        "success"
-      );
+      showToast(t("settings.theme.toast.imported"), "success");
     } catch (error) {
       console.error("[Settings] handleCustomThemeImport failed", error);
-      showToast(
-        localize(
-          "Nem sikerült importálni a témát.",
-          "Theme konnte nicht importiert werden.",
-          "Failed to import theme."
-        ),
-        "error"
-      );
+      showToast(t("settings.theme.toast.importFailed"), "error");
     }
   };
 
   const handleExportAllCustomThemes = async () => {
     if (!customThemes.length) {
-      showToast(
-        localize(
-          "Nincs exportálható egyedi téma.",
-          "Keine benutzerdefinierten Themes zum Exportieren vorhanden.",
-          "No custom themes to export."
-        ),
-        "info"
-      );
+      showToast(t("settings.theme.toast.exportNone"), "info");
       return;
     }
     try {
@@ -615,24 +580,10 @@ export const SettingsPage: React.FC<Props> = ({
         return;
       }
       await writeTextFile(filePath, JSON.stringify(customThemes, null, 2));
-      showToast(
-        localize(
-          "Egyedi témák exportálva.",
-          "Benutzerdefinierte Themes exportiert.",
-          "Custom themes exported."
-        ),
-        "success"
-      );
+      showToast(t("settings.theme.toast.exported"), "success");
     } catch (error) {
       console.error("[Settings] handleExportAllCustomThemes failed", error);
-      showToast(
-        localize(
-          "Nem sikerült exportálni a témákat.",
-          "Themes konnten nicht exportiert werden.",
-          "Failed to export themes."
-        ),
-        "error"
-      );
+      showToast(t("settings.theme.toast.exportFailed"), "error");
     }
   };
 
@@ -1340,14 +1291,7 @@ export const SettingsPage: React.FC<Props> = ({
         logoBase64: undefined,
       },
     });
-    showToast(
-      settings.language === "hu"
-        ? "Logo eltávolítva."
-        : settings.language === "de"
-        ? "Logo entfernt."
-        : "Logo removed.",
-      "success"
-    );
+    showToast(t("settings.company.toast.logoRemoved"), "success");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -1360,60 +1304,33 @@ export const SettingsPage: React.FC<Props> = ({
     });
   };
 
-  const pdfTemplateOptions: Array<{ value: PdfTemplate; label: string; description: string }> = [
-    {
-      value: "modern",
-      label:
-        settings.language === "hu"
-          ? "Modern"
-          : settings.language === "de"
-          ? "Modern"
-          : "Modern",
-      description:
-        settings.language === "hu"
-          ? "Színes kiemelések, letisztult tipográfia és kártya stílus."
-          : settings.language === "de"
-          ? "Farbige Akzente, klare Typografie und Kartenstil."
-          : "Color accents, clean typography and card-style layout.",
-    },
-    {
-      value: "minimal",
-      label:
-        settings.language === "hu"
-          ? "Minimalista"
-          : settings.language === "de"
-          ? "Minimalistisch"
-          : "Minimal",
-      description:
-        settings.language === "hu"
-          ? "Letisztult, monokróm megjelenés finom keretekkel."
-          : settings.language === "de"
-          ? "Schlankes, monochromes Layout mit feinen Rahmen."
-          : "Clean, monochrome layout with subtle borders.",
-    },
-    {
-      value: "professional",
-      label:
-        settings.language === "hu"
-          ? "Professzionális"
-          : settings.language === "de"
-          ? "Professionell"
-          : "Professional",
-      description:
-        settings.language === "hu"
-          ? "Sötétebb fejlécek, strukturált információ blokkok."
-          : settings.language === "de"
-          ? "Dunklere Kopfzeilen, strukturierte Informationsblöcke."
-          : "Darker headers with structured information blocks.",
-    },
-  ];
+  const pdfTemplateOptions = useMemo<Array<{ value: PdfTemplate; label: string; description: string }>>(
+    () => [
+      {
+        value: "modern",
+        label: t("settings.pdf.templates.modern.label"),
+        description: t("settings.pdf.templates.modern.description"),
+      },
+      {
+        value: "minimal",
+        label: t("settings.pdf.templates.minimal.label"),
+        description: t("settings.pdf.templates.minimal.description"),
+      },
+      {
+        value: "professional",
+        label: t("settings.pdf.templates.professional.label"),
+        description: t("settings.pdf.templates.professional.description"),
+      },
+    ],
+    [t]
+  );
 
   const currentPdfTemplateOption =
     pdfTemplateOptions.find(option => option.value === pdfTemplate) || pdfTemplateOptions[0];
 
   const handleExport = async () => {
     if (!exportFilaments && !exportPrinters && !exportOffers) {
-      showToast(t("settings.exportError") + ": " + (settings.language === "hu" ? "Válassz ki legalább egy elemet!" : settings.language === "de" ? "Wählen Sie mindestens ein Element aus!" : "Select at least one item!"), "error");
+      showToast(`${t("settings.exportError")}: ${t("settings.data.export.selectOne")}`, "error");
       return;
     }
 
@@ -1845,14 +1762,10 @@ export const SettingsPage: React.FC<Props> = ({
     return (
       <div style={{ ...themeStyles.card, padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
         <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
-          ⚙️ {localize("Animációs beállítások", "Animations-Einstellungen", "Animation settings")}
+          ⚙️ {t("settings.animation.title")}
         </h3>
         <p style={{ margin: 0, fontSize: "12px", color: theme.colors.textMuted }}>
-          {localize(
-            "Válaszd ki, mennyire legyen dinamikus az alkalmazás. A finom animációk segítenek a visszajelzésekben, de kikapcsolhatók teljesítmény okokból.",
-            "Lege fest, wie dynamisch die Benutzeroberfläche sein soll. Animierte Rückmeldungen können bei Bedarf deaktiviert werden.",
-            "Control how dynamic the interface feels. You can turn off advanced effects if you prefer a calmer experience."
-          )}
+          {t("settings.animation.description")}
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
           <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
@@ -1861,7 +1774,7 @@ export const SettingsPage: React.FC<Props> = ({
               checked={animationSettings.microInteractions}
               onChange={event => updateAnimationSetting("microInteractions", event.target.checked)}
             />
-            {localize("Micro-interakciók engedélyezése", "Micro-Interaktionen aktivieren", "Enable micro-interactions")}
+            {t("settings.animation.microInteractions")}
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
             <input
@@ -1869,7 +1782,7 @@ export const SettingsPage: React.FC<Props> = ({
               checked={animationSettings.loadingSkeletons}
               onChange={event => updateAnimationSetting("loadingSkeletons", event.target.checked)}
             />
-            {localize("Csontsávos betöltés használata", "Skeleton-Loader verwenden", "Use loading skeletons")}
+            {t("settings.animation.loadingSkeletons")}
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: theme.colors.text }}>
             <input
@@ -1877,13 +1790,13 @@ export const SettingsPage: React.FC<Props> = ({
               checked={animationSettings.smoothScroll}
               onChange={event => updateAnimationSetting("smoothScroll", event.target.checked)}
             />
-            {localize("Finom görgetés engedélyezése", "Weiches Scrollen aktivieren", "Enable smooth scrolling")}
+            {t("settings.animation.smoothScroll")}
           </label>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
-              {localize("Micro-interakció stílusa", "Stil der Micro-Interaktionen", "Micro-interaction style")}
+              {t("settings.animation.microStyle.label")}
             </label>
             <select
               value={animationSettings.microInteractionStyle}
@@ -1900,16 +1813,16 @@ export const SettingsPage: React.FC<Props> = ({
               }}
               disabled={!animationSettings.microInteractions}
             >
-              <option value="subtle">{localize("Visszafogott", "Zurückhaltend", "Subtle")}</option>
-              <option value="expressive">{localize("Kifejező", "Ausdrucksstark", "Expressive")}</option>
-              <option value="playful">{localize("Játékos", "Verspielt", "Playful")}</option>
+              <option value="subtle">{t("settings.animation.microStyle.subtle")}</option>
+              <option value="expressive">{t("settings.animation.microStyle.expressive")}</option>
+              <option value="playful">{t("settings.animation.microStyle.playful")}</option>
             </select>
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
-              {localize("Oldalváltási animáció", "Seitenwechsel-Animation", "Page transition animation")}
+              {t("settings.animation.pageTransition.label")}
             </label>
             <select
               value={animationSettings.pageTransition}
@@ -1918,16 +1831,16 @@ export const SettingsPage: React.FC<Props> = ({
               }
               style={{ ...themeStyles.select, width: "100%" }}
             >
-              <option value="fade">{localize("Halványulás", "Ausblenden", "Fade")}</option>
-              <option value="slide">{localize("Csúszás", "Schieben", "Slide")}</option>
-              <option value="scale">{localize("Skálázás", "Skalierung", "Scale")}</option>
-              <option value="flip">{localize("Flip", "Flip", "Flip")}</option>
-              <option value="parallax">{localize("Parallaxis", "Parallaxe", "Parallax")}</option>
+              <option value="fade">{t("settings.animation.pageTransition.fade")}</option>
+              <option value="slide">{t("settings.animation.pageTransition.slide")}</option>
+              <option value="scale">{t("settings.animation.pageTransition.scale")}</option>
+              <option value="flip">{t("settings.animation.pageTransition.flip")}</option>
+              <option value="parallax">{t("settings.animation.pageTransition.parallax")}</option>
             </select>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <label style={{ fontSize: "13px", color: theme.colors.textMuted }}>
-              {localize("Visszajelző animációk", "Feedback-Animationen", "Feedback animations")}
+              {t("settings.animation.feedback.label")}
             </label>
             <select
               value={animationSettings.feedbackAnimations}
@@ -1939,10 +1852,10 @@ export const SettingsPage: React.FC<Props> = ({
               }
               style={{ ...themeStyles.select, width: "100%" }}
             >
-              <option value="subtle">{localize("Visszafogott", "Dezent", "Subtle")}</option>
-              <option value="emphasis">{localize("Hangsúlyos", "Betont", "Emphasis")}</option>
-              <option value="pulse">{localize("Pulzáló", "Pulsierend", "Pulse")}</option>
-              <option value="none">{localize("Kikapcsolva", "Deaktiviert", "Disabled")}</option>
+              <option value="subtle">{t("settings.animation.feedback.subtle")}</option>
+              <option value="emphasis">{t("settings.animation.feedback.emphasis")}</option>
+              <option value="pulse">{t("settings.animation.feedback.pulse")}</option>
+              <option value="none">{t("settings.animation.feedback.none")}</option>
             </select>
           </div>
         </div>
@@ -1956,32 +1869,28 @@ export const SettingsPage: React.FC<Props> = ({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
           <div>
             <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
-              🎨 {localize("Egyedi témák", "Benutzerdefinierte Themes", "Custom themes")}
+              🎨 {t("settings.theme.custom.title")}
             </h3>
             <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: theme.colors.textMuted }}>
-              {localize(
-                "Állíts össze saját színpalettát, exportáld és oszd meg másokkal.",
-                "Erstelle eigene Farbpaletten und teile sie mit anderen.",
-                "Design your own palettes, export them and share with your team."
-              )}
+              {t("settings.theme.custom.description")}
             </p>
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <button style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "8px 14px" }} onClick={handleCustomThemeImport}>
-              📥 {localize("Importálás", "Importieren", "Import")}
+              📥 {t("settings.theme.custom.import")}
             </button>
             <button
               style={{ ...themeStyles.button, padding: "8px 14px" }}
               onClick={handleExportAllCustomThemes}
               disabled={!customThemes.length}
             >
-              📤 {localize("Exportálás", "Exportieren", "Export all")}
+              📤 {t("settings.theme.custom.exportAll")}
             </button>
             <button style={{ ...themeStyles.button, padding: "8px 14px" }} onClick={handleDuplicateActiveTheme}>
-              📄 {localize("Aktív téma duplikálása", "Aktuelles Theme duplizieren", "Duplicate active theme")}
+              📄 {t("settings.theme.custom.duplicateActive")}
             </button>
             <button style={{ ...themeStyles.button, ...themeStyles.buttonPrimary, padding: "8px 14px" }} onClick={beginNewCustomTheme}>
-              ➕ {localize("Új téma", "Neues Theme", "New theme")}
+              ➕ {t("settings.theme.custom.new")}
             </button>
           </div>
         </div>
@@ -1999,11 +1908,7 @@ export const SettingsPage: React.FC<Props> = ({
               })
             }
           />
-          {localize(
-            "Automatikus szövegkontraszt gradient háttérhez",
-            "Automatischen Textkontrast für Gradienten aktivieren",
-            "Auto-adjust text contrast on gradient backgrounds"
-          )}
+          {t("settings.theme.custom.autoApplyGradientText")}
         </label>
 
         {customThemes.length > 0 && (
@@ -2053,7 +1958,7 @@ export const SettingsPage: React.FC<Props> = ({
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                     <button style={{ ...themeStyles.button, padding: "6px 12px" }} onClick={() => handleThemeSelect(customThemeName)}>
-                      {localize("Alkalmazás", "Anwenden", "Apply")}
+                      {t("settings.theme.actions.apply")}
                     </button>
                     <button
                       style={{ ...themeStyles.button, padding: "6px 12px" }}
@@ -2063,25 +1968,25 @@ export const SettingsPage: React.FC<Props> = ({
                         setCustomThemeEditorOpen(true);
                       }}
                     >
-                      {localize("Szerkesztés", "Bearbeiten", "Edit")}
+                      {t("settings.theme.actions.edit")}
                     </button>
                     <button
                       style={{ ...themeStyles.button, padding: "6px 12px" }}
                       onClick={() => handleCustomThemeExport(themeDefinition)}
                     >
-                      {localize("Export", "Export", "Export")}
+                      {t("settings.theme.actions.export")}
                     </button>
                     <button
                       style={{ ...themeStyles.button, padding: "6px 12px" }}
                       onClick={() => handleCopyCustomTheme(themeDefinition)}
                     >
-                      {localize("Megosztás", "Teilen", "Share")}
+                      {t("settings.theme.actions.share")}
                     </button>
                     <button
                       style={{ ...themeStyles.button, ...themeStyles.buttonDanger, padding: "6px 12px" }}
                       onClick={() => handleCustomThemeDelete(themeDefinition.id)}
                     >
-                      {localize("Törlés", "Löschen", "Delete")}
+                      {t("settings.theme.actions.delete")}
                     </button>
                   </div>
                 </div>
@@ -2104,16 +2009,14 @@ export const SettingsPage: React.FC<Props> = ({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
               <strong style={{ fontSize: "14px", color: theme.colors.text }}>
-                {editingCustomThemeIdState && customThemes.some(theme => theme.id === editingCustomThemeIdState)
-                  ? localize("Téma szerkesztése", "Theme bearbeiten", "Edit theme")
-                  : localize("Új téma létrehozása", "Neues Theme erstellen", "Create new theme")}
+                {editingCustomThemeIdState ? t("settings.theme.editor.titleEdit") : t("settings.theme.editor.titleNew")}
               </strong>
               <div style={{ display: "flex", gap: "8px" }}>
                 <button style={{ ...themeStyles.button, padding: "6px 12px" }} onClick={handleSaveCustomTheme}>
-                  💾 {localize("Mentés", "Speichern", "Save")}
+                  💾 {t("settings.theme.editor.save")}
                 </button>
                 <button style={{ ...themeStyles.button, ...themeStyles.buttonSecondary, padding: "6px 12px" }} onClick={closeCustomThemeEditor}>
-                  ✕ {localize("Mégse", "Abbrechen", "Cancel")}
+                  ✕ {t("settings.theme.editor.cancel")}
                 </button>
               </div>
             </div>
@@ -2121,7 +2024,7 @@ export const SettingsPage: React.FC<Props> = ({
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                  {localize("Téma neve", "Theme-Name", "Theme name")}
+                  {t("settings.theme.editor.nameLabel")}
                 </label>
                 <input
                   value={customThemeDraft.name}
@@ -2132,12 +2035,12 @@ export const SettingsPage: React.FC<Props> = ({
                     }))
                   }
                   style={{ ...themeStyles.input }}
-                  placeholder={localize("Pl.: Aurora", "z. B.: Aurora", "e.g. Aurora")}
+                  placeholder={t("settings.theme.editor.namePlaceholder")}
                 />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                  {localize("Leírás (opcionális)", "Beschreibung (optional)", "Description (optional)")}
+                  {t("settings.theme.editor.descriptionLabel")}
                 </label>
                 <textarea
                   value={customThemeDraft.description ?? ""}
@@ -2148,21 +2051,21 @@ export const SettingsPage: React.FC<Props> = ({
                     }))
                   }
                   style={{ ...themeStyles.input, minHeight: "60px", resize: "vertical" as const }}
-                  placeholder={localize("Rövid megjegyzés a témáról.", "Kurze Notiz zum Theme.", "A short note about this theme.")}
+                  placeholder={t("settings.theme.editor.descriptionPlaceholder")}
                 />
               </div>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
               {([
-                ["background", localize("Háttér", "Hintergrund", "Background")],
-                ["surface", localize("Felület", "Oberfläche", "Surface")],
-                ["primary", localize("Elsődleges", "Primärfarbe", "Primary")],
-                ["secondary", localize("Másodlagos", "Sekundärfarbe", "Secondary")],
-                ["success", localize("Siker", "Erfolg", "Success")],
-                ["danger", localize("Hiba", "Fehler", "Danger")],
-                ["text", localize("Szöveg", "Text", "Text")],
-                ["textMuted", localize("Szöveg (halvány)", "Text (gedämpft)", "Muted text")],
+                ["background", t("settings.theme.palette.background")],
+                ["surface", t("settings.theme.palette.surface")],
+                ["primary", t("settings.theme.palette.primary")],
+                ["secondary", t("settings.theme.palette.secondary")],
+                ["success", t("settings.theme.palette.success")],
+                ["danger", t("settings.theme.palette.danger")],
+                ["text", t("settings.theme.palette.text")],
+                ["textMuted", t("settings.theme.palette.textMuted")],
               ] as Array<[keyof CustomThemeDefinition["palette"], string]>).map(([key, label]) => (
                 <div key={key} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>{label}</label>
@@ -2184,19 +2087,19 @@ export const SettingsPage: React.FC<Props> = ({
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <label style={{ fontSize: "12px", color: theme.colors.textMuted, display: "flex", alignItems: "center", gap: "8px" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <input
                   type="checkbox"
                   checked={Boolean(customThemeDraft.gradient)}
                   onChange={event => handleCustomThemeGradientToggle(event.target.checked)}
                 />
-                {localize("Gradient háttér használata", "Gradient-Hintergrund verwenden", "Use gradient background")}
+                {t("settings.theme.gradient.enable")}
               </label>
               {customThemeDraft.gradient && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", alignItems: "center" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                      {localize("Gradient start", "Gradient-Start", "Gradient start")}
+                      {t("settings.theme.gradient.start")}
                     </label>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <input
@@ -2214,7 +2117,7 @@ export const SettingsPage: React.FC<Props> = ({
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                      {localize("Gradient vége", "Gradient-Ende", "Gradient end")}
+                      {t("settings.theme.gradient.end")}
                     </label>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <input
@@ -2232,7 +2135,7 @@ export const SettingsPage: React.FC<Props> = ({
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     <label style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                      {localize("Szög", "Winkel", "Angle")} ({Math.round(customThemeDraft.gradient.angle)}°)
+                      {t("settings.theme.gradient.angle")} ({Math.round(customThemeDraft.gradient.angle)}°)
                     </label>
                     <input
                       type="range"
@@ -2534,7 +2437,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontWeight: 700,
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
               }}>
-                🏢 {localize("Céginformációk", "Unternehmensinformationen", "Company information")}
+                🏢 {t("settings.company.title")}
               </h3>
               <p style={{
                 marginTop: "8px",
@@ -2542,11 +2445,7 @@ export const SettingsPage: React.FC<Props> = ({
                 color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
                 lineHeight: 1.6
               }}>
-                {localize(
-                  "Add meg a vállalkozás adatait, amelyek automatikusan megjelennek a PDF árajánlatokon.",
-                  "Gib hier die Unternehmensdaten ein, die automatisch auf den PDF-Angeboten erscheinen.",
-                  "Provide your company details and branding to include them on exported PDF quotes automatically."
-                )}
+                {t("settings.company.description")}
               </p>
             </div>
             {companyInfo.logoBase64 && (
@@ -2563,7 +2462,7 @@ export const SettingsPage: React.FC<Props> = ({
               }}>
                 <img
                   src={companyInfo.logoBase64}
-                  alt={localize("Vállalati logo előnézet", "Logo-Vorschau", "Company logo preview")}
+                  alt={t("settings.company.logoPreview")}
                   style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
                 />
               </div>
@@ -2584,7 +2483,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontSize: "14px",
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
               }}>
-                {localize("Cégnév", "Firmenname", "Company name")}
+                {t("settings.company.fields.name")}
               </label>
               <input
                 type="text"
@@ -2593,7 +2492,7 @@ export const SettingsPage: React.FC<Props> = ({
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
-                placeholder={localize("Pl.: Lekszikov Nyomtató Kft.", "z. B.: Lekszikov Druck GmbH", "e.g. Lekszikov Printing LLC")}
+                placeholder={t("settings.company.placeholders.name")}
               />
             </div>
             <div>
@@ -2604,7 +2503,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontSize: "14px",
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
               }}>
-                {localize("Adószám", "Steuernummer", "Tax/VAT number")}
+                {t("settings.company.fields.tax")}
               </label>
               <input
                 type="text"
@@ -2613,7 +2512,7 @@ export const SettingsPage: React.FC<Props> = ({
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
-                placeholder={localize("Pl.: 12345678-1-12", "z. B.: DE123456789", "e.g. TAX-123456")}
+                placeholder={t("settings.company.placeholders.tax")}
               />
             </div>
             <div>
@@ -2624,7 +2523,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontSize: "14px",
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
               }}>
-                {localize("Bankszámlaszám / IBAN", "Kontonummer / IBAN", "Bank account / IBAN")}
+                {t("settings.company.fields.bank")}
               </label>
               <input
                 type="text"
@@ -2633,7 +2532,7 @@ export const SettingsPage: React.FC<Props> = ({
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
-                placeholder={localize("Pl.: HU12 3456 7890 1234 5678 9012 3456", "z. B.: DE12 3456 7890 1234 5678 90", "e.g. GB00 BARC 2004 0149 1234 56")}
+                placeholder={t("settings.company.placeholders.bank")}
               />
             </div>
             <div>
@@ -2644,7 +2543,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontSize: "14px",
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
               }}>
-                {localize("E-mail", "E-Mail", "Email")}
+                {t("settings.company.fields.email")}
               </label>
               <input
                 type="email"
@@ -2653,7 +2552,7 @@ export const SettingsPage: React.FC<Props> = ({
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
-                placeholder={localize("Pl.: info@ceg.hu", "z. B.: info@firma.de", "e.g. hello@company.com")}
+                placeholder={t("settings.company.placeholders.email")}
               />
             </div>
             <div>
@@ -2664,7 +2563,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontSize: "14px",
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
               }}>
-                {localize("Telefon", "Telefon", "Phone")}
+                {t("settings.company.fields.phone")}
               </label>
               <input
                 type="tel"
@@ -2673,7 +2572,7 @@ export const SettingsPage: React.FC<Props> = ({
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
-                placeholder={localize("Pl.: +36 30 123 4567", "z. B.: +49 30 1234567", "e.g. +1 555 123 4567")}
+                placeholder={t("settings.company.placeholders.phone")}
               />
             </div>
             <div>
@@ -2684,7 +2583,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontSize: "14px",
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
               }}>
-                {localize("Weboldal", "Webseite", "Website")}
+                {t("settings.company.fields.website")}
               </label>
               <input
                 type="url"
@@ -2693,7 +2592,7 @@ export const SettingsPage: React.FC<Props> = ({
                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                 style={{ ...themeStyles.input, width: "100%", maxWidth: "340px" }}
-                placeholder={localize("Pl.: https://www.ceg.hu", "z. B.: https://www.firma.de", "e.g. https://www.company.com")}
+                placeholder={t("settings.company.placeholders.website")}
               />
             </div>
           </div>
@@ -2706,7 +2605,7 @@ export const SettingsPage: React.FC<Props> = ({
               fontSize: "14px",
               color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
             }}>
-              {localize("Székhely / Cím", "Firmensitz / Adresse", "Headquarters / Address")}
+              {t("settings.company.fields.address")}
             </label>
             <textarea
               value={companyInfo.address || ""}
@@ -2714,11 +2613,7 @@ export const SettingsPage: React.FC<Props> = ({
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
               style={{ ...themeStyles.input, width: "100%", maxWidth: "700px", minHeight: "100px", resize: "vertical" as const }}
-              placeholder={localize(
-                "Pl.: 1111 Budapest, Nyomtató utca 3.",
-                "z. B.: Musterstraße 5, 10115 Berlin",
-                "e.g. 123 Printer Ave, Suite 200"
-              )}
+              placeholder={t("settings.company.placeholders.address")}
             />
           </div>
 
@@ -2739,7 +2634,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontSize: "14px"
               }}
             >
-              📁 {localize("Logo feltöltése", "Logo hochladen", "Upload logo")}
+              📁 {t("settings.company.uploadLogo")}
             </button>
             {companyInfo.logoBase64 && (
               <button
@@ -2751,7 +2646,7 @@ export const SettingsPage: React.FC<Props> = ({
                   fontSize: "14px"
                 }}
               >
-                🗑️ {localize("Logo eltávolítása", "Logo entfernen", "Remove logo")}
+                🗑️ {t("settings.company.removeLogo")}
               </button>
             )}
             <p style={{
@@ -2760,11 +2655,7 @@ export const SettingsPage: React.FC<Props> = ({
               color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
               flexBasis: "100%"
             }}>
-              {localize(
-                "Tipp: 512×512 px, átlátszó PNG javasolt. Maximum 4 MB.",
-                "Tipp: Empfohlen 512×512 px, transparentes PNG. Maximal 4 MB.",
-                "Tip: Prefer 512×512 px transparent PNG. Maximum size 4 MB."
-              )}
+              {t("settings.company.logoTip")}
             </p>
           </div>
         </div>
@@ -2782,7 +2673,7 @@ export const SettingsPage: React.FC<Props> = ({
             fontWeight: 700,
             color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
           }}>
-            📄 {localize("PDF beállítások", "PDF-Einstellungen", "PDF settings")}
+            📄 {t("settings.pdf.title")}
           </h3>
           <p style={{
             margin: "0 0 16px 0",
@@ -2790,11 +2681,7 @@ export const SettingsPage: React.FC<Props> = ({
             color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
             lineHeight: 1.6
           }}>
-            {localize(
-              "Válaszd ki az árajánlatok megjelenését. A vállalati adatok automatikusan bekerülnek a fejlécbe.",
-              "Wähle das Erscheinungsbild deiner Angebote. Die Unternehmensdaten erscheinen automatisch im Kopfbereich.",
-              "Choose the visual style of your quotes. Company details will appear automatically in the header."
-            )}
+            {t("settings.pdf.description")}
           </p>
           <select
             value={pdfTemplate}
@@ -2821,11 +2708,7 @@ export const SettingsPage: React.FC<Props> = ({
             fontSize: "12px",
             color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted
           }}>
-            {localize(
-              "Tipp: Használd az árajánlat oldalon az \"PDF előnézet\" gombot a dizájn ellenőrzéséhez export előtt.",
-              "Tipp: Nutze die Schaltfläche \"PDF-Vorschau\" im Angebotsbereich, um das Design vor dem Export zu prüfen.",
-              "Tip: Use the \"PDF preview\" button on the offers page to review the layout before exporting."
-            )}
+            {t("settings.pdf.tip")}
           </p>
         </div>
           </div>
@@ -3522,13 +3405,13 @@ export const SettingsPage: React.FC<Props> = ({
                             onClick={() => handleLibraryStartEdit(entry)}
                             style={{ ...themeStyles.button, padding: "8px 16px" }}
                           >
-                            ✏️ {localize("Szerkesztés", "Bearbeiten", "Edit")}
+                            ✏️ {t("settings.theme.actions.edit")}
                           </button>
                           <button
                             onClick={() => handleLibraryDelete(entry.id ?? undefined)}
                             style={{ ...themeStyles.button, ...themeStyles.buttonDanger, padding: "8px 16px" }}
                           >
-                            🗑️ {localize("Törlés", "Löschen", "Delete")}
+                            🗑️ {t("settings.theme.actions.delete")}
                           </button>
                         </div>
                       </div>

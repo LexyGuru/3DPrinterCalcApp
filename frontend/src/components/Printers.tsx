@@ -36,12 +36,19 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
 
   const addPrinter = () => {
     if (!name || !type || !power) {
-      showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek töltsd ki az összes kötelező mezőt!" : settings.language === "de" ? "Bitte füllen Sie alle Pflichtfelder aus!" : "Please fill in all required fields!"), "error");
+      showToast(`${t("common.error")}: ${t("printers.error.missingFields")}`, "error");
       return;
     }
-    
-    if (power <= 0 || usageCost < 0) {
-      showToast(t("common.error") + ": " + (settings.language === "hu" ? "A teljesítmény pozitív szám kell legyen!" : settings.language === "de" ? "Die Leistung muss eine positive Zahl sein!" : "Power must be a positive number!"), "error");
+
+    const powerValidation = validatePrinterPower(power, settings.language);
+    if (!powerValidation.isValid) {
+      showToast(`${t("common.error")}: ${powerValidation.errorMessage ?? t("printers.error.invalidPower")}`, "error");
+      return;
+    }
+
+    const usageValidation = validateUsageCost(usageCost, settings.language);
+    if (!usageValidation.isValid) {
+      showToast(`${t("common.error")}: ${usageValidation.errorMessage ?? t("printers.error.invalidUsageCost")}`, "error");
       return;
     }
     
@@ -116,12 +123,19 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     if (!editingPrinter) return;
     
     if (!editingPrinter.name || !editingPrinter.type || !editingPrinter.power) {
-      showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek töltsd ki az összes kötelező mezőt!" : settings.language === "de" ? "Bitte füllen Sie alle Pflichtfelder aus!" : "Please fill in all required fields!"), "error");
+      showToast(`${t("common.error")}: ${t("printers.error.missingFields")}`, "error");
       return;
     }
-    
-    if (editingPrinter.power <= 0 || editingPrinter.usageCost < 0) {
-      showToast(t("common.error") + ": " + (settings.language === "hu" ? "A teljesítmény pozitív szám kell legyen!" : settings.language === "de" ? "Die Leistung muss eine positive Zahl sein!" : "Power must be a positive number!"), "error");
+
+    const powerValidation = validatePrinterPower(editingPrinter.power, settings.language);
+    if (!powerValidation.isValid) {
+      showToast(`${t("common.error")}: ${powerValidation.errorMessage ?? t("printers.error.invalidPower")}`, "error");
+      return;
+    }
+
+    const usageValidation = validateUsageCost(editingPrinter.usageCost, settings.language);
+    if (!usageValidation.isValid) {
+      showToast(`${t("common.error")}: ${usageValidation.errorMessage ?? t("printers.error.invalidUsageCost")}`, "error");
       return;
     }
 
@@ -230,12 +244,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     setPrinters(newPrinters);
     setDraggedPrinterId(null);
     console.log("🔄 Nyomtatók átrendezve", { draggedId: draggedPrinterId, targetId: targetPrinterId });
-    showToast(
-      settings.language === "hu" ? "Nyomtatók átrendezve" :
-      settings.language === "de" ? "Drucker neu angeordnet" :
-      "Printers reordered",
-      "success"
-    );
+    showToast(t("printers.toast.reordered"), "success");
   };
 
   const handleDragEnd = () => {
@@ -314,9 +323,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("printers.title")}</h2>
-      <p style={themeStyles.pageSubtitle}>
-        {settings.language === "hu" ? "Nyomtatók és AMS rendszerek kezelése" : settings.language === "de" ? "Drucker und AMS-Systeme verwalten" : "Manage printers and AMS systems"}
-      </p>
+      <p style={themeStyles.pageSubtitle}>{t("printers.subtitle")}</p>
       
       {/* Kereső mező */}
       {printers.length > 0 && (
@@ -328,21 +335,21 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
             fontSize: "14px", 
             color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
           }}>
-            🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
+            🔍 {t("printers.searchLabel")}
           </label>
           <input
             type="text"
-            placeholder={settings.language === "hu" ? "Keresés név vagy típus alapján..." : settings.language === "de" ? "Suche nach Name oder Typ..." : "Search by name or type..."}
+            placeholder={t("printers.searchPlaceholder")}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
             onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
             style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
-            aria-label={settings.language === "hu" ? "Keresés nyomtatók között" : settings.language === "de" ? "Drucker durchsuchen" : "Search printers"}
+            aria-label={t("printers.searchAria")}
             aria-describedby="printer-search-description"
           />
           <span id="printer-search-description" style={{ display: "none" }}>
-            {settings.language === "hu" ? "Keresés nyomtatók között név vagy típus alapján" : settings.language === "de" ? "Drucker nach Name oder Typ durchsuchen" : "Search printers by name or type"}
+            {t("printers.searchDescription")}
           </span>
         </div>
       )}
@@ -350,7 +357,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       {/* Új nyomtató hozzáadása gomb */}
       {!showAddForm && (
         <div style={{ marginBottom: "24px" }}>
-          <Tooltip content={settings.language === "hu" ? "Új nyomtató hozzáadása (Ctrl/Cmd+N)" : settings.language === "de" ? "Neuen Drucker hinzufügen (Strg/Cmd+N)" : "Add new printer (Ctrl/Cmd+N)"}>
+          <Tooltip content={t("printers.tooltip.addShortcut")}>
             <button
               onClick={() => setShowAddForm(true)}
               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
@@ -367,7 +374,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                 fontSize: "16px",
                 padding: "14px 28px"
               }}
-              aria-label={settings.language === "hu" ? "Új nyomtató hozzáadása" : settings.language === "de" ? "Neuen Drucker hinzufügen" : "Add new printer"}
+              aria-label={t("printers.aria.openAddForm")}
             >
               ➕ {t("printers.addTitle")}
             </button>
@@ -462,7 +469,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               aria-describedby="printer-power-description"
             />
             <span id="printer-power-description" style={{ display: "none" }}>
-              {settings.language === "hu" ? "Nyomtató teljesítménye wattban (1-100000)" : settings.language === "de" ? "Druckerleistung in Watt (1-100000)" : "Printer power in watts (1-100000)"}
+              {t("printers.powerDescription")}
             </span>
           </div>
           <div style={{ width: "180px", flexShrink: 0 }}>
@@ -530,7 +537,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
           </div>
         </div>
         <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
-          <Tooltip content={settings.language === "hu" ? "Nyomtató hozzáadása (Ctrl/Cmd+S)" : settings.language === "de" ? "Drucker hinzufügen (Strg/Cmd+S)" : "Add printer (Ctrl/Cmd+S)"}>
+          <Tooltip content={t("printers.tooltip.submitShortcut")}>
             <button 
               onClick={addPrinter}
               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
@@ -547,12 +554,12 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                 fontSize: "16px",
                 padding: "14px 28px"
               }}
-              aria-label={settings.language === "hu" ? "Nyomtató hozzáadása" : settings.language === "de" ? "Drucker hinzufügen" : "Add printer"}
+              aria-label={t("printers.aria.openAddForm")}
             >
               ➕ {t("printers.add")}
             </button>
           </Tooltip>
-          <Tooltip content={settings.language === "hu" ? "Mégse (Escape)" : settings.language === "de" ? "Abbrechen (Escape)" : "Cancel (Escape)"}>
+          <Tooltip content={t("printers.tooltip.cancelShortcut")}>
             <button
               onClick={() => setShowAddForm(false)}
               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
@@ -570,7 +577,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                 fontSize: "12px",
                 marginLeft: "10px"
               }}
-              aria-label={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+              aria-label={t("common.cancel")}
             >
               {t("filaments.cancel")}
             </button>
@@ -635,7 +642,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                     </td>
                     <td style={themeStyles.tableCell}>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                        <Tooltip content={settings.language === "hu" ? (editingPrinterId === p.id ? "Mentés (Ctrl/Cmd+S)" : "Szerkesztés") : settings.language === "de" ? (editingPrinterId === p.id ? "Speichern (Strg/Cmd+S)" : "Bearbeiten") : (editingPrinterId === p.id ? "Save (Ctrl/Cmd+S)" : "Edit")}>
+                        <Tooltip content={editingPrinterId === p.id ? t("printers.tooltip.saveShortcut") : t("printers.tooltip.edit")}>
                           <button 
                             onClick={() => {
                               if (editingPrinterId === p.id) {
@@ -656,7 +663,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                             {editingPrinterId === p.id ? t("printers.save") : t("printers.edit")}
                           </button>
                         </Tooltip>
-                        <Tooltip content={settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}>
+                        <Tooltip content={t("printers.tooltip.delete")}>
                           <button 
                             onClick={() => deletePrinter(p.id)}
                             onKeyDown={(e) => {
@@ -673,7 +680,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                               padding: "8px 16px",
                               fontSize: "12px"
                             }}
-                            aria-label={settings.language === "hu" ? `Nyomtató törlése: ${p.name}` : settings.language === "de" ? `Drucker löschen: ${p.name}` : `Delete printer: ${p.name}`}
+                            aria-label={`${t("printers.aria.deletePrinter")} ${p.name}`}
                           >
                             {t("printers.delete")}
                           </button>
@@ -697,14 +704,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                       
                       {/* Nyomtató alapadatok szerkesztése */}
                       <div style={{ ...themeStyles.card, marginBottom: "24px", padding: "20px" }}>
-                        <h5 style={{ 
+                      <h5 style={{ 
                           marginTop: 0, 
                           marginBottom: "16px", 
                           fontSize: "16px", 
                           fontWeight: "600", 
                           color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
                         }}>
-                          📋 {settings.language === "hu" ? "Nyomtató adatai" : settings.language === "de" ? "Drucker-Daten" : "Printer Details"}
+                          📋 {t("printers.details")}
                         </h5>
                         <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
                           <div style={{ width: "180px", flexShrink: 0 }}>
@@ -975,12 +982,14 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       ) : printers.length > 0 && searchTerm ? (
         <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
-          <p style={{ 
-            margin: 0, 
-            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
-            fontSize: "16px" 
-          }}>
-            {settings.language === "hu" ? "Nincs találat a keresési kifejezésre." : settings.language === "de" ? "Keine Ergebnisse für den Suchbegriff." : "No results found for the search term."}
+          <p
+            style={{
+              margin: 0,
+              color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted,
+              fontSize: "16px",
+            }}
+          >
+            {t("printers.noSearchResults")}
           </p>
         </div>
       ) : (
@@ -1056,7 +1065,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                 e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
-              ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
+              ✏️ {t("printers.edit")}
             </button>
             <div style={{ height: "1px", backgroundColor: theme.colors.border, margin: "4px 0" }} />
             <button
@@ -1079,7 +1088,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                 e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
-              🗑️ {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}
+              🗑️ {t("printers.delete")}
             </button>
           </div>
         </div>

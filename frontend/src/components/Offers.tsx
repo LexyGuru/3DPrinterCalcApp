@@ -103,32 +103,15 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     showToast(t("common.offerDuplicated"), "success");
   };
 
-  const getStatusLabel = (status: OfferStatus): string => {
-    const hu: Record<OfferStatus, string> = {
-      draft: "Tervezés",
-      sent: "Kiküldve",
-      accepted: "Elfogadva",
-      rejected: "Elutasítva",
-      completed: "Befejezve",
-    };
-    const de: Record<OfferStatus, string> = {
-      draft: "Entwurf",
-      sent: "Gesendet",
-      accepted: "Akzeptiert",
-      rejected: "Abgelehnt",
-      completed: "Abgeschlossen",
-    };
-    const en: Record<OfferStatus, string> = {
-      draft: "Draft",
-      sent: "Sent",
-      accepted: "Accepted",
-      rejected: "Rejected",
-      completed: "Completed",
-    };
-    if (settings.language === "hu") return hu[status];
-    if (settings.language === "de") return de[status];
-    return en[status];
+  const statusLabelKeyMap: Record<OfferStatus, TranslationKey> = {
+    draft: "offers.status.draft",
+    sent: "offers.status.sent",
+    accepted: "offers.status.accepted",
+    rejected: "offers.status.rejected",
+    completed: "offers.status.completed",
   };
+
+  const getStatusLabel = (status: OfferStatus): string => t(statusLabelKeyMap[status]);
 
   const getStatusColor = (status: OfferStatus): string => {
     switch (status) {
@@ -178,14 +161,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     setStatusChangeTarget(null);
     setStatusChangeNote("");
 
-    showToast(
-      settings.language === "hu"
-        ? `Státusz frissítve: ${getStatusLabel(newStatus)}`
-        : settings.language === "de"
-        ? `Status aktualisiert: ${getStatusLabel(newStatus)}`
-        : `Status updated: ${getStatusLabel(newStatus)}`,
-      "success"
-    );
+    showToast(`${t("offers.toast.statusUpdated")} ${getStatusLabel(newStatus)}`, "success");
   };
 
   const startEditOffer = (offer: Offer) => {
@@ -211,7 +187,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     if (!editingOffer) return;
     
     if (!editCustomerName.trim()) {
-      showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek add meg az ügyfél nevét!" : settings.language === "de" ? "Bitte geben Sie den Kundennamen ein!" : "Please enter customer name!"), "error");
+      showToast(`${t("common.error")}: ${t("offers.toast.customerNameRequired")}`, "error");
       return;
     }
 
@@ -292,12 +268,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       version: currentVersion,
       hasHistory: history.length > 0
     });
-    showToast(
-      settings.language === "hu" ? `Árajánlat sikeresen mentve${hasChanges ? ` (v${currentVersion})` : ""}` :
-      settings.language === "de" ? `Angebot erfolgreich gespeichert${hasChanges ? ` (v${currentVersion})` : ""}` :
-      `Offer saved successfully${hasChanges ? ` (v${currentVersion})` : ""}`,
-      "success"
-    );
+    const versionSuffix = hasChanges ? ` (${t("offers.versionPrefix")}${currentVersion})` : "";
+    showToast(`${t("offers.toast.saveSuccess")}${versionSuffix}`, "success");
   };
 
   const exportToPDF = (offer: Offer) => {
@@ -310,7 +282,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       });
       
       // HTML tartalom generálása
-      const htmlContent = generatePDFContent(offer, t, settings);
+      const htmlContent = generatePDFContent(offer, t, settings, locale);
       
       // Próbáljuk meg az új ablakot megnyitni (user gesture, így működik)
       const printWindow = window.open('', '_blank', 'width=800,height=600');
@@ -380,7 +352,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       }
       
       // HTML tartalom generálása
-      const htmlContent = generatePDFContent(offer, t, settings);
+      const htmlContent = generatePDFContent(offer, t, settings, locale);
       
       // Tauri save dialog használata
       const dateStr = new Date().toISOString().split('T')[0];
@@ -401,38 +373,28 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       });
 
       if (filePath) {
-        // Fájl mentése
         await writeTextFile(filePath, htmlContent);
-        showToast(
-          settings.language === "hu" 
-            ? `HTML fájl sikeresen mentve: ${fileName}` 
-            : settings.language === "de"
-            ? `HTML-Datei erfolgreich gespeichert: ${fileName}`
-            : `HTML file saved successfully: ${fileName}`,
-          "success"
-        );
+        showToast(`${t("offers.toast.exportHtmlSuccess")} ${fileName}`, "success");
       }
     } catch (error) {
       console.error("Error exporting PDF:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
-      showToast(
-        settings.language === "hu"
-          ? `Hiba történt: ${errorMessage}`
-          : settings.language === "de"
-          ? `Fehler aufgetreten: ${errorMessage}`
-          : `Error occurred: ${errorMessage}`,
-        "error"
-      );
+      showToast(`${t("offers.toast.exportHtmlError")} ${errorMessage}`, "error");
     }
   };
 
   const openPDFPreview = (offer: Offer) => {
-    const htmlContent = generatePDFContent(offer, t, settings);
+    const htmlContent = generatePDFContent(offer, t, settings, locale);
     setPrintContent(htmlContent);
     setShowPrintPreview(true);
   };
 
-  const generatePDFContent = (offer: Offer, t: (key: TranslationKey) => string, settings: Settings): string => {
+  const generatePDFContent = (
+    offer: Offer,
+    t: (key: TranslationKey) => string,
+    settings: Settings,
+    locale: string
+  ): string => {
     const formatTime = (hours: number, minutes: number, seconds: number) => {
       const parts = [];
       if (hours > 0) parts.push(`${hours}h`);
@@ -443,11 +405,11 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
 
     // Konvertáljuk a jelenlegi beállítások pénznemére
     const displayCurrency = settings.currency;
+    const displayCurrencyLabel = displayCurrency === "HUF" ? "Ft" : displayCurrency;
 
     const date = new Date(offer.date);
-    const formattedDate = date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US");
-    const localize = (hu: string, de: string, en: string) =>
-      settings.language === "hu" ? hu : settings.language === "de" ? de : en;
+    const formattedDate = date.toLocaleDateString(locale);
+    const pricePerKgHeader = t("offers.pdf.table.pricePerKg").replace("{currency}", displayCurrencyLabel);
 
     const escapeHtml = (value: string) =>
       value
@@ -486,24 +448,24 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
         <div class="company-header">
           <div class="company-details">
             ${safeName ? `<h2>${escapeHtml(safeName)}</h2>` : ""}
-            ${safeAddress ? `<p><strong>${localize("Székhely", "Firmensitz", "Headquarters")}:</strong> ${formatMultiline(safeAddress)}</p>` : ""}
-            ${safeTax ? `<p><strong>${localize("Adószám", "Steuernummer", "Tax/VAT")}:</strong> ${escapeHtml(safeTax)}</p>` : ""}
-            ${safeBank ? `<p><strong>${localize("Bankszámla / IBAN", "Kontoverbindung / IBAN", "Bank account / IBAN")}:</strong> ${escapeHtml(safeBank)}</p>` : ""}
-            ${safeEmail ? formatLink(localize("E-mail", "E-Mail", "Email"), `mailto:${encodeURIComponent(safeEmail)}`, safeEmail) : ""}
-            ${safePhone ? formatLink(localize("Telefon", "Telefon", "Phone"), `tel:${encodeURIComponent(safePhone.replace(/\s+/g, ""))}`, safePhone) : ""}
+            ${safeAddress ? `<p><strong>${t("offers.pdf.company.headquarters")}:</strong> ${formatMultiline(safeAddress)}</p>` : ""}
+            ${safeTax ? `<p><strong>${t("offers.pdf.company.tax")}:</strong> ${escapeHtml(safeTax)}</p>` : ""}
+            ${safeBank ? `<p><strong>${t("offers.pdf.company.bank")}:</strong> ${escapeHtml(safeBank)}</p>` : ""}
+            ${safeEmail ? formatLink(t("offers.pdf.company.email"), `mailto:${encodeURIComponent(safeEmail)}`, safeEmail) : ""}
+            ${safePhone ? formatLink(t("offers.pdf.company.phone"), `tel:${encodeURIComponent(safePhone.replace(/\s+/g, ""))}`, safePhone) : ""}
             ${
               safeWebsite
                 ? (() => {
                     const normalized =
                       safeWebsite.match(/^https?:\/\//i) ? safeWebsite : `https://${safeWebsite}`;
-                    return formatLink(localize("Weboldal", "Webseite", "Website"), encodeURI(normalized), safeWebsite);
+                    return formatLink(t("offers.pdf.company.website"), encodeURI(normalized), safeWebsite);
                   })()
                 : ""
             }
           </div>
           ${
             companyInfo.logoBase64
-              ? `<div class="company-logo"><img src="${companyInfo.logoBase64}" alt="${localize("Céges logo", "Firmenlogo", "Company logo")}" /></div>`
+              ? `<div class="company-logo"><img src="${companyInfo.logoBase64}" alt="${t("offers.pdf.company.logoAlt")}" /></div>`
               : ""
           }
         </div>
@@ -515,7 +477,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Árajánlat - ${offer.id}</title>
+        <title>${t("offers.pdf.title")} - ${offer.id}</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -542,7 +504,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       </head>
       <body>
         ${companyInfoBlock}
-        <h1>3D Nyomtatási Árajánlat</h1>
+        <h1>${t("offers.pdf.title")}</h1>
         
         <div class="info">
           <p><strong>${t("offers.date")}:</strong> ${formattedDate}</p>
@@ -552,23 +514,23 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
         </div>
 
         <div class="section">
-          <h2>${t("offers.printer")}</h2>
+          <h2>${t("offers.pdf.section.printer")}</h2>
           <p><strong>${offer.printerName}</strong> (${offer.printerType}) - ${offer.printerPower}W</p>
           <p><strong>${t("offers.printTime")}:</strong> ${formatTime(offer.printTimeHours, offer.printTimeMinutes, offer.printTimeSeconds)}</p>
         </div>
 
         <div class="section">
-          <h2>${t("offers.filaments")}</h2>
+          <h2>${t("offers.pdf.section.filaments")}</h2>
           <table>
             <thead>
               <tr>
-                <th>${t("common.image")}</th>
-                <th>${t("filaments.brand")}</th>
-                <th>${t("filaments.type")}</th>
-                <th>${t("filaments.color")}</th>
-                <th>${t("calculator.usedGrams")}</th>
-                <th>${t("filaments.pricePerKg").replace(":", "")} (${displayCurrency === "HUF" ? "Ft" : displayCurrency}/kg)</th>
-                ${offer.filaments.some(f => f.needsDrying) ? `<th>${settings.language === "hu" ? "Szárítás" : settings.language === "de" ? "Trocknung" : "Drying"}</th>` : ""}
+                <th>${t("offers.pdf.table.image")}</th>
+                <th>${t("offers.pdf.table.brand")}</th>
+                <th>${t("offers.pdf.table.type")}</th>
+                <th>${t("offers.pdf.table.color")}</th>
+                <th>${t("offers.pdf.table.used")}</th>
+                <th>${pricePerKgHeader}</th>
+                ${offer.filaments.some(f => f.needsDrying) ? `<th>${t("offers.pdf.table.drying")}</th>` : ""}
               </tr>
             </thead>
             <tbody>
@@ -597,7 +559,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                         </div>
                       </td>
                       <td>${f.usedGrams}</td>
-                      <td>${convertedPrice.toFixed(2)} ${displayCurrency === "HUF" ? "Ft" : displayCurrency}</td>
+                      <td>${convertedPrice.toFixed(2)} ${displayCurrencyLabel}</td>
                       ${hasDryingInfo ? `<td>${dryingInfo}</td>` : ""}
                     </tr>
                   `;
@@ -608,7 +570,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
         </div>
 
         <div class="section">
-          <h2>${t("calculator.costBreakdown")}</h2>
+          <h2>${t("offers.pdf.section.costs")}</h2>
           <table>
             ${(() => {
               const offerCurrency = offer.currency || "EUR";
@@ -622,34 +584,34 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
               const revenue = convertCurrencyFromTo(offer.costs.totalCost * (1 + profitPercentage / 100), offerCurrency, displayCurrency);
               return `
             <tr>
-              <td>${t("calculator.filamentCost")}</td>
-              <td><strong>${filamentCost.toFixed(2)} ${displayCurrency === "HUF" ? "Ft" : displayCurrency}</strong></td>
+              <td>${t("offers.pdf.cost.filament")}</td>
+              <td><strong>${filamentCost.toFixed(2)} ${displayCurrencyLabel}</strong></td>
             </tr>
             <tr>
-              <td>${t("calculator.electricityCost")}</td>
-              <td><strong>${electricityCost.toFixed(2)} ${displayCurrency === "HUF" ? "Ft" : displayCurrency}</strong></td>
+              <td>${t("offers.pdf.cost.electricity")}</td>
+              <td><strong>${electricityCost.toFixed(2)} ${displayCurrencyLabel}</strong></td>
             </tr>
             ${dryingCost > 0 ? `
             <tr>
-              <td>${t("calculator.dryingCost")}</td>
-              <td><strong>${dryingCost.toFixed(2)} ${displayCurrency === "HUF" ? "Ft" : displayCurrency}</strong></td>
+              <td>${t("offers.pdf.cost.drying")}</td>
+              <td><strong>${dryingCost.toFixed(2)} ${displayCurrencyLabel}</strong></td>
             </tr>
             ` : ""}
             <tr>
-              <td>${t("calculator.usageCost")}</td>
-              <td><strong>${usageCost.toFixed(2)} ${displayCurrency === "HUF" ? "Ft" : displayCurrency}</strong></td>
+              <td>${t("offers.pdf.cost.usage")}</td>
+              <td><strong>${usageCost.toFixed(2)} ${displayCurrencyLabel}</strong></td>
             </tr>
             <tr>
-              <td><strong>${t("calculator.totalCost")}</strong></td>
-              <td><strong>${totalCost.toFixed(2)} ${displayCurrency === "HUF" ? "Ft" : displayCurrency}</strong></td>
+              <td><strong>${t("offers.pdf.cost.total")}</strong></td>
+              <td><strong>${totalCost.toFixed(2)} ${displayCurrencyLabel}</strong></td>
             </tr>
             <tr style="border-top: 2px solid #333;">
-              <td><strong>${t("calculator.profit")} (${profitPercentage}%):</strong></td>
-              <td><strong style="color: #28a745; font-size: 1.1em;">${profit.toFixed(2)} ${displayCurrency === "HUF" ? "Ft" : displayCurrency}</strong></td>
+              <td><strong>${t("offers.pdf.summary.revenue").replace("{profit}", String(offer.profitPercentage ?? 30))}:</strong></td>
+              <td><strong style="color: #28a745; font-size: 1.1em;">${revenue.toFixed(2)} ${displayCurrencyLabel}</strong></td>
             </tr>
             <tr class="total" style="background-color: #f0f8ff;">
-              <td><strong>${t("calculator.revenue")} (${t("calculator.totalPrice")}):</strong></td>
-              <td><strong style="color: #007bff; font-size: 1.3em;">${revenue.toFixed(2)} ${displayCurrency === "HUF" ? "Ft" : displayCurrency}</strong></td>
+              <td><strong>${t("offers.pdf.summary.profit")}:</strong></td>
+              <td><strong style="color: #007bff; font-size: 1.3em;">${profit.toFixed(2)} ${displayCurrencyLabel}</strong></td>
             </tr>
                       `;
                     })()}
@@ -794,12 +756,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     setOffers(newOffers);
     setDraggedOfferId(null);
     console.log("🔄 Árajánlatok átrendezve", { draggedId: draggedOfferId, targetId: targetOfferId });
-    showToast(
-      settings.language === "hu" ? "Árajánlatok átrendezve" :
-      settings.language === "de" ? "Angebote neu angeordnet" :
-      "Offers reordered",
-      "success"
-    );
+    showToast(t("offers.toast.reordered"), "success");
   };
 
   const handleDragEnd = () => {
@@ -848,31 +805,39 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("offers.title")}</h2>
-      <p style={themeStyles.pageSubtitle}>
-        {settings.language === "hu" ? "Mentett árajánlatok kezelése és exportálása" : settings.language === "de" ? "Gespeicherte Angebote verwalten und exportieren" : "Manage and export saved offers"}
-      </p>
+      <p style={themeStyles.pageSubtitle}>{t("offers.subtitle")}</p>
       
       {/* Kereső mező */}
       {offers.length > 0 && (
         <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: "8px", 
-            fontWeight: "600", 
-            fontSize: "14px", 
-            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-          }}>
-            🔍 {settings.language === "hu" ? "Keresés" : settings.language === "de" ? "Suchen" : "Search"}
+          <label
+            style={{
+              display: "block",
+              marginBottom: "8px",
+              fontWeight: "600",
+              fontSize: "14px",
+              color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+            }}
+          >
+            🔍 {t("offers.search.label")}
           </label>
           <input
             type="text"
-            placeholder={settings.language === "hu" ? "Keresés nyomtató, ügyfél vagy dátum alapján..." : settings.language === "de" ? "Suche nach Drucker, Kunde oder Datum..." : "Search by printer, customer or date..."}
+            placeholder={t("offers.search.placeholder")}
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+            onBlur={(e) => {
+              e.target.style.borderColor = theme.colors.inputBorder;
+              e.target.style.boxShadow = "none";
+            }}
             style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
+            aria-label={t("offers.search.aria")}
+            aria-describedby="offers-search-description"
           />
+          <span id="offers-search-description" style={{ display: "none" }}>
+            {t("offers.search.description")}
+          </span>
         </div>
       )}
       
@@ -899,33 +864,29 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px" }}>
               <div>
-                <h3 style={{
-                  margin: 0,
-                  fontSize: "20px",
-                  fontWeight: "700",
-                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: "20px",
+                    fontWeight: "700",
+                    color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
                   <span style={{ fontSize: "22px" }}>📊</span>
-                  {settings.language === "hu"
-                    ? "Státusz összefoglaló"
-                    : settings.language === "de"
-                    ? "Status-Übersicht"
-                    : "Status overview"}
+                  {t("offers.summary.title")}
                 </h3>
-                <p style={{
-                  margin: "6px 0 0 0",
-                  fontSize: "13px",
-                  color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
-                  maxWidth: "540px",
-                }}>
-                  {settings.language === "hu"
-                    ? "Gyors áttekintés az árajánlatok állapotáról, legutóbbi módosításokról és egy kattintásos státusz szűrés."
-                    : settings.language === "de"
-                    ? "Schneller Überblick über Angebotsstatus, letzte Änderungen und Ein-Klick-Filter."
-                    : "Quick glance at quote statuses, recent changes, and one-click status filtering."}
+                <p
+                  style={{
+                    margin: "6px 0 0 0",
+                    fontSize: "13px",
+                    color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted,
+                    maxWidth: "540px",
+                  }}
+                >
+                  {t("offers.summary.description")}
                 </p>
               </div>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -943,11 +904,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                     transition: "all 0.2s",
                   }}
                 >
-                  {settings.language === "hu"
-                    ? `Összes (${totalOffers})`
-                    : settings.language === "de"
-                    ? `Alle (${totalOffers})`
-                    : `All (${totalOffers})`}
+                  {t("offers.filter.all")} ({totalOffers})
                 </button>
                 {statusSummary.map(summary => {
                   const isActive = statusFilter === summary.status;
@@ -1003,12 +960,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                     </div>
                     <span style={{ fontSize: "11px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
                       {summary.updatedAt
-                        ? `${settings.language === "hu" ? "Utolsó módosítás" : settings.language === "de" ? "Letzte Änderung" : "Last change"}: ${formatDateTime(summary.updatedAt)}`
-                        : settings.language === "hu"
-                        ? "Még nem érkezett ide státusz"
-                        : settings.language === "de"
-                        ? "Noch kein Statuswechsel"
-                        : "No status updates yet"}
+                        ? `${t("offers.summary.lastChange")}: ${formatDateTime(summary.updatedAt)}`
+                        : t("offers.summary.noStatus")}
                     </span>
                   </div>
                 );
@@ -1026,11 +979,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                 gap: "6px",
               }}>
                 <span>⏱️</span>
-                {settings.language === "hu"
-                  ? "Legutóbbi státuszváltások"
-                  : settings.language === "de"
-                  ? "Neueste Statusänderungen"
-                  : "Recent status changes"}
+                {t("offers.summary.recentChangesTitle")}
               </h4>
               {recentStatusChanges.length > 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -1054,11 +1003,11 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                           {getStatusLabel(entry.status)}
                         </strong>
                         <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                          {(entry.customerName || (settings.language === "hu" ? "Árajánlat" : settings.language === "de" ? "Angebot" : "Quote"))} #{entry.offerId}
+                          {(entry.customerName || t("offers.label.quote"))} #{entry.offerId}
                         </span>
                         {entry.note && (
                           <span style={{ fontSize: "11px", fontStyle: "italic", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                            “{entry.note}”
+                            "{entry.note}"
                           </span>
                         )}
                       </div>
@@ -1069,14 +1018,16 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   ))}
                 </div>
               ) : (
-                <div style={{
-                  padding: "24px 16px",
-                  borderRadius: "12px",
-                  border: `1px dashed ${theme.colors.border}`,
-                  textAlign: "center",
-                  color: theme.colors.textMuted,
-                }}>
-                  {settings.language === "hu" ? "Még nem történt státuszváltás" : settings.language === "de" ? "Noch keine Statusänderungen" : "No status changes recorded yet"}
+                <div
+                  style={{
+                    padding: "24px 16px",
+                    borderRadius: "12px",
+                    border: `1px dashed ${theme.colors.border}`,
+                    textAlign: "center",
+                    color: theme.colors.textMuted,
+                  }}
+                >
+                  {t("offers.summary.recentChangesEmpty")}
                 </div>
               )}
             </div>
@@ -1085,13 +1036,15 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
           <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
             {/* Árajánlatok lista */}
             <div style={{ flex: "1", minWidth: "300px" }}>
-              <h3 style={{ 
-                fontSize: "20px", 
-                fontWeight: "600", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-                marginBottom: "16px" 
-              }}>
-                📋 Mentett árajánlatok
+              <h3
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+                  marginBottom: "16px",
+                }}
+              >
+                📋 {t("offers.list.title")}
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {filteredOffers.map(offer => {
@@ -1146,13 +1099,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                             <strong style={{ fontSize: "16px" }}>
-                            {offer.customerName
-                              ? `${offer.customerName}`
-                              : settings.language === "hu"
-                              ? `Árajánlat #${offer.id}`
-                              : settings.language === "de"
-                              ? `Angebot #${offer.id}`
-                              : `Quote #${offer.id}`}
+                            {offer.customerName ? offer.customerName : `${t("offers.label.quote")} #${offer.id}`}
                             </strong>
                             {offer.status && (
                               <span
@@ -1173,13 +1120,16 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                             )}
                           </div>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                            <span>🗓️ {date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}</span>
+                            <span>🗓️ {date.toLocaleDateString(locale)}</span>
                             {statusUpdatedDate && (
                               <span>
-                                ⏱️ {settings.language === "hu" ? "Frissítve" : settings.language === "de" ? "Aktualisiert" : "Updated"}: {statusUpdatedDate.toLocaleString(
-                                  settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US",
-                                  { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }
-                                )}
+                                ⏱️ {t("offers.list.updated")}:{" "}
+                                {statusUpdatedDate.toLocaleString(locale, {
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
                               </span>
                             )}
                             <span>🖨️ {offer.printerName}</span>
@@ -1204,7 +1154,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                       </div>
 
                       <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", flexWrap: "wrap" }}>
-                        <Tooltip content={settings.language === "hu" ? "Árajánlat törlése" : settings.language === "de" ? "Angebot löschen" : "Delete offer"}>
+                        <Tooltip content={t("offers.tooltip.delete")}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1230,7 +1180,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
                     <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
                     <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>
-                      {settings.language === "hu" ? "Nincs találat a keresési kifejezésre." : settings.language === "de" ? "Keine Ergebnisse für den Suchbegriff." : "No results found for the search term."}
+                      {t("offers.search.noResults")}
                     </p>
                   </div>
                 )}
@@ -1300,7 +1250,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                             fontWeight: "600", 
                             color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
                           }}>
-                            📄 {selectedOffer.customerName ? `${selectedOffer.customerName}` : settings.language === "hu" ? `Árajánlat #${selectedOffer.id}` : settings.language === "de" ? `Angebot #${selectedOffer.id}` : `Quote #${selectedOffer.id}`}
+                            📄 {selectedOffer.customerName ? selectedOffer.customerName : `${t("offers.label.quote")} #${selectedOffer.id}`}
                           </h3>
                           {selectedOffer.status && (
                             <span
@@ -1322,22 +1272,26 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                         </div>
                         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                           {!editingOffer && (
-                            <Tooltip content={settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}>
+                            <Tooltip content={t("offers.tooltip.edit")}>
                               <button
                                 onClick={() => startEditOffer(selectedOffer)}
                                 onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                                onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
+                                onMouseLeave={(e) => {
+                                  const btn = e.currentTarget as HTMLButtonElement;
+                                  btn.style.transform = "translateY(0)";
+                                  btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow;
+                                }}
                                 style={{
                                   ...themeStyles.button,
                                   ...themeStyles.buttonSuccess,
-                                ...actionButtonStyle,
+                                  ...actionButtonStyle,
                                 }}
                               >
-                                ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
+                                ✏️ {t("common.edit")}
                               </button>
                             </Tooltip>
                           )}
-                          <Tooltip content={settings.language === "hu" ? "Árajánlat duplikálása" : settings.language === "de" ? "Angebot duplizieren" : "Duplicate offer"}>
+                          <Tooltip content={t("offers.tooltip.duplicate")}>
                             <button
                               onClick={() => duplicateOffer(selectedOffer)}
                               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
@@ -1352,7 +1306,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                               📋 {t("common.duplicate")}
                             </button>
                           </Tooltip>
-                          <Tooltip content={settings.language === "hu" ? "PDF export vagy nyomtatás" : settings.language === "de" ? "PDF-Export oder Drucken" : "PDF export or print"}>
+                          <Tooltip content={t("offers.tooltip.exportPdf")}>
                             <button
                               onClick={() => exportToPDF(selectedOffer)}
                               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
@@ -1366,7 +1320,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                               {t("offers.print")}
                             </button>
                           </Tooltip>
-                          <Tooltip content={settings.language === "hu" ? "PDF letöltése HTML fájlként" : settings.language === "de" ? "PDF als HTML-Datei herunterladen" : "Download PDF as HTML file"}>
+                          <Tooltip content={t("offers.tooltip.downloadHtml")}>
                             <button
                               onClick={() => exportAsPDF(selectedOffer)}
                               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
@@ -1398,14 +1352,25 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "4px", minWidth: "160px" }}>
                           {selectedOfferCreatedAt && (
-                            <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                              {selectedOfferCreatedAt.toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                            <span style={{ fontSize: "12px", color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted }}>
+                              {t("offers.details.created")}{" "}
+                              {selectedOfferCreatedAt.toLocaleString(locale, {
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </span>
                           )}
                           {selectedOfferStatusDate && (
-                            <span style={{ fontSize: "11px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                              {settings.language === "hu" ? "Státusz frissítve:" : settings.language === "de" ? "Status aktualisiert:" : "Status updated:"}{" "}
-                              {selectedOfferStatusDate.toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                            <span style={{ fontSize: "11px", color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted }}>
+                              {t("offers.details.statusUpdated")}{" "}
+                              {selectedOfferStatusDate.toLocaleString(locale, {
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </span>
                           )}
                         </div>
@@ -1423,8 +1388,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                           borderRadius: "12px",
                           padding: "14px"
                         }}>
-                          <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
-                            {settings.language === "hu" ? "Összköltség" : settings.language === "de" ? "Gesamtkosten" : "Total cost"}
+                          <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.textSecondary }}>
+                            {t("offers.details.totalCost")}
                           </span>
                           <div style={{ fontSize: "20px", fontWeight: "700", color: theme.colors.primary, marginTop: "4px" }}>
                             {convertCurrencyFromTo(selectedOffer.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
@@ -1436,8 +1401,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                           borderRadius: "12px",
                           padding: "14px"
                         }}>
-                          <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
-                            {settings.language === "hu" ? "Nyomtatási idő" : settings.language === "de" ? "Druckzeit" : "Print time"}
+                          <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.textSecondary }}>
+                            {t("offers.details.printTime")}
                           </span>
                           <div style={{ fontSize: "16px", fontWeight: "600", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
                             {selectedOffer.totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
@@ -1452,14 +1417,14 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                           borderRadius: "12px",
                           padding: "14px"
                         }}>
-                          <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
-                            {settings.language === "hu" ? "Ügyfél" : settings.language === "de" ? "Kunde" : "Customer"}
+                          <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.textSecondary }}>
+                            {t("offers.details.customer")}
                           </span>
-                          <div style={{ fontSize: "14px", fontWeight: "600", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                            {selectedOffer.customerName || (settings.language === "hu" ? "Nincs megadva" : settings.language === "de" ? "Nicht angegeben" : "Not specified")}
+                          <div style={{ fontSize: "14px", fontWeight: "600", color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
+                            {selectedOffer.customerName || t("offers.details.customerMissing")}
                           </div>
-                          <span style={{ fontSize: "11px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                            {selectedOffer.customerContact || (settings.language === "hu" ? "Elérhetőség nélkül" : settings.language === "de" ? "Keine Kontaktdaten" : "No contact info")}
+                          <span style={{ fontSize: "11px", color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted }}>
+                            {selectedOffer.customerContact || t("offers.details.contactMissing")}
                           </span>
                         </div>
                       </div>
@@ -1505,7 +1470,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                       {editingOffer && editingOffer.id === selectedOffer.id ? (
                         <div style={{ ...themeStyles.card, marginBottom: "20px", backgroundColor: theme.colors.primary + "20", border: `2px solid ${theme.colors.primary}` }}>
                           <h4 style={{ marginTop: 0, marginBottom: "20px", fontSize: "18px", fontWeight: "600", color: theme.colors.text }}>
-                            ✏️ {settings.language === "hu" ? "Árajánlat szerkesztése" : settings.language === "de" ? "Angebot bearbeiten" : "Edit offer"}
+                            ✏️ {t("offers.editing.title")}
                           </h4>
                           <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", flexWrap: "wrap" }}>
                             <div style={{ width: "200px", flexShrink: 0 }}>
@@ -1538,11 +1503,11 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
                                 whiteSpace: "nowrap" 
                               }}>
-                                {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}
+                                {t("offers.contact.label")}
                               </label>
                               <input
                                 type="text"
-                                placeholder={settings.language === "hu" ? "Email vagy telefon" : settings.language === "de" ? "E-Mail oder Telefon" : "Email or phone"}
+                                placeholder={t("offers.contact.placeholder")}
                                 value={editCustomerContact}
                                 onChange={e => setEditCustomerContact(e.target.value)}
                                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -1646,10 +1611,10 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                             ...themeStyles.button,
                                             ...themeStyles.buttonDanger,
                                             padding: "4px 8px",
-                                            fontSize: "12px"
+                                            fontSize: "12px",
                                           }}
                                         >
-                                          {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}
+                                          {t("common.delete")}
                                         </button>
                                       )}
                                     </div>
@@ -1758,7 +1723,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                           </div>
                           
                           <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
-                            <Tooltip content={settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}>
+                            <Tooltip content={t("common.save")}>
                               <button
                                 onClick={saveEditOffer}
                                 onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
@@ -1770,10 +1735,10 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                   padding: "14px 28px"
                                 }}
                               >
-                                💾 {settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}
+                                💾 {t("common.save")}
                               </button>
                             </Tooltip>
-                            <Tooltip content={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}>
+                            <Tooltip content={t("common.cancel")}>
                               <button
                                 onClick={cancelEditOffer}
                                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
@@ -1785,7 +1750,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                   fontSize: "12px"
                                 }}
                               >
-                                {settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+                                {t("common.cancel")}
                               </button>
                             </Tooltip>
                           </div>
@@ -1802,8 +1767,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                             {selectedOffer.customerContact && (
                               <div style={{ marginBottom: "12px" }}>
                                 <strong style={{ color: theme.colors.text }}>
-                                  {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}:
-                                </strong> 
+                                  {t("offers.contact.label")}:
+                                </strong>
                                 <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerContact}</span>
                               </div>
                             )}
@@ -1816,11 +1781,11 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                             <div style={{ marginBottom: "12px" }}>
                               <strong style={{ color: theme.colors.text }}>{t("offers.date")}:</strong> 
                               <span style={{ marginLeft: "8px", color: theme.colors.text }}>
-                                {new Date(selectedOffer.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
+                                {new Date(selectedOffer.date).toLocaleDateString(locale)}
                               </span>
                               {selectedOffer.currentVersion && selectedOffer.currentVersion > 1 && (
                                 <span style={{ marginLeft: "12px", fontSize: "12px", color: theme.colors.textSecondary }}>
-                                  ({settings.language === "hu" ? "Verzió" : settings.language === "de" ? "Version" : "Version"} {selectedOffer.currentVersion})
+                                  ({t("offers.details.versionLabel")} {selectedOffer.currentVersion})
                                 </span>
                               )}
                             </div>
@@ -1912,7 +1877,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                       </div>
                                       {f.needsDrying && (
                                         <div style={{ marginTop: "6px", fontSize: "12px", color: theme.colors.textMuted }}>
-                                          🌡️ {settings.language === "hu" ? "Szárítás" : settings.language === "de" ? "Trocknung" : "Drying"}: {f.dryingTime}h @ {f.dryingPower}W
+                                          🌡️ {t("offers.details.drying")}: {f.dryingTime}h @ {f.dryingPower}W
                                         </div>
                                       )}
                                     </div>
@@ -1950,13 +1915,15 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                 <strong style={{ fontSize: "16px", color: theme.colors.text }}>{convertCurrencyFromTo(selectedOffer.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
                               </div>
                               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: theme.colors.surfaceHover, padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
-                                <span style={{ color: theme.colors.text }}>Bevétel ({selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}% profit):</span>
+                                <span style={{ color: theme.colors.text }}>
+                                  {t("calculator.revenue")} ({selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}% {t("calculator.profit")}):
+                                </span>
                                 <strong style={{ color: theme.colors.success }}>
                                   {convertCurrencyFromTo(selectedOffer.costs.totalCost * (1 + (selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100), selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
                                 </strong>
                               </div>
                               <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", paddingTop: "12px", borderTop: `1px solid ${theme.colors.border}` }}>
-                                <span style={{ fontSize: "14px", color: theme.colors.text }}>Profit:</span>
+                                <span style={{ fontSize: "14px", color: theme.colors.text }}>{t("calculator.profit")}:</span>
                                 <strong style={{ fontSize: "18px", color: theme.colors.success, fontWeight: "bold" }}>
                                   {convertCurrencyFromTo(selectedOffer.costs.totalCost * ((selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30) / 100), selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
                                 </strong>
@@ -1968,7 +1935,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                           {selectedOffer.history && selectedOffer.history.length > 0 && (
                             <div style={{ ...themeStyles.card, padding: "20px", marginBottom: "20px" }}>
                               <strong style={{ display: "block", marginBottom: "16px", fontSize: "16px", color: theme.colors.text }}>
-                                📜 {settings.language === "hu" ? "Előzmények" : settings.language === "de" ? "Verlauf" : "History"} ({selectedOffer.history.length})
+                                📜 {t("offers.pdf.section.history")} ({selectedOffer.history.length})
                               </strong>
                               <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "300px", overflowY: "auto" }}>
                                 {selectedOffer.history.map((historyEntry, idx) => (
@@ -1984,26 +1951,26 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
                                       <div>
                                         <strong style={{ fontSize: "14px", color: theme.colors.text }}>
-                                          {settings.language === "hu" ? "Verzió" : settings.language === "de" ? "Version" : "Version"} {historyEntry.version}
+                                          {t("offers.pdf.history.version").replace("{version}", String(historyEntry.version))}
                                         </strong>
                                         <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: theme.colors.textSecondary }}>
-                                          {new Date(historyEntry.date).toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")} {new Date(historyEntry.date).toLocaleTimeString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                                          {new Date(historyEntry.date).toLocaleDateString(locale)} {new Date(historyEntry.date).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}
                                         </p>
                                       </div>
                                     </div>
                                     <div style={{ fontSize: "12px", color: theme.colors.textSecondary, marginTop: "8px" }}>
                                       {historyEntry.customerName && (
                                         <div style={{ marginBottom: "4px" }}>
-                                          <strong>{settings.language === "hu" ? "Ügyfél" : settings.language === "de" ? "Kunde" : "Customer"}:</strong> {historyEntry.customerName}
+                                          <strong>{t("offers.pdf.history.customer")}:</strong> {historyEntry.customerName}
                                         </div>
                                       )}
                                       {historyEntry.profitPercentage !== undefined && (
                                         <div style={{ marginBottom: "4px" }}>
-                                          <strong>{settings.language === "hu" ? "Profit" : settings.language === "de" ? "Gewinn" : "Profit"}:</strong> {historyEntry.profitPercentage}%
+                                          <strong>{t("offers.pdf.history.profit")}:</strong> {historyEntry.profitPercentage}%
                                         </div>
                                       )}
                                       <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: `1px solid ${theme.colors.border}` }}>
-                                        <strong>{settings.language === "hu" ? "Összköltség" : settings.language === "de" ? "Gesamtkosten" : "Total Cost"}:</strong>{" "}
+                                        <strong>{t("offers.pdf.history.totalCost")}:</strong>{" "}
                                         {convertCurrencyFromTo(historyEntry.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
                                       </div>
                                     </div>
@@ -2021,13 +1988,15 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                               borderRadius: "8px",
                               border: `1px solid ${theme.colors.border}`
                             }}>
-                              <h4 style={{
-                                margin: "0 0 12px 0",
-                                fontSize: "14px",
-                                fontWeight: "600",
-                                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text
-                              }}>
-                                📜 {settings.language === "hu" ? "Státusz előzmények" : settings.language === "de" ? "Status-Verlauf" : "Status history"}
+                              <h4
+                                style={{
+                                  margin: "0 0 12px 0",
+                                  fontSize: "14px",
+                                  fontWeight: "600",
+                                  color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+                                }}
+                              >
+                                📜 {t("offers.pdf.section.statusHistory")}
                               </h4>
                               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                 {selectedOffer.statusHistory.map((history, idx) => (
@@ -2057,7 +2026,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                       {getStatusLabel(history.status)}
                                     </span>
                                     <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                                      {new Date(history.date).toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
+                                      {new Date(history.date).toLocaleString(locale)}
                                     </span>
                                     {history.note && (
                                       <span style={{ fontSize: "11px", color: theme.colors.textMuted, fontStyle: "italic" }}>
@@ -2114,15 +2083,21 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 id="status-change-title" style={{ marginTop: 0, marginBottom: "16px", fontSize: "20px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-              {settings.language === "hu" ? "Státusz módosítása" : settings.language === "de" ? "Status ändern" : "Change status"}
+            <h3
+              id="status-change-title"
+              style={{ marginTop: 0, marginBottom: "16px", fontSize: "20px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}
+            >
+              {t("offers.statusModal.title")}
             </h3>
             <p style={{ margin: "0 0 16px", fontSize: "14px", color: theme.colors.textMuted, lineHeight: 1.6 }}>
-              {statusChangeOffer?.customerName || (settings.language === "hu" ? "Árajánlat" : settings.language === "de" ? "Angebot" : "Quote")} #{statusChangeOffer?.id} →{" "}
+          {statusChangeOffer?.customerName || t("offers.label.quote")} #{statusChangeOffer?.id} →{" "}
               <strong style={{ color: getStatusColor(statusChangeTarget) }}>{getStatusLabel(statusChangeTarget)}</strong>
             </p>
-            <label htmlFor="status-change-note" style={{ display: "block", marginBottom: "8px", fontSize: "13px", fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-              📝 {settings.language === "hu" ? "Megjegyzés (opcionális)" : settings.language === "de" ? "Notiz (optional)" : "Note (optional)"}
+            <label
+              htmlFor="status-change-note"
+              style={{ display: "block", marginBottom: "8px", fontSize: "13px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}
+            >
+              📝 {t("offers.statusModal.noteLabel")}
             </label>
             <textarea
               id="status-change-note"
@@ -2145,13 +2120,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                 marginBottom: "8px",
                 color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
               }}
-              placeholder={
-                settings.language === "hu"
-                  ? "Rövid megjegyzés (max. 280 karakter)…"
-                  : settings.language === "de"
-                  ? "Kurze Notiz (max. 280 Zeichen)…"
-                  : "Short note (max. 280 chars)…"
-              }
+              placeholder={t("offers.statusModal.notePlaceholder")}
             />
             <div style={{ textAlign: "right", fontSize: "11px", marginBottom: "12px", color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted }}>
               {statusChangeNote.length}/280
@@ -2169,7 +2138,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   padding: "8px 16px",
                 }}
               >
-                {settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+                {t("offers.statusModal.cancel")}
               </button>
               <button
                 onClick={() => statusChangeOffer && changeOfferStatus(statusChangeOffer, statusChangeTarget, statusChangeNote)}
@@ -2179,7 +2148,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                   padding: "8px 16px",
                 }}
               >
-                {settings.language === "hu" ? "Státusz mentése" : settings.language === "de" ? "Status speichern" : "Save status"}
+                {t("offers.statusModal.save")}
               </button>
             </div>
           </div>
@@ -2236,7 +2205,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                 e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
-              ✏️ {settings.language === "hu" ? "Szerkesztés" : settings.language === "de" ? "Bearbeiten" : "Edit"}
+              ✏️ {t("common.edit")}
             </button>
             <button
               onClick={() => handleContextMenuAction("duplicate")}
@@ -2258,7 +2227,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                 e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
-              📋 {settings.language === "hu" ? "Duplikálás" : settings.language === "de" ? "Duplizieren" : "Duplicate"}
+              📋 {t("common.duplicate")}
             </button>
             <button
               onClick={() => handleContextMenuAction("export")}
@@ -2280,7 +2249,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                 e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
-              📄 {settings.language === "hu" ? "PDF export" : settings.language === "de" ? "PDF exportieren" : "PDF export"}
+              📄 {t("offers.exportPDF")}
             </button>
             <div style={{ height: "1px", backgroundColor: theme.colors.border, margin: "4px 0" }} />
             <button
@@ -2303,7 +2272,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                 e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
-              🗑️ {settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}
+              🗑️ {t("common.delete")}
             </button>
           </div>
         </div>

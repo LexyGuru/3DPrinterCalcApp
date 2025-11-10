@@ -156,22 +156,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
   // Template mentése
   const handleSaveTemplate = async () => {
     if (!templateName.trim()) {
-      showToast(
-        settings.language === "hu" ? "Kérlek add meg a template nevét!" :
-        settings.language === "de" ? "Bitte geben Sie den Template-Namen ein!" :
-        "Please enter template name!",
-        "error"
-      );
+      showToast(t("calculator.toast.templateNameRequired"), "error");
       return;
     }
 
     if (!selectedPrinterId || selectedFilaments.length === 0) {
-      showToast(
-        settings.language === "hu" ? "Kérlek válassz nyomtatót és filamenteket!" :
-        settings.language === "de" ? "Bitte wählen Sie einen Drucker und Filamente aus!" :
-        "Please select printer and filaments!",
-        "error"
-      );
+      showToast(t("calculator.toast.templateSelectionRequired"), "error");
       return;
     }
 
@@ -200,20 +190,10 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
       setShowTemplateDialog(false);
       setTemplateName("");
       setTemplateDescription("");
-      showToast(
-        settings.language === "hu" ? "Template sikeresen mentve!" :
-        settings.language === "de" ? "Template erfolgreich gespeichert!" :
-        "Template saved successfully!",
-        "success"
-      );
+      showToast(t("calculator.toast.templateSaveSuccess"), "success");
     } catch (error) {
       console.error("❌ Template mentés hiba:", error);
-      showToast(
-        settings.language === "hu" ? "Hiba történt a template mentésekor" :
-        settings.language === "de" ? "Fehler beim Speichern des Templates" :
-        "Error saving template",
-        "error"
-      );
+      showToast(t("calculator.toast.templateSaveError"), "error");
     }
   };
 
@@ -222,12 +202,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
     // Ellenőrizzük, hogy a nyomtató még létezik
     const printer = printers.find(p => p.id === template.printerId);
     if (!printer) {
-      showToast(
-        settings.language === "hu" ? "A template nyomtatója már nem létezik!" :
-        settings.language === "de" ? "Der Drucker des Templates existiert nicht mehr!" :
-        "Template printer no longer exists!",
-        "error"
-      );
+      showToast(t("calculator.toast.templatePrinterMissing"), "error");
       return;
     }
 
@@ -236,12 +211,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
       sf => sf.filamentIndex < 0 || sf.filamentIndex >= filaments.length
     );
     if (invalidFilaments.length > 0) {
-      showToast(
-        settings.language === "hu" ? "Néhány filament már nem létezik!" :
-        settings.language === "de" ? "Einige Filamente existieren nicht mehr!" :
-        "Some filaments no longer exist!",
-        "error"
-      );
+      showToast(t("calculator.toast.templateFilamentMissing"), "error");
       return;
     }
 
@@ -257,12 +227,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
     setPrintTimeMinutes(template.printTimeMinutes);
     setPrintTimeSeconds(template.printTimeSeconds);
     setShowTemplateList(false);
-    showToast(
-      settings.language === "hu" ? "Template betöltve!" :
-      settings.language === "de" ? "Template geladen!" :
-      "Template loaded!",
-      "success"
-    );
+    showToast(t("calculator.toast.templateLoadSuccess"), "success");
   };
 
   // Template törlése
@@ -273,20 +238,10 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
       await saveTemplates(updatedTemplates);
       setTemplates(updatedTemplates);
       setDeleteTemplateId(null);
-      showToast(
-        settings.language === "hu" ? "Template törölve!" :
-        settings.language === "de" ? "Template gelöscht!" :
-        "Template deleted!",
-        "success"
-      );
+      showToast(t("calculator.toast.templateDeleteSuccess"), "success");
     } catch (error) {
       console.error("❌ Template törlés hiba:", error);
-      showToast(
-        settings.language === "hu" ? "Hiba történt a template törlésekor" :
-        settings.language === "de" ? "Fehler beim Löschen des Templates" :
-        "Error deleting template",
-        "error"
-      );
+      showToast(t("calculator.toast.templateDeleteError"), "error");
     }
   };
 
@@ -294,14 +249,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
     if (onSaveOffer) {
       onSaveOffer(offer);
     } else {
-      showToast(
-        settings.language === "hu"
-          ? "Az árajánlat mentéséhez nyisd meg az alkalmazást teljes módban."
-          : settings.language === "de"
-          ? "Zum Speichern des Angebots bitte die volle Anwendung öffnen."
-          : "Open the full application to save quotes.",
-        "error"
-      );
+      showToast(t("calculator.toast.openFullApp"), "error");
     }
   };
 
@@ -310,12 +258,10 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px", flexWrap: "wrap", gap: "20px" }}>
         <div>
           <h2 style={themeStyles.pageTitle}>{t("calculator.title")}</h2>
-          <p style={themeStyles.pageSubtitle}>
-            {settings.language === "hu" ? "3D nyomtatási költség számítás" : settings.language === "de" ? "3D-Druckkostenberechnung" : "3D printing cost calculation"}
-          </p>
+          <p style={themeStyles.pageSubtitle}>{t("calculator.subtitle")}</p>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-          <Tooltip content={settings.language === "hu" ? "Template betöltése" : settings.language === "de" ? "Template laden" : "Load template"}>
+          <Tooltip content={t("calculator.tooltip.loadTemplate")}>
             <button
               onClick={() => setShowTemplateList(!showTemplateList)}
               disabled={templates.length === 0}
@@ -340,11 +286,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   e.currentTarget.style.backgroundColor = theme.colors.surface;
                 }
               }}
+              aria-label={t("calculator.tooltip.loadTemplate")}
             >
-              📋 {settings.language === "hu" ? "Template-ek" : settings.language === "de" ? "Templates" : "Templates"} ({templates.length})
+              📋 {t("calculator.templates")} ({templates.length})
             </button>
           </Tooltip>
-          <Tooltip content={settings.language === "hu" ? "Template mentése" : settings.language === "de" ? "Template speichern" : "Save template"}>
+          <Tooltip content={t("calculator.tooltip.saveTemplate")}>
             <button
               onClick={() => setShowTemplateDialog(true)}
               disabled={!selectedPrinterId || selectedFilaments.length === 0}
@@ -369,11 +316,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   e.currentTarget.style.backgroundColor = theme.colors.primary;
                 }
               }}
+              aria-label={t("calculator.tooltip.saveTemplate")}
             >
-              💾 {settings.language === "hu" ? "Template mentése" : settings.language === "de" ? "Template speichern" : "Save template"}
+              💾 {t("calculator.tooltip.saveTemplate")}
             </button>
           </Tooltip>
-          <Tooltip content={settings.language === "hu" ? "G-code importálása" : settings.language === "de" ? "G-code importieren" : "Import G-code"}>
+          <Tooltip content={t("calculator.tooltip.importGcode")}>
             <button
               onClick={() => setShowSlicerImportModal(true)}
               style={{
@@ -392,8 +340,9 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = theme.colors.surface;
               }}
+              aria-label={t("calculator.tooltip.importGcode")}
             >
-              🧾 {settings.language === "hu" ? "G-code import" : settings.language === "de" ? "G-code Import" : "G-code import"}
+              🧾 {t("calculator.gcodeImport")}
             </button>
           </Tooltip>
         </div>
@@ -409,7 +358,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               fontWeight: "600", 
               color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
             }}>
-              📋 {settings.language === "hu" ? "Template-ek" : settings.language === "de" ? "Templates" : "Templates"}
+              📋 {t("calculator.templates")}
             </h3>
             <button
               onClick={() => setShowTemplateList(false)}
@@ -459,11 +408,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                         fontSize: "12px", 
                         color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
                       }}>
-                        {printer ? `${printer.name} (${printer.type})` : settings.language === "hu" ? "Nyomtató nem található" : settings.language === "de" ? "Drucker nicht gefunden" : "Printer not found"} • {template.selectedFilaments.length} {settings.language === "hu" ? "filament" : settings.language === "de" ? "Filament" : "filament"} • {template.printTimeHours}h {template.printTimeMinutes}m {template.printTimeSeconds}s
+                        {printer ? `${printer.name} (${printer.type})` : t("calculator.templates.printerMissing")} • {template.selectedFilaments.length} {t("calculator.templates.filamentUnit")} • {template.printTimeHours}h {template.printTimeMinutes}m {template.printTimeSeconds}s
                       </p>
                     </div>
                     <div style={{ display: "flex", gap: "8px" }}>
-                      <Tooltip content={settings.language === "hu" ? "Betöltés" : settings.language === "de" ? "Laden" : "Load"}>
+                      <Tooltip content={t("calculator.tooltip.loadTemplate")}>
                         <button
                           onClick={() => handleLoadTemplate(template)}
                           disabled={!printer}
@@ -477,11 +426,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                             cursor: printer ? "pointer" : "not-allowed",
                             opacity: printer ? 1 : 0.5
                           }}
+                          aria-label={t("calculator.tooltip.loadTemplate")}
                         >
                           📥
                         </button>
                       </Tooltip>
-                      <Tooltip content={settings.language === "hu" ? "Törlés" : settings.language === "de" ? "Löschen" : "Delete"}>
+                      <Tooltip content={t("common.delete")}>
                         <button
                           onClick={() => setDeleteTemplateId(template.id)}
                           style={{
@@ -493,6 +443,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                             fontSize: "12px",
                             cursor: "pointer"
                           }}
+                          aria-label={t("common.delete")}
                         >
                           🗑️
                         </button>
@@ -534,7 +485,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               fontWeight: "600", 
               color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
             }}>
-              💾 {settings.language === "hu" ? "Template mentése" : settings.language === "de" ? "Template speichern" : "Save template"}
+              💾 {t("calculator.dialog.saveTemplateTitle")}
             </h3>
             <div style={{ marginBottom: "16px" }}>
               <label style={{ 
@@ -544,13 +495,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 fontSize: "14px", 
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
               }}>
-                {settings.language === "hu" ? "Template név *" : settings.language === "de" ? "Template-Name *" : "Template name *"}
+                {t("calculator.dialog.nameLabel")}
               </label>
               <input
                 type="text"
                 value={templateName}
                 onChange={e => setTemplateName(e.target.value)}
-                placeholder={settings.language === "hu" ? "pl. Gyakori nyomtatás" : settings.language === "de" ? "z.B. Häufiger Druck" : "e.g. Common print"}
+                placeholder={t("calculator.dialog.namePlaceholder")}
                 style={{ ...themeStyles.input, width: "100%" }}
               />
             </div>
@@ -562,12 +513,12 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 fontSize: "14px", 
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
               }}>
-                {settings.language === "hu" ? "Leírás (opcionális)" : settings.language === "de" ? "Beschreibung (optional)" : "Description (optional)"}
+                {t("calculator.dialog.descriptionLabel")}
               </label>
               <textarea
                 value={templateDescription}
                 onChange={e => setTemplateDescription(e.target.value)}
-                placeholder={settings.language === "hu" ? "Rövid leírás..." : settings.language === "de" ? "Kurze Beschreibung..." : "Short description..."}
+                placeholder={t("calculator.dialog.descriptionPlaceholder")}
                 rows={3}
                 style={{ ...themeStyles.input, width: "100%", resize: "vertical" }}
               />
@@ -592,9 +543,9 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   ...themeStyles.buttonSecondary,
                   padding: "10px 20px"
                 }}
-                aria-label={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+                aria-label={t("common.cancel")}
               >
-                {settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleSaveTemplate}
@@ -609,9 +560,9 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   ...themeStyles.buttonPrimary,
                   padding: "10px 20px"
                 }}
-                aria-label={settings.language === "hu" ? "Template mentése" : settings.language === "de" ? "Template speichern" : "Save template"}
+                aria-label={t("calculator.tooltip.saveTemplate")}
               >
-                {settings.language === "hu" ? "Mentés" : settings.language === "de" ? "Speichern" : "Save"}
+                {t("common.save")}
               </button>
             </div>
           </div>
@@ -710,7 +661,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 aria-describedby="print-time-hours-description"
               />
               <span id="print-time-hours-description" style={{ display: "none" }}>
-                {settings.language === "hu" ? "Nyomtatási idő órákban (0-1000)" : settings.language === "de" ? "Druckzeit in Stunden (0-1000)" : "Print time in hours (0-1000)"}
+                {t("calculator.printTime.hoursDescription")}
               </span>
             </div>
             <div>
@@ -742,7 +693,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 aria-describedby="print-time-minutes-description"
               />
               <span id="print-time-minutes-description" style={{ display: "none" }}>
-                {settings.language === "hu" ? "Nyomtatási idő percekben (0-59)" : settings.language === "de" ? "Druckzeit in Minuten (0-59)" : "Print time in minutes (0-59)"}
+                {t("calculator.printTime.minutesDescription")}
               </span>
             </div>
             <div>
@@ -774,7 +725,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 aria-describedby="print-time-seconds-description"
               />
               <span id="print-time-seconds-description" style={{ display: "none" }}>
-                {settings.language === "hu" ? "Nyomtatási idő másodpercekben (0-59)" : settings.language === "de" ? "Druckzeit in Sekunden (0-59)" : "Print time in seconds (0-59)"}
+                {t("calculator.printTime.secondsDescription")}
               </span>
             </div>
           </div>
@@ -798,7 +749,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               🧵 {t("calculator.filaments")} ({selectedFilaments.length}/{maxFilaments})
             </label>
             {maxFilaments > 0 && selectedFilaments.length < maxFilaments && (
-              <Tooltip content={settings.language === "hu" ? "Filament hozzáadása" : settings.language === "de" ? "Filament hinzufügen" : "Add filament"}>
+              <Tooltip content={t("calculator.tooltip.addFilament")}>
                 <button 
                   onClick={addFilament}
                   onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
@@ -815,7 +766,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     padding: "10px 20px",
                     fontSize: "14px"
                   }}
-                  aria-label={settings.language === "hu" ? "Filament hozzáadása" : settings.language === "de" ? "Filament hinzufügen" : "Add filament"}
+                  aria-label={t("calculator.aria.addFilament")}
                 >
                   ➕ {t("calculator.addFilament")}
                 </button>
@@ -828,7 +779,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               <div key={idx} style={{ ...themeStyles.card, width: "100%", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
                 <strong style={{ fontSize: "16px", color: theme.colors.text }}>{t("calculator.filament")} {idx + 1}:</strong>
-                <Tooltip content={settings.language === "hu" ? "Filament eltávolítása" : settings.language === "de" ? "Filament entfernen" : "Remove filament"}>
+                <Tooltip content={t("calculator.tooltip.removeFilament")}>
                   <button 
                     onClick={() => removeFilament(idx)}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
@@ -846,7 +797,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                       fontSize: "12px",
                       flexShrink: 0
                     }}
-                    aria-label={settings.language === "hu" ? `Filament eltávolítása: ${idx + 1}` : settings.language === "de" ? `Filament entfernen: ${idx + 1}` : `Remove filament: ${idx + 1}`}
+                    aria-label={`${t("calculator.aria.removeFilament")} ${idx + 1}`}
                   >
                     {t("filaments.delete")}
                   </button>
@@ -1012,7 +963,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               💰 {t("calculator.costBreakdown")} ({settings.currency})
             </h3>
             {onSaveOffer && (
-              <Tooltip content={settings.language === "hu" ? "Árajánlatként mentés" : settings.language === "de" ? "Als Angebot speichern" : "Save as offer"}>
+              <Tooltip content={t("calculator.tooltip.saveAsOffer")}>
                 <button
                   onClick={() => {
                     if (!selectedPrinter) return;
@@ -1031,7 +982,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     ...themeStyles.button,
                     ...themeStyles.buttonSuccess
                   }}
-                  aria-label={settings.language === "hu" ? "Árajánlat mentése" : settings.language === "de" ? "Angebot speichern" : "Save as offer"}
+                  aria-label={t("calculator.aria.saveOffer")}
                 >
                   {t("calculator.saveAsOffer")}
                 </button>
@@ -1161,11 +1112,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               
               <div style={{ width: "180px", flexShrink: 0 }}>
                 <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
-                  {settings.language === "hu" ? "Elérhetőség" : settings.language === "de" ? "Kontakt" : "Contact"}
+                  {t("calculator.offer.contactLabel")}
                 </label>
                 <input
                   type="text"
-                  placeholder={settings.language === "hu" ? "Email/telefon" : settings.language === "de" ? "E-Mail/Telefon" : "Email/phone"}
+                  placeholder={t("calculator.offer.contactPlaceholder")}
                   value={offerCustomerContact}
                   onChange={e => setOfferCustomerContact(e.target.value)}
                   onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
@@ -1217,7 +1168,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             </div>
             
             <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px" }}>
-              <Tooltip content={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}>
+              <Tooltip content={t("common.cancel")}>
                 <button
                   onClick={() => {
                     setShowOfferDialog(false);
@@ -1236,11 +1187,11 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   {t("common.cancel")}
                 </button>
               </Tooltip>
-              <Tooltip content={settings.language === "hu" ? "Árajánlat mentése" : settings.language === "de" ? "Angebot speichern" : "Save offer"}>
+              <Tooltip content={t("calculator.tooltip.saveOffer")}>
                 <button
                   onClick={() => {
                     if (!offerCustomerName.trim()) {
-                      showToast(t("common.error") + ": " + (settings.language === "hu" ? "Kérlek add meg az ügyfél nevét!" : settings.language === "de" ? "Bitte geben Sie den Kundennamen ein!" : "Please enter customer name!"), "error");
+                      showToast(`${t("common.error")}: ${t("calculator.toast.customerNameRequired")}`, "error");
                       return;
                     }
                     
@@ -1265,12 +1216,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   });
 
                   const createdAt = new Date().toISOString();
-                  const initialStatusNote =
-                    settings.language === "hu"
-                      ? "Árajánlat létrehozva"
-                      : settings.language === "de"
-                      ? "Angebot erstellt"
-                      : "Quote created";
+                  const initialStatusNote = t("calculator.offer.initialStatus");
 
                   const offer: Offer = {
                     id: Date.now(),
@@ -1344,13 +1290,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
 
       <ConfirmDialog
         isOpen={deleteTemplateId !== null}
-        title={settings.language === "hu" ? "Template törlése" : settings.language === "de" ? "Template löschen" : "Delete template"}
-        message={settings.language === "hu" ? "Biztosan törölni szeretnéd ezt a template-et?" : settings.language === "de" ? "Möchten Sie diese Vorlage wirklich löschen?" : "Are you sure you want to delete this template?"}
+        title={t("calculator.confirmDelete.title")}
+        message={t("calculator.confirmDelete.message")}
         theme={theme}
         onConfirm={handleDeleteTemplate}
         onCancel={() => setDeleteTemplateId(null)}
-        confirmText={settings.language === "hu" ? "Igen" : settings.language === "de" ? "Ja" : "Yes"}
-        cancelText={settings.language === "hu" ? "Mégse" : settings.language === "de" ? "Abbrechen" : "Cancel"}
+        confirmText={t("common.yes")}
+        cancelText={t("common.cancel")}
         type="danger"
       />
     </div>
