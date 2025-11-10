@@ -16,6 +16,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🎨 **Filament színkönyvtár** - Több mint 2000 gyári szín, márka és típus szerinti rögzíthető választópanellel
 - 💾 **Filament könyvtár szerkesztő** - Modal alapú hozzáadás/szerkesztés, duplikátum-figyelmeztetés és tartós mentés `filamentLibrary.json` fájlba
 - 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
+- 🧾 **G-code import és piszkozat készítés** - A kalkulátorban modális ablakból tölthető be G-code/JSON export (Prusa, Cura, Orca, Qidi), részletes összefoglalóval és automatikus árajánlat piszkozat generálással
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
 - 🌍 **Többnyelvű** - Magyar, Angol, Német nyelven
 - 💱 **Több pénznem** - EUR, HUF, USD
@@ -234,6 +235,10 @@ Lekszikov Miklós (LexyGuru)
 A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
 ## 📋 Verziótörténet
+
+### v0.4.99 (2025)
+- 🧾 **Kalkulátorba épített G-code import** – Új modális `SlicerImportModal` a kalkulátor tetején, amely G-code/JSON exportokból egy kattintással átemeli a nyomtatási időt, filament mennyiséget és árajánlat piszkozatot hoz létre.
+- 📊 **Fejlécből származó slicer adatok** – A G-code fejléc `total filament weight/length/volume` értékei automatikusan átveszik az összesítéseket, pontosan kezelve a színcserék veszteségeit is.
 
 ### v0.4.98 (2025)
 - 🧵 **Multicolor filament támogatás** – A filament könyvtár és a kezelő UI most már külön jelöli a többszínű (rainbow/dual/tricolor) szálakat, megjegyzéssel és szivárvány előnézettel.

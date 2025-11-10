@@ -38,9 +38,12 @@ export interface SlicerJobData {
 }
 
 export class SlicerParseError extends Error {
-  constructor(message: string, public readonly slicer: SlicerType = "unknown") {
+  public readonly slicer: SlicerType;
+
+  constructor(message: string, slicer: SlicerType = "unknown") {
     super(message);
     this.name = "SlicerParseError";
+    this.slicer = slicer;
   }
 }
 

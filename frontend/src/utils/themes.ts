@@ -936,7 +936,6 @@ export const buildThemeFromDefinition = (definition: CustomThemeDefinition): The
   const {
     id,
     name,
-    description,
     palette,
     gradient,
   } = definition;
