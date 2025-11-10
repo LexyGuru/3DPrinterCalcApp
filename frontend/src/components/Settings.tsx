@@ -173,14 +173,7 @@ export const SettingsPage: React.FC<Props> = ({
       await action();
     } catch (error) {
       console.error("[Settings] Confirm dialog action failed", error);
-      showToast(
-        localize(
-          "Hiba történt a művelet végrehajtásakor.",
-          "Beim Ausführen der Aktion ist ein Fehler aufgetreten.",
-          "An error occurred while executing the action."
-        ),
-        "error"
-      );
+      showToast(t("settings.errors.actionFailed"), "error");
     }
   };
 
@@ -401,33 +394,18 @@ export const SettingsPage: React.FC<Props> = ({
     });
 
     closeCustomThemeEditor();
-    showToast(
-      localize(
-        "Egyedi téma elmentve.",
-        "Benutzerdefiniertes Theme gespeichert.",
-        "Custom theme saved."
-      ),
-      "success"
-    );
+      showToast(t("settings.theme.toast.saved"), "success");
   };
 
   const handleCustomThemeDelete = (themeId: string) => {
     const target = customThemes.find(theme => theme.id === themeId);
     if (!target) return;
     openConfirmDialog({
-      title: localize(
-        "Egyedi téma törlése",
-        "Benutzerdefiniertes Theme löschen",
-        "Delete custom theme"
-      ),
-      message: localize(
-        `Biztosan törlöd a(z) "${target.name}" témát?`,
-        `Möchtest du das Theme „${target.name}“ wirklich löschen?`,
-        `Are you sure you want to delete the "${target.name}" theme?`
-      ),
+      title: t("settings.theme.delete.title"),
+      message: t("settings.theme.delete.message").replace("{name}", target.name),
       type: "danger",
-      confirmText: localize("Törlés", "Löschen", "Delete"),
-      cancelText: localize("Mégse", "Abbrechen", "Cancel"),
+      confirmText: t("common.delete"),
+      cancelText: t("common.cancel"),
       onConfirm: () => {
         const nextCustomThemes = customThemes.filter(theme => theme.id !== themeId);
         let nextThemeName: ThemeName =
@@ -451,14 +429,7 @@ export const SettingsPage: React.FC<Props> = ({
         if (editingCustomThemeIdState === themeId) {
           closeCustomThemeEditor();
         }
-        showToast(
-          localize(
-            "Egyedi téma törölve.",
-            "Benutzerdefiniertes Theme gelöscht.",
-            "Custom theme deleted."
-          ),
-          "success"
-        );
+        showToast(t("settings.theme.toast.deleted"), "success");
       },
     });
   };
@@ -473,24 +444,10 @@ export const SettingsPage: React.FC<Props> = ({
         return;
       }
       await writeTextFile(filePath, JSON.stringify(theme, null, 2));
-      showToast(
-        localize(
-          "Téma exportálva.",
-          "Theme exportiert.",
-          "Theme exported."
-        ),
-        "success"
-      );
+      showToast(t("settings.theme.export.success"), "success");
     } catch (error) {
       console.error("[Settings] handleCustomThemeExport failed", error);
-      showToast(
-        localize(
-          "Nem sikerült exportálni a témát.",
-          "Theme konnte nicht exportiert werden.",
-          "Failed to export theme."
-        ),
-        "error"
-      );
+      showToast(t("settings.theme.export.error"), "error");
     }
   };
 
@@ -500,24 +457,10 @@ export const SettingsPage: React.FC<Props> = ({
         throw new Error("Clipboard API unavailable");
       }
       await navigator.clipboard.writeText(JSON.stringify(theme, null, 2));
-      showToast(
-        localize(
-          "Téma JSON a vágólapra másolva.",
-          "Theme JSON wurde in die Zwischenablage kopiert.",
-          "Theme JSON copied to clipboard."
-        ),
-        "success"
-      );
+      showToast(t("settings.theme.copy.success"), "success");
     } catch (error) {
       console.error("[Settings] handleCopyCustomTheme failed", error);
-      showToast(
-        localize(
-          "Nem sikerült a vágólapra másolni.",
-          "Kopieren in die Zwischenablage fehlgeschlagen.",
-          "Failed to copy to clipboard."
-        ),
-        "error"
-      );
+      showToast(t("settings.theme.copy.error"), "error");
     }
   };
 
@@ -528,12 +471,8 @@ export const SettingsPage: React.FC<Props> = ({
       const duplicateDefinition = sanitizeCustomThemeDefinition(
         themeToCustomDefinition(theme, {
           id: nextId,
-          name: `${baseName} ${localize("másolat", "Kopie", "copy")}`,
-          description: localize(
-            "Aktuális téma másolata testreszabáshoz.",
-            "Kopie des aktuellen Themes zur weiteren Anpassung.",
-            "Copy of current theme for customization."
-          ),
+          name: `${baseName} ${t("settings.theme.duplicate.suffix")}`,
+          description: t("settings.theme.duplicate.description"),
         })
       );
       const nextCustomThemes = [...customThemes, duplicateDefinition];
@@ -546,14 +485,7 @@ export const SettingsPage: React.FC<Props> = ({
         theme: `${CUSTOM_THEME_PREFIX}${duplicateDefinition.id}` as ThemeName,
         themeSettings: nextThemeSettings,
       });
-      showToast(
-        localize(
-          "Téma másolva az egyedi listába.",
-          "Theme wurde in die benutzerdefinierte Liste kopiert.",
-          "Theme duplicated into your custom list."
-        ),
-        "success"
-      );
+      showToast(t("settings.theme.toast.duplicated"), "success");
       setEditingCustomThemeIdState(duplicateDefinition.id);
       setCustomThemeDraft(JSON.parse(JSON.stringify(duplicateDefinition)) as CustomThemeDefinition);
       setCustomThemeEditorOpen(true);
