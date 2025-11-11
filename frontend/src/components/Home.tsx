@@ -5,6 +5,7 @@ import type { Settings, Offer } from "../types";
 import { defaultAnimationSettings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
+import { logWithLanguage } from "../utils/languages/global_console";
 import { convertCurrency, convertCurrencyFromTo } from "../utils/currency";
 import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
@@ -464,7 +465,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         "success"
       );
     } catch (error) {
-      console.error("PNG export error", error);
+      logWithLanguage(settings.language, "error", "stats.pngError", { error });
       showToast(
         settings.language === "hu" ? "PNG export hiba" : settings.language === "de" ? "Fehler beim PNG-Export" : "PNG export failed",
         "error"
@@ -527,7 +528,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         "success"
       );
     } catch (error) {
-      console.error("PDF export error", error);
+      logWithLanguage(settings.language, "error", "stats.pdfError", { error });
       showToast(
         settings.language === "hu" ? "PDF export hiba" : settings.language === "de" ? "Fehler beim PDF-Export" : "PDF export failed",
         "error"
@@ -553,7 +554,11 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
   const handleExportStatistics = async () => {
     try {
       const statsToExport = currentStats;
-      console.log("📊 Statisztikák export indítása...", { format: exportFormat, statistics: statsToExport, period: selectedPeriod });
+      logWithLanguage(settings.language, "log", "stats.export.start", {
+        format: exportFormat,
+        statistics: statsToExport,
+        period: selectedPeriod,
+      });
       
       let content: string;
       let fileName: string;
@@ -654,9 +659,15 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
       });
 
       if (filePath) {
-        console.log("💾 Statisztikák mentése...", { filePath, format: exportFormat });
+        logWithLanguage(settings.language, "log", "stats.export.save", {
+          filePath,
+          format: exportFormat,
+        });
         await writeTextFile(filePath, content);
-        console.log("✅ Statisztikák export sikeres", { filePath, format: exportFormat });
+        logWithLanguage(settings.language, "log", "stats.export.success", {
+          filePath,
+          format: exportFormat,
+        });
         showToast(
           settings.language === "hu" ? "Statisztikák sikeresen exportálva" :
           settings.language === "de" ? "Statistiken erfolgreich exportiert" :
@@ -664,10 +675,10 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           "success"
         );
       } else {
-        console.log("ℹ️ Export megszakítva");
+        logWithLanguage(settings.language, "log", "stats.export.cancelled");
       }
     } catch (error) {
-      console.error("❌ Statisztikák export hiba:", error);
+      logWithLanguage(settings.language, "error", "stats.export.error", { error });
       showToast(
         settings.language === "hu" ? "Hiba történt az export során" :
         settings.language === "de" ? "Fehler beim Export" :
@@ -679,7 +690,10 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
 
   const generateReport = async () => {
     try {
-      console.log("📊 Riport generálása...", { period: reportPeriod, statistics });
+      logWithLanguage(settings.language, "log", "reports.generate.start", {
+        period: reportPeriod,
+        statistics,
+      });
       
       const now = new Date();
       let periodStart: Date;
@@ -782,9 +796,15 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
       });
 
       if (filePath) {
-        console.log("💾 Riport mentése...", { filePath, period: reportPeriod });
+        logWithLanguage(settings.language, "log", "reports.generate.save", {
+          filePath,
+          period: reportPeriod,
+        });
         await writeTextFile(filePath, content);
-        console.log("✅ Riport generálás sikeres", { filePath, period: reportPeriod });
+        logWithLanguage(settings.language, "log", "reports.generate.success", {
+          filePath,
+          period: reportPeriod,
+        });
         showToast(
           settings.language === "hu" ? "Riport sikeresen generálva" :
           settings.language === "de" ? "Bericht erfolgreich generiert" :
@@ -793,10 +813,10 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         );
         setShowReportDialog(false);
       } else {
-        console.log("ℹ️ Riport generálás megszakítva");
+        logWithLanguage(settings.language, "log", "reports.generate.cancelled");
       }
     } catch (error) {
-      console.error("❌ Riport generálás hiba:", error);
+      logWithLanguage(settings.language, "error", "reports.generate.error", { error });
       showToast(
         settings.language === "hu" ? "Hiba történt a riport generálása során" :
         settings.language === "de" ? "Fehler beim Generieren des Berichts" :

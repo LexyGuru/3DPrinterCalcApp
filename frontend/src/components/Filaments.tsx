@@ -32,7 +32,11 @@ import {
   subscribeToLibraryChanges,
   ensureLibraryOverridesLoaded,
   ensureLibraryEntry,
+  availableWeightUnits,
+  extractColorsFromLibraryEntry,
+  getMaterialLabel,
 } from "../utils/filamentLibrary";
+import { logWithLanguage } from "../utils/languages/global_console";
 
 interface Props {
   filaments: Filament[];
@@ -595,14 +599,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   };
 
   const addFilament = async () => {
-    console.log("[Filaments] addFilament invoked", {
+    logWithLanguage(settings.language, "log", "filaments.add.invoked", {
+      imageQuality: imagePreview,
       brand,
       type,
-      weight,
-      pricePerKg,
       color,
-      colorHex,
-      imageProvided: !!imagePreview,
+      pricePerKg,
+      selectedFinish,
+      selectedPaletteColor: paletteColorOptions.find(option => option.finish === selectedFinish),
+      weight,
+      unit: availableWeightUnits[0],
     });
     if (!brand || !type || !pricePerKg) {
       showToast(`${t("common.error")}: ${t("filaments.validation.requiredFields")}`, "error");
@@ -620,7 +626,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       try {
         optimizedImage = await optimizeImage(imagePreview, 800, 800, 0.8);
       } catch (error) {
-        console.error("❌ Kép optimalizálás hiba:", error);
+        logWithLanguage(settings.language, "error", "filaments.image.optimizeError", error);
         showToast(t("filaments.upload.optimizeError"), "error");
         optimizedImage = imagePreview;
       }
@@ -637,14 +643,12 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     const entryMultiColorHint = multiColorHint.trim();
 
     if (color) {
-      console.log("[Filaments] Syncing color into library", {
+      logWithLanguage(settings.language, "log", "filaments.library.sync", {
+        libraryColor: paletteColorOptions.find(option => option.finish === selectedFinish),
+        selectedFinish,
         brand,
         type,
         color,
-        finalLibraryHex,
-        libraryFinish,
-        entryColorMode,
-        entryMultiColorHint,
       });
       try {
         await ensureLibraryEntry({
@@ -659,18 +663,27 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           multiColorHint: entryMultiColorHint,
         });
       } catch (error) {
-        console.warn("[Filaments] Failed to sync filament with library", error);
+        logWithLanguage(settings.language, "warn", "filaments.library.syncFailed", error);
       }
     } else {
-      console.warn("[Filaments] Skipping library sync because color is empty", {
+      logWithLanguage(settings.language, "warn", "filaments.library.syncSkipped", {
+        selectedPaletteColor: paletteColorOptions.find(option => option.finish === selectedFinish),
+        selectedFinish,
         brand,
         type,
+        color,
       });
     }
 
     if (editingIndex !== null) {
       // Szerkesztési mód: frissítjük a filamentet
-      console.log("✏️ Filament szerkesztése...", { index: editingIndex, brand, type, pricePerKg, hasImage: !!optimizedImage });
+      logWithLanguage(settings.language, "log", "filaments.edit.start", {
+        index: editingIndex,
+        brand,
+        type,
+        pricePerKg,
+        hasImage: !!optimizedImage,
+      });
       const updated = [...filaments];
       updated[editingIndex] = { 
         brand, 
@@ -684,12 +697,19 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         multiColorHint: entryColorMode === "multicolor" ? entryMultiColorHint || color || undefined : undefined,
       };
       setFilaments(updated);
-      console.log("✅ Filament sikeresen frissítve", { index: editingIndex });
+      logWithLanguage(settings.language, "log", "filaments.edit.success", {
+        index: editingIndex,
+      });
       showToast(t("common.filamentUpdated"), "success");
       resetForm();
     } else {
       // Új filament hozzáadása
-      console.log("➕ Új filament hozzáadása...", { brand, type, pricePerKg, hasImage: !!optimizedImage });
+      logWithLanguage(settings.language, "log", "filaments.addNew.start", {
+        brand,
+        type,
+        pricePerKg,
+        hasImage: !!optimizedImage,
+      });
       setFilaments([...filaments, { 
         brand, 
         type, 
@@ -701,7 +721,10 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         colorMode: entryColorMode,
         multiColorHint: entryColorMode === "multicolor" ? entryMultiColorHint || color || undefined : undefined,
       }]);
-      console.log("✅ Filament sikeresen hozzáadva", { brand, type });
+      logWithLanguage(settings.language, "log", "filaments.addNew.success", {
+        brand,
+        type,
+      });
       showToast(t("common.filamentAdded"), "success");
       resetForm();
     }
@@ -759,12 +782,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     if (deleteConfirmIndex === null) return;
     const index = deleteConfirmIndex;
     const filamentToDelete = filaments[index];
-    console.log("🗑️ Filament törlése...", { index, brand: filamentToDelete?.brand, type: filamentToDelete?.type });
+    logWithLanguage(settings.language, "log", "filaments.delete.start", {
+      index,
+      brand: filamentToDelete?.brand,
+      type: filamentToDelete?.type,
+    });
     setFilaments(filaments.filter((_, i) => i !== index));
     if (editingIndex === index) {
       resetForm();
     }
-    console.log("✅ Filament sikeresen törölve", { index });
+    logWithLanguage(settings.language, "log", "filaments.delete.success", { index });
     showToast(t("common.filamentDeleted"), "success");
     setDeleteConfirmIndex(null);
   };
@@ -785,7 +812,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     try {
       await open(url);
     } catch (error) {
-      console.warn("[Filaments] Failed to open price search via shell plugin", error);
+      logWithLanguage(settings.language, "warn", "filaments.priceSearch.error", error);
       const fallbackWindow = window.open(url, "_blank", "noopener,noreferrer");
       if (!fallbackWindow) {
         showToast(t("filaments.priceSearch.error"), "error");
@@ -863,7 +890,10 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
 
     setFilaments(newFilaments);
     setDraggedFilamentIndex(null);
-    console.log("🔄 Filamentek átrendezve", { draggedIndex: draggedFilamentIndex, targetIndex });
+    logWithLanguage(settings.language, "log", "filaments.reorder", {
+      draggedIndex: draggedFilamentIndex,
+      targetIndex,
+    });
     showToast(t("filaments.toast.reordered"), "success");
   };
 

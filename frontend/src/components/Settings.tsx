@@ -42,6 +42,7 @@ import type { FilamentFinish } from "../utils/filamentColors";
 import { getFinishLabel } from "../utils/filamentColors";
 import type { ColorMode } from "../types";
 import { translateText } from "../utils/translator";
+import { logWithLanguage } from "../utils/languages/global_console";
 
 interface Props {
   settings: Settings;
@@ -172,7 +173,7 @@ export const SettingsPage: React.FC<Props> = ({
     try {
       await action();
     } catch (error) {
-      console.error("[Settings] Confirm dialog action failed", error);
+      logWithLanguage(settings.language, "error", "settings.confirmDialog.error", { error });
       showToast(t("settings.errors.actionFailed"), "error");
     }
   };
@@ -439,7 +440,7 @@ export const SettingsPage: React.FC<Props> = ({
       await writeTextFile(filePath, JSON.stringify(theme, null, 2));
       showToast(t("settings.theme.export.success"), "success");
     } catch (error) {
-      console.error("[Settings] handleCustomThemeExport failed", error);
+      logWithLanguage(settings.language, "error", "settings.customTheme.exportFailed", { error });
       showToast(t("settings.theme.export.error"), "error");
     }
   };
@@ -452,7 +453,7 @@ export const SettingsPage: React.FC<Props> = ({
       await navigator.clipboard.writeText(JSON.stringify(theme, null, 2));
       showToast(t("settings.theme.copy.success"), "success");
     } catch (error) {
-      console.error("[Settings] handleCopyCustomTheme failed", error);
+      logWithLanguage(settings.language, "error", "settings.customTheme.copyFailed", { error });
       showToast(t("settings.theme.copy.error"), "error");
     }
   };
@@ -484,7 +485,7 @@ export const SettingsPage: React.FC<Props> = ({
       setCustomThemeDraft(JSON.parse(JSON.stringify(duplicateDefinition)) as CustomThemeDefinition);
       setCustomThemeEditorOpen(true);
     } catch (error) {
-      console.error("[Settings] handleDuplicateActiveTheme failed", error);
+      logWithLanguage(settings.language, "error", "settings.customTheme.duplicateFailed", { error });
       showToast(t("settings.theme.toast.duplicateFailed"), "error");
     }
   };
@@ -562,7 +563,7 @@ export const SettingsPage: React.FC<Props> = ({
 
       showToast(t("settings.theme.toast.imported"), "success");
     } catch (error) {
-      console.error("[Settings] handleCustomThemeImport failed", error);
+      logWithLanguage(settings.language, "error", "settings.customTheme.importFailed", { error });
       showToast(t("settings.theme.toast.importFailed"), "error");
     }
   };
@@ -583,7 +584,7 @@ export const SettingsPage: React.FC<Props> = ({
       await writeTextFile(filePath, JSON.stringify(customThemes, null, 2));
       showToast(t("settings.theme.toast.exported"), "success");
     } catch (error) {
-      console.error("[Settings] handleExportAllCustomThemes failed", error);
+      logWithLanguage(settings.language, "error", "settings.customTheme.exportAllFailed", { error });
       showToast(t("settings.theme.toast.exportFailed"), "error");
     }
   };
@@ -650,7 +651,7 @@ export const SettingsPage: React.FC<Props> = ({
   };
 
   const loadLibraryEntries = () => {
-    console.log("[Settings] loadLibraryEntries invoked", {
+    logWithLanguage(settings.language, "log", "settings.library.load.start", {
       activeTab,
       initialized: libraryInitialized,
     });
@@ -658,13 +659,15 @@ export const SettingsPage: React.FC<Props> = ({
     try {
       ensureLibraryOverridesLoaded();
       const snapshot = getLibrarySnapshot();
-      console.log("[Settings] loadLibraryEntries snapshot", { count: snapshot.length });
+      logWithLanguage(settings.language, "log", "settings.library.load.snapshot", {
+        count: snapshot.length,
+      });
       setLibraryEntriesState(sortLibraryEntries(snapshot));
       setLibraryInitialized(true);
       setLibraryDirty(false);
       setLibraryError(null);
     } catch (error) {
-      console.error("[Settings] Failed to load filament library snapshot", error);
+      logWithLanguage(settings.language, "error", "settings.library.load.error", { error });
       setLibraryError(error instanceof Error ? error.message : String(error));
     } finally {
       setLibraryLoading(false);
@@ -682,9 +685,11 @@ export const SettingsPage: React.FC<Props> = ({
       return;
     }
     const unsubscribe = subscribeToLibraryChanges(() => {
-      console.log("[Settings] subscribeToLibraryChanges received update");
+      logWithLanguage(settings.language, "log", "settings.library.subscribe.update");
       const snapshot = getLibrarySnapshot();
-      console.log("[Settings] subscribeToLibraryChanges snapshot", { count: snapshot.length });
+      logWithLanguage(settings.language, "log", "settings.library.subscribe.snapshot", {
+        count: snapshot.length,
+      });
       setLibraryEntriesState(sortLibraryEntries(snapshot));
     });
     return () => {
@@ -867,7 +872,7 @@ export const SettingsPage: React.FC<Props> = ({
   };
 
   const handleLibraryAddOrUpdate = async () => {
-    console.log("[Settings] handleLibraryAddOrUpdate invoked", {
+    logWithLanguage(settings.language, "log", "settings.library.add.start", {
       editingLibraryId,
       draft: libraryDraft,
       entriesBefore: libraryEntriesState.length,
@@ -881,7 +886,7 @@ export const SettingsPage: React.FC<Props> = ({
     const isValidHex = /^#[0-9A-F]{6}$/.test(sanitizedHex);
 
     if (!trimmedManufacturer || !trimmedMaterial || !trimmedColor) {
-      console.warn("[Settings] handleLibraryAddOrUpdate missing required fields", {
+      logWithLanguage(settings.language, "warn", "settings.library.add.missingFields", {
         trimmedManufacturer,
         trimmedMaterial,
         trimmedColor,
@@ -920,7 +925,7 @@ export const SettingsPage: React.FC<Props> = ({
     }
 
     if (!baseLabel) {
-      console.warn("[Settings] handleLibraryAddOrUpdate missing base label");
+      logWithLanguage(settings.language, "warn", "settings.library.add.missingBaseLabel");
       showToast(t("settings.library.validation.labelRequired"), "error");
       return;
     }
@@ -942,7 +947,7 @@ export const SettingsPage: React.FC<Props> = ({
               const translated = await translateText(baseLabel, settings.language, lang);
               labels[lang] = translated.trim() || baseLabel;
             } catch (error) {
-              console.warn("[Settings] Translation fallback", error);
+              logWithLanguage(settings.language, "warn", "settings.library.add.translationFallback", { error });
               labels[lang] = baseLabel;
             }
           }
@@ -970,7 +975,7 @@ export const SettingsPage: React.FC<Props> = ({
       multiColorHint,
     };
 
-    console.log("[Settings] handleLibraryAddOrUpdate upserting entry", entry);
+    logWithLanguage(settings.language, "log", "settings.library.add.upserting", entry);
 
     const updatedEntries = sortLibraryEntries(
       editingLibraryId
@@ -978,7 +983,7 @@ export const SettingsPage: React.FC<Props> = ({
         : [...libraryEntriesState, entry]
     );
 
-    console.log("[Settings] handleLibraryAddOrUpdate updated entries", {
+    logWithLanguage(settings.language, "log", "settings.library.add.updatedEntries", {
       before: libraryEntriesState.length,
       after: updatedEntries.length,
     });
@@ -987,29 +992,29 @@ export const SettingsPage: React.FC<Props> = ({
 
     try {
       setLibrarySaving(true);
-      console.log("[Settings] handleLibraryAddOrUpdate persisting entries", {
+      logWithLanguage(settings.language, "log", "settings.library.add.persisting", {
         total: updatedEntries.length,
       });
       await persistLibraryEntries(updatedEntries);
       const snapshot = sortLibraryEntries(getLibrarySnapshot());
-      console.log("[Settings] handleLibraryAddOrUpdate received snapshot", {
+      logWithLanguage(settings.language, "log", "settings.library.add.snapshotReceived", {
         snapshotCount: snapshot.length,
       });
       setLibraryEntriesState(snapshot);
       setLibraryDirty(false);
       dirtyAfter = false;
-      console.log("[Settings] handleLibraryAddOrUpdate persisted successfully");
+      logWithLanguage(settings.language, "log", "settings.library.add.persisted");
       showToast(editingLibraryId ? t("settings.library.toast.updated") : t("settings.library.toast.added"), "success");
       closeLibraryModal();
-      console.log("[Settings] handleLibraryAddOrUpdate modal closed");
+      logWithLanguage(settings.language, "log", "settings.library.add.modalClosed");
     } catch (error) {
-      console.error("[Settings] handleLibraryAddOrUpdate failed to persist entries", error);
+      logWithLanguage(settings.language, "error", "settings.library.add.persistFailed", { error });
       setLibraryDirty(true);
       dirtyAfter = true;
       showToast(t("settings.library.toast.saveFailed"), "error");
     } finally {
       setLibrarySaving(false);
-      console.log("[Settings] handleLibraryAddOrUpdate completed", {
+      logWithLanguage(settings.language, "log", "settings.library.add.completed", {
         dirty: dirtyAfter,
         editing: !!editingLibraryId,
       });
@@ -1017,7 +1022,7 @@ export const SettingsPage: React.FC<Props> = ({
   };
 
   const handleLibrarySave = async () => {
-    console.log("[Settings] handleLibrarySave invoked", {
+    logWithLanguage(settings.language, "log", "settings.library.save.start", {
       entries: libraryEntriesState.length,
     });
     try {
@@ -1026,7 +1031,7 @@ export const SettingsPage: React.FC<Props> = ({
       setLibraryDirty(false);
       showToast(t("settings.library.toast.saveSuccess"), "success");
     } catch (error) {
-      console.error("[Settings] Failed to persist library entries", error);
+      logWithLanguage(settings.language, "error", "settings.library.save.error", { error });
       showToast(t("settings.library.toast.saveFailed"), "error");
     } finally {
       setLibrarySaving(false);
@@ -1048,7 +1053,7 @@ export const SettingsPage: React.FC<Props> = ({
           closeLibraryModal();
           showToast(t("settings.library.toast.resetSuccess"), "success");
         } catch (error) {
-          console.error("[Settings] Failed to reset library", error);
+          logWithLanguage(settings.language, "error", "settings.library.reset.error", { error });
           showToast(t("settings.library.toast.resetFailed"), "error");
         } finally {
           setLibraryLoading(false);
@@ -1058,12 +1063,14 @@ export const SettingsPage: React.FC<Props> = ({
   };
 
   const handleLibraryExportToFile = async () => {
-    console.log("[Settings] handleLibraryExportToFile invoked");
+    logWithLanguage(settings.language, "log", "settings.library.export.start");
     try {
       setLibraryExporting(true);
       ensureLibraryOverridesLoaded();
       const snapshot = getLibrarySnapshot();
-      console.log("[Settings] handleLibraryExportToFile snapshot", { count: snapshot.length });
+      logWithLanguage(settings.language, "log", "settings.library.export.snapshot", {
+        count: snapshot.length,
+      });
       const defaultFileName = `filament-library-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
       const filePath = await save({
         defaultPath: defaultFileName,
@@ -1075,13 +1082,13 @@ export const SettingsPage: React.FC<Props> = ({
         ],
       });
       if (!filePath) {
-        console.log("[Settings] handleLibraryExportToFile cancelled by user");
+        logWithLanguage(settings.language, "log", "settings.library.export.cancelled");
         return;
       }
       await writeTextFile(filePath, JSON.stringify(snapshot, null, 2));
       showToast(t("settings.library.export.success"), "success");
     } catch (error) {
-      console.error("[Settings] handleLibraryExportToFile failed", error);
+      logWithLanguage(settings.language, "error", "settings.library.export.error", { error });
       showToast(t("settings.library.export.error"), "error");
     } finally {
       setLibraryExporting(false);
@@ -1089,7 +1096,7 @@ export const SettingsPage: React.FC<Props> = ({
   };
 
   const handleLibraryImportFromFile = async () => {
-    console.log("[Settings] handleLibraryImportFromFile invoked");
+    logWithLanguage(settings.language, "log", "settings.library.import.start");
     try {
       setLibraryImporting(true);
       const filePath = await open({
@@ -1101,7 +1108,7 @@ export const SettingsPage: React.FC<Props> = ({
         ],
       });
       if (!filePath || Array.isArray(filePath)) {
-        console.log("[Settings] handleLibraryImportFromFile cancelled or invalid path", { filePath });
+        logWithLanguage(settings.language, "log", "settings.library.import.cancelled", { filePath });
         return;
       }
       const content = await readTextFile(filePath);
@@ -1109,7 +1116,9 @@ export const SettingsPage: React.FC<Props> = ({
       if (!Array.isArray(parsed)) {
         throw new Error("Invalid filament library format");
       }
-      console.log("[Settings] handleLibraryImportFromFile parsed entries", { count: parsed.length });
+      logWithLanguage(settings.language, "log", "settings.library.import.parsed", {
+        count: parsed.length,
+      });
       await persistLibraryEntries(parsed as RawLibraryEntry[]);
       const snapshot = sortLibraryEntries(getLibrarySnapshot());
       setLibraryEntriesState(snapshot);
@@ -1117,7 +1126,7 @@ export const SettingsPage: React.FC<Props> = ({
       setLibraryInitialized(true);
       showToast(t("settings.library.import.success"), "success");
     } catch (error) {
-      console.error("[Settings] handleLibraryImportFromFile failed", error);
+      logWithLanguage(settings.language, "error", "settings.library.import.error", { error });
       showToast(t("settings.library.import.error"), "error");
     } finally {
       setLibraryImporting(false);
@@ -1275,7 +1284,7 @@ export const SettingsPage: React.FC<Props> = ({
           "success"
         );
       } catch (error) {
-        console.error("❌ Logo optimalizálási hiba:", error);
+        logWithLanguage(settings.language, "error", "settings.logo.optimizeError", { error });
         showToast(
           settings.language === "hu"
             ? "Hiba történt a logo feldolgozásakor."
@@ -1345,10 +1354,14 @@ export const SettingsPage: React.FC<Props> = ({
     }
 
     try {
-      console.log("📤 Export indítása...", { 
-        filaments: exportFilaments, 
-        printers: exportPrinters, 
-        offers: exportOffers 
+      logWithLanguage(settings.language, "log", "settings.dataExport.start", {
+        format: "JSON",
+        sections: ["filaments", "printers", "offers"],
+      });
+      logWithLanguage(settings.language, "log", "settings.dataExport.prepared", {
+        printers: exportPrinters ? printers.length : 0,
+        filaments: exportFilaments ? filaments.length : 0,
+        offers: exportOffers ? offers.length : 0,
       });
       
       const exportData: any = {};
@@ -1357,12 +1370,8 @@ export const SettingsPage: React.FC<Props> = ({
       if (exportOffers) exportData.offers = offers;
 
       const jsonContent = JSON.stringify(exportData, null, 2);
-      console.log("📊 Export adatok előkészítve", {
-        filamentsCount: exportData.filaments?.length || 0,
-        printersCount: exportData.printers?.length || 0,
-        offersCount: exportData.offers?.length || 0,
-        jsonSize: jsonContent.length
-      });
+      logWithLanguage(settings.language, "log", "settings.dataExport.saving", { filePath: "3DPrinterCalcApp_export.json" });
+      logWithLanguage(settings.language, "log", "settings.dataExport.success", { filePath: "3DPrinterCalcApp_export.json" });
 
       const filePath = await save({
         defaultPath: "3DPrinterCalcApp_export.json",
@@ -1373,22 +1382,22 @@ export const SettingsPage: React.FC<Props> = ({
       });
 
       if (filePath) {
-        console.log("💾 Fájl mentése...", { filePath });
-        await writeTextFile(filePath, jsonContent);
-        console.log("✅ Export sikeres", { filePath });
-        showToast(t("settings.exportSuccess"), "success");
+        logWithLanguage(settings.language, "log", "settings.dataExport.saving", { filePath });
+        logWithLanguage(settings.language, "log", "settings.dataExport.success", { filePath: "3DPrinterCalcApp_export.json" });
         // Reset checkboxes
         setExportFilaments(false);
         setExportPrinters(false);
         setExportOffers(false);
       } else {
-        console.log("ℹ️ Export megszakítva (felhasználó megszakította)");
+        logWithLanguage(settings.language, "log", "settings.dataExport.cancelled");
         // User cancelled the save dialog
         return;
       }
     } catch (error) {
-      console.error("❌ Export hiba:", error);
+      logWithLanguage(settings.language, "error", "settings.dataExport.error", { error });
       showToast(t("settings.exportError"), "error");
+    } finally {
+      setLibraryExporting(false);
     }
   };
 
@@ -1399,10 +1408,8 @@ export const SettingsPage: React.FC<Props> = ({
     }
 
     try {
-      console.log("📥 Import indítása...", { 
-        filaments: importFilaments, 
-        printers: importPrinters, 
-        offers: importOffers 
+      logWithLanguage(settings.language, "log", "settings.dataImport.start", {
+        allowedSections: ["filaments", "printers", "offers"],
       });
       
       const selected = await open({
@@ -1414,7 +1421,7 @@ export const SettingsPage: React.FC<Props> = ({
       });
 
       if (!selected) {
-        console.log("ℹ️ Import megszakítva (felhasználó megszakította)");
+        logWithLanguage(settings.language, "log", "settings.dataImport.cancelled");
         // User cancelled the open dialog
         return;
       }
@@ -1423,24 +1430,26 @@ export const SettingsPage: React.FC<Props> = ({
       const filePath = Array.isArray(selected) ? selected[0] : selected;
       
       if (!filePath || typeof filePath !== "string") {
-        console.error("❌ Érvénytelen fájl kiválasztás");
+        logWithLanguage(settings.language, "error", "settings.dataImport.invalidFile");
         showToast(t("settings.noFileSelected"), "error");
         return;
       }
 
-      console.log("📂 Fájl betöltése...", { filePath });
+      logWithLanguage(settings.language, "log", "settings.dataImport.loading", { filePath });
       const fileContent = await readTextFile(filePath);
       const importData = JSON.parse(fileContent);
-      console.log("📊 Import adatok betöltve", {
-        filamentsCount: importData.filaments?.length || 0,
-        printersCount: importData.printers?.length || 0,
-        offersCount: importData.offers?.length || 0
+      logWithLanguage(settings.language, "log", "settings.dataImport.parsed", {
+        printers: importData.printers?.length || 0,
+        filaments: importData.filaments?.length || 0,
+        offers: importData.offers?.length || 0
       });
 
       // Validate and import data
       if (importFilaments && importData.filaments) {
         if (Array.isArray(importData.filaments)) {
-          console.log("✅ Filamentek importálása...", { count: importData.filaments.length });
+          logWithLanguage(settings.language, "log", "settings.dataImport.importFilaments", {
+            count: importData.filaments.length,
+          });
           setFilaments(importData.filaments);
         } else {
           throw new Error("Invalid filaments data");
@@ -1449,7 +1458,9 @@ export const SettingsPage: React.FC<Props> = ({
 
       if (importPrinters && importData.printers) {
         if (Array.isArray(importData.printers)) {
-          console.log("✅ Nyomtatók importálása...", { count: importData.printers.length });
+          logWithLanguage(settings.language, "log", "settings.dataImport.importPrinters", {
+            count: importData.printers.length,
+          });
           setPrinters(importData.printers);
         } else {
           throw new Error("Invalid printers data");
@@ -1458,21 +1469,23 @@ export const SettingsPage: React.FC<Props> = ({
 
       if (importOffers && importData.offers) {
         if (Array.isArray(importData.offers)) {
-          console.log("✅ Árajánlatok importálása...", { count: importData.offers.length });
+          logWithLanguage(settings.language, "log", "settings.dataImport.importOffers", {
+            count: importData.offers.length,
+          });
           setOffers(importData.offers);
         } else {
           throw new Error("Invalid offers data");
         }
       }
 
-      console.log("✅ Import sikeres");
+      logWithLanguage(settings.language, "log", "settings.dataImport.success");
       showToast(t("settings.importSuccess"), "success");
       // Reset checkboxes
       setImportFilaments(false);
       setImportPrinters(false);
       setImportOffers(false);
     } catch (error) {
-      console.error("❌ Import hiba:", error);
+      logWithLanguage(settings.language, "error", "settings.dataImport.error", { error });
       showToast(t("settings.importError") + ": " + (settings.language === "hu" ? "Érvénytelen fájl formátum!" : settings.language === "de" ? "Ungültiges Dateiformat!" : "Invalid file format!"), "error");
     }
   };

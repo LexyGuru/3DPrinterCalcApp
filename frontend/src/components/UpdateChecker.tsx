@@ -3,6 +3,7 @@ import { checkForUpdates, type VersionInfo } from "../utils/version";
 import { commonStyles } from "../utils/styles";
 import { open } from "@tauri-apps/plugin-shell";
 import { useTranslation, type LanguageCode } from "../utils/translations";
+import { getConsoleMessage } from "../utils/languages/global_console";
 
 interface Props {
   settings: {
@@ -43,30 +44,31 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
   const handleDownload = async () => {
     if (versionInfo?.releaseUrl) {
       try {
-        console.log("🔄 Frissítés letöltése...", { 
-          currentVersion: versionInfo.current, 
+        console.log(getConsoleMessage(settings.language, "update.download.open"), { 
+          currentVersion: versionInfo.current,
           latestVersion: versionInfo.latest,
           releaseUrl: versionInfo.releaseUrl,
-          isBeta: versionInfo.isBeta 
+          isBeta: versionInfo.isBeta,
         });
         // Tauri shell plugin használata külső linkek megnyitásához
         await open(versionInfo.releaseUrl);
-        console.log("✅ Frissítés letöltés sikeresen megnyitva", { 
+        console.log(getConsoleMessage(settings.language, "update.download.success"), { 
           latestVersion: versionInfo.latest,
-          releaseUrl: versionInfo.releaseUrl 
+          releaseUrl: versionInfo.releaseUrl,
         });
       } catch (error) {
-        console.error("❌ Frissítés letöltés hiba:", error, { 
-          releaseUrl: versionInfo.releaseUrl 
+        console.error(`${getConsoleMessage(settings.language, "update.download.error")}:`, error, { 
+          error,
+          releaseUrl: versionInfo.releaseUrl,
         });
         // Fallback: ha a Tauri shell nem működik, próbáljuk meg a window.open-t
         try {
-      window.open(versionInfo.releaseUrl, '_blank', 'noopener,noreferrer');
-          console.log("✅ Frissítés letöltés fallback módon megnyitva", { 
-            latestVersion: versionInfo.latest 
+          window.open(versionInfo.releaseUrl, "_blank", "noopener,noreferrer");
+          console.log(getConsoleMessage(settings.language, "update.download.fallbackSuccess"), { 
+            latestVersion: versionInfo.latest,
           });
         } catch (fallbackError) {
-          console.error("❌ Frissítés letöltés fallback hiba is:", fallbackError);
+          console.error(`${getConsoleMessage(settings.language, "update.download.fallbackError")}:`, fallbackError);
         }
       }
     }

@@ -25,6 +25,7 @@ import { useKeyboardShortcut } from "./utils/keyboardShortcuts";
 import { ShortcutHelp } from "./components/ShortcutHelp";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
+import { logWithLanguage, getConsoleMessage } from "./utils/languages/global_console";
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
@@ -56,7 +57,7 @@ export default function App() {
         // Ellenőrizzük hogy az electricityPrice érvényes érték-e
         if (!loadedSettings.electricityPrice || loadedSettings.electricityPrice <= 0) {
           if (import.meta.env.DEV) {
-            console.warn("Betöltött beállításokban az electricityPrice érvénytelen, alapértelmezett értéket használunk");
+            logWithLanguage(settings.language, "warn", "app.settings.invalidElectricity");
           }
           loadedSettings.electricityPrice = defaultSettings.electricityPrice;
         }

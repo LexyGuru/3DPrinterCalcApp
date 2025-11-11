@@ -16,6 +16,7 @@ import { useToast } from "./Toast";
 import { convertCurrencyFromTo } from "../utils/currency";
 import { Tooltip } from "./Tooltip";
 import { calculateOfferCosts } from "../utils/offerCalc";
+import { logWithLanguage } from "../utils/languages/global_console";
 import { validateUsedGrams, validateDryingTime, validateDryingPower } from "../utils/validation";
 import { getFilamentPlaceholder } from "../utils/filamentPlaceholder";
 import { DEFAULT_COLOR_HEX, normalizeHex, resolveColorHexFromName } from "../utils/filamentColors";
@@ -157,18 +158,24 @@ export const Offers: React.FC<Props> = ({
     if (deleteConfirmId === null) return;
     const id = deleteConfirmId;
     const offerToDelete = offers.find(o => o.id === id);
-    console.log("🗑️ Árajánlat törlése...", { offerId: id, customerName: offerToDelete?.customerName });
+    logWithLanguage(settings.language, "log", "offers.delete.start", {
+      offerId: id,
+      customerName: offerToDelete?.customerName,
+    });
     setOffers(offers.filter(o => o.id !== id));
     if (selectedOffer?.id === id) {
       setSelectedOffer(null);
     }
-    console.log("✅ Árajánlat sikeresen törölve", { offerId: id });
+    logWithLanguage(settings.language, "log", "offers.delete.success", { offerId: id });
     showToast(t("common.offerDeleted"), "success");
     setDeleteConfirmId(null);
   };
 
   const duplicateOffer = (offer: Offer) => {
-    console.log("📋 Árajánlat duplikálása...", { originalOfferId: offer.id, customerName: offer.customerName });
+    logWithLanguage(settings.language, "log", "offers.duplicate.start", {
+      originalOfferId: offer.id,
+      customerName: offer.customerName,
+    });
     const duplicated: Offer = {
       ...offer,
       id: Date.now(),
@@ -176,7 +183,9 @@ export const Offers: React.FC<Props> = ({
     };
     setOffers([...offers, duplicated]);
     setSelectedOffer(duplicated);
-    console.log("✅ Árajánlat sikeresen duplikálva", { newOfferId: duplicated.id });
+    logWithLanguage(settings.language, "log", "offers.duplicate.success", {
+      newOfferId: duplicated.id,
+    });
     showToast(t("common.offerDuplicated"), "success");
   };
 
@@ -242,7 +251,10 @@ export const Offers: React.FC<Props> = ({
   };
 
   const startEditOffer = (offer: Offer) => {
-    console.log("✏️ Árajánlat szerkesztése indítása...", { offerId: offer.id, customerName: offer.customerName });
+    logWithLanguage(settings.language, "log", "offers.edit.start", {
+      offerId: offer.id,
+      customerName: offer.customerName,
+    });
     setEditingOffer(offer);
     setEditCustomerName(offer.customerName || "");
     setEditCustomerContact(offer.customerContact || "");
@@ -276,10 +288,10 @@ export const Offers: React.FC<Props> = ({
       return;
     }
 
-    console.log("💾 Árajánlat mentése...", { 
-      offerId: editingOffer.id, 
+    logWithLanguage(settings.language, "log", "offers.save.start", {
+      offerId: editingOffer.id,
       customerName: editCustomerName,
-      profitPercentage: editProfitPercentage
+      profitPercentage: editProfitPercentage,
     });
 
     // Ellenőrizzük, hogy változott-e valami
@@ -287,7 +299,7 @@ export const Offers: React.FC<Props> = ({
     const selectedPrinter = editPrinterId != null ? printers.find(p => p.id === editPrinterId) : undefined;
     if (!selectedPrinter) {
       showToast(t("offers.toast.printerRequired"), "error");
-      console.warn("[Offers] Cannot save offer because no printer is selected", {
+      logWithLanguage(settings.language, "warn", "offers.noPrinter", {
         offerId: editingOffer.id,
         editPrinterId,
       });
@@ -364,10 +376,10 @@ export const Offers: React.FC<Props> = ({
     setSelectedOffer(updatedOffer);
     cancelEditOffer();
     
-    console.log("✅ Árajánlat sikeresen mentve", { 
-      offerId: editingOffer.id, 
+    logWithLanguage(settings.language, "log", "offers.save.success", {
+      offerId: editingOffer.id,
       version: currentVersion,
-      hasHistory: history.length > 0
+      hasHistory: history.length > 0,
     });
     const versionSuffix = hasChanges ? ` (${t("offers.versionPrefix")}${currentVersion})` : "";
     showToast(`${t("offers.toast.saveSuccess")}${versionSuffix}`, "success");
@@ -375,11 +387,12 @@ export const Offers: React.FC<Props> = ({
 
   const exportToPDF = (offer: Offer) => {
     try {
-      console.log("📄 PDF export indítása...", { 
-        offerId: offer.id, 
+      logWithLanguage(settings.language, "log", "offers.pdf.start", {
+        offerId: offer.id,
         customerName: offer.customerName,
+        template: settings.pdfTemplate,
         totalCost: offer.costs.totalCost,
-        currency: offer.currency 
+        currency: offer.currency,
       });
       
       // HTML tartalom generálása
@@ -391,7 +404,7 @@ export const Offers: React.FC<Props> = ({
       if (!printWindow || printWindow.closed || typeof printWindow.closed == 'undefined') {
         // Ha az ablak blokkolva van, mutassuk meg az előnézetet a jelenlegi oldalon
         if (import.meta.env.DEV) {
-          console.log("Window blocked, showing preview");
+          logWithLanguage(settings.language, "log", "offers.pdf.windowBlocked");
         }
         setPrintContent(htmlContent);
         setShowPrintPreview(true);
@@ -404,19 +417,19 @@ export const Offers: React.FC<Props> = ({
       printWindow.document.close();
       
       if (import.meta.env.DEV) {
-        console.log("PDF content written to window");
+        logWithLanguage(settings.language, "log", "offers.pdf.contentWritten");
       }
       
       // Várunk, hogy a tartalom betöltődjön
       printWindow.onload = () => {
-        console.log("📄 PDF ablak betöltve, nyomtatás indítása...");
+        logWithLanguage(settings.language, "log", "offers.pdf.windowLoaded");
         setTimeout(() => {
           try {
             printWindow.focus();
             printWindow.print();
-            console.log("✅ PDF export sikeres", { offerId: offer.id });
+            logWithLanguage(settings.language, "log", "offers.pdf.completed", { offerId: offer.id });
           } catch (e) {
-            console.error("❌ PDF export hiba:", e);
+            logWithLanguage(settings.language, "error", "offers.pdf.error", { error: e });
             alert(t("offers.exportPDF") + " - Nyomtatási hiba: " + (e as Error).message);
           }
         }, 300);
@@ -426,17 +439,17 @@ export const Offers: React.FC<Props> = ({
       setTimeout(() => {
         try {
           if (printWindow && !printWindow.closed) {
-            console.log("📄 PDF export fallback: nyomtatás indítása...");
+            logWithLanguage(settings.language, "log", "offers.pdf.fallbackTrigger");
             printWindow.focus();
             printWindow.print();
-            console.log("✅ PDF export sikeres (fallback)", { offerId: offer.id });
+            logWithLanguage(settings.language, "log", "offers.pdf.fallbackCompleted", { offerId: offer.id });
           }
         } catch (e) {
-          console.error("❌ PDF export hiba (fallback):", e);
+          logWithLanguage(settings.language, "error", "offers.pdf.fallbackError", { error: e });
         }
       }, 1000);
     } catch (error) {
-      console.error("Error exporting to PDF:", error);
+      logWithLanguage(settings.language, "error", "offers.pdf.error", { error });
       alert(t("offers.exportPDF") + " - Hiba történt: " + (error as Error).message);
     }
   };
@@ -449,7 +462,7 @@ export const Offers: React.FC<Props> = ({
   const exportAsPDF = async (offer: Offer) => {
     try {
       if (import.meta.env.DEV) {
-        console.log("PDF export started for offer:", offer.id);
+        logWithLanguage(settings.language, "log", "offers.pdf.startedForOffer", { offerId: offer.id });
       }
       
       // HTML tartalom generálása
@@ -478,7 +491,7 @@ export const Offers: React.FC<Props> = ({
         showToast(`${t("offers.toast.exportHtmlSuccess")} ${fileName}`, "success");
       }
     } catch (error) {
-      console.error("Error exporting PDF:", error);
+      logWithLanguage(settings.language, "error", "offers.pdf.error", { error });
       const errorMessage = error instanceof Error ? error.message : String(error);
       showToast(`${t("offers.toast.exportHtmlError")} ${errorMessage}`, "error");
     }
@@ -856,7 +869,10 @@ export const Offers: React.FC<Props> = ({
 
     setOffers(newOffers);
     setDraggedOfferId(null);
-    console.log("🔄 Árajánlatok átrendezve", { draggedId: draggedOfferId, targetId: targetOfferId });
+    logWithLanguage(settings.language, "log", "offers.reorder", {
+      draggedId: draggedOfferId,
+      targetId: targetOfferId,
+    });
     showToast(t("offers.toast.reordered"), "success");
   };
 

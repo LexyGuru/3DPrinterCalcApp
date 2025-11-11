@@ -1,5 +1,6 @@
 import type { Offer, Printer, Settings } from "../types";
 import { convertCurrencyFromTo } from "./currency";
+import { logWithLanguage } from "./languages/global_console";
 
 export interface OfferCosts {
   filamentCost: number;
@@ -21,7 +22,7 @@ export function calculateOfferCosts(
   settings: Settings
 ): OfferCosts | null {
   if (!printer) {
-    console.warn("[offerCalc] calculateOfferCosts called without a printer, returning null.", {
+    logWithLanguage(settings.language, "warn", "offerCalc.noPrinter", {
       offerId: offer.id,
       printerName: offer.printerName,
     });
@@ -36,7 +37,7 @@ export function calculateOfferCosts(
     const massKg = (f.usedGrams ?? 0) / 1000;
     const pricePerKg = f.pricePerKg ?? 0;
     const filamentCostEUR = massKg * pricePerKg;
-    console.debug("[offerCalc] Filament cost entry", {
+    logWithLanguage(settings.language, "debug", "offerCalc.filamentEntry", {
       offerId: offer.id,
       filamentIndex: index,
       brand: f.brand,
@@ -48,7 +49,7 @@ export function calculateOfferCosts(
     totalFilamentCostEUR += filamentCostEUR;
   });
   const filamentCost = convertCurrencyFromTo(totalFilamentCostEUR, "EUR", offer.currency || "EUR");
-  console.debug("[offerCalc] Total filament cost", {
+  logWithLanguage(settings.language, "debug", "offerCalc.totalFilament", {
     offerId: offer.id,
     totalFilamentCostEUR,
     filamentCostConverted: filamentCost,
@@ -64,7 +65,7 @@ export function calculateOfferCosts(
   // Az electricityPrice mindig Ft/kWh-ban van tárolva
   const electricityPrice = settings.electricityPrice || 0;
   if (electricityPrice <= 0) {
-    console.warn("⚠️ Áram ár nincs beállítva vagy 0:", electricityPrice);
+    logWithLanguage(settings.language, "warn", "offerCalc.missingElectricityPrice", { electricityPrice });
   }
   const electricityCostHUF = powerConsumedKWh * electricityPrice;
   // Konvertáljuk EUR-ra (400 Ft = 1 EUR), majd az offer pénznemére
@@ -106,7 +107,7 @@ export function calculateOfferCosts(
       usageCostEUR: printer.usageCost * totalPrintTimeHours,
     },
   };
-  console.debug("[offerCalc] Calculated offer costs", {
+  logWithLanguage(settings.language, "debug", "offerCalc.costsCalculated", {
     offerId: offer.id,
     printerName: printer.name,
     costs,

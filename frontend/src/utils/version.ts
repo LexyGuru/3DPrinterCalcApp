@@ -1,6 +1,8 @@
 // Verzióellenőrző utility
 // Ellenőrzi a GitHub Releases-t, hogy van-e új verzió
 
+import { getConsoleMessage } from "./languages/global_console";
+
 export interface VersionInfo {
   current: string;
   latest: string | null;
@@ -34,7 +36,7 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
   try {
     if (isRateLimitActive()) {
       if (!lastRateLimitLogAt || Date.now() - lastRateLimitLogAt > 60_000) {
-        console.warn("⏳ GitHub rate limit aktív, a frissítés ellenőrzés később újra próbálkozik.", {
+        console.warn(getConsoleMessage(undefined, "update.rateLimit.active"), {
           betaMode: beta,
           retryAt: rateLimitResetAt,
         });
@@ -49,9 +51,9 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       };
     }
 
-    console.log("🔍 Frissítés ellenőrzése...", { 
-      currentVersion: CURRENT_VERSION, 
-      betaMode: beta 
+    console.log(getConsoleMessage(undefined, "update.check.start"), {
+      currentVersion: CURRENT_VERSION,
+      betaMode: beta,
     });
     
     // GitHub Releases API
@@ -86,9 +88,9 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       if (response.status === 403) {
         setRateLimitReset(response);
         lastRateLimitLogAt = Date.now();
-        console.warn("⚠️ GitHub API korlát miatt nem sikerült a frissítés ellenőrzése.", logPayload);
+        console.warn(getConsoleMessage(undefined, "update.rateLimit.exceeded"), logPayload);
       } else {
-        console.error("❌ Frissítés ellenőrzés hiba:", logPayload);
+        console.error(`${getConsoleMessage(undefined, "update.check.error")}:`, logPayload);
       }
 
       return {
@@ -121,11 +123,11 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       // Ez lehetővé teszi, hogy main build-ről beta-ra frissítsen, ha van újabb beta verzió
       const isNewer = compareVersions(latestVersion, CURRENT_VERSION) > 0;
 
-      console.log("📊 Beta frissítés ellenőrzés eredménye", { 
-        currentVersion: CURRENT_VERSION, 
-        latestVersion, 
-        isNewer, 
-        releaseUrl: latestRelease.html_url 
+      console.log(getConsoleMessage(undefined, "update.beta.result"), {
+        currentVersion: CURRENT_VERSION,
+        latestVersion,
+        isNewer,
+        releaseUrl: latestRelease.html_url,
       });
 
       return {
@@ -141,11 +143,11 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       const latestVersion = release.tag_name.replace(/^v/, "");
       const isNewer = compareVersions(latestVersion, CURRENT_VERSION) > 0;
 
-      console.log("📊 Stable frissítés ellenőrzés eredménye", { 
-        currentVersion: CURRENT_VERSION, 
-        latestVersion, 
-        isNewer, 
-        releaseUrl: release.html_url 
+      console.log(getConsoleMessage(undefined, "update.stable.result"), {
+        currentVersion: CURRENT_VERSION,
+        latestVersion,
+        isNewer,
+        releaseUrl: release.html_url,
       });
 
       return {
@@ -157,7 +159,7 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       };
     }
   } catch (error) {
-    console.error("❌ Frissítés ellenőrzés hiba:", error, { betaMode: beta });
+    console.error(`${getConsoleMessage(undefined, "update.check.error")}:`, error, { betaMode: beta });
     return {
       current: CURRENT_VERSION,
       latest: null,
