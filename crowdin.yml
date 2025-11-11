@@ -1,0 +1,3 @@
+files:
+  - source: frontend/src/utils/languages/language_*
+    translation: frontend/src/utils/languages/%file_name%_update.ts
