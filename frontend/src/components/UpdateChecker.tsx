@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { checkForUpdates, type VersionInfo } from "../utils/version";
 import { commonStyles } from "../utils/styles";
 import { open } from "@tauri-apps/plugin-shell";
+import type { LanguageCode } from "../utils/translations";
 
 interface Props {
   settings: {
-    language: "hu" | "en" | "de";
+    language: LanguageCode;
     checkForBetaUpdates?: boolean;
   };
 }
@@ -34,7 +35,7 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
     setVersionInfo(info);
   };
 
-  const translations: Record<string, Record<string, string>> = {
+  const translations: Partial<Record<LanguageCode, Record<string, string>>> = {
     hu: {
       updateAvailable: "Új verzió elérhető!",
       currentVersion: "Jelenlegi verzió",
@@ -62,9 +63,81 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
       dismiss: "✕",
       beta: "Beta",
     },
+    fr: {
+      updateAvailable: "Une mise à jour est disponible !",
+      currentVersion: "Version actuelle",
+      latestVersion: "Dernière version",
+      download: "Télécharger",
+      checking: "Vérification...",
+      dismiss: "✕",
+      beta: "Bêta",
+    },
+    "pt-BR": {
+      updateAvailable: "Atualização disponível!",
+      currentVersion: "Versão atual",
+      latestVersion: "Última versão",
+      download: "Baixar",
+      checking: "Verificando...",
+      dismiss: "✕",
+      beta: "Beta",
+    },
+    es: {
+      updateAvailable: "¡Actualización disponible!",
+      currentVersion: "Versión actual",
+      latestVersion: "Última versión",
+      download: "Descargar",
+      checking: "Comprobando...",
+      dismiss: "✕",
+      beta: "Beta",
+    },
+    it: {
+      updateAvailable: "Aggiornamento disponibile!",
+      currentVersion: "Versione attuale",
+      latestVersion: "Ultima versione",
+      download: "Scarica",
+      checking: "Verifica...",
+      dismiss: "✕",
+      beta: "Beta",
+    },
+    pl: {
+      updateAvailable: "Dostępna aktualizacja!",
+      currentVersion: "Aktualna wersja",
+      latestVersion: "Najnowsza wersja",
+      download: "Pobierz",
+      checking: "Sprawdzanie...",
+      dismiss: "✕",
+      beta: "Beta",
+    },
+    cs: {
+      updateAvailable: "Je dostupná aktualizace!",
+      currentVersion: "Aktuální verze",
+      latestVersion: "Nejnovější verze",
+      download: "Stáhnout",
+      checking: "Kontroluji...",
+      dismiss: "✕",
+      beta: "Beta",
+    },
+    sk: {
+      updateAvailable: "Je dostupná aktualizácia!",
+      currentVersion: "Aktuálna verzia",
+      latestVersion: "Najnovšia verzia",
+      download: "Stiahnuť",
+      checking: "Kontrolujem...",
+      dismiss: "✕",
+      beta: "Beta",
+    },
+    zh: {
+      updateAvailable: "有新版本可用！",
+      currentVersion: "当前版本",
+      latestVersion: "最新版本",
+      download: "下载",
+      checking: "正在检查...",
+      dismiss: "✕",
+      beta: "测试版",
+    },
   };
 
-  const t = translations[settings.language] || translations.hu;
+  const t = translations[settings.language] || translations.en || translations.hu!;
 
   if (dismissed || !versionInfo || !versionInfo.isUpdateAvailable) {
     return null;
