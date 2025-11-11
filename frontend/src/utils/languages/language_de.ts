@@ -627,6 +627,12 @@ export const languageDe: TranslationMap = {
   "backup.restoreError": "Fehler beim Wiederherstellen des Backups",
   "backup.invalidFile": "Ungültige Backup-Datei",
   "backup.confirmRestore": "Möchten Sie das Backup wirklich wiederherstellen? Dies überschreibt Ihre aktuellen Daten.",
+  "updateChecker.updateAvailable": "Update verfügbar!",
+  "updateChecker.currentVersion": "Aktuelle Version",
+  "updateChecker.latestVersion": "Neueste Version",
+  "updateChecker.download": "Herunterladen",
+  "updateChecker.dismiss": "Schließen",
+  "updateChecker.betaTag": "Beta",
   // Slicer import
   "slicerImport.invalidSelection": "Ungültige Dateiauswahl.",
   "slicerImport.unsupported3mf": "3MF-Projektdateien werden noch nicht unterstützt. Exportiere bitte eine G-code- oder JSON-Datei aus dem Slicer.",

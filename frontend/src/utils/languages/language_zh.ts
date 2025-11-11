@@ -630,6 +630,12 @@ export const languageZh: TranslationMap = {
   "backup.restoreError": "恢复备份时出错",
   "backup.invalidFile": "备份文件无效",
   "backup.confirmRestore": "您确定要恢复备份吗？这将覆盖当前数据。",
+"updateChecker.updateAvailable": "有新版本可用！",
+"updateChecker.currentVersion": "当前版本",
+"updateChecker.latestVersion": "最新版本",
+"updateChecker.download": "下载",
+"updateChecker.dismiss": "关闭",
+"updateChecker.betaTag": "测试版",
 // Slicer import
   "slicerImport.invalidSelection": "文件选择无效。",
   "slicerImport.unsupported3mf": "尚不支持 3MF 项目文件。请从切片器导出 G 代码或 JSON 元数据文件。",

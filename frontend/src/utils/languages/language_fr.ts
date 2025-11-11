@@ -663,6 +663,12 @@ export const languageFr: TranslationMap = {
   "backup.invalidFile": "Fichier de sauvegarde invalide.",
   "backup.confirmRestore":
     "Restaurer cette sauvegarde ? Les données actuelles seront remplacées.",
+  "updateChecker.updateAvailable": "Mise à jour disponible !",
+  "updateChecker.currentVersion": "Version actuelle",
+  "updateChecker.latestVersion": "Dernière version",
+  "updateChecker.download": "Télécharger",
+  "updateChecker.dismiss": "Fermer",
+  "updateChecker.betaTag": "Bêta",
 
   // Slicer import
   "slicerImport.invalidSelection": "Sélection de fichier invalide.",

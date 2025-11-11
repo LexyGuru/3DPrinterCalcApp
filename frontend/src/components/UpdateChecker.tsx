@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { checkForUpdates, type VersionInfo } from "../utils/version";
 import { commonStyles } from "../utils/styles";
 import { open } from "@tauri-apps/plugin-shell";
-import type { LanguageCode } from "../utils/translations";
+import { useTranslation, type LanguageCode } from "../utils/translations";
 
 interface Props {
   settings: {
@@ -15,6 +15,7 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const beta = settings.checkForBetaUpdates || false;
+  const t = useTranslation(settings.language);
 
   useEffect(() => {
     // Ellenőrzés indításkor, amikor a beta beállítás változik, és 5 perc múlva
@@ -34,110 +35,6 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
     const info = await checkForUpdates(beta);
     setVersionInfo(info);
   };
-
-  const translations: Partial<Record<LanguageCode, Record<string, string>>> = {
-    hu: {
-      updateAvailable: "Új verzió elérhető!",
-      currentVersion: "Jelenlegi verzió",
-      latestVersion: "Legújabb verzió",
-      download: "Letöltés",
-      checking: "Ellenőrzés...",
-      dismiss: "✕",
-      beta: "Beta",
-    },
-    en: {
-      updateAvailable: "Update available!",
-      currentVersion: "Current version",
-      latestVersion: "Latest version",
-      download: "Download",
-      checking: "Checking...",
-      dismiss: "✕",
-      beta: "Beta",
-    },
-    de: {
-      updateAvailable: "Update verfügbar!",
-      currentVersion: "Aktuelle Version",
-      latestVersion: "Neueste Version",
-      download: "Herunterladen",
-      checking: "Prüfe...",
-      dismiss: "✕",
-      beta: "Beta",
-    },
-    fr: {
-      updateAvailable: "Une mise à jour est disponible !",
-      currentVersion: "Version actuelle",
-      latestVersion: "Dernière version",
-      download: "Télécharger",
-      checking: "Vérification...",
-      dismiss: "✕",
-      beta: "Bêta",
-    },
-    "pt-BR": {
-      updateAvailable: "Atualização disponível!",
-      currentVersion: "Versão atual",
-      latestVersion: "Última versão",
-      download: "Baixar",
-      checking: "Verificando...",
-      dismiss: "✕",
-      beta: "Beta",
-    },
-    es: {
-      updateAvailable: "¡Actualización disponible!",
-      currentVersion: "Versión actual",
-      latestVersion: "Última versión",
-      download: "Descargar",
-      checking: "Comprobando...",
-      dismiss: "✕",
-      beta: "Beta",
-    },
-    it: {
-      updateAvailable: "Aggiornamento disponibile!",
-      currentVersion: "Versione attuale",
-      latestVersion: "Ultima versione",
-      download: "Scarica",
-      checking: "Verifica...",
-      dismiss: "✕",
-      beta: "Beta",
-    },
-    pl: {
-      updateAvailable: "Dostępna aktualizacja!",
-      currentVersion: "Aktualna wersja",
-      latestVersion: "Najnowsza wersja",
-      download: "Pobierz",
-      checking: "Sprawdzanie...",
-      dismiss: "✕",
-      beta: "Beta",
-    },
-    cs: {
-      updateAvailable: "Je dostupná aktualizace!",
-      currentVersion: "Aktuální verze",
-      latestVersion: "Nejnovější verze",
-      download: "Stáhnout",
-      checking: "Kontroluji...",
-      dismiss: "✕",
-      beta: "Beta",
-    },
-    sk: {
-      updateAvailable: "Je dostupná aktualizácia!",
-      currentVersion: "Aktuálna verzia",
-      latestVersion: "Najnovšia verzia",
-      download: "Stiahnuť",
-      checking: "Kontrolujem...",
-      dismiss: "✕",
-      beta: "Beta",
-    },
-    zh: {
-      updateAvailable: "有新版本可用！",
-      currentVersion: "当前版本",
-      latestVersion: "最新版本",
-      download: "下载",
-      checking: "正在检查...",
-      dismiss: "✕",
-      beta: "测试版",
-    },
-  };
-
-  const t = translations[settings.language] || translations.en || translations.hu!;
 
   if (dismissed || !versionInfo || !versionInfo.isUpdateAvailable) {
     return null;
@@ -209,14 +106,14 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
             <span style={{ fontSize: "20px" }}>🔔</span>
             <strong style={{ fontSize: "16px", color: "#007bff" }}>
-              {t.updateAvailable} {beta && `(${t.beta})`}
+              {t("updateChecker.updateAvailable")} {beta && `(${t("updateChecker.betaTag")})`}
             </strong>
           </div>
           <div style={{ fontSize: "14px", color: "#495057", marginBottom: "4px" }}>
-            {t.currentVersion}: <strong>{versionInfo.current}</strong>
+            {t("updateChecker.currentVersion")}: <strong>{versionInfo.current}</strong>
           </div>
           <div style={{ fontSize: "14px", color: "#495057" }}>
-            {t.latestVersion}: <strong style={{ color: "#28a745" }}>{versionInfo.latest}</strong>
+            {t("updateChecker.latestVersion")}: <strong style={{ color: "#28a745" }}>{versionInfo.latest}</strong>
           </div>
         </div>
         <button
@@ -230,7 +127,7 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
             padding: "0",
             marginLeft: "12px",
           }}
-          title={t.dismiss}
+          title={t("updateChecker.dismiss")}
         >
           ✕
         </button>
@@ -247,7 +144,7 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
             marginTop: "8px",
           }}
         >
-          📥 {t.download}
+          📥 {t("updateChecker.download")}
         </button>
       )}
     </div>

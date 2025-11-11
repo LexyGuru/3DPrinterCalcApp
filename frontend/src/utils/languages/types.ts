@@ -633,6 +633,12 @@ export type TranslationKey =
   | "backup.restoreError"
   | "backup.invalidFile"
   | "backup.confirmRestore"
+  | "updateChecker.updateAvailable"
+  | "updateChecker.currentVersion"
+  | "updateChecker.latestVersion"
+  | "updateChecker.download"
+  | "updateChecker.dismiss"
+  | "updateChecker.betaTag"
   // Slicer import
   | "slicerImport.invalidSelection"
   | "slicerImport.unsupported3mf"

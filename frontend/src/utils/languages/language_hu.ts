@@ -627,6 +627,12 @@ export const languageHu: TranslationMap = {
   "backup.restoreError": "Hiba a backup visszaállításakor",
   "backup.invalidFile": "Érvénytelen backup fájl",
   "backup.confirmRestore": "Biztosan vissza szeretnéd állítani a backup-ot? Ez felülírja az aktuális adatokat.",
+  "updateChecker.updateAvailable": "Új verzió elérhető!",
+  "updateChecker.currentVersion": "Jelenlegi verzió",
+  "updateChecker.latestVersion": "Legújabb verzió",
+  "updateChecker.download": "Letöltés",
+  "updateChecker.dismiss": "Bezárás",
+  "updateChecker.betaTag": "Béta",
   // Slicer import
   "slicerImport.invalidSelection": "Érvénytelen fájl kiválasztás.",
   "slicerImport.unsupported3mf": "A 3MF projektfájlok importja még fejlesztés alatt áll. Exportálj G-code vagy JSON meta fájlt a slicerből.",
