@@ -237,7 +237,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
--### v0.5.55 (2025)
+### v0.5.55 (2025)
 - 🧵 **Árajánlat szerkesztés fejlesztés** – A mentett ajánlatoknál mostantól közvetlenül választható vagy módosítható a nyomtató, a filament változtatásokkal együtt automatikusan újraszámolódnak a költségek.
 - 🧮 **Pontosság és naplózás** – Részletes logolás segít követni a költségszámítás lépéseit (filament, áram, szárítás, használat), így könnyebb hibát keresni importált G-code-ok esetén.
 - 🌍 **Fordítási kiegészítések** – Új i18n kulcsok és feliratok kerültek a printer-választóhoz, így minden támogatott nyelven egységes a szerkesztő UI.

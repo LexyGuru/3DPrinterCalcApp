@@ -4,17 +4,17 @@
 
 |                     |                                                                 |
 |---------------------|-----------------------------------------------------------------|
-| **Aktuális verzió** | `v0.5.11`                                                       |
+| **Aktuális verzió** | `v0.5.55`                                                       |
 | **Platformok**      | macOS · Linux · Windows (Tauri natív build)                     |
 | **Technológiák**    | Frontend: React 19 · TypeScript · Vite · Framer Motion          |
 |                     | Backend: Rust · Tauri v2 · Tauri Plugins                        |
 | **Fő cél**          | 3D nyomtatási költségszámítás, árajánlat-kezelés és riportálás  |
 
-> **Legutóbbi újdonságok (v0.5.11)**  
-> - Külön `languages/` könyvtárba szervezett fordítási fájlok, dinamikus nyelvválasztó  
-> - A slicer import teljes felülete és hibaüzenetei központi fordításból dolgoznak  
-> - Egyszerűsödött új nyelvek felvétele, minden UI-szöveg egyetlen registry-ből érhető el  
-> - Új francia, olasz, spanyol, lengyel, cseh, szlovák, brazil portugál és egyszerűsített kínai nyelvi fájlok előkészítve (angol fallback)  
+> **Legutóbbi újdonságok (v0.5.55)**  
+> - Árajánlat szerkesztőben nyomtatóválasztás, filament-módosításkor automatikus költségszámítás  
+> - Részletes logolás a költségbontás minden eleméhez (filament, áram, szárítás, kopás)  
+> - Új i18n kulcsok/printer feliratok, minden támogatott nyelven egységes UI  
+> - Dokumentáció frissítve a 0.5.55-ös kiadás bejegyzéseivel  
 
 ---
 
@@ -264,6 +264,6 @@ cargo tauri dev
 
 ---
 
-**Verzió**: `0.5.11`
+**Verzió**: `0.5.55`
 Ha kérdésed van vagy hibát találsz, nyiss issue-t a GitHub repóban! 🎯
 
