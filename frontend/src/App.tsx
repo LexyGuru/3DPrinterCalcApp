@@ -244,7 +244,17 @@ export default function App() {
       case "calculator": 
         return <Calculator printers={printers} filaments={filaments} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
       case "offers":
-        return <Offers offers={offers} setOffers={setOffers} settings={settings} theme={currentTheme} themeStyles={themeStyles} printers={printers} />;
+        return (
+          <Offers
+            offers={offers}
+            setOffers={setOffers}
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+            printers={printers}
+            filaments={filaments}
+          />
+        );
       case "settings": 
         return <SettingsPage 
           settings={settings} 

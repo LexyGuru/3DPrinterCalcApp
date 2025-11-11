@@ -18,7 +18,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
 - 🧾 **G-code import és piszkozat készítés** - A kalkulátorban modális ablakból tölthető be G-code/JSON export (Prusa, Cura, Orca, Qidi), részletes összefoglalóval és automatikus árajánlat piszkozat generálással
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
-- 🌍 **Többnyelvű** - Magyar, Angol, Német + új francia, olasz, spanyol, lengyel, cseh, szlovák, brazil portugál és egyszerűsített kínai előkészített fordítások
+- 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia és egyszerűsített kínai nyelveken; olasz, spanyol, lengyel, cseh, szlovák és brazil portugál előkészítve (angol fallback-pal)
 - 💱 **Több pénznem** - EUR, HUF, USD
 - 🔄 **Automatikus frissítések** - Ellenőrzi a GitHub Releases-t új verziókért
 - 🧪 **Beta verziók** - Beta branch és beta buildelés támogatás
@@ -236,6 +236,12 @@ Lekszikov Miklós (LexyGuru)
 A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
 ## 📋 Verziótörténet
+
+-### v0.5.55 (2025)
+- 🧵 **Árajánlat szerkesztés fejlesztés** – A mentett ajánlatoknál mostantól közvetlenül választható vagy módosítható a nyomtató, a filament változtatásokkal együtt automatikusan újraszámolódnak a költségek.
+- 🧮 **Pontosság és naplózás** – Részletes logolás segít követni a költségszámítás lépéseit (filament, áram, szárítás, használat), így könnyebb hibát keresni importált G-code-ok esetén.
+- 🌍 **Fordítási kiegészítések** – Új i18n kulcsok és feliratok kerültek a printer-választóhoz, így minden támogatott nyelven egységes a szerkesztő UI.
+- 📄 **Dokumentáció frissítése** – A README bővült az új funkciók leírásával, a verziótörténetbe bekerült a v0.5.55 kiadás.
 
 ### v0.5.11 (2025)
 - 🗂️ **Nyelvi modulárisítás** – Új `languages/` könyvtárba szervezett fordítási fájlokkal bővítettük az appot, így könnyebb új nyelveket felvenni és a meglévő szövegeket kezelni.
@@ -465,7 +471,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.5.11
+**Verzió**: 0.5.55
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

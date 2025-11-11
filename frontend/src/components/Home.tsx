@@ -36,6 +36,20 @@ const CHART_PALETTE = [
   "#FACC15",
 ];
 
+const LANGUAGE_LOCALES: Record<string, string> = {
+  hu: "hu-HU",
+  de: "de-DE",
+  fr: "fr-FR",
+  it: "it-IT",
+  es: "es-ES",
+  pl: "pl-PL",
+  cs: "cs-CZ",
+  sk: "sk-SK",
+  zh: "zh-CN",
+  "pt-BR": "pt-BR",
+  en: "en-US",
+};
+
 interface Props {
   settings: Settings;
   offers: Offer[];
@@ -49,7 +63,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
   const [reportPeriod, setReportPeriod] = useState<"all" | "week" | "month" | "year">("all");
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<"all" | "week" | "month" | "year">("all");
-  const locale = settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US";
+  const locale = LANGUAGE_LOCALES[settings.language] ?? "en-US";
   const currencyLabel = settings.currency === "HUF" ? "Ft" : settings.currency;
   const trendChartRef = useRef<SVGSVGElement | null>(null);
   const filamentChartRef = useRef<SVGSVGElement | null>(null);
@@ -65,6 +79,26 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
   const microInteractionStyle = animationSettings.microInteractionStyle;
   const hoverScale = microInteractionStyle === "playful" ? 1.07 : microInteractionStyle === "expressive" ? 1.05 : 1.03;
   const hoverTranslate = microInteractionStyle === "playful" ? -4 : microInteractionStyle === "expressive" ? -3 : -2;
+  const periodOptionLabels: Record<"all" | "week" | "month" | "year", string> = {
+    all: t("home.period.option.all"),
+    week: t("home.period.option.week"),
+    month: t("home.period.option.month"),
+    year: t("home.period.option.year"),
+  };
+  const statsLabels = {
+    totalFilament: t("home.stats.totalFilament"),
+    totalRevenue: t("home.stats.totalRevenue"),
+    totalElectricity: t("home.stats.totalElectricity"),
+    totalCost: t("home.stats.totalCost"),
+    netProfit: t("home.stats.netProfit"),
+    totalPrintTime: t("home.stats.totalPrintTime"),
+  };
+  const summaryLabels = {
+    title: t("home.summary.title"),
+    offerCount: t("home.summary.offerCount"),
+    averageProfit: t("home.summary.averageProfit"),
+    profitMargin: t("home.summary.profitMargin"),
+  };
   
   // Helper függvény az időszak szűréséhez
   const filterOffersByPeriod = (offers: Offer[], period: "all" | "week" | "month" | "year") => {
@@ -568,16 +602,16 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         const valueLabel = settings.language === "hu" ? "Érték" : settings.language === "de" ? "Wert" : "Value";
         const unitLabel = settings.language === "hu" ? "Egység" : settings.language === "de" ? "Einheit" : "Unit";
         csvRows.push(`${categoryLabel},${valueLabel},${unitLabel}`);
-        const filamentLabel = settings.language === "hu" ? "Összes filament fogyasztás" : settings.language === "de" ? "Gesamter Filamentverbrauch" : "Total filament consumption";
-        const revenueLabel = settings.language === "hu" ? "Összes bevétel" : settings.language === "de" ? "Gesamteinnahmen" : "Total revenue";
-        const electricityLabel = settings.language === "hu" ? "Összes áram fogyasztás" : settings.language === "de" ? "Gesamter Stromverbrauch" : "Total electricity consumption";
-        const costLabel = settings.language === "hu" ? "Összes költség" : settings.language === "de" ? "Gesamtkosten" : "Total cost";
-        const profitLabel = settings.language === "hu" ? "Nettó profit" : settings.language === "de" ? "Nettogewinn" : "Net profit";
-        const printTimeLabel = settings.language === "hu" ? "Összes nyomtatási idő" : settings.language === "de" ? "Gesamtdruckzeit" : "Total print time";
-        const offerCountLabel = settings.language === "hu" ? "Árajánlatok száma" : settings.language === "de" ? "Anzahl der Angebote" : "Number of offers";
-        const avgProfitLabel = settings.language === "hu" ? "Átlagos profit/árajánlat" : settings.language === "de" ? "Durchschnittlicher Gewinn/Angebot" : "Average profit/offer";
-        const profitMarginLabel = settings.language === "hu" ? "Profit margó" : settings.language === "de" ? "Gewinnmarge" : "Profit margin";
-        const timeUnit = settings.language === "hu" ? "óra" : settings.language === "de" ? "Std" : "hrs";
+        const filamentLabel = statsLabels.totalFilament;
+        const revenueLabel = statsLabels.totalRevenue;
+        const electricityLabel = statsLabels.totalElectricity;
+        const costLabel = statsLabels.totalCost;
+        const profitLabel = statsLabels.netProfit;
+        const printTimeLabel = statsLabels.totalPrintTime;
+        const offerCountLabel = summaryLabels.offerCount;
+        const avgProfitLabel = summaryLabels.averageProfit;
+        const profitMarginLabel = summaryLabels.profitMargin;
+        const timeUnit = t("home.stats.unit.hours");
         
         csvRows.push(`${filamentLabel},${(statsToExport.totalFilamentUsed / 1000).toFixed(2)},kg`);
         csvRows.push(`${revenueLabel},${formatCurrency(statsToExport.totalRevenue).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
@@ -606,8 +640,8 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           csvRows.push(`${o.id},${o.date},${o.customerName || ""},${o.costs.totalCost.toFixed(2)},${profitPct},${revenue.toFixed(2)},${o.currency || "EUR"}`);
         });
         csvRows.push("");
-        const periodLabel = settings.language === "hu" ? "Időszak" : settings.language === "de" ? "Zeitraum" : "Period";
-        csvRows.push(`${periodLabel}: ${selectedPeriod === "all" ? (settings.language === "hu" ? "Összes" : settings.language === "de" ? "Alle" : "All") : selectedPeriod === "week" ? (settings.language === "hu" ? "Hét" : settings.language === "de" ? "Woche" : "Week") : selectedPeriod === "month" ? (settings.language === "hu" ? "Hónap" : settings.language === "de" ? "Monat" : "Month") : (settings.language === "hu" ? "Év" : settings.language === "de" ? "Jahr" : "Year")}`);
+        const periodLabel = t("home.period.label").replace(/[:：]\s*$/, "");
+        csvRows.push(`${periodLabel}: ${periodOptionLabels[selectedPeriod]}`);
         
         content = csvRows.join("\n");
         fileName = `statistics_${selectedPeriod}_${new Date().toISOString().split("T")[0]}.csv`;
@@ -1169,7 +1203,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                 ? "0 1px 4px rgba(0,0,0,0.4)"
                 : "none",
             }}>
-              {settings.language === "hu" ? "Statisztikák és összefoglaló az árajánlatokról" : settings.language === "de" ? "Statistiken und Zusammenfassung der Angebote" : "Statistics and summary of offers"}
+              {t("home.subtitle")}
             </p>
           </div>
         {statistics.offerCount > 0 && (
@@ -1201,7 +1235,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                 color: theme.colors.text,
                 whiteSpace: "nowrap",
               }}>
-                {settings.language === "hu" ? "Időszak:" : settings.language === "de" ? "Zeitraum:" : "Period:"}
+                {t("home.period.label")}
               </label>
               <div style={{ 
                 display: "flex", 
@@ -1250,10 +1284,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                       e.currentTarget.style.transform = "scale(1)";
                     }}
                   >
-                    {period === "all" ? (settings.language === "hu" ? "Összes" : settings.language === "de" ? "Alle" : "All") :
-                     period === "week" ? (settings.language === "hu" ? "Hét" : settings.language === "de" ? "Woche" : "Week") :
-                     period === "month" ? (settings.language === "hu" ? "Hónap" : settings.language === "de" ? "Monat" : "Month") :
-                     (settings.language === "hu" ? "Év" : settings.language === "de" ? "Jahr" : "Year")}
+                    {periodOptionLabels[period]}
                   </button>
                 ))}
               </div>
@@ -1266,7 +1297,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
               alignItems: "center",
               flexWrap: "wrap"
             }}>
-              <Tooltip content={settings.language === "hu" ? "Riport generálása" : settings.language === "de" ? "Bericht generieren" : "Generate report"}>
+              <Tooltip content={t("home.actions.reportTooltip")}>
                 <button
                   onClick={() => setShowReportDialog(true)}
                   style={{
@@ -1298,7 +1329,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                   }}
                 >
                   <span style={{ fontSize: "16px" }}>📈</span>
-                  <span>{settings.language === "hu" ? "Riport" : settings.language === "de" ? "Bericht" : "Report"}</span>
+                  <span>{t("home.actions.report")}</span>
                 </button>
               </Tooltip>
               
@@ -1331,7 +1362,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                 <option value="csv">CSV</option>
               </select>
               
-              <Tooltip content={settings.language === "hu" ? "Statisztikák exportálása" : settings.language === "de" ? "Statistiken exportieren" : "Export statistics"}>
+              <Tooltip content={t("home.actions.exportTooltip")}>
                 <button
                   onClick={handleExportStatistics}
                   style={{
@@ -1363,7 +1394,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                   }}
                 >
                   <span style={{ fontSize: "16px" }}>📊</span>
-                  <span>{settings.language === "hu" ? "Export" : settings.language === "de" ? "Exportieren" : "Export"}</span>
+                  <span>{t("home.actions.export")}</span>
                 </button>
               </Tooltip>
             </div>
@@ -1464,7 +1495,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
                     fontWeight: "600",
                   }}>
-                    {period.stats.offerCount} {settings.language === "hu" ? "árajánlat" : settings.language === "de" ? "Angebote" : "offers"}
+                    {period.stats.offerCount} {t("home.periodComparison.offers")}
                   </div>
                 </div>
               ))}
@@ -1483,7 +1514,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         }}>
           <StaggerItem>
             <StatCard
-              title={settings.language === "hu" ? "Összes filament fogyasztás" : settings.language === "de" ? "Gesamter Filamentverbrauch" : "Total filament consumption"}
+              title={statsLabels.totalFilament}
               value={formatNumber(currentStats.totalFilamentUsed / 1000, 2)}
               unit="kg"
               icon="🧵"
@@ -1493,7 +1524,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           </StaggerItem>
           <StaggerItem>
             <StatCard
-              title={settings.language === "hu" ? "Összes bevétel" : settings.language === "de" ? "Gesamteinnahmen" : "Total revenue"}
+              title={statsLabels.totalRevenue}
               value={formatNumber(formatCurrency(currentStats.totalRevenue), 2)}
               unit={settings.currency === "HUF" ? "Ft" : settings.currency}
               icon="💰"
@@ -1503,7 +1534,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           </StaggerItem>
           <StaggerItem>
             <StatCard
-              title={settings.language === "hu" ? "Összes áram fogyasztás" : settings.language === "de" ? "Gesamter Stromverbrauch" : "Total electricity consumption"}
+              title={statsLabels.totalElectricity}
               value={formatNumber(currentStats.totalElectricityConsumed, 2)}
               unit="kWh"
               icon="⚡"
@@ -1513,7 +1544,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           </StaggerItem>
           <StaggerItem>
             <StatCard
-              title={settings.language === "hu" ? "Összes költség" : settings.language === "de" ? "Gesamtkosten" : "Total cost"}
+              title={statsLabels.totalCost}
               value={formatNumber(formatCurrency(currentStats.totalCosts), 2)}
               unit={settings.currency === "HUF" ? "Ft" : settings.currency}
               icon="💸"
@@ -1523,7 +1554,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           </StaggerItem>
           <StaggerItem>
             <StatCard
-              title={settings.language === "hu" ? "Nettó profit" : settings.language === "de" ? "Nettogewinn" : "Net profit"}
+              title={statsLabels.netProfit}
               value={formatCurrency(currentStats.totalProfit).toFixed(2)}
               unit={settings.currency === "HUF" ? "Ft" : settings.currency}
               icon="📈"
@@ -1533,9 +1564,9 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           </StaggerItem>
           <StaggerItem>
             <StatCard
-              title={settings.language === "hu" ? "Összes nyomtatási idő" : settings.language === "de" ? "Gesamtdruckzeit" : "Total print time"}
+              title={statsLabels.totalPrintTime}
               value={formatNumber(currentStats.totalPrintTime, 1)}
-              unit={settings.language === "hu" ? "óra" : settings.language === "de" ? "Std" : "hrs"}
+              unit={t("home.stats.unit.hours")}
               icon="⏱️"
               color="#6c757d"
               delay={0.5}
@@ -1968,24 +1999,24 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           gap: "8px",
         }}>
           <span style={{ fontSize: "24px" }}>📋</span>
-          {settings.language === "hu" ? "Összefoglaló" : settings.language === "de" ? "Zusammenfassung" : "Summary"}
+          {summaryLabels.title}
         </h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
           {[
             { 
-              label: settings.language === "hu" ? "Árajánlatok száma" : settings.language === "de" ? "Anzahl der Angebote" : "Number of offers",
+              label: summaryLabels.offerCount,
               value: currentStats.offerCount.toString(),
               color: theme.colors.primary,
               icon: "📋"
             },
             { 
-              label: settings.language === "hu" ? "Átlagos profit/árajánlat" : settings.language === "de" ? "Durchschnittlicher Gewinn/Angebot" : "Average profit/offer",
+              label: summaryLabels.averageProfit,
               value: `${currentStats.offerCount > 0 ? formatNumber(formatCurrency(currentStats.totalProfit / currentStats.offerCount), 2) : "0.00"} ${settings.currency === "HUF" ? "Ft" : settings.currency}`,
               color: currentStats.totalProfit >= 0 ? theme.colors.success : theme.colors.danger,
               icon: "💰"
             },
             { 
-              label: settings.language === "hu" ? "Profit margó" : settings.language === "de" ? "Gewinnmarge" : "Profit margin",
+              label: summaryLabels.profitMargin,
               value: `${currentStats.totalRevenue > 0 ? formatNumber((currentStats.totalProfit / currentStats.totalRevenue) * 100, 1) : "0.0"}%`,
               color: currentStats.totalProfit >= 0 ? theme.colors.success : theme.colors.danger,
               icon: "📈"
@@ -2046,7 +2077,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
             color: theme.colors.background?.includes('gradient') ? "#ffffff" : theme.colors.text,
             textShadow: theme.colors.background?.includes('gradient') ? "0 1px 2px rgba(0,0,0,0.3)" : "none",
           }}>
-            Még nincsenek statisztikák
+            {t("home.empty.title")}
           </h3>
           <p style={{ 
             margin: 0, 
@@ -2054,7 +2085,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
             fontSize: "14px",
             fontWeight: "500",
           }}>
-            Kezdj el árajánlatokat menteni a Kalkulátorban, hogy láthasd az összefoglaló statisztikákat!
+            {t("home.empty.description")}
           </p>
         </div>
       )}

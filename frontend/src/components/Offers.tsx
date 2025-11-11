@@ -1,7 +1,14 @@
 import React, { useMemo, useState } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
-import type { Offer, Settings, Printer, OfferStatus, OfferStatusHistory } from "../types";
+import type {
+  Offer,
+  Settings,
+  Printer,
+  OfferStatus,
+  OfferStatusHistory,
+  Filament,
+} from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation, type TranslationKey } from "../utils/translations";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -22,9 +29,18 @@ interface Props {
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
   printers: Printer[];
+  filaments: Filament[];
 }
 
-export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, themeStyles, printers }) => {
+export const Offers: React.FC<Props> = ({
+  offers,
+  setOffers,
+  settings,
+  theme,
+  themeStyles,
+  printers,
+  filaments,
+}) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
@@ -38,6 +54,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
   const [editDescription, setEditDescription] = useState("");
   const [editProfitPercentage, setEditProfitPercentage] = useState<number>(30);
   const [editFilaments, setEditFilaments] = useState<Offer["filaments"]>([]);
+  const [editPrinterId, setEditPrinterId] = useState<number | null>(null);
+  const [selectedLibraryFilamentIndex, setSelectedLibraryFilamentIndex] = useState<number | "">("");
   const [draggedOfferId, setDraggedOfferId] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ offerId: number; x: number; y: number } | null>(null);
   const [statusChangeOffer, setStatusChangeOffer] = useState<Offer | null>(null);
@@ -45,12 +63,71 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
   const [statusChangeNote, setStatusChangeNote] = useState("");
   const [statusFilter, setStatusFilter] = useState<OfferStatus | "all">("all");
   const locale = settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US";
+  const filamentOptions = useMemo(
+    () =>
+      filaments.map((filament, index) => ({
+        index,
+        label: `${filament.brand} ${filament.type}${filament.color ? ` (${filament.color})` : ""}`,
+        data: filament,
+      })),
+    [filaments]
+  );
 
   const getFilamentColorHex = (filament: Offer["filaments"][number]) =>
     normalizeHex(filament.colorHex || resolveColorHexFromName(filament.color) || DEFAULT_COLOR_HEX) || DEFAULT_COLOR_HEX;
 
   const getFilamentImageSrc = (filament: Offer["filaments"][number]) =>
     filament.imageBase64 || getFilamentPlaceholder(getFilamentColorHex(filament));
+
+  const convertLibraryFilamentToOffer = (
+    libraryFilament: Filament,
+    existing?: Offer["filaments"][number]
+  ): Offer["filaments"][number] => ({
+    brand: libraryFilament.brand,
+    type: libraryFilament.type,
+    color: libraryFilament.color,
+    colorHex: libraryFilament.colorHex,
+    usedGrams: existing?.usedGrams ?? 0,
+    pricePerKg: libraryFilament.pricePerKg,
+    needsDrying: existing?.needsDrying,
+    dryingTime: existing?.dryingTime,
+    dryingPower: existing?.dryingPower,
+    imageBase64: libraryFilament.imageBase64,
+    colorMode: libraryFilament.colorMode,
+    multiColorHint: libraryFilament.multiColorHint,
+  });
+
+  const findLibraryOptionIndex = (offerFilament: Offer["filaments"][number]): number =>
+    filamentOptions.findIndex(
+      option =>
+        option.data.brand === offerFilament.brand &&
+        option.data.type === offerFilament.type &&
+        (option.data.color || "") === (offerFilament.color || "")
+    );
+
+  const selectedPrinterForEdit = useMemo(
+    () => (editPrinterId != null ? printers.find(printer => printer.id === editPrinterId) : undefined),
+    [editPrinterId, printers]
+  );
+
+  const replaceFilamentFromLibrary = (offerIndex: number, optionIndex: number) => {
+    const option = filamentOptions[optionIndex];
+    if (!option) return;
+    setEditFilaments(prev => {
+      const updated = [...prev];
+      const current = updated[offerIndex];
+      updated[offerIndex] = convertLibraryFilamentToOffer(option.data, current);
+      return updated;
+    });
+  };
+
+  const addFilamentFromLibrary = () => {
+    if (selectedLibraryFilamentIndex === "") return;
+    const option = filamentOptions[selectedLibraryFilamentIndex];
+    if (!option) return;
+    setEditFilaments(prev => [...prev, convertLibraryFilamentToOffer(option.data)]);
+    setSelectedLibraryFilamentIndex("");
+  };
 
   const actionButtonStyle: React.CSSProperties = {
     padding: "10px 18px",
@@ -172,6 +249,12 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     setEditDescription(offer.description || "");
     setEditProfitPercentage(offer.profitPercentage || 30);
     setEditFilaments([...offer.filaments]);
+    const matchedPrinter =
+      (offer.printerId && printers.find(p => p.id === offer.printerId)) ||
+      printers.find(p => p.name === offer.printerName) ||
+      printers[0];
+    setEditPrinterId(matchedPrinter ? matchedPrinter.id : null);
+    setSelectedLibraryFilamentIndex("");
   };
 
   const cancelEditOffer = () => {
@@ -181,6 +264,8 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
     setEditDescription("");
     setEditProfitPercentage(30);
     setEditFilaments([]);
+    setEditPrinterId(null);
+    setSelectedLibraryFilamentIndex("");
   };
 
   const saveEditOffer = () => {
@@ -199,33 +284,45 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
 
     // Ellenőrizzük, hogy változott-e valami
     const filamentsChanged = JSON.stringify(editingOffer.filaments) !== JSON.stringify(editFilaments);
-    const hasChanges = 
+    const selectedPrinter = editPrinterId != null ? printers.find(p => p.id === editPrinterId) : undefined;
+    if (!selectedPrinter) {
+      showToast(t("offers.toast.printerRequired"), "error");
+      console.warn("[Offers] Cannot save offer because no printer is selected", {
+        offerId: editingOffer.id,
+        editPrinterId,
+      });
+      return;
+    }
+    const printerChanged = (editingOffer.printerId ?? null) !== selectedPrinter.id;
+    const hasChanges =
       editingOffer.customerName !== editCustomerName.trim() ||
       editingOffer.customerContact !== (editCustomerContact.trim() || undefined) ||
       editingOffer.description !== (editDescription.trim() || undefined) ||
       editingOffer.profitPercentage !== editProfitPercentage ||
-      filamentsChanged;
+      filamentsChanged ||
+      printerChanged;
 
     // Ha változott, mentjük az előzménybe
     let history = editingOffer.history || [];
     let currentVersion = editingOffer.currentVersion || 1;
     
-    // Ha a filamentek változtak, újraszámoljuk a költségeket
+    // Ha a filamentek vagy a nyomtató változott, újraszámoljuk a költségeket
     let newCosts = editingOffer.costs;
-    if (filamentsChanged) {
-      const printer = printers.find(p => p.name === editingOffer.printerName);
-      if (printer) {
-        const calculatedCosts = calculateOfferCosts(
-          {
-            ...editingOffer,
-            filaments: editFilaments,
-          },
-          printer,
-          settings
-        );
-        if (calculatedCosts) {
-          newCosts = calculatedCosts;
-        }
+    if (filamentsChanged || printerChanged) {
+      const calculatedCosts = calculateOfferCosts(
+        {
+          ...editingOffer,
+          filaments: editFilaments,
+          printerId: selectedPrinter.id,
+          printerName: selectedPrinter.name,
+          printerType: selectedPrinter.type,
+          printerPower: selectedPrinter.power,
+        },
+        selectedPrinter,
+        settings
+      );
+      if (calculatedCosts) {
+        newCosts = calculatedCosts;
       }
     }
     
@@ -255,6 +352,10 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
       costs: newCosts,
       history: history,
       currentVersion: currentVersion,
+      printerId: selectedPrinter.id,
+      printerName: selectedPrinter.name,
+      printerType: selectedPrinter.type,
+      printerPower: selectedPrinter.power,
       date: hasChanges ? new Date().toISOString() : editingOffer.date, // Frissítjük a dátumot, ha változott
     };
 
@@ -1515,6 +1616,62 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                 style={{ ...themeStyles.input, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}
                               />
                             </div>
+                        <div style={{ width: "240px", flexShrink: 0 }}>
+                          <label
+                            style={{
+                              display: "block",
+                              marginBottom: "8px",
+                              fontWeight: "600",
+                              fontSize: "14px",
+                              color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            🖨️ {t("offers.printer")}
+                          </label>
+                          {printers.length > 0 ? (
+                            <>
+                              <select
+                                value={editPrinterId != null ? editPrinterId : ""}
+                                onChange={e => {
+                                  const value = e.target.value;
+                                  setEditPrinterId(value === "" ? null : Number(value));
+                                }}
+                                onFocus={e => Object.assign(e.target.style, themeStyles.selectFocus)}
+                                onBlur={e => {
+                                  e.target.style.borderColor = theme.colors.inputBorder;
+                                  e.target.style.boxShadow = "none";
+                                }}
+                                style={{ ...themeStyles.select, width: "100%", maxWidth: "240px", boxSizing: "border-box" }}
+                              >
+                                <option value="">{t("offers.editPrinter.placeholder")}</option>
+                                {printers.map(printer => (
+                                  <option key={printer.id} value={printer.id}>
+                                    {printer.name} ({printer.type})
+                                  </option>
+                                ))}
+                              </select>
+                              {selectedPrinterForEdit && (
+                                <div style={{ marginTop: "6px", fontSize: "12px", color: theme.colors.textMuted }}>
+                                  {selectedPrinterForEdit.type} · {selectedPrinterForEdit.power}W
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <div
+                              style={{
+                                padding: "10px 12px",
+                                borderRadius: "8px",
+                                border: `1px dashed ${theme.colors.border}`,
+                                backgroundColor: theme.colors.surfaceHover,
+                                fontSize: "12px",
+                                color: theme.colors.textMuted,
+                              }}
+                            >
+                              {t("offers.editPrinter.noPrinters")}
+                            </div>
+                          )}
+                        </div>
                             <div style={{ width: "150px", flexShrink: 0 }}>
                               <label style={{ 
                                 display: "block", 
@@ -1568,10 +1725,11 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                             </h5>
                             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                               {editFilaments.map((f, idx) => {
+                                const optionIndex = findLibraryOptionIndex(f);
                                 return (
                                   <div key={idx} style={{ padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px", border: `1px solid ${theme.colors.border}` }}>
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", gap: "16px" }}>
-                                      <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: "1 1 auto" }}>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "flex-start", marginBottom: "12px" }}>
+                                      <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: "1 1 auto", minWidth: "220px" }}>
                                         <img
                                           src={getFilamentImageSrc(f)}
                                           alt={`${f.brand} ${f.type}`}
@@ -1601,6 +1759,42 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                           </div>
                                         </div>
                                       </div>
+                                      {filamentOptions.length > 0 && (
+                                        <div style={{ flex: "1 1 200px", minWidth: "200px", maxWidth: "260px" }}>
+                                          <label
+                                            style={{
+                                              display: "block",
+                                              marginBottom: "8px",
+                                              fontWeight: "600",
+                                              fontSize: "12px",
+                                              color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+                                            }}
+                                          >
+                                            {t("offers.editFilament.selectLabel")}
+                                          </label>
+                                          <select
+                                            value={optionIndex >= 0 ? String(optionIndex) : ""}
+                                            onChange={e => {
+                                              const value = e.target.value;
+                                              if (value === "") return;
+                                              replaceFilamentFromLibrary(idx, Number(value));
+                                            }}
+                                            onFocus={e => Object.assign(e.target.style, themeStyles.selectFocus)}
+                                            onBlur={e => {
+                                              e.target.style.borderColor = theme.colors.inputBorder;
+                                              e.target.style.boxShadow = "none";
+                                            }}
+                                            style={{ ...themeStyles.select, width: "100%", maxWidth: "260px", boxSizing: "border-box" }}
+                                          >
+                                            <option value="">{t("offers.editFilament.libraryPlaceholder")}</option>
+                                            {filamentOptions.map(option => (
+                                              <option key={option.index} value={option.index}>
+                                                {option.label}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                      )}
                                       {editFilaments.length > 1 && (
                                         <button
                                           onClick={() => {
@@ -1612,6 +1806,7 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                             ...themeStyles.buttonDanger,
                                             padding: "4px 8px",
                                             fontSize: "12px",
+                                            alignSelf: "flex-start",
                                           }}
                                         >
                                           {t("common.delete")}
@@ -1720,6 +1915,43 @@ export const Offers: React.FC<Props> = ({ offers, setOffers, settings, theme, th
                                 );
                               })}
                             </div>
+                            {filamentOptions.length > 0 && (
+                              <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", marginTop: "12px" }}>
+                                <select
+                                  value={selectedLibraryFilamentIndex === "" ? "" : String(selectedLibraryFilamentIndex)}
+                                  onChange={e => {
+                                    const value = e.target.value;
+                                    setSelectedLibraryFilamentIndex(value === "" ? "" : Number(value));
+                                  }}
+                                  onFocus={e => Object.assign(e.target.style, themeStyles.selectFocus)}
+                                  onBlur={e => {
+                                    e.target.style.borderColor = theme.colors.inputBorder;
+                                    e.target.style.boxShadow = "none";
+                                  }}
+                                  style={{ ...themeStyles.select, width: "220px" }}
+                                >
+                                  <option value="">{t("offers.editFilament.libraryPlaceholder")}</option>
+                                  {filamentOptions.map(option => (
+                                    <option key={option.index} value={option.index}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  type="button"
+                                  onClick={addFilamentFromLibrary}
+                                  disabled={selectedLibraryFilamentIndex === ""}
+                                  style={{
+                                    ...themeStyles.button,
+                                    ...themeStyles.buttonPrimary,
+                                    opacity: selectedLibraryFilamentIndex === "" ? 0.6 : 1,
+                                    cursor: selectedLibraryFilamentIndex === "" ? "not-allowed" : "pointer",
+                                  }}
+                                >
+                                  ➕ {t("offers.editFilament.add")}
+                                </button>
+                              </div>
+                            )}
                           </div>
                           
                           <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>

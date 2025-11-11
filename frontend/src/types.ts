@@ -232,6 +232,7 @@ export interface Offer {
   date: string; // ISO date string
   printerName: string;
   printerType: string;
+  printerId?: number;
   printerPower: number;
   printTimeHours: number;
   printTimeMinutes: number;

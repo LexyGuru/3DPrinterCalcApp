@@ -7,6 +7,12 @@ export interface OfferCosts {
   dryingCost: number;
   usageCost: number;
   totalCost: number;
+  calculations?: {
+    filamentCostEUR: number;
+    electricityCostEUR: number;
+    dryingCostEUR: number;
+    usageCostEUR: number;
+  };
 }
 
 export function calculateOfferCosts(
@@ -14,18 +20,40 @@ export function calculateOfferCosts(
   printer: Printer | null,
   settings: Settings
 ): OfferCosts | null {
-  if (!printer) return null;
+  if (!printer) {
+    console.warn("[offerCalc] calculateOfferCosts called without a printer, returning null.", {
+      offerId: offer.id,
+      printerName: offer.printerName,
+    });
+    return null;
+  }
 
   const totalPrintTimeHours = offer.totalPrintTimeHours;
 
   // Filament költségek (összes filament)
   let totalFilamentCostEUR = 0;
-  offer.filaments.forEach(f => {
-    // A filament ár EUR-ban van, konvertáljuk a jelenlegi pénznemre
-    const filamentCostEUR = (f.usedGrams / 1000) * f.pricePerKg;
+  offer.filaments.forEach((f, index) => {
+    const massKg = (f.usedGrams ?? 0) / 1000;
+    const pricePerKg = f.pricePerKg ?? 0;
+    const filamentCostEUR = massKg * pricePerKg;
+    console.debug("[offerCalc] Filament cost entry", {
+      offerId: offer.id,
+      filamentIndex: index,
+      brand: f.brand,
+      type: f.type,
+      usedGrams: f.usedGrams,
+      pricePerKg,
+      filamentCostEUR,
+    });
     totalFilamentCostEUR += filamentCostEUR;
   });
   const filamentCost = convertCurrencyFromTo(totalFilamentCostEUR, "EUR", offer.currency || "EUR");
+  console.debug("[offerCalc] Total filament cost", {
+    offerId: offer.id,
+    totalFilamentCostEUR,
+    filamentCostConverted: filamentCost,
+    targetCurrency: offer.currency || "EUR",
+  });
 
   // Áram költség: nyomtató + AMS-ek
   let totalPowerW = printer.power;
@@ -65,12 +93,24 @@ export function calculateOfferCosts(
   // Összes költség
   const totalCost = filamentCost + electricityCost + dryingCost + usageCost;
 
-  return {
+  const costs: OfferCosts = {
     filamentCost,
     electricityCost,
     dryingCost,
     usageCost,
     totalCost,
+    calculations: {
+      filamentCostEUR: totalFilamentCostEUR,
+      electricityCostEUR,
+      dryingCostEUR: totalDryingCostEUR,
+      usageCostEUR: printer.usageCost * totalPrintTimeHours,
+    },
   };
+  console.debug("[offerCalc] Calculated offer costs", {
+    offerId: offer.id,
+    printerName: printer.name,
+    costs,
+  });
+  return costs;
 }
 
