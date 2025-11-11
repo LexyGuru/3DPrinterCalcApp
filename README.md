@@ -18,7 +18,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
 - 🧾 **G-code import és piszkozat készítés** - A kalkulátorban modális ablakból tölthető be G-code/JSON export (Prusa, Cura, Orca, Qidi), részletes összefoglalóval és automatikus árajánlat piszkozat generálással
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
-- 🌍 **Többnyelvű** - Magyar, Angol, Német nyelven
+- 🌍 **Többnyelvű** - Magyar, Angol, Német + új francia, olasz, spanyol, lengyel, cseh, szlovák, brazil portugál és egyszerűsített kínai előkészített fordítások
 - 💱 **Több pénznem** - EUR, HUF, USD
 - 🔄 **Automatikus frissítések** - Ellenőrzi a GitHub Releases-t új verziókért
 - 🧪 **Beta verziók** - Beta branch és beta buildelés támogatás
@@ -241,6 +241,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 - 🗂️ **Nyelvi modulárisítás** – Új `languages/` könyvtárba szervezett fordítási fájlokkal bővítettük az appot, így könnyebb új nyelveket felvenni és a meglévő szövegeket kezelni.
 - 🌍 **Egységesített UI fordítások** – A slicer import teljes felülete mostantól a központi fordítási rendszerből dolgozik, minden gomb, hibaüzenet és összefoglaló lokalizálva van.
 - 🔁 **Nyelvválasztó frissítés** – A Beállításokban a nyelvválasztó a feltárt nyelvi fájlok alapján töltődik fel, így a jövőben elég egy új nyelvi fájlt hozzáadni.
+- 🌐 **Új nyelvi alapok** – Francia, olasz, spanyol, lengyel, cseh, szlovák, brazil portugál és egyszerűsített kínai fordítási fájlok előkészítve (angol fallback-pal), a tényleges fordítások könnyen kitölthetők.
 
 ### v0.5.0 (2025)
 - 🔎 **Filament ár-összehasonlító gomb** – Minden saját filamenthez nagyító ikon társul, amely megnyitja a Google/Bing keresést a márka/típus/szín alapján, gyors linket adva az aktuális árakhoz.

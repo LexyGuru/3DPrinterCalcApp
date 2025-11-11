@@ -79,6 +79,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [typeFilter, setTypeFilter] = useState("");
   const [libraryVersion, setLibraryVersion] = useState(0);
   const LIBRARY_FINISHES: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
+  const resolveBaseLanguage = (language: Settings["language"]): "hu" | "en" | "de" =>
+    language === "hu" || language === "de" ? language : "en";
   const brandSelectPlaceholder = t("filaments.brandSelect.placeholder");
   const brandCustomOptionLabel = t("filaments.brandSelect.addNew");
   const brandBackToListLabel = t("filaments.brandSelect.backToList");
@@ -193,7 +195,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       const labels = option.labels;
       const matchesLabel =
         !!labels &&
-        (labels.hu.toLowerCase() === lowered || labels.en.toLowerCase() === lowered || labels.de.toLowerCase() === lowered);
+        Object.values(labels as Partial<Record<Settings["language"], string>>)
+          .filter((value): value is string => typeof value === "string")
+          .some(value => value.toLowerCase() === lowered);
       const matchesRaw = "rawColor" in option && typeof (option as any).rawColor === "string" && (option as any).rawColor.toLowerCase() === lowered;
       return localized === lowered || matchesLabel || matchesRaw;
     });
@@ -215,7 +219,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       }
       const nextMode = (libraryMatch.colorMode as ColorMode) ?? "solid";
       setColorMode(nextMode);
-      const localized = libraryMatch.labels?.[settings.language] ?? libraryMatch.rawColor ?? color;
+      const localized =
+        libraryMatch.labels?.[resolveBaseLanguage(settings.language)] ?? libraryMatch.rawColor ?? color;
       setMultiColorHint(nextMode === "multicolor" ? libraryMatch.multiColorHint ?? localized ?? "" : "");
       return;
     }

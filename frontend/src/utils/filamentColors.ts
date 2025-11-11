@@ -1,4 +1,4 @@
-import type { Settings, ColorMode } from "../types";
+import type { Settings, ColorMode, LocaleStringMap } from "../types";
 
 export type FilamentFinish =
   | "standard"
@@ -12,18 +12,14 @@ export interface FilamentColorOption {
   id: string;
   finish: FilamentFinish;
   hex: string;
-  labels: {
-    hu: string;
-    en: string;
-    de: string;
-  };
+  labels: LocaleStringMap<string>;
   colorMode?: ColorMode;
   multiColorHint?: string;
 }
 
 export const DEFAULT_COLOR_HEX = "#9CA3AF";
 
-const FINISH_LABELS: Record<FilamentFinish, { hu: string; en: string; de: string }> = {
+const FINISH_LABELS: Record<FilamentFinish, LocaleStringMap<string>> = {
   standard: { hu: "Standard", en: "Standard", de: "Standard" },
   matte: { hu: "Matt", en: "Matte", de: "Matt" },
   silk: { hu: "Selyem", en: "Silk", de: "Seide" },

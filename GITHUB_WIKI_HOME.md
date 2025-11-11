@@ -14,6 +14,7 @@
 > - Külön `languages/` könyvtárba szervezett fordítási fájlok, dinamikus nyelvválasztó  
 > - A slicer import teljes felülete és hibaüzenetei központi fordításból dolgoznak  
 > - Egyszerűsödött új nyelvek felvétele, minden UI-szöveg egyetlen registry-ből érhető el  
+> - Új francia, olasz, spanyol, lengyel, cseh, szlovák, brazil portugál és egyszerűsített kínai nyelvi fájlok előkészítve (angol fallback)  
 
 ---
 
@@ -114,7 +115,7 @@
 - **Custom theme builder** – paletta, gradient, leírás, export/import, megosztás, duplikálás  
 - **Animációs panel** – oldalváltás (flip/parallax), mikrointerakció (subtle/expressive/playful), feedback (pulse/emphasis), skeleton  
 - **Multicolor támogatás** – gradient swatch, `ColorMode` (solid/multicolor)  
-- **Lokalizáció** – HU/EN/DE, automatikus fordítás MyMemory API-on keresztül (`convert-filament-csv.mjs`)
+- **Lokalizáció** – HU/EN/DE teljes fordítás, plusz előkészített FR/IT/ES/PL/CS/SK/PT-BR/zh-CN fájlok (angol fallback), automatikus fordítás MyMemory API-on keresztül (`convert-filament-csv.mjs`)
 
 ---
 

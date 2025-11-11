@@ -70,8 +70,6 @@ export const SettingsPage: React.FC<Props> = ({
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
-  const localize = (hu: string, de: string, en: string) =>
-    settings.language === "hu" ? hu : settings.language === "de" ? de : en;
   const CUSTOM_THEME_PREFIX = "custom:";
   const [exportFilaments, setExportFilaments] = useState(false);
   const [exportPrinters, setExportPrinters] = useState(false);
@@ -121,6 +119,8 @@ export const SettingsPage: React.FC<Props> = ({
   const [libraryImporting, setLibraryImporting] = useState(false);
   const FINISH_OPTIONS: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
   const MAX_LIBRARY_DISPLAY = 400;
+  const resolveBaseLanguage = (language: Settings["language"]): "hu" | "en" | "de" =>
+    language === "hu" || language === "de" ? language : "en";
   const themeSettingsState = useMemo<ThemeSettings>(() => ({
     customThemes: settings.themeSettings?.customThemes ?? [],
     activeCustomThemeId: settings.themeSettings?.activeCustomThemeId,
@@ -460,7 +460,8 @@ export const SettingsPage: React.FC<Props> = ({
   const handleDuplicateActiveTheme = () => {
     try {
       const nextId = `duplicate-${Date.now().toString(36)}`;
-      const baseName = theme.displayName[settings.language] ?? theme.displayName.en ?? "Theme";
+      const baseLang = resolveBaseLanguage(settings.language);
+      const baseName = theme.displayName[baseLang] ?? theme.displayName.en ?? "Theme";
       const duplicateDefinition = sanitizeCustomThemeDefinition(
         themeToCustomDefinition(theme, {
           id: nextId,
@@ -796,12 +797,13 @@ export const SettingsPage: React.FC<Props> = ({
   };
 
   const handleLibraryBaseLabelChange = (value: string) => {
+    const baseLang = resolveBaseLanguage(settings.language);
     setLibraryDraft(prev => ({
       ...prev,
       baseLabel: value,
       labels: {
         ...prev.labels,
-        [settings.language]: value,
+        [baseLang]: value,
       },
       multiColorHint: prev.colorMode === "multicolor" ? (prev.multiColorHint || value) : prev.multiColorHint,
     }));
@@ -814,7 +816,14 @@ export const SettingsPage: React.FC<Props> = ({
       en: (entry.labels?.en ?? entry.color ?? entry.name ?? "").trim(),
       de: (entry.labels?.de ?? entry.color ?? entry.name ?? "").trim(),
     };
-    const baseLabel = (labels as Record<string, string>)[settings.language] || labels.hu || labels.en || labels.de || entry.color || entry.name || "";
+    const baseLabel =
+      labels[resolveBaseLanguage(settings.language)] ||
+      labels.hu ||
+      labels.en ||
+      labels.de ||
+      entry.color ||
+      entry.name ||
+      "";
     setLibraryDraft({
       manufacturer: entry.manufacturer ?? "",
       material: entry.material ?? "",
@@ -837,7 +846,7 @@ export const SettingsPage: React.FC<Props> = ({
     const descriptor =
       entry
         ? `${entry.manufacturer ?? "?"} / ${entry.material ?? "?"} – ${
-            entry.labels?.[settings.language] ?? entry.color ?? entry.name ?? entry.labels?.en ?? id
+            entry.labels?.[resolveBaseLanguage(settings.language)] ?? entry.color ?? entry.name ?? entry.labels?.en ?? id
           }`
         : id;
 
@@ -901,7 +910,8 @@ export const SettingsPage: React.FC<Props> = ({
     }
 
     let baseLabel = libraryDraft.baseLabel.trim();
-    const currentLanguageLabel = libraryDraft.labels[settings.language].trim();
+    const baseLang = resolveBaseLanguage(settings.language);
+    const currentLanguageLabel = libraryDraft.labels[baseLang].trim();
     if (!baseLabel && currentLanguageLabel) {
       baseLabel = currentLanguageLabel;
     }
@@ -920,7 +930,7 @@ export const SettingsPage: React.FC<Props> = ({
       en: libraryDraft.labels.en.trim(),
       de: libraryDraft.labels.de.trim(),
     } as Record<"hu" | "en" | "de", string>;
-    labels[settings.language] = baseLabel;
+    labels[baseLang] = baseLabel;
 
     const languageOrder: Array<"hu" | "en" | "de"> = ["hu", "en", "de"];
     await Promise.all(
@@ -1699,7 +1709,7 @@ export const SettingsPage: React.FC<Props> = ({
                     color: isGradientTheme ? "#ffffff" : undefined,
                   }}
                 >
-                  {themeOption.displayName[settings.language]}
+                  {themeOption.displayName[resolveBaseLanguage(settings.language)] ?? themeOption.displayName.en}
                 </span>
                 {customDefinition?.description && (
                   <span
@@ -2168,9 +2178,7 @@ export const SettingsPage: React.FC<Props> = ({
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("settings.title")}</h2>
-      <p style={themeStyles.pageSubtitle}>
-        {settings.language === "hu" ? "Alkalmazás beállítások kezelése" : settings.language === "de" ? "Anwendungseinstellungen verwalten" : "Manage application settings"}
-      </p>
+      <p style={themeStyles.pageSubtitle}>{t("settings.subtitle")}</p>
       
       {/* Tab Navigation */}
       <div style={{ 
@@ -2198,7 +2206,7 @@ export const SettingsPage: React.FC<Props> = ({
             }
           }}
         >
-          ⚙️ {settings.language === "hu" ? "Általános" : settings.language === "de" ? "Allgemein" : "General"}
+          ⚙️ {t("settings.tabs.general")}
         </button>
         <button
           onClick={() => setActiveTab("display")}
@@ -2214,7 +2222,7 @@ export const SettingsPage: React.FC<Props> = ({
             }
           }}
         >
-          🎨 {settings.language === "hu" ? "Megjelenés" : settings.language === "de" ? "Aussehen" : "Appearance"}
+          🎨 {t("settings.tabs.display")}
         </button>
         <button
           onClick={() => setActiveTab("advanced")}
@@ -2230,7 +2238,7 @@ export const SettingsPage: React.FC<Props> = ({
             }
           }}
         >
-          🔧 {settings.language === "hu" ? "Speciális" : settings.language === "de" ? "Erweitert" : "Advanced"}
+          🔧 {t("settings.tabs.advanced")}
         </button>
         <button
           onClick={() => setActiveTab("data")}
@@ -2246,7 +2254,7 @@ export const SettingsPage: React.FC<Props> = ({
             }
           }}
         >
-          💾 {settings.language === "hu" ? "Adatkezelés" : settings.language === "de" ? "Datenverwaltung" : "Data Management"}
+          💾 {t("settings.tabs.data")}
         </button>
         <button
           onClick={() => setActiveTab("library")}
@@ -2262,7 +2270,7 @@ export const SettingsPage: React.FC<Props> = ({
             }
           }}
         >
-          🧵 {localize("Filament könyvtár", "Filamentbibliothek", "Filament library")}
+          🧵 {t("settings.tabs.library")}
         </button>
       </div>
 
@@ -2273,7 +2281,7 @@ export const SettingsPage: React.FC<Props> = ({
         {activeTab === "general" && (
           <div>
         <div style={{ marginBottom: "24px" }}>
-          <Tooltip content={t("settings.language") + " - " + (settings.language === "hu" ? "Válaszd ki az alkalmazás nyelvét" : settings.language === "de" ? "Wähle die Sprache der Anwendung" : "Choose the application language")}>
+          <Tooltip content={t("settings.language.tooltip")}>
             <label style={{ 
               display: "block", 
               marginBottom: "12px", 
@@ -2304,7 +2312,7 @@ export const SettingsPage: React.FC<Props> = ({
         </div>
         
         <div style={{ marginBottom: "24px" }}>
-          <Tooltip content={settings.language === "hu" ? "Válaszd ki a pénznemet az árak megjelenítéséhez" : settings.language === "de" ? "Wählen Sie die Währung für die Preisanzeige" : "Choose the currency for price display"}>
+          <Tooltip content={t("settings.currency.tooltip")}>
             <label style={{ 
               display: "block", 
               marginBottom: "12px", 
@@ -2330,7 +2338,7 @@ export const SettingsPage: React.FC<Props> = ({
         </div>
         
         <div style={{ marginBottom: "24px" }}>
-          <Tooltip content={settings.language === "hu" ? "Adja meg az áram árát kilowattóránként" : settings.language === "de" ? "Geben Sie den Strompreis pro Kilowattstunde ein" : "Enter the electricity price per kilowatt hour"}>
+          <Tooltip content={t("settings.electricity.tooltip")}>
             <label style={{ 
               display: "block", 
               marginBottom: "12px", 
@@ -2352,12 +2360,14 @@ export const SettingsPage: React.FC<Props> = ({
             style={{ ...themeStyles.input, width: "100%", maxWidth: "300px" }}
             placeholder="Pl: 70"
           />
-          <p style={{ 
-            marginTop: "8px", 
-            fontSize: "12px", 
-            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
-          }}>
-            {settings.language === "hu" ? "Az áram ár mindig Ft/kWh-ban van tárolva, de a választott pénznemben jelenik meg." : settings.language === "de" ? "Der Strompreis wird immer in Ft/kWh gespeichert, wird aber in der gewählten Währung angezeigt." : "The electricity price is always stored in Ft/kWh, but displayed in the selected currency."}
+          <p
+            style={{
+              marginTop: "8px",
+              fontSize: "12px",
+              color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted,
+            }}
+          >
+            {t("settings.electricity.note")}
           </p>
         </div>
         
@@ -3087,7 +3097,7 @@ export const SettingsPage: React.FC<Props> = ({
             </label>
           </div>
 
-          <Tooltip content={settings.language === "hu" ? "Adatok importálása JSON fájlból" : settings.language === "de" ? "Daten aus JSON-Datei importieren" : "Import data from JSON file"}>
+          <Tooltip content={t("settings.data.import.tooltip")}>
             <button
               onClick={handleImport}
               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
@@ -3110,25 +3120,25 @@ export const SettingsPage: React.FC<Props> = ({
         {activeTab === "library" && (
           <div>
             <div style={{ marginBottom: "24px" }}>
-              <h3 style={{
-                margin: 0,
-                fontSize: "20px",
-                fontWeight: 700,
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
-              }}>
-                🧵 {localize("Filament színkönyvtár", "Filamentfarbbibliothek", "Filament color library")}
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: "20px",
+                  fontWeight: 700,
+                  color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+                }}
+              >
+                🧵 {t("settings.library.sectionTitle")}
               </h3>
-              <p style={{
-                margin: "8px 0 16px 0",
-                fontSize: "13px",
-                color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
-                lineHeight: 1.6,
-              }}>
-                {localize(
-                  "Készíts saját színbejegyzéseket, amelyek azonnal megjelennek a filament kiválasztónál.",
-                  "Erstelle eigene Farbeinträge, die sofort in der Filamentauswahl erscheinen.",
-                  "Create custom color entries that immediately appear in the filament selector."
-                )}
+              <p
+                style={{
+                  margin: "8px 0 16px 0",
+                  fontSize: "13px",
+                  color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted,
+                  lineHeight: 1.6,
+                }}
+              >
+                {t("settings.library.sectionDescription")}
               </p>
               {libraryError && (
                 <p style={{ color: theme.colors.danger, fontSize: "13px", marginBottom: "12px" }}>
@@ -3145,9 +3155,7 @@ export const SettingsPage: React.FC<Props> = ({
                     opacity: !libraryDirty || librarySaving || libraryLoading ? 0.6 : 1,
                   }}
                 >
-                  {librarySaving
-                    ? localize("Mentés folyamatban...", "Speicherung läuft...", "Saving...")
-                    : localize("Változások mentése", "Änderungen speichern", "Save changes")}
+                  {librarySaving ? t("settings.library.save.inProgress") : t("settings.library.save.action")}
                 </button>
                 <button
                   onClick={handleLibraryReset}
@@ -3158,18 +3166,18 @@ export const SettingsPage: React.FC<Props> = ({
                     opacity: librarySaving || libraryLoading ? 0.6 : 1,
                   }}
                 >
-                  {localize("Alapértelmezett visszaállítása", "Auf Standard zurücksetzen", "Reset to defaults")}
+                  {t("settings.library.resetDefaults")}
                 </button>
                 <button
                   onClick={() => openNewLibraryModal()}
                   style={{ ...themeStyles.button, padding: "10px 18px" }}
                   disabled={librarySaving || libraryLoading}
                 >
-                  ➕ {localize("Új bejegyzés", "Neuer Eintrag", "New entry")}
+                  ➕ {t("settings.library.newEntry")}
                 </button>
                 {libraryDirty && (
                    <span style={{ fontSize: "12px", color: theme.colors.primary }}>
-                     {localize("Nem mentett módosítások", "Nicht gespeicherte Änderungen", "Unsaved changes")}
+                     {t("settings.library.unsavedChanges")}
                    </span>
                  )}
               </div>
@@ -3187,18 +3195,10 @@ export const SettingsPage: React.FC<Props> = ({
                 }}
               >
                 <strong style={{ display: "block", marginBottom: "8px" }}>
-                  ⚠️ {localize(
-                    `${duplicateGroups.length} duplikált bejegyzést találtunk a könyvtárban.`,
-                    `${duplicateGroups.length} doppelte Einträge in der Bibliothek gefunden.`,
-                    `Detected ${duplicateGroups.length} duplicate entries in the library.`
-                  )}
+                  ⚠️ {t("settings.library.banner.title").replace("{count}", String(duplicateGroups.length))}
                 </strong>
                 <p style={{ margin: "0 0 8px 0", fontSize: "12px", color: theme.colors.textMuted }}>
-                  {localize(
-                    "Szerkeszd vagy töröld a kiemelt tételeket, hogy elkerüld a duplikációt a kiválasztóban.",
-                    "Bearbeite oder lösche die markierten Einträge, um Duplikate im Auswahlmenü zu vermeiden.",
-                    "Edit or delete the highlighted rows to avoid duplicates in the selector."
-                  )}
+                  {t("settings.library.banner.description")}
                 </p>
                 <button
                   onClick={handleRemoveDuplicateGroups}
@@ -3210,14 +3210,10 @@ export const SettingsPage: React.FC<Props> = ({
                     marginBottom: "8px",
                   }}
                 >
-                  {localize("Duplikáltak törlése", "Duplikate löschen", "Delete duplicates")}
+                  {t("settings.library.banner.action")}
                 </button>
                 <p style={{ margin: "0 0 8px 0", fontSize: "12px", color: theme.colors.textMuted }}>
-                  {localize(
-                    "Minden csoportból az első bejegyzés megmarad, a többi törlődik.",
-                    "Der jeweils erste Eintrag bleibt erhalten, die restlichen werden entfernt.",
-                    "The first item in each group is preserved; the rest are removed."
-                  )}
+                  {t("settings.library.banner.note")}
                 </p>
                 <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "12px", color: theme.colors.textMuted }}>
                   {duplicateGroups.slice(0, 3).map((group, index) => {
@@ -3241,7 +3237,7 @@ export const SettingsPage: React.FC<Props> = ({
                     <input
                       value={libraryBrandFilter}
                       onChange={e => setLibraryBrandFilter(e.target.value)}
-                      placeholder={localize("Gyártó szűrése", "Herstellerfilter", "Filter manufacturer")}
+                      placeholder={t("settings.library.filters.manufacturer")}
                       onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                       onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                       style={{ ...themeStyles.input, flex: "1 1 160px", minWidth: "150px" }}
@@ -3249,7 +3245,7 @@ export const SettingsPage: React.FC<Props> = ({
                     <input
                       value={libraryMaterialFilter}
                       onChange={e => setLibraryMaterialFilter(e.target.value)}
-                      placeholder={localize("Anyag szűrése", "Materialfilter", "Filter material")}
+                      placeholder={t("settings.library.filters.material")}
                       onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                       onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                       style={{ ...themeStyles.input, flex: "1 1 160px", minWidth: "150px" }}
@@ -3257,16 +3253,16 @@ export const SettingsPage: React.FC<Props> = ({
                     <input
                       value={librarySearch}
                       onChange={e => setLibrarySearch(e.target.value)}
-                      placeholder={localize("Keresés szín/HEX alapján", "Suche nach Farbe/HEX", "Search color/HEX")}
+                      placeholder={t("settings.library.filters.search")}
                       onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                       onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                       style={{ ...themeStyles.input, flex: "2 1 220px", minWidth: "200px" }}
                     />
                   </div>
                   <div style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                    {localize("Találatok", "Treffer", "Matches")}: {filteredLibrary.total} / {libraryEntriesState.length}
+                    {t("settings.library.filters.matches")}: {filteredLibrary.total} / {libraryEntriesState.length}
                     {filteredLibrary.total > filteredLibrary.entries.length && (
-                      <> • {localize("Csak az első", "Nur die ersten", "Only the first")} {filteredLibrary.entries.length} {localize("eredmény látható", "Ergebnisse werden angezeigt", "results are shown")}</>
+                      <> • {t("settings.library.filters.limitNotice").replace("{count}", String(filteredLibrary.entries.length))}</>
                     )}
                   </div>
                   <button
@@ -3277,7 +3273,7 @@ export const SettingsPage: React.FC<Props> = ({
                     }}
                     style={{ ...themeStyles.button, padding: "8px 14px", justifySelf: "flex-start" }}
                   >
-                    {localize("Szűrők törlése", "Filter zurücksetzen", "Reset filters")}
+                    {t("settings.library.filters.reset")}
                   </button>
                 </div>
                 <div style={{
@@ -3317,7 +3313,7 @@ export const SettingsPage: React.FC<Props> = ({
                   )}
                   {!libraryLoading && filteredLibrary.entries.length === 0 && (
                     <p style={{ fontSize: "13px", color: theme.colors.textMuted }}>
-                      {localize("Nem található bejegyzés a megadott szűrőkkel.", "Keine Einträge für die gesetzten Filter gefunden.", "No entries match the current filters.")}
+                      {t("settings.library.empty")}
                     </p>
                   )}
                   {filteredLibrary.entries.map(entry => {
@@ -3359,7 +3355,7 @@ export const SettingsPage: React.FC<Props> = ({
                                   color: "#fff",
                                 }}
                               >
-                                {localize("Többszínű", "Mehrfarbig", "Multicolor")}
+                                {t("settings.library.badge.multicolor")}
                               </span>
                             )}
                           </div>
@@ -3393,11 +3389,11 @@ export const SettingsPage: React.FC<Props> = ({
                           <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
                             {isMulticolor
                               ? hasValidHex
-                                ? `${localize("Többszínű", "Mehrfarbig", "Multicolor")} • ${normalizedHexValue}`
-                                : localize("Többszínű", "Mehrfarbig", "Multicolor")
+                                ? `${t("settings.library.badge.multicolor")} • ${normalizedHexValue}`
+                                : t("settings.library.badge.multicolor")
                               : hasValidHex
                               ? normalizedHexValue
-                              : localize("Nincs HEX", "Kein HEX", "No HEX")}
+                              : t("settings.library.hexMissing")}
                           </span>
                         </div>
                         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
@@ -3430,14 +3426,10 @@ export const SettingsPage: React.FC<Props> = ({
               color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
             }}
           >
-            🧵 {localize("Filament könyvtár mentése", "Filamentbibliothek sichern", "Save filament library")}
+            🧵 {t("settings.library.storage.title")}
           </h3>
           <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
-            {localize(
-              "Exportáld a színkönyvtárat egy külön JSON fájlba, majd töltsd vissza később vagy egy másik gépen.",
-              "Exportiere die Farbbibliothek in eine separate JSON-Datei und importiere sie später oder auf einem anderen Rechner.",
-              "Export the filament color library to a standalone JSON file and re-import it later or on another machine."
-            )}
+            {t("settings.library.storage.description")}
           </p>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             <button
@@ -3451,8 +3443,8 @@ export const SettingsPage: React.FC<Props> = ({
               }}
             >
               {libraryExporting
-                ? localize("Exportálás...", "Export läuft...", "Exporting...")
-                : localize("Könyvtár exportálása", "Bibliothek exportieren", "Export library")}
+                ? t("settings.library.storage.export.inProgress")
+                : t("settings.library.storage.export.action")}
             </button>
             <button
               onClick={handleLibraryImportFromFile}
@@ -3465,16 +3457,12 @@ export const SettingsPage: React.FC<Props> = ({
               }}
             >
               {libraryImporting
-                ? localize("Importálás...", "Import läuft...", "Importing...")
-                : localize("Könyvtár importálása", "Bibliothek importieren", "Import library")}
+                ? t("settings.library.storage.import.inProgress")
+                : t("settings.library.storage.import.action")}
             </button>
           </div>
           <p style={{ marginTop: "12px", fontSize: "12px", color: theme.colors.textMuted }}>
-            {localize(
-              "Az importálás felülírja a jelenleg tárolt filament bejegyzéseket.",
-              "Der Import überschreibt die aktuell gespeicherten Filamente.",
-              "Importing will overwrite the currently stored filament entries."
-            )}
+            {t("settings.library.storage.importNote")}
           </p>
         </div>
             </div>
@@ -3551,7 +3539,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontSize: "20px",
                 cursor: "pointer",
               }}
-              aria-label={localize("Bezárás", "Schließen", "Close")}
+              aria-label={t("settings.library.modal.closeAria")}
             >
               ✕
             </button>
@@ -3561,14 +3549,12 @@ export const SettingsPage: React.FC<Props> = ({
               fontWeight: 600,
               color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
             }}>
-              {editingLibraryId
-                ? localize("Szín szerkesztése", "Farbe bearbeiten", "Edit color")
-                : localize("Új szín hozzáadása", "Neue Farbe hinzufügen", "Add new color")}
+              {editingLibraryId ? t("settings.library.modal.titleEdit") : t("settings.library.modal.titleNew")}
             </h4>
             <div style={{ display: "grid", gap: "16px" }}>
               <div>
                 <label style={{ display: "block", fontWeight: 600, fontSize: "14px", marginBottom: "6px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                  {localize("Gyártó", "Hersteller", "Manufacturer")}
+                  {t("settings.library.modal.fields.manufacturer")}
                 </label>
                 <input
                   value={libraryDraft.manufacturer}
@@ -3576,12 +3562,12 @@ export const SettingsPage: React.FC<Props> = ({
                   onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                   onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                   style={{ ...themeStyles.input, width: "100%", maxWidth: "480px" }}
-                  placeholder={localize("Pl.: Prusa", "z. B.: Prusa", "e.g. Prusa")}
+                  placeholder={t("settings.library.modal.placeholder.manufacturer")}
                 />
               </div>
               <div>
                 <label style={{ display: "block", fontWeight: 600, fontSize: "14px", marginBottom: "6px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                  {localize("Anyag", "Material", "Material")}
+                  {t("settings.library.modal.fields.material")}
                 </label>
                 <input
                   value={libraryDraft.material}
@@ -3589,12 +3575,12 @@ export const SettingsPage: React.FC<Props> = ({
                   onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                   onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                   style={{ ...themeStyles.input, width: "100%", maxWidth: "480px" }}
-                  placeholder={localize("Pl.: PLA", "z. B.: PLA", "e.g. PLA")}
+                  placeholder={t("settings.library.modal.placeholder.material")}
                 />
               </div>
               <div>
                 <label style={{ display: "block", fontWeight: 600, fontSize: "14px", marginBottom: "6px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                  {localize("Szín neve", "Farbname", "Color name")}
+                  {t("settings.library.modal.fields.color")}
                 </label>
                 <input
                   value={libraryDraft.color}
@@ -3602,20 +3588,20 @@ export const SettingsPage: React.FC<Props> = ({
                   onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                   onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                   style={{ ...themeStyles.input, width: "100%", maxWidth: "480px" }}
-                  placeholder={localize("Pl.: Deep Blue", "z. B.: Deep Blue", "e.g. Deep Blue")}
+                  placeholder={t("settings.library.modal.placeholder.color")}
                 />
               </div>
               <div>
                 <label style={{ display: "block", fontWeight: 600, fontSize: "14px", marginBottom: "6px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                  {localize("Szín mód", "Farbmodus", "Color mode")}
+                  {t("settings.library.modal.fields.colorMode")}
                 </label>
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                   {(["solid", "multicolor"] as ColorMode[]).map(mode => {
                     const isActive = libraryDraft.colorMode === mode;
                     const label =
                       mode === "solid"
-                        ? localize("Egyszínű", "Einfarbig", "Solid")
-                        : localize("Többszínű", "Mehrfarbig", "Multicolor");
+                        ? t("settings.library.modal.colorMode.solid")
+                        : t("settings.library.modal.colorMode.multicolor");
                     return (
                       <button
                         key={mode}
@@ -3637,18 +3623,14 @@ export const SettingsPage: React.FC<Props> = ({
                 </div>
                 {libraryDraft.colorMode === "multicolor" && (
                   <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                    {localize(
-                      "A többszínű filamenteknél a HEX kód opcionális, a megjelenítéshez szivárvány jelölést használunk.",
-                      "Bei mehrfarbigen Filamenten ist der HEX-Code optional – die Anzeige verwendet ein Regenbogen-Symbol.",
-                      "For multicolor filaments the HEX code is optional; a rainbow indicator will be shown."
-                    )}
+                    {t("settings.library.modal.multicolorNote")}
                   </p>
                 )}
               </div>
               <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
                 <div style={{ flex: "1 1 200px", minWidth: "200px", maxWidth: "240px" }}>
                   <label style={{ display: "block", fontWeight: 600, fontSize: "14px", marginBottom: "6px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                    {localize("Felület", "Finish", "Finish")}
+                    {t("settings.library.modal.fields.finish")}
                   </label>
                   <select
                     value={libraryDraft.finish}
@@ -3681,7 +3663,7 @@ export const SettingsPage: React.FC<Props> = ({
                       opacity: libraryDraft.colorMode === "multicolor" ? 0.7 : 1,
                     }}
                     placeholder={libraryDraft.colorMode === "multicolor"
-                      ? localize("Opció: HEX megadása", "Optional: HEX angeben", "Optional: provide HEX")
+                      ? t("settings.library.modal.placeholder.hexOptional")
                       : "#2563EB"}
                     disabled={libraryDraft.colorMode === "multicolor"}
                   />
@@ -3707,7 +3689,7 @@ export const SettingsPage: React.FC<Props> = ({
               </div>
               <div style={{ display: "grid", gap: "10px" }}>
                 <label style={{ fontWeight: 600, fontSize: "14px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                  {localize("Megjelenő címke", "Angezeigter Name", "Display label")}
+                  {t("settings.library.modal.fields.displayLabel")}
                 </label>
                 <input
                   value={libraryDraft.baseLabel}
@@ -3715,14 +3697,10 @@ export const SettingsPage: React.FC<Props> = ({
                   onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                   onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                   style={{ ...themeStyles.input, width: "100%", maxWidth: "480px" }}
-                  placeholder={localize("Pl.: Tengerkék", "z. B.: Ozeanblau", "e.g. Ocean Blue")}
+                  placeholder={t("settings.library.modal.placeholder.displayLabel")}
                 />
                 <p style={{ fontSize: "12px", margin: 0, color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                  {localize(
-                    "Csak egyszer kell megadnod – automatikusan lefordítjuk angolra és németre.",
-                    "Nur einmal eingeben – wir übersetzen automatisch ins Englische und Ungarische.",
-                    "Enter it once – we translate it automatically to Hungarian and German."
-                  )}
+                  {t("settings.library.modal.displayLabelNote")}
                 </p>
               </div>
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "8px" }}>
@@ -3732,14 +3710,14 @@ export const SettingsPage: React.FC<Props> = ({
                   disabled={librarySaving || libraryLoading}
                 >
                   {editingLibraryId
-                    ? localize("Frissítés", "Aktualisieren", "Update")
-                    : localize("Hozzáadás", "Hinzufügen", "Add")}
+                    ? t("settings.library.modal.submit.update")
+                    : t("settings.library.modal.submit.add")}
                 </button>
                 <button
                   onClick={closeLibraryModal}
                   style={{ ...themeStyles.button, padding: "10px 20px" }}
                 >
-                  {localize("Mégse", "Abbrechen", "Cancel")}
+                  {t("settings.library.modal.cancel")}
                 </button>
               </div>
             </div>
@@ -3753,8 +3731,8 @@ export const SettingsPage: React.FC<Props> = ({
         message={confirmDialogConfig?.message ?? ""}
         onConfirm={handleConfirmDialogConfirm}
         onCancel={handleConfirmDialogCancel}
-        confirmText={confirmDialogConfig?.confirmText ?? localize("Igen", "Ja", "Yes")}
-        cancelText={confirmDialogConfig?.cancelText ?? localize("Mégse", "Abbrechen", "Cancel")}
+        confirmText={confirmDialogConfig?.confirmText ?? t("common.yes")}
+        cancelText={confirmDialogConfig?.cancelText ?? t("common.cancel")}
         type={confirmDialogConfig?.type}
         theme={theme}
       />

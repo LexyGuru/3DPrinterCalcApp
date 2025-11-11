@@ -1,3 +1,21 @@
+export type LanguageCode =
+  | "hu"
+  | "en"
+  | "de"
+  | "fr"
+  | "it"
+  | "es"
+  | "pl"
+  | "cs"
+  | "sk"
+  | "zh"
+  | "pt-BR";
+
+export type BaseLanguageCode = "hu" | "en" | "de";
+
+export type LocaleStringMap<T = string> = Record<BaseLanguageCode, T> &
+  Partial<Record<Exclude<LanguageCode, BaseLanguageCode>, T>>;
+
 export type ColorMode = "solid" | "multicolor";
 
 export interface Filament {
@@ -135,7 +153,7 @@ export const createEmptyCustomThemeDefinition = (): CustomThemeDefinition => ({
 export interface Settings {
   currency: "EUR" | "HUF" | "USD";
   electricityPrice: number; // Ft/kWh
-  language: "hu" | "en" | "de";
+  language: LanguageCode;
   checkForBetaUpdates?: boolean; // Beta release-ek ellenőrzése
   theme?: ThemeName; // Téma választás
   showConsole?: boolean; // Console/Log menüpont megjelenítése
