@@ -25,7 +25,7 @@ import { useKeyboardShortcut } from "./utils/keyboardShortcuts";
 import { ShortcutHelp } from "./components/ShortcutHelp";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
-import { logWithLanguage, getConsoleMessage } from "./utils/languages/global_console";
+import { logWithLanguage } from "./utils/languages/global_console";
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
