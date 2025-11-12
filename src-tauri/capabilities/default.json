@@ -18,20 +18,23 @@
       "identifier": "fs:allow-read-text-file",
       "allow": [
         { "path": "$APPCONFIG/filamentLibrary.json" },
-        { "path": "$APPCONFIG/filamentLibrary*.json" }
+        { "path": "$APPCONFIG/filamentLibrary*.json" },
+        { "path": "$APPCONFIG/update_filamentLibrary.json" }
       ]
     },
     {
       "identifier": "fs:allow-write-text-file",
       "allow": [
         { "path": "$APPCONFIG/filamentLibrary.json" },
-        { "path": "$APPCONFIG/filamentLibrary*.json" }
+        { "path": "$APPCONFIG/filamentLibrary*.json" },
+        { "path": "$APPCONFIG/update_filamentLibrary.json" }
       ]
     },
     {
       "identifier": "fs:allow-create",
       "allow": [
-        { "path": "$APPCONFIG/filamentLibrary.json" }
+        { "path": "$APPCONFIG/filamentLibrary.json" },
+        { "path": "$APPCONFIG/update_filamentLibrary.json" }
       ]
     },
     "shell:allow-open"

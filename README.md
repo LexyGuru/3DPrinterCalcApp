@@ -18,7 +18,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
 - 🧾 **G-code import és piszkozat készítés** - A kalkulátorban modális ablakból tölthető be G-code/JSON export (Prusa, Cura, Orca, Qidi), részletes összefoglalóval és automatikus árajánlat piszkozat generálással
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
-- 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia és egyszerűsített kínai nyelveken; olasz, spanyol, lengyel, cseh, szlovák és brazil portugál előkészítve (angol fallback-pal)
+- 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia, egyszerűsített kínai, cseh, spanyol, olasz, lengyel, portugál és szlovák nyelveken (12 nyelv, összesen 813 fordítási kulcs minden nyelven)
 - 💱 **Több pénznem** - EUR, HUF, USD
 - 🔄 **Automatikus frissítések** - Ellenőrzi a GitHub Releases-t új verziókért
 - 🧪 **Beta verziók** - Beta branch és beta buildelés támogatás
@@ -236,6 +236,10 @@ Lekszikov Miklós (LexyGuru)
 A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
 ## 📋 Verziótörténet
+
+### v0.5.56 (2025)
+- 🌍 **Teljes nyelvi fordítások** – Elkészült a maradék 6 nyelvi fájl teljes fordítása: cseh (cs), spanyol (es), olasz (it), lengyel (pl), portugál (pt) és szlovák (sk). Minden fájl tartalmazza az összes 813 fordítási kulcsot, így az alkalmazás mostantól teljes mértékben támogatott ezeken a nyelveken.
+- 🔒 **Tauri engedélyek javítása** – Az `update_filamentLibrary.json` fájl mostantól explicit módon engedélyezve van az olvasás, írás és létrehozás műveletekhez a Tauri capabilities fájlban, így a filament könyvtár frissítések megbízhatóan működnek.
 
 ### v0.5.55 (2025)
 - 🧵 **Árajánlat szerkesztés fejlesztés** – A mentett ajánlatoknál mostantól közvetlenül választható vagy módosítható a nyomtató, a filament változtatásokkal együtt automatikusan újraszámolódnak a költségek.
@@ -471,7 +475,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.5.55
+**Verzió**: 0.5.56
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 
