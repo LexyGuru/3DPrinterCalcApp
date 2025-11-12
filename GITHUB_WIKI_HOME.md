@@ -4,17 +4,17 @@
 
 |                     |                                                                 |
 |---------------------|-----------------------------------------------------------------|
-| **Aktuális verzió** | `v0.5.55`                                                       |
+| **Aktuális verzió** | `v0.5.56`                                                       |
 | **Platformok**      | macOS · Linux · Windows (Tauri natív build)                     |
 | **Technológiák**    | Frontend: React 19 · TypeScript · Vite · Framer Motion          |
 |                     | Backend: Rust · Tauri v2 · Tauri Plugins                        |
 | **Fő cél**          | 3D nyomtatási költségszámítás, árajánlat-kezelés és riportálás  |
 
-> **Legutóbbi újdonságok (v0.5.55)**  
-> - Árajánlat szerkesztőben nyomtatóválasztás, filament-módosításkor automatikus költségszámítás  
-> - Részletes logolás a költségbontás minden eleméhez (filament, áram, szárítás, kopás)  
-> - Új i18n kulcsok/printer feliratok, minden támogatott nyelven egységes UI  
-> - Dokumentáció frissítve a 0.5.55-ös kiadás bejegyzéseivel  
+> **Legutóbbi újdonságok (v0.5.56)**  
+> - Teljes nyelvi fordítások elkészítve 6 nyelven: cseh, spanyol, olasz, lengyel, portugál, szlovák  
+> - Minden nyelvi fájl tartalmazza az összes 813 fordítási kulcsot  
+> - Tauri engedélyek javítása: update_filamentLibrary.json explicit engedélyezése  
+> - Dokumentáció frissítve a 0.5.56-os kiadás bejegyzéseivel  
 
 ---
 
@@ -264,6 +264,6 @@ cargo tauri dev
 
 ---
 
-**Verzió**: `0.5.55`
+**Verzió**: `0.5.56`
 Ha kérdésed van vagy hibát találsz, nyiss issue-t a GitHub repóban! 🎯
 
