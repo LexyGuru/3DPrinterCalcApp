@@ -32,11 +32,10 @@ import {
   subscribeToLibraryChanges,
   ensureLibraryOverridesLoaded,
   ensureLibraryEntry,
-  availableWeightUnits,
-  extractColorsFromLibraryEntry,
-  getMaterialLabel,
 } from "../utils/filamentLibrary";
 import { logWithLanguage } from "../utils/languages/global_console";
+
+const DEFAULT_WEIGHT_UNITS = ["g", "kg"] as const;
 
 interface Props {
   filaments: Filament[];
@@ -608,7 +607,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       selectedFinish,
       selectedPaletteColor: paletteColorOptions.find(option => option.finish === selectedFinish),
       weight,
-      unit: availableWeightUnits[0],
+      unit: DEFAULT_WEIGHT_UNITS[0],
     });
     if (!brand || !type || !pricePerKg) {
       showToast(`${t("common.error")}: ${t("filaments.validation.requiredFields")}`, "error");

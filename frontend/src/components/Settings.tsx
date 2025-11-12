@@ -1364,26 +1364,24 @@ export const SettingsPage: React.FC<Props> = ({
         offers: exportOffers ? offers.length : 0,
       });
       
-      const exportData: any = {};
+      const exportData: Record<string, unknown> = {};
       if (exportFilaments) exportData.filaments = filaments;
       if (exportPrinters) exportData.printers = printers;
       if (exportOffers) exportData.offers = offers;
-
-      const jsonContent = JSON.stringify(exportData, null, 2);
-      logWithLanguage(settings.language, "log", "settings.dataExport.saving", { filePath: "3DPrinterCalcApp_export.json" });
-      logWithLanguage(settings.language, "log", "settings.dataExport.success", { filePath: "3DPrinterCalcApp_export.json" });
 
       const filePath = await save({
         defaultPath: "3DPrinterCalcApp_export.json",
         filters: [{
           name: "JSON",
-          extensions: ["json"]
-        }]
+          extensions: ["json"],
+        }],
       });
 
       if (filePath) {
+        const jsonContent = JSON.stringify(exportData, null, 2);
+        await writeTextFile(filePath, jsonContent);
         logWithLanguage(settings.language, "log", "settings.dataExport.saving", { filePath });
-        logWithLanguage(settings.language, "log", "settings.dataExport.success", { filePath: "3DPrinterCalcApp_export.json" });
+        logWithLanguage(settings.language, "log", "settings.dataExport.success", { filePath });
         // Reset checkboxes
         setExportFilaments(false);
         setExportPrinters(false);

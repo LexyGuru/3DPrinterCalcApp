@@ -57,7 +57,7 @@ export default function App() {
         // Ellenőrizzük hogy az electricityPrice érvényes érték-e
         if (!loadedSettings.electricityPrice || loadedSettings.electricityPrice <= 0) {
           if (import.meta.env.DEV) {
-            logWithLanguage(settings.language, "warn", "app.settings.invalidElectricity");
+            logWithLanguage(settings.language, "warn", "settings.invalidElectricityPrice");
           }
           loadedSettings.electricityPrice = defaultSettings.electricityPrice;
         }
