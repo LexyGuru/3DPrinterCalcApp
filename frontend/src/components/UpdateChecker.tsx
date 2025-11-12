@@ -3,7 +3,7 @@ import { checkForUpdates, type VersionInfo } from "../utils/version";
 import { commonStyles } from "../utils/styles";
 import { open } from "@tauri-apps/plugin-shell";
 import { useTranslation, type LanguageCode } from "../utils/translations";
-import { getConsoleMessage } from "../utils/languages/global_console";
+import { logWithLanguage } from "../utils/languages/global_console";
 
 interface Props {
   settings: {
@@ -44,7 +44,7 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
   const handleDownload = async () => {
     if (versionInfo?.releaseUrl) {
       try {
-        console.log(getConsoleMessage(settings.language, "update.download.open"), { 
+        logWithLanguage(settings.language, "log", "update.download.open", {
           currentVersion: versionInfo.current,
           latestVersion: versionInfo.latest,
           releaseUrl: versionInfo.releaseUrl,
@@ -52,23 +52,25 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
         });
         // Tauri shell plugin használata külső linkek megnyitásához
         await open(versionInfo.releaseUrl);
-        console.log(getConsoleMessage(settings.language, "update.download.success"), { 
+        logWithLanguage(settings.language, "log", "update.download.success", {
           latestVersion: versionInfo.latest,
           releaseUrl: versionInfo.releaseUrl,
         });
       } catch (error) {
-        console.error(`${getConsoleMessage(settings.language, "update.download.error")}:`, error, { 
-          error,
+        logWithLanguage(settings.language, "error", "update.download.error", {
           releaseUrl: versionInfo.releaseUrl,
+          error,
         });
         // Fallback: ha a Tauri shell nem működik, próbáljuk meg a window.open-t
         try {
           window.open(versionInfo.releaseUrl, "_blank", "noopener,noreferrer");
-          console.log(getConsoleMessage(settings.language, "update.download.fallbackSuccess"), { 
+          logWithLanguage(settings.language, "log", "update.download.fallbackSuccess", {
             latestVersion: versionInfo.latest,
           });
         } catch (fallbackError) {
-          console.error(`${getConsoleMessage(settings.language, "update.download.fallbackError")}:`, fallbackError);
+          logWithLanguage(settings.language, "error", "update.download.fallbackError", {
+            error: fallbackError,
+          });
         }
       }
     }
