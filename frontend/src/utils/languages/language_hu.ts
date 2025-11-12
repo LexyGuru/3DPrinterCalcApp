@@ -675,5 +675,11 @@ export const languageHu: TranslationMap = {
   "sidebar.offers": "Árajánlatok",
   "sidebar.settings": "Beállítások",
   "sidebar.console": "Console",
+  "settings.library.imported": "Importálva",
+  "settings.library.importError": "Importálás sikertelen",
+  "settings.library.showAll": "Összes bejegyzés megjelenítése",
+  "settings.library.loadPaged": "Lapozva jelenjen meg",
+  "settings.library.exportFilter": "Szűrő",
+  "settings.dataImport.error": "Import hiba",
 };
 

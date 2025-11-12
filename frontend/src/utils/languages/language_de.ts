@@ -675,5 +675,11 @@ export const languageDe: TranslationMap = {
   "sidebar.offers": "Angebote",
   "sidebar.settings": "Einstellungen",
   "sidebar.console": "Console",
+  "settings.library.importiert": "Importiert",
+  "settings.library.importError": "Import fehlgeschlagen",
+  "settings.library.showAll": "Alle Einträge anzeigen",
+  "settings.library.loadPaged": "Seitenweise anzeigen",
+  "settings.library.exportFilter": "Filter",
+  "settings.dataImport.error": "Import fehlgeschlagen",
 };
 
