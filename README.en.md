@@ -1,6 +1,6 @@
 # 🖨️ 3D Printer Calculator App
 
-> **🌍 Language / Nyelv / Sprache / Idioma / Lingua / Język / Jazyk / Língua / Langue / 语言**
+> **🌍 Language Selection**
 > 
 > [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
 
@@ -256,3 +256,4 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 **Version**: 0.5.56
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
+
