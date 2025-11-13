@@ -251,6 +251,232 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 - 🌍 **Übersetzungsergänzungen** – Neue i18n-Schlüssel und Beschriftungen für den Druckerauswähler hinzugefügt, sodass die Editor-UI in allen unterstützten Sprachen konsistent ist.
 - 📄 **Dokumentationsupdate** – README mit Beschreibung neuer Funktionen erweitert, v0.5.55 Release zur Versionsgeschichte hinzugefügt.
 
+### v0.5.11 (2025)
+- 🗂️ **Sprachmodularisierung** – Erweiterung der App mit Übersetzungsdateien, die in einem neuen `languages/` Verzeichnis organisiert sind, was das Hinzufügen neuer Sprachen und die Verwaltung bestehender Texte erleichtert.
+- 🌍 **Vereinheitlichte UI-Übersetzungen** – Die Slicer-Import-Oberfläche arbeitet jetzt vom zentralen Übersetzungssystem, alle Buttons, Fehlermeldungen und Zusammenfassungen sind lokalisiert.
+- 🔁 **Sprachauswahl-Update** – In den Einstellungen lädt die Sprachauswahl basierend auf gefundenen Sprachdateien, sodass es in Zukunft ausreicht, eine neue Sprachdatei hinzuzufügen.
+- 🌐 **Neue Sprachgrundlagen** – Übersetzungsdateien für Französisch, Italienisch, Spanisch, Polnisch, Tschechisch, Slowakisch, Brasilianisches Portugiesisch und Vereinfachtes Chinesisch vorbereitet (mit englischem Fallback), tatsächliche Übersetzungen können einfach ausgefüllt werden.
+
+### v0.5.0 (2025)
+- 🔎 **Filament-Preisvergleichs-Button** – Jedes benutzerdefinierte Filament hat jetzt ein Lupen-Symbol, das die Google/Bing-Suche basierend auf Marke/Typ/Farbe öffnet und schnelle Links zu aktuellen Preisen bietet.
+- 💶 **Dezimalpreis-Unterstützung** – Filament-Preisfelder akzeptieren jetzt Dezimalzahlen (14,11 € etc.), die Eingabe wird automatisch validiert und formatiert beim Speichern.
+- 🌐 **Umgekehrte Suche Fallback** – Wenn die Tauri-Shell den Browser nicht öffnen kann, öffnet die Anwendung automatisch einen neuen Tab, sodass die Suche auf allen Plattformen funktioniert.
+
+### v0.4.99 (2025)
+- 🧾 **Integrierter G-Code-Import im Rechner** – Neues modales `SlicerImportModal` oben im Rechner, das G-Code/JSON-Exporte mit einem Klick lädt, Druckzeit und Filamentmenge überträgt und einen Angebotsentwurf erstellt.
+- 📊 **Slicer-Daten aus Header** – G-Code-Header `total filament weight/length/volume` Werte übernehmen automatisch die Zusammenfassungen und behandeln Farbwechselverluste genau.
+
+### v0.4.98 (2025)
+- 🧵 **Multicolor-Filament-Unterstützung** – Filamentbibliothek und Verwaltungs-UI markieren jetzt mehrfarbige (Regenbogen/Dual/Tricolor) Filamente separat mit Notizen und Regenbogen-Vorschau.
+- 🌐 **Automatische Übersetzung beim CSV-Import** – Von externer Datenbank importierte Farbnamen erhalten ungarische und deutsche Labels, sodass die Farbauswahl mehrsprachig bleibt ohne manuelle Bearbeitung.
+- 🔄 **Update-Bibliothek-Zusammenführung** – Der Inhalt der `update_filamentLibrary.json` Datei wird beim Start automatisch dedupliziert und mit der bestehenden Bibliothek zusammengeführt, ohne Benutzeränderungen zu überschreiben.
+- 📁 **CSV-Konverter-Update** – Das `convert-filament-csv.mjs` Skript überschreibt nicht mehr die persistente `filamentLibrary.json`, sondern erstellt eine Update-Datei und generiert mehrsprachige Labels.
+- ✨ **Animationserlebnis-Tuning** – Neue Seitenübergangsoptionen (Flip, Parallax), Mikrointeraktions-Stilauswahl, pulsierendes Feedback, Filamentbibliothek-Skeleton-Liste und fein abgestimmte Karten-Hover-Effekte.
+- 🎨 **Theme-Werkstatt-Erweiterungen** – Vier neue integrierte Themes (Forest, Pastel, Charcoal, Midnight), sofortige Duplizierung des aktiven Themes für benutzerdefinierte Bearbeitung, verbesserte Gradient/Kontrast-Behandlung und vereinfachter Freigabeprozess.
+
+### v0.4.0 (2025)
+- 🧵 **Filament-Datenbank-Integration** – 2.000+ Werkfarben aus integrierter JSON-Bibliothek (filamentcolors.xyz Snapshot), nach Marke und Material organisiert
+- 🪟 **Feste Größe Auswahlpanels** – Button-geöffnete, durchsuchbare, scrollbare Marken- und Typenlisten, die sich gegenseitig ausschließen, machen das Formular transparenter
+- 🎯 **Farbauswahl-Verbesserungen** – Wenn Bibliothekselemente erkannt werden, werden Finish und Hex-Code automatisch gesetzt, separate Felder verfügbar beim Wechsel zum benutzerdefinierten Modus
+- 💾 **Filament-Bibliothek-Editor** – Neue Einstellungsregisterkarte mit Popup-Formular, Duplikatbehandlung und Tauri-FS-basierter persistenter `filamentLibrary.json` Speicherung
+- 📄 **Dokumentationsupdate** – Neuer Bullet in der Hauptfunktionsliste für die Filament-Farbbibliothek, README/FEATURE_SUGGESTIONS Bereinigung
+
+### v0.3.9 (2025)
+- 🔍 **Angebotsfilter-Presets** – Speicherbare, benennbare Filtereinstellungen, Standard-Schnellpresets (Heute, Gestern, Wöchentlich, Monatlich etc.) und Ein-Klick-Anwenden/Löschen
+- 📝 **Statusänderungsnotizen** – Neues Modal für Angebotsstatusänderung mit optionaler Notiz, die in der Statusgeschichte gespeichert wird
+- 🖼️ **PDF-Export-Erweiterung** – Mit Filamenten gespeicherte Bilder erscheinen in der PDF-Tabelle mit druckoptimiertem Styling
+- 🧾 **Firmenbranding-Datenblatt** – Firmenname, Adresse, Steuernummer, Bankkonto, Kontakt und Logo-Upload; automatisch im PDF-Header enthalten
+- 🎨 **PDF-Vorlagenauswahl** – Drei Stile (Modern, Minimalistisch, Professionell) zur Auswahl für das Angebotsaussehen
+- 👁️ **Integrierte PDF-Vorschau** – Separater Button bei Angebotsdetails für sofortige visuelle Überprüfung vor dem Export
+- 📊 **Status-Dashboard** – Statuskarten mit Zusammenfassung, schnelle Statusfilter und Timeline der letzten Statusänderungen bei Angeboten
+- 📈 **Statistische Diagramme** – Umsatz/Kosten/Gewinn-Trenddiagramm, Filament-Verteilung-Kreisdiagramm, Umsatz pro Drucker-Balkendiagramm, alle im SVG/PNG-Format exportierbar und können auch als PDF gespeichert werden
+
+### v0.3.8 (2025)
+- 🐛 **Berichtsnummernformatierungs-Fix** - Formatierung auf 2 Dezimalstellen in Berichten:
+  - Hauptstatistikkarten (Umsatz, Ausgaben, Gewinn, Angebote): `formatNumber(formatCurrency(...), 2)`
+  - Werte über Diagrammen: `formatNumber(formatCurrency(...), 2)`
+  - Detaillierte Statistiken (Durchschnittsgewinn/Angebot): `formatNumber(formatCurrency(...), 2)`
+  - Jetzt konsistent mit der Startseite (z.B. `6.45` statt `6.45037688333333`)
+- 🎨 **Einstellungen-Tab-Navigation-Fix** - Hintergrund- und Textfarbverbesserungen:
+  - Tab-Navigationsbereich Hintergrund: `rgba(255, 255, 255, 0.85)` für Gradient-Themes + `blur(10px)`
+  - Tab-Button-Hintergründe: Aktiv `rgba(255, 255, 255, 0.9)`, inaktiv `rgba(255, 255, 255, 0.7)` für Gradient-Themes
+  - Tab-Button-Textfarbe: `#1a202c` (dunkel) für Gradient-Themes für Lesbarkeit
+  - Hover-Effekte: `rgba(255, 255, 255, 0.85)` für Gradient-Themes
+  - Backdrop-Filter: `blur(8px)` für Tab-Buttons, `blur(10px)` für Navigationsbereich
+
+### v0.3.7 (2025)
+- 🎨 **Design-Modernisierung** - Vollständige visuelle Transformation mit Animationen und neuen Themes:
+  - Neue Themes: Gradient, Neon, Cyberpunk, Sunset, Ocean (5 neue moderne Themes)
+  - Framer Motion Animationen integriert (fadeIn, slideIn, stagger, Hover-Effekte)
+  - Glassmorphismus-Effekt für Gradient-Themes (Blur + transparenter Hintergrund)
+  - Neon-Glow-Effekt für Neon/Cyberpunk-Themes
+  - Modernisierte Karten und Oberflächen (größeres Padding, abgerundete Ecken, bessere Schatten)
+- 🎨 **Farbverbesserungen** - Besserer Kontrast und Lesbarkeit für alle Themes:
+  - Dunkler Text (#1a202c) auf weißem/hellem Hintergrund für Gradient-Themes
+  - Eingabefelder, Labels, h3-Färbung in allen Komponenten verbessert
+  - Konsistente Farbbehandlung auf allen Seiten (Filaments, Printers, Calculator, Offers, Settings, Console)
+  - Textschatten für Gradient-Themes hinzugefügt für bessere Lesbarkeit
+- 📊 **Tabellenstil-Verbesserungen** - Verschwommenerer Hintergrund und besserer Textkontrast:
+  - Hintergrundfarbe: rgba(255, 255, 255, 0.85) für Gradient-Themes (vorher 0.95)
+  - Backdrop-Filter: blur(8px) für verschwommeneren Effekt
+  - Textfarbe: #333 (dunkelgrau) für Gradient-Themes für bessere Lesbarkeit
+  - Zellenhintergründe: rgba(255, 255, 255, 0.7) für verschwommeneren Effekt
+- 🎨 **Kartenhintergrundfarb-Verbesserungen** - Verschwommenerer Hintergrund, bessere Lesbarkeit:
+  - Hintergrundfarbe: rgba(255, 255, 255, 0.75) für Gradient-Themes (vorher 0.95)
+  - Backdrop-Filter: blur(12px) für stärkere Unschärfe
+  - Opazität: 0.85 für matten Effekt
+  - Textfarbe: #1a202c (dunkel) für Gradient-Themes
+- 📈 **Startseite-Modernisierung** - Wöchentliche/monatliche/jährliche Statistiken und Zeitraumvergleich:
+  - Zeitraumvergleichskarten (Wöchentlich, Monatlich, Jährlich) mit farbigen Akzentleisten
+  - StatCard-Komponenten modernisiert (Icons mit farbigen Hintergründen, Akzentleisten)
+  - Zusammenfassungsbereich in Karten mit Icons angeordnet
+  - Zeitraumvergleichsbereich hinzugefügt
+- 🐛 **Datumfilter-Fix** - Genauere Zeitraumfilterung:
+  - Zeitrücksetzung (00:00:00) für genauen Vergleich
+  - Obergrenze gesetzt (heute ist enthalten)
+  - Wöchentlich: letzte 7 Tage (heute enthalten)
+  - Monatlich: letzte 30 Tage (heute enthalten)
+  - Jährlich: letzte 365 Tage (heute enthalten)
+- 🎨 **Sidebar-Modernisierung** - Icons, Glassmorphismus, Neon-Glow-Effekte
+- 🎨 **ConfirmDialog-Modernisierung** - Theme-Prop hinzugefügt, harmonisierte Farbgebung
+
+### v0.3.6 (2025)
+- 🎨 **Einstellungen-UI-Umorganisation** - Tab-System (Allgemein, Aussehen, Erweitert, Datenverwaltung) für bessere UX und sauberere Navigation
+- 🌐 **Übersetzungsverbesserungen** - Alle hardcodierten ungarischen Texte in allen Komponenten übersetzt (HU/EN/DE):
+  - Calculator: "3D-Druckkostenberechnung"
+  - Filaments: "Filamente verwalten und bearbeiten"
+  - Printers: "Drucker und AMS-Systeme verwalten"
+  - Offers: "Gespeicherte Angebote verwalten und exportieren"
+  - Home: Statistiktitel, Zusammenfassung, CSV-Export-Labels (Std/hrs, Stk/pcs)
+  - VersionHistory: "Keine Versionsgeschichte verfügbar"
+- 💾 **Versionsgeschichte-Cache-System** - Physische Speicherung in localStorage, GitHub-Prüfung alle 1 Stunde:
+  - Checksummen-basierte Änderungserkennung (lädt nur bei neuen Releases)
+  - Separater Cache pro Sprache (Ungarisch/Englisch/Deutsch)
+  - Schneller Sprachwechsel aus Cache (keine Neuübersetzung)
+  - Automatische Cache-Invalidierung bei neuem Release
+- 🌐 **Intelligente Übersetzung** - Übersetzt nur neue Releases, verwendet alte Übersetzungen aus Cache:
+  - Cache-Validierung (nicht cachieren, wenn gleicher Text)
+  - MyMemory API Fallback, wenn Übersetzung fehlschlägt
+  - Fehlerzähler Auto-Reset (setzt nach 5 Minuten zurück)
+  - MAX_CONSECUTIVE_ERRORS: 10, MAX_RETRIES: 2
+- 🔧 **LibreTranslate entfernt** - Nur MyMemory API-Verwendung (400 Fehler eliminiert, GET-Request, kein CORS)
+- 🔄 **Retry-Button-Refaktorierung** - Einfacherer Trigger-Mechanismus mit useEffect
+- 🐛 **Build-Fehler-Fixes** - JSX-Einrückungsprobleme behoben (Settings.tsx Export/Import-Bereich)
+
+### v0.3.5 (2025)
+- ✅ **MyMemory API-Integration** - Kostenlose Übersetzungs-API statt LibreTranslate
+- ✅ **GitHub Releases-Seite öffnen** - Button zum Öffnen der GitHub Releases-Seite bei Rate-Limit
+- ✅ **Rate-Limit-Fehlerbehandlung-Verbesserung** - Klare Fehlermeldungen und Wiederholungsbutton
+- 🐛 **Build-Fehler-Fixes** - Nicht verwendete Imports entfernt (offerCalc.ts)
+
+### v0.3.4 (2025)
+- ✅ **Eingabevalidierung-Verbesserung** - Zentrale Validierungs-Utility erstellt und in Calculator, Filaments, Printers Komponenten integriert
+- ✅ **Validierungsfehlermeldungen** - Mehrsprachige (HU/EN/DE) Fehlermeldungen mit Toast-Benachrichtigungen
+- ✅ **Performance-Optimierung** - Lazy Loading Komponenten (Code-Splitting), useMemo und useCallback-Optimierung
+- ✅ **Plattformspezifische Initialisierung** - macOS, Windows, Linux plattformspezifische Initialisierungsgrundlagen
+- 🐛 **Build-Fehler-Fix** - Printers.tsx Kontextmenü-Funktionen hinzugefügt
+
+### v0.3.3 (2025)
+- 🖱️ **Drag & Drop-Funktionen** - Angebote, Filamente und Drucker durch Ziehen neu ordnen
+- 📱 **Kontextmenüs** - Rechtsklick-Menüs für schnelle Aktionen (bearbeiten, löschen, duplizieren, PDF-Export)
+- 🎨 **Visuelles Feedback** - Opazität und Cursor-Änderung während Drag & Drop
+- 🔔 **Toast-Benachrichtigungen** - Benachrichtigungen nach Neuordnung
+- 🐛 **Build-Fehler-Fix** - Calculator.tsx theme.colors.error -> theme.colors.danger Fix
+
+### v0.3.2 (2025)
+- 📋 **Vorlagen-Funktionen** - Berechnungen als Vorlagen im Calculator-Komponenten speichern und laden
+- 📜 **Historie/Versionierung für Angebote** - Angebotsversionierung, Historie anzeigen, Änderungen verfolgen
+- 🧹 **Duplikats-Fix** - Doppelte CSV/JSON-Export/Import-Funktionen aus Filaments und Printers Komponenten entfernt (blieb in Settings)
+
+### v0.3.1 (2025)
+- ✅ **Eingabevalidierung-Verbesserung** - Negative Zahlen deaktiviert, Maximalwerte gesetzt (Filamentgewicht, Druckzeit, Leistung, etc.)
+- 📊 **CSV/JSON-Export/Import** - Massenexport/Import von Filamenten und Druckern im CSV- und JSON-Format
+- 📥 **Import/Export-Buttons** - Einfacher Zugang zu Export/Import-Funktionen auf Filaments- und Printers-Seiten
+- 🎨 **Leere Zustände-Verbesserung** - Informative leere Zustände angezeigt, wenn keine Daten vorhanden sind
+
+### v0.3.0 (2025)
+- ✏️ **Angebotsbearbeitung** - Gespeicherte Angebote bearbeiten (Kundenname, Kontakt, Beschreibung, Gewinnprozentsatz, Filamente)
+- ✏️ **Filamente in Angebot bearbeiten** - Filamente innerhalb des Angebots ändern, hinzufügen, löschen
+- ✏️ **Bearbeiten-Button** - Neuer Bearbeiten-Button neben Löschen-Button in Angebotsliste
+- 📊 **Statistik-Export-Funktion** - Statistiken im JSON- oder CSV-Format von der Startseite exportieren
+- 📈 **Berichtsgenerierung** - Wöchentliche/monatliche/jährliche/alle Berichte im JSON-Format mit Zeitraumfilterung generieren
+- 📋 **Versionsgeschichte-Anzeige** - Versionsgeschichte in Einstellungen anzeigen, GitHub Releases API-Integration
+- 🌐 **GitHub Releases-Übersetzung** - Automatische Übersetzung Ungarisch -> Englisch/Deutsch (MyMemory API)
+- 💾 **Übersetzungs-Cache** - localStorage-Cache für übersetzte Release-Notizen
+- 🔄 **Dynamische Versionsgeschichte** - Beta- und Release-Versionen separat angezeigt
+- 🐛 **Fehlerbehebungen** - Nicht verwendete Variablen entfernt, Code-Bereinigung, Linter-Fehler behoben
+
+### v0.2.55 (2025)
+- 🖥️ **Console/Log-Funktion** - Neuer Console-Menüpunkt zum Debuggen und Anzeigen von Logs
+- 🖥️ **Console-Einstellung** - Console-Menüpunkt-Anzeige in Einstellungen aktivierbar
+- 📊 **Log-Sammlung** - Automatische Aufzeichnung aller console.log, console.error, console.warn Nachrichten
+- 📊 **Globale Fehleraufzeichnung** - Automatische Aufzeichnung von Window-Fehler und nicht behandelten Promise-Rejection-Ereignissen
+- 🔍 **Log-Filterung** - Nach Ebene filtern (all, error, warn, info, log, debug)
+- 🔍 **Log-Export** - Logs im JSON-Format exportieren
+- 🧹 **Log-Löschung** - Logs mit einem Button löschen
+- 📜 **Auto-Scroll** - Automatisches Scrollen zu neuen Logs
+- 💾 **Vollständige Protokollierung** - Alle kritischen Operationen protokolliert (speichern, exportieren, importieren, löschen, PDF-Export, Update-Download)
+- 🔄 **Update-Button-Fix** - Download-Button verwendet jetzt Tauri Shell-Plugin, funktioniert zuverlässig
+- 🔄 **Update-Protokollierung** - Vollständige Protokollierung von Update-Prüfung und Download
+- ⌨️ **Tastenkürzel** - `Ctrl/Cmd+N` (neu), `Ctrl/Cmd+S` (speichern), `Escape` (abbrechen), `Ctrl/Cmd+?` (Hilfe)
+- ⌨️ **Tastenkürzel-macOS-Fix** - Cmd vs Ctrl Behandlung, Capture-Phase Event-Handling
+- ⏳ **Ladezustände** - LoadingSpinner-Komponente für Ladezustände
+- 💾 **Backup und Wiederherstellung** - Vollständige Datensicherung und -wiederherstellung mit Tauri-Dialog und fs-Plugins
+- 🛡️ **Fehlergrenzen** - React ErrorBoundary für anwendungsweite Fehlerbehandlung
+- 💾 **Auto-Save** - Gedrosseltes automatisches Speichern mit konfigurierbarem Intervall (Standard 30 Sekunden)
+- 🔔 **Benachrichtigungseinstellungen** - Toast-Benachrichtigungen Ein/Aus und Dauer-Einstellung
+- ⌨️ **Tastenkürzel-Hilfemenü** - Liste der Tastenkürzel im Modal-Fenster (`Ctrl/Cmd+?`)
+- 🎬 **Animationen und Übergänge** - Sanfte Übergänge und Keyframe-Animationen (fadeIn, slideIn, scaleIn, pulse)
+- 💬 **Tooltips** - Kontextuelle Hilfe für alle wichtigen Elemente beim Hover
+- 🐛 **React-Render-Fehler-Fix** - Console-Logger asynchrone Operation, damit es das Rendering nicht blockiert
+- 🔧 **num-bigint-dig-Update** - Auf v0.9.1 aktualisiert (Deprecation-Warnung behoben)
+
+### v0.2.0 (2025)
+- 🎨 **Theme-System** - 6 moderne Themes (Hell, Dunkel, Blau, Grün, Lila, Orange)
+- 🎨 **Theme-Auswahl** - Auswählbares Theme in Einstellungen, wirkt sofort
+- 🎨 **Vollständige Theme-Integration** - Alle Komponenten (Filaments, Printers, Calculator, Offers, Home, Settings, Sidebar) verwenden Themes
+- 🎨 **Dynamische Farben** - Alle hardcodierten Farben durch Theme-Farben ersetzt
+- 🎨 **Responsives Theme** - Angebote und Sidebar-Footer verwenden auch Themes
+- 💱 **Dynamische Währungsumrechnung** - Angebote werden jetzt in der aktuellen Einstellungswährung angezeigt (automatische Umrechnung)
+- 💱 **Währungsänderung** - In Einstellungen geänderte Währung wirkt sich sofort auf die Angebotsanzeige aus
+- 💱 **PDF-Währungsumrechnung** - PDF-Export wird auch in der aktuellen Einstellungswährung erstellt
+- 💱 **Filament-Preisumrechnung** - Filamentpreise werden auch automatisch umgerechnet
+
+### v0.1.85 (2025)
+- 🎨 **UI/UX-Verbesserungen**:
+  - ✏️ Doppelte Icons entfernt (Bearbeiten, Speichern, Abbrechen Buttons)
+  - 📐 Export/Import-Bereiche im 2-Spalten-Layout (nebeneinander)
+  - 💾 Native Speicher-Dialog für PDF-Speicherung verwendet (Tauri-Dialog)
+  - 📊 Toast-Benachrichtigungen für PDF-Speicherung (Erfolg/Fehler)
+  - 🖼️ Anwendungsfenstergröße: 1280x720 (vorher 1000x700)
+- 🐛 **Fehlerbehebungen**:
+  - Fehlende Informationen in PDF-Generierung hinzugefügt (customerContact, Gewinn in separater Zeile, Umsatz)
+  - Übersetzungsschlüssel hinzugefügt (calculator.profit, calculator.revenue, calculator.totalPrice, offers.customerContact, common.close)
+- 📄 **PDF-Export-Verbesserungen**:
+  - Kundenkontakt (E-Mail/Telefon) im PDF angezeigt
+  - Gewinnberechnung in separater Zeile mit Gewinnprozentsatz
+  - Umsatz (Gesamtpreis) in separater Zeile, hervorgehoben
+  - Vollständige Kostenaufschlüsselung im PDF
+
+### v0.1.56 (2025)
+- ✨ **Calculator-Layout-Verbesserungen**: Filament-Karten-Überlauf behoben, responsives Flexbox-Layout
+- ✨ **Kostenaufschlüsselung responsiv**: Reagiert jetzt dynamisch auf Fenstergrößenänderungen
+- 🐛 **Fehlerbehebung**: Inhalt läuft nicht über das Fenster beim Hinzufügen von Filament
+- 🐛 **Fehlerbehebung**: Alle Calculator-Elemente reagieren richtig auf Fenstergrößenänderungen
+
+### v0.1.55 (2025)
+- ✨ **Bestätigungsdialoge**: Bestätigung vor dem Löschen angefordert (Filamente, Drucker, Angebote)
+- ✨ **Toast-Benachrichtigungen**: Benachrichtigungen nach erfolgreichen Operationen (hinzufügen, aktualisieren, löschen)
+- ✨ **Eingabevalidierung**: Negative Zahlen deaktiviert, Maximalwerte gesetzt
+- ✨ **Ladezustände**: Lade-Spinner beim Anwendungsstart
+- ✨ **Fehlergrenze**: Anwendungsweite Fehlerbehandlung
+- ✨ **Suche und Filter**: Filamente, Drucker und Angebote durchsuchen
+- ✨ **Duplizierung**: Einfache Angebotsduplizierung
+- ✨ **Zusammenklappbare Formulare**: Filament- und Drucker-Hinzufügungsformulare sind zusammenklappbar
+- ✨ **Angebots-Erweiterungen**: Kundenname, Kontakt- und Beschreibungsfelder hinzugefügt
+- 🐛 **Console.log-Bereinigung**: Keine console.logs im Production-Build
+- 🐛 **Beschreibungsfeld-Fix**: Lange Texte werden richtig umbrochen.
+
 ---
 
 **Version**: 0.5.56
