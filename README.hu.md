@@ -501,7 +501,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.5.57
+**Verzió**: 0.5.58
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

@@ -502,6 +502,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 0.5.57
+**Version**: 0.5.58
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!

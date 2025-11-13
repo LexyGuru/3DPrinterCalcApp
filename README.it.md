@@ -501,7 +501,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 0.5.57
+**Versione**: 0.5.58
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

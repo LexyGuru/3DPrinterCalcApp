@@ -501,7 +501,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ---
 
-**Versión**: 0.5.57
+**Versión**: 0.5.58
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 
