@@ -64,7 +64,7 @@ export const Offers: React.FC<Props> = ({
   const [statusChangeTarget, setStatusChangeTarget] = useState<OfferStatus | null>(null);
   const [statusChangeNote, setStatusChangeNote] = useState("");
   const [statusFilter, setStatusFilter] = useState<OfferStatus | "all">("all");
-  const locale = settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US";
+  const locale = settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : settings.language === "uk" ? "uk-UA" : settings.language === "ru" ? "ru-RU" : "en-US";
   const filamentOptions = useMemo(
     () =>
       filaments.map((filament, index) => ({

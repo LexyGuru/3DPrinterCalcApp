@@ -335,6 +335,8 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
             const date = new Date(release.published_at).toLocaleDateString(
               settings.language === "hu" ? "hu-HU" : 
               settings.language === "de" ? "de-DE" : 
+              settings.language === "uk" ? "uk-UA" : 
+              settings.language === "ru" ? "ru-RU" : 
               "en-US"
             );
             
@@ -499,6 +501,8 @@ export const VersionHistory: React.FC<Props> = ({ settings, theme, onClose, isBe
           const date = new Date(release.published_at).toLocaleDateString(
             settings.language === "hu" ? "hu-HU" : 
             settings.language === "de" ? "de-DE" : 
+            settings.language === "uk" ? "uk-UA" : 
+            settings.language === "ru" ? "ru-RU" : 
             "en-US"
           );
           

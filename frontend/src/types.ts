@@ -9,7 +9,9 @@ export type LanguageCode =
   | "cs"
   | "sk"
   | "zh"
-  | "pt-BR";
+  | "pt-BR"
+  | "uk"
+  | "ru";
 
 export type BaseLanguageCode = "hu" | "en" | "de";
 

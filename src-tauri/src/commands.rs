@@ -39,16 +39,19 @@ pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(),
             
             // Taskbar progress beállítása
             // A set_progress_bar metódus ProgressBarState enumot vár
+            // Teljesen kvalifikált szintaxis használata az ambiguitás elkerülésére
+            let progress_state = tauri::window::ProgressBarState::Normal {
+                progress: clamped_progress,
+            };
             window
-                .set_progress_bar(ProgressBarState::Normal {
-                    progress: clamped_progress,
-                })
+                .set_progress_bar(progress_state)
                 .map_err(|e| format!("Taskbar progress beállítása sikertelen: {}", e))?;
             log::info!("Taskbar progress beállítva: {}%", (clamped_progress * 100.0) as u32);
         } else {
             // Taskbar progress elrejtése
+            let progress_state = tauri::window::ProgressBarState::None;
             window
-                .set_progress_bar(ProgressBarState::None)
+                .set_progress_bar(progress_state)
                 .map_err(|e| format!("Taskbar progress elrejtése sikertelen: {}", e))?;
             log::info!("Taskbar progress törölve");
         }

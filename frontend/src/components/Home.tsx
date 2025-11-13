@@ -48,6 +48,8 @@ const LANGUAGE_LOCALES: Record<string, string> = {
   sk: "sk-SK",
   zh: "zh-CN",
   "pt-BR": "pt-BR",
+  uk: "uk-UA",
+  ru: "ru-RU",
   en: "en-US",
 };
 
@@ -2180,7 +2182,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     fontSize: "14px",
                     color: theme.colors.textMuted
                   }}>
-                    {periodLabel} • {new Date().toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
+                    {periodLabel} • {new Date().toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : settings.language === "uk" ? "uk-UA" : settings.language === "ru" ? "ru-RU" : "en-US")}
                   </p>
                 </div>
                 <button
