@@ -20,7 +20,7 @@ import { logWithLanguage } from "../utils/languages/global_console";
 import { validateUsedGrams, validateDryingTime, validateDryingPower } from "../utils/validation";
 import { getFilamentPlaceholder } from "../utils/filamentPlaceholder";
 import { DEFAULT_COLOR_HEX, normalizeHex, resolveColorHexFromName } from "../utils/filamentColors";
-import { notifyExportComplete, notifyOfferStatusChange, getPlatform } from "../utils/platformFeatures";
+import { notifyExportComplete, notifyOfferStatusChange } from "../utils/platformFeatures";
 
 const STATUS_ORDER: OfferStatus[] = ["draft", "sent", "accepted", "rejected", "completed"];
 
@@ -155,7 +155,7 @@ export const Offers: React.FC<Props> = ({
     setDeleteConfirmId(id);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteConfirmId === null) return;
     const id = deleteConfirmId;
     const offerToDelete = offers.find(o => o.id === id);
@@ -175,7 +175,7 @@ export const Offers: React.FC<Props> = ({
         const { sendNativeNotification } = await import("../utils/platformFeatures");
         await sendNativeNotification(
           t("common.offerDeleted"),
-          `${offerToDelete.customerName || t("offers.unnamedOffer")} ${t("common.deleted")}`
+          offerToDelete.customerName || t("offers.customerName")
         );
       } catch (error) {
         console.log("Értesítés küldése sikertelen:", error);
@@ -229,7 +229,7 @@ export const Offers: React.FC<Props> = ({
     }
   };
 
-  const changeOfferStatus = (offer: Offer, newStatus: OfferStatus, note?: string) => {
+  const changeOfferStatus = async (offer: Offer, newStatus: OfferStatus, note?: string) => {
     const timestamp = new Date().toISOString();
     const historyEntry: OfferStatusHistory = {
       status: newStatus,
@@ -264,7 +264,7 @@ export const Offers: React.FC<Props> = ({
     // Natív értesítés küldése (ha engedélyezve van)
     if (settings.notificationEnabled !== false && updated) {
       try {
-        await notifyOfferStatusChange(updated.customerName || t("offers.unnamedOffer"), getStatusLabel(newStatus));
+        await notifyOfferStatusChange(updated.customerName || t("offers.customerName"), getStatusLabel(newStatus));
       } catch (error) {
         console.log("Értesítés küldése sikertelen:", error);
       }
@@ -301,7 +301,7 @@ export const Offers: React.FC<Props> = ({
     setSelectedLibraryFilamentIndex("");
   };
 
-  const saveEditOffer = () => {
+  const saveEditOffer = async () => {
     if (!editingOffer) return;
     
     if (!editCustomerName.trim()) {

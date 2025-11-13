@@ -1265,7 +1265,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                     try {
                       await sendNativeNotification(
                         t("common.offerSaved"),
-                        `${offer.customerName || t("offers.unnamedOffer")} ${t("common.created")}`
+                        offer.customerName || t("offers.customerName")
                       );
                     } catch (error) {
                       console.log("Értesítés küldése sikertelen:", error);
