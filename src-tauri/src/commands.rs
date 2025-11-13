@@ -1,6 +1,6 @@
 use tauri::{AppHandle, Manager};
 #[cfg(target_os = "windows")]
-use tauri::ProgressBarState;
+use tauri::window::ProgressBarState;
 
 /// macOS Dock badge beállítása
 #[cfg(target_os = "macos")]
