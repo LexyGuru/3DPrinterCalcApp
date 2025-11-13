@@ -242,6 +242,15 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ## 📋 Verziótörténet
 
+### v0.5.58 (2025)
+- 🌍 **Ukrán és Orosz nyelv támogatás** – Teljes fordítási támogatás hozzáadva az ukrán (uk) és orosz (ru) nyelvekhez:
+  - Teljes fordítási fájlok mindkét nyelvhez, összesen 813 fordítási kulccsal
+  - Ukrán locale támogatás (uk-UA) dátum/idő formázáshoz
+  - Orosz locale támogatás (ru-RU) dátum/idő formázáshoz
+  - Minden README fájl frissítve az új nyelvekkel a nyelvmenüben
+  - Nyelvszámláló frissítve 12-ről 14 nyelvre
+  - README.uk.md és README.ru.md dokumentációs fájlok létrehozva
+
 ### v0.5.57 (2025)
 - 🍎 **Platform-specifikus funkciók** – Natív platform integráció macOS, Windows és Linux rendszerekhez:
   - **macOS**: Dock badge támogatás (számos/szöveges badge az alkalmazás ikonján), natív Notification Center integráció engedélykezeléssel

@@ -241,6 +241,15 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ## 📋 História verzií
 
+### v0.5.58 (2025)
+- 🌍 **Podpora ukrajinčiny a ruštiny** – Pridaná plná podpora prekladov pre ukrajinčinu (uk) a ruštinu (ru):
+  - Kompletné prekladové súbory so všetkými 813 prekladovými kľúčmi pre oba jazyky
+  - Podpora ukrajinského locale (uk-UA) pre formátovanie dátumu/času
+  - Podpora ruského locale (ru-RU) pre formátovanie dátumu/času
+  - Všetky súbory README aktualizované s novými jazykmi v jazykovom menu
+  - Počet jazykov aktualizovaný z 12 na 14 jazykov
+  - Vytvorené dokumentačné súbory README.uk.md a README.ru.md
+
 ### v0.5.57 (2025)
 - 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
   - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management

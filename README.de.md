@@ -242,6 +242,15 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ## 📋 Versionsgeschichte
 
+### v0.5.58 (2025)
+- 🌍 **Ukrainische und Russische Sprachunterstützung** – Vollständige Übersetzungsunterstützung für Ukrainisch (uk) und Russisch (ru) hinzugefügt:
+  - Vollständige Übersetzungsdateien mit allen 813 Übersetzungsschlüsseln für beide Sprachen
+  - Ukrainische Locale-Unterstützung (uk-UA) für Datums-/Zeitformatierung
+  - Russische Locale-Unterstützung (ru-RU) für Datums-/Zeitformatierung
+  - Alle README-Dateien mit neuen Sprachen im Sprachmenü aktualisiert
+  - Sprachanzahl von 12 auf 14 Sprachen aktualisiert
+  - README.uk.md und README.ru.md Dokumentationsdateien erstellt
+
 ### v0.5.57 (2025)
 - 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
   - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management

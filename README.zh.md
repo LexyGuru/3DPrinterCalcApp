@@ -242,6 +242,15 @@ Lekszikov Miklós (LexyGuru)
 
 ## 📋 版本历史
 
+### v0.5.58 (2025)
+- 🌍 **乌克兰语和俄语支持** – 添加了乌克兰语（uk）和俄语（ru）的完整翻译支持：
+  - 两种语言的完整翻译文件，包含所有 813 个翻译键
+  - 乌克兰语区域设置支持（uk-UA）用于日期/时间格式化
+  - 俄语区域设置支持（ru-RU）用于日期/时间格式化
+  - 所有 README 文件已更新，语言菜单中包含新语言
+  - 语言数量从 12 种更新为 14 种
+  - 创建了 README.uk.md 和 README.ru.md 文档文件
+
 ### v0.5.57 (2025)
 - 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
   - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
