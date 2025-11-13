@@ -39,6 +39,7 @@
     },
     "shell:allow-open",
     "notification:allow-show",
+    "notification:allow-notify",
     "notification:allow-is-permission-granted",
     "notification:allow-request-permission"
   ]
