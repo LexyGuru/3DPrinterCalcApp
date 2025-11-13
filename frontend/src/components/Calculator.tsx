@@ -9,6 +9,7 @@ import { saveTemplates, loadTemplates } from "../utils/store";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { SlicerImportModal } from "./SlicerImportModal";
 import { validatePrintTime, validateUsedGrams, validateDryingTime, validateDryingPower, validateProfitPercentage } from "../utils/validation";
+import { sendNativeNotification } from "../utils/platformFeatures";
 
 interface SelectedFilament {
   filamentIndex: number;
@@ -1259,6 +1260,17 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   onSaveOffer(offer);
                   console.log("✅ Árajánlat sikeresen mentve", { offerId: offer.id });
                   showToast(t("common.offerSaved"), "success");
+                  // Natív értesítés küldése (ha engedélyezve van)
+                  if (settings.notificationEnabled !== false) {
+                    try {
+                      await sendNativeNotification(
+                        t("common.offerSaved"),
+                        `${offer.customerName || t("offers.unnamedOffer")} ${t("common.created")}`
+                      );
+                    } catch (error) {
+                      console.log("Értesítés küldése sikertelen:", error);
+                    }
+                  }
                   setShowOfferDialog(false);
                   setOfferCustomerName("");
                   setOfferCustomerContact("");

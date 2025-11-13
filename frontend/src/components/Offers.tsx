@@ -20,6 +20,7 @@ import { logWithLanguage } from "../utils/languages/global_console";
 import { validateUsedGrams, validateDryingTime, validateDryingPower } from "../utils/validation";
 import { getFilamentPlaceholder } from "../utils/filamentPlaceholder";
 import { DEFAULT_COLOR_HEX, normalizeHex, resolveColorHexFromName } from "../utils/filamentColors";
+import { notifyExportComplete, notifyOfferStatusChange, getPlatform } from "../utils/platformFeatures";
 
 const STATUS_ORDER: OfferStatus[] = ["draft", "sent", "accepted", "rejected", "completed"];
 
@@ -168,6 +169,18 @@ export const Offers: React.FC<Props> = ({
     }
     logWithLanguage(settings.language, "log", "offers.delete.success", { offerId: id });
     showToast(t("common.offerDeleted"), "success");
+    // Natív értesítés küldése (ha engedélyezve van)
+    if (settings.notificationEnabled !== false && offerToDelete) {
+      try {
+        const { sendNativeNotification } = await import("../utils/platformFeatures");
+        await sendNativeNotification(
+          t("common.offerDeleted"),
+          `${offerToDelete.customerName || t("offers.unnamedOffer")} ${t("common.deleted")}`
+        );
+      } catch (error) {
+        console.log("Értesítés küldése sikertelen:", error);
+      }
+    }
     setDeleteConfirmId(null);
   };
 
@@ -248,6 +261,14 @@ export const Offers: React.FC<Props> = ({
     setStatusChangeNote("");
 
     showToast(`${t("offers.toast.statusUpdated")} ${getStatusLabel(newStatus)}`, "success");
+    // Natív értesítés küldése (ha engedélyezve van)
+    if (settings.notificationEnabled !== false && updated) {
+      try {
+        await notifyOfferStatusChange(updated.customerName || t("offers.unnamedOffer"), getStatusLabel(newStatus));
+      } catch (error) {
+        console.log("Értesítés küldése sikertelen:", error);
+      }
+    }
   };
 
   const startEditOffer = (offer: Offer) => {
@@ -383,6 +404,15 @@ export const Offers: React.FC<Props> = ({
     });
     const versionSuffix = hasChanges ? ` (${t("offers.versionPrefix")}${currentVersion})` : "";
     showToast(`${t("offers.toast.saveSuccess")}${versionSuffix}`, "success");
+    // Natív értesítés küldése (ha engedélyezve van)
+    if (settings.notificationEnabled !== false) {
+      try {
+        const { notifySaveComplete } = await import("../utils/platformFeatures");
+        await notifySaveComplete();
+      } catch (error) {
+        console.log("Értesítés küldése sikertelen:", error);
+      }
+    }
   };
 
   const exportToPDF = (offer: Offer) => {
@@ -489,6 +519,14 @@ export const Offers: React.FC<Props> = ({
       if (filePath) {
         await writeTextFile(filePath, htmlContent);
         showToast(`${t("offers.toast.exportHtmlSuccess")} ${fileName}`, "success");
+        // Natív értesítés küldése (ha engedélyezve van)
+        if (settings.notificationEnabled !== false) {
+          try {
+            await notifyExportComplete(fileName);
+          } catch (error) {
+            console.log("Értesítés küldése sikertelen:", error);
+          }
+        }
       }
     } catch (error) {
       logWithLanguage(settings.language, "error", "offers.pdf.error", { error });
