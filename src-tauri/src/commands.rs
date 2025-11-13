@@ -1,4 +1,6 @@
 use tauri::{AppHandle, Manager};
+#[cfg(target_os = "windows")]
+use tauri::ProgressBarState;
 
 /// macOS Dock badge beállítása
 #[cfg(target_os = "macos")]
@@ -36,17 +38,17 @@ pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(),
             let clamped_progress = progress_value.clamp(0.0, 1.0);
             
             // Taskbar progress beállítása
-            // A set_progress_bar metódus Option<f64> értéket vár, ahol:
-            // - Some(0.0..1.0) = progress megjelenítése
-            // - None = progress elrejtése
+            // A set_progress_bar metódus ProgressBarState enumot vár
             window
-                .set_progress_bar(Some(clamped_progress))
+                .set_progress_bar(ProgressBarState::Normal {
+                    progress: clamped_progress,
+                })
                 .map_err(|e| format!("Taskbar progress beállítása sikertelen: {}", e))?;
             log::info!("Taskbar progress beállítva: {}%", (clamped_progress * 100.0) as u32);
         } else {
             // Taskbar progress elrejtése
             window
-                .set_progress_bar(None)
+                .set_progress_bar(ProgressBarState::None)
                 .map_err(|e| format!("Taskbar progress elrejtése sikertelen: {}", e))?;
             log::info!("Taskbar progress törölve");
         }
