@@ -254,17 +254,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
   - Automatic permission checking and status display
   - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
-### v0.5.56 (2025)
-- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
-  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
-  - **Windows**: Taskbar progress bar support (progress overlay on app icon), native Windows notifications
-  - **Linux**: System tray integration, desktop notifications support
-  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
-- 🔔 **Notification System** – Native notification support with permission management:
-  - Permission request system for macOS notifications
-  - Notification test buttons in Settings
-  - Automatic permission checking and status display
-  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
 ### v0.5.56 (2025)
 - 🌍 **Complete Language Translations** – Completed full translations for 6 remaining language files: Czech (cs), Spanish (es), Italian (it), Polish (pl), Portuguese (pt), and Slovak (sk). Each file contains all 813 translation keys, so the application is now fully supported in these languages.

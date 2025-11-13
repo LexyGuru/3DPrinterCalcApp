@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { sendNotification, show, requestPermission, isPermissionGranted } from "@tauri-apps/plugin-notification";
+import { sendNotification, requestPermission, isPermissionGranted } from "@tauri-apps/plugin-notification";
 
 /**
  * Platform specifikus funkciók használata a frontend-ből
@@ -49,29 +49,12 @@ export async function sendNativeNotification(title: string, body: string): Promi
     
     // macOS-on az értesítések csak akkor jelennek meg natív módon, ha az alkalmazás nem aktív
     // vagy ha explicit módon küldjük az értesítést a notification plugin-nel
-    // Próbáljuk meg a `show` API-t először, ami natív értesítést küld
-    try {
-      await show({
-        title,
-        body,
-      });
-      console.log("Értesítés elküldve (show API):", { title, body });
-    } catch (showError) {
-      // Ha a show API nem működik, próbáljuk meg a sendNotification-t
-      console.log("show API sikertelen, sendNotification próbálása:", showError);
-      try {
-        await sendNotification({
-          title,
-          body,
-        });
-        console.log("Értesítés elküldve (sendNotification API):", { title, body });
-      } catch (sendError) {
-        // Ha mindkettő sikertelen, próbáljuk meg az invoke-t (backend fallback)
-        console.log("sendNotification sikertelen, invoke próbálása:", sendError);
-        await invoke("send_notification", { title, body });
-        console.log("Értesítés elküldve (invoke API):", { title, body });
-      }
-    }
+    // A sendNotification API natív értesítést küld
+    await sendNotification({
+      title,
+      body,
+    });
+    console.log("Értesítés elküldve:", { title, body });
   } catch (error) {
     console.error("Értesítés küldése sikertelen:", error);
     // Fallback: ha a plugin nem működik, próbáljuk meg az invoke-t
