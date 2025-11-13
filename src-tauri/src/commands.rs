@@ -62,7 +62,7 @@ pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(),
 /// Backend-ből küldjük az értesítést, mert macOS-on ez megbízhatóbb
 #[tauri::command]
 pub async fn send_notification(
-    app: AppHandle,
+    _app: AppHandle,
     title: String,
     body: String,
 ) -> Result<(), String> {
