@@ -241,6 +241,18 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ## 📋 História verzií
 
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Taskbar progress bar support (progress overlay on app icon), native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
+
 ### v0.5.56 (2025)
 - 🌍 **Úplné jazykové preklady** – Dokončené úplné preklady pre 6 zostávajúcich jazykových súborov: čeština (cs), španielčina (es), taliančina (it), poľština (pl), portugalčina (pt) a slovenčina (sk). Každý súbor obsahuje všetkých 813 prekladových kľúčov, takže aplikácia je teraz plne podporovaná v týchto jazykoch.
 - 🔒 **Oprava oprávnení Tauri** – Súbor `update_filamentLibrary.json` je teraz explicitne povolený pre operácie čítania, zápisu a vytvárania v súbore možností Tauri, čo zabezpečuje spoľahlivé fungovanie aktualizácií knižnice filamentov.
@@ -479,7 +491,7 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ---
 
-**Verzia**: 0.5.56
+**Verzia**: 0.5.57
 
 Ak máte nejaké otázky alebo nájdete chybu, prosím otvorte issue v repozitári GitHub!
 

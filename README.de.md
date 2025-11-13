@@ -35,6 +35,7 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 📋 **Duplizierung** - Einfache Angebotsduplizierung
 - 🖱️ **Drag & Drop** - Angebote, Filamente und Drucker durch Ziehen neu anordnen
 - 📱 **Kontextmenüs** - Rechtsklick-Menüs für schnelle Aktionen (bearbeiten, löschen, duplizieren, exportieren)
+- 🍎 **Plattformspezifische Funktionen** - macOS Dock-Badge, Windows Taskbar-Fortschritt, native Benachrichtigungen, System-Tray-Integration
 
 ## 📸 Screenshots
 
@@ -240,6 +241,18 @@ Lekszikov Miklós (LexyGuru)
 Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, der die Beta-Version erstellt.
 
 ## 📋 Versionsgeschichte
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Taskbar progress bar support (progress overlay on app icon), native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
 ### v0.5.56 (2025)
 - 🌍 **Vollständige Sprachübersetzungen** – Vollständige Übersetzungen für 6 verbleibende Sprachdateien abgeschlossen: Tschechisch (cs), Spanisch (es), Italienisch (it), Polnisch (pl), Portugiesisch (pt) und Slowakisch (sk). Jede Datei enthält alle 813 Übersetzungsschlüssel, sodass die Anwendung nun vollständig in diesen Sprachen unterstützt wird.
@@ -479,7 +492,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 0.5.56
+**Version**: 0.5.57
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

@@ -35,6 +35,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 📋 **Duplikálás** - Árajánlatok könnyű duplikálása
 - 🖱️ **Drag & Drop** - Árajánlatok, filamentek és nyomtatók átrendezése húzással
 - 📱 **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, export)
+- 🍎 **Platform-specifikus funkciók** - macOS Dock badge, Windows Taskbar progress, natív értesítések, system tray integráció
 
 ## 📸 Képernyőképek
 
@@ -240,6 +241,18 @@ Lekszikov Miklós (LexyGuru)
 A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
 ## 📋 Verziótörténet
+
+### v0.5.57 (2025)
+- 🍎 **Platform-specifikus funkciók** – Natív platform integráció macOS, Windows és Linux rendszerekhez:
+  - **macOS**: Dock badge támogatás (számos/szöveges badge az alkalmazás ikonján), natív Notification Center integráció engedélykezeléssel
+  - **Windows**: Taskbar progress bar támogatás (progress overlay az alkalmazás ikonján), natív Windows értesítések
+  - **Linux**: System tray integráció, desktop értesítések támogatás
+  - **Minden platform**: Natív értesítési API integráció engedélykérési rendszerrel, platform detektálás és automatikus funkció engedélyezés
+- 🔔 **Értesítési rendszer** – Natív értesítési támogatás engedélykezeléssel:
+  - Engedélykérési rendszer macOS értesítésekhez
+  - Értesítési teszt gombok a Beállításokban
+  - Automatikus engedély ellenőrzés és státusz megjelenítés
+  - Platform-specifikus értesítés kezelés (macOS Notification Center, Windows Action Center, Linux desktop értesítések)
 
 ### v0.5.56 (2025)
 - 🌍 **Teljes nyelvi fordítások** – Elkészült a maradék 6 nyelvi fájl teljes fordítása: cseh (cs), spanyol (es), olasz (it), lengyel (pl), portugál (pt) és szlovák (sk). Minden fájl tartalmazza az összes 813 fordítási kulcsot, így az alkalmazás mostantól teljes mértékben támogatott ezeken a nyelveken.
@@ -479,7 +492,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.5.56
+**Verzió**: 0.5.57
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

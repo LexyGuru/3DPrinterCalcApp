@@ -43,6 +43,7 @@ import { getFinishLabel } from "../utils/filamentColors";
 import type { ColorMode } from "../types";
 import { translateText } from "../utils/translator";
 import { logWithLanguage } from "../utils/languages/global_console";
+import { sendNativeNotification, setDockBadge, getPlatform, requestNotificationPermission, checkNotificationPermission } from "../utils/platformFeatures";
 
 interface Props {
   settings: Settings;
@@ -81,6 +82,7 @@ export const SettingsPage: React.FC<Props> = ({
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "display" | "advanced" | "data" | "library">("general");
+  const [notificationPermissionGranted, setNotificationPermissionGranted] = useState<boolean | null>(null);
   type LibraryDraft = {
     manufacturer: string;
     material: string;
@@ -225,6 +227,13 @@ export const SettingsPage: React.FC<Props> = ({
       themeSettings: nextThemeSettings,
     });
   };
+
+  // Értesítési engedély ellenőrzése betöltéskor
+  useEffect(() => {
+    if (settings.notificationEnabled !== false && getPlatform() === "macos") {
+      checkNotificationPermission().then(setNotificationPermissionGranted);
+    }
+  }, [settings.notificationEnabled]);
 
   const clampNumber = (value: number, min: number, max: number) =>
     Math.min(max, Math.max(min, value));
@@ -2837,6 +2846,199 @@ export const SettingsPage: React.FC<Props> = ({
               <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
                 {t("settings.notificationDurationDescription")}
               </p>
+              
+              {/* Engedély kérés gomb (macOS) */}
+              {getPlatform() === "macos" && notificationPermissionGranted === false && (
+                <div style={{ marginTop: "12px", padding: "12px", borderRadius: "6px", backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}` }}>
+                  <p style={{ marginBottom: "8px", fontSize: "14px", color: theme.colors.text, fontWeight: "500" }}>
+                    ⚠️ {settings.language === "hu" ? "Értesítési engedély szükséges" : "Notification permission required"}
+                  </p>
+                  <p style={{ marginBottom: "12px", fontSize: "12px", color: theme.colors.textMuted }}>
+                    {settings.language === "hu" 
+                      ? "Az értesítések küldéséhez engedélyt kell adnod az alkalmazásnak."
+                      : "You need to grant permission to send notifications."}
+                  </p>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const granted = await requestNotificationPermission();
+                        setNotificationPermissionGranted(granted);
+                        if (granted) {
+                          // macOS-on az alkalmazás csak akkor jelenik meg az Értesítések beállításokban,
+                          // ha már próbált értesítést küldeni. Ezért küldünk egy teszt értesítést.
+                          try {
+                            await sendNativeNotification(
+                              settings.language === "hu" ? "Engedély megadva" : "Permission granted",
+                              settings.language === "hu" 
+                                ? "Az alkalmazás most már megjelenik az Értesítések beállításokban."
+                                : "The app will now appear in Notification Settings."
+                            );
+                          } catch (notifError) {
+                            // Ha az értesítés küldése sikertelen, az nem baj, az engedély mégis megadva
+                            console.log("Teszt értesítés küldése:", notifError);
+                          }
+                          
+                          showToast(
+                            settings.language === "hu" 
+                              ? "Értesítési engedély megadva! Az alkalmazás megjelenik az Értesítések beállításokban."
+                              : "Notification permission granted! The app will appear in Notification Settings.",
+                            "success"
+                          );
+                        } else {
+                          showToast(
+                            settings.language === "hu" 
+                              ? "Értesítési engedély megtagadva. Engedélyezd a Rendszerbeállításokban."
+                              : "Notification permission denied. Enable it in System Settings.",
+                            "error"
+                          );
+                        }
+                      } catch (error) {
+                        console.error("Engedély kérése sikertelen:", error);
+                        showToast(
+                          settings.language === "hu" 
+                            ? "Engedély kérése sikertelen"
+                            : "Failed to request permission",
+                          "error"
+                        );
+                      }
+                    }}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "6px",
+                      border: `1px solid ${theme.colors.primary}`,
+                      backgroundColor: theme.colors.primary,
+                      color: "#fff",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      fontWeight: "500",
+                    }}
+                  >
+                    🔐 {settings.language === "hu" ? "Engedély kérése" : "Request Permission"}
+                  </button>
+                </div>
+              )}
+              
+              {/* Engedély státusz (macOS) */}
+              {getPlatform() === "macos" && notificationPermissionGranted === true && (
+                <div style={{ marginTop: "12px", padding: "8px 12px", borderRadius: "6px", backgroundColor: theme.colors.success + "20", border: `1px solid ${theme.colors.success}` }}>
+                  <p style={{ fontSize: "12px", color: theme.colors.success, fontWeight: "500", marginBottom: "4px" }}>
+                    ✅ {settings.language === "hu" ? "Értesítési engedély megadva" : "Notification permission granted"}
+                  </p>
+                  <p style={{ fontSize: "11px", color: theme.colors.textMuted, fontStyle: "italic" }}>
+                    💡 {settings.language === "hu" 
+                      ? "Az alkalmazás megjelenik a Rendszerbeállítások > Értesítések és fókusz menüben, ha már küldtél értesítést."
+                      : "The app will appear in System Settings > Notifications & Focus after sending a notification."}
+                  </p>
+                </div>
+              )}
+              
+              {/* Tesztelési gombok */}
+              <div style={{ marginTop: "16px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button
+                  onClick={async () => {
+                    try {
+                      const platform = getPlatform();
+                      const title = platform === "macos" 
+                        ? "Teszt értesítés" 
+                        : platform === "windows"
+                        ? "Test Notification"
+                        : "Test Notification";
+                      const body = platform === "macos"
+                        ? "Ez egy teszt értesítés macOS-on"
+                        : "This is a test notification";
+                      
+                      // macOS-on az értesítések csak akkor jelennek meg natív módon,
+                      // ha az alkalmazás nem aktív vagy ha az értesítés megfelelően van konfigurálva
+                      // Próbáljuk meg küldeni az értesítést
+                      await sendNativeNotification(title, body);
+                      
+                      // macOS-on: várunk egy kicsit, hogy az értesítés megjelenjen
+                      if (platform === "macos") {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                      }
+                      
+                      showToast(
+                        platform === "macos" 
+                          ? "Értesítés elküldve! Ha nem látod a Notification Center-ben, próbáld meg az alkalmazást háttérbe küldeni (Cmd+H) és újra küldeni az értesítést."
+                          : "Notification sent! Check your notification center.",
+                        "success"
+                      );
+                    } catch (error) {
+                      console.error("Értesítés tesztelése sikertelen:", error);
+                      showToast(
+                        settings.language === "hu"
+                          ? "Értesítés küldése sikertelen. Ellenőrizd az engedélyeket a Rendszerbeállításokban."
+                          : "Failed to send notification. Check permissions in System Settings.",
+                        "error"
+                      );
+                    }
+                  }}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    border: `1px solid ${theme.colors.border}`,
+                    backgroundColor: theme.colors.primary,
+                    color: "#fff",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    fontWeight: "500",
+                  }}
+                >
+                  🔔 {settings.language === "hu" ? "Értesítés tesztelése" : "Test Notification"}
+                </button>
+                
+                {getPlatform() === "macos" && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await setDockBadge("5");
+                        showToast("Dock badge beállítva: 5", "success");
+                        setTimeout(async () => {
+                          await setDockBadge(null);
+                          showToast("Dock badge törölve", "info");
+                        }, 3000);
+                      } catch (error) {
+                        console.error("Dock badge tesztelése sikertelen:", error);
+                        showToast("Dock badge beállítása sikertelen", "error");
+                      }
+                    }}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "6px",
+                      border: `1px solid ${theme.colors.border}`,
+                      backgroundColor: theme.colors.secondary,
+                      color: "#fff",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      fontWeight: "500",
+                    }}
+                  >
+                    🏷️ {settings.language === "hu" ? "Dock badge tesztelése" : "Test Dock Badge"}
+                  </button>
+                )}
+              </div>
+              
+              {getPlatform() === "macos" && (
+                <div style={{ marginTop: "12px", padding: "12px", borderRadius: "6px", backgroundColor: theme.colors.surface + "80", border: `1px solid ${theme.colors.border}` }}>
+                  <p style={{ fontSize: "12px", color: theme.colors.textMuted, marginBottom: "8px", fontWeight: "500" }}>
+                    ⚠️ {settings.language === "hu" ? "macOS értesítések korlátozásai:" : "macOS notifications limitations:"}
+                  </p>
+                  <ul style={{ fontSize: "11px", color: theme.colors.textMuted, marginLeft: "16px", lineHeight: "1.6" }}>
+                    <li>{settings.language === "hu" 
+                      ? "Dev módban az értesítések nem mindig jelennek meg natív módon (code signing hiánya miatt)."
+                      : "In dev mode, notifications may not always appear natively (due to missing code signing)."}</li>
+                    <li>{settings.language === "hu" 
+                      ? "Production build-ben az értesítések megfelelően működnek, ha az alkalmazás code signing-al van aláírva."
+                      : "In production build, notifications work properly if the app is code signed."}</li>
+                    <li>{settings.language === "hu" 
+                      ? "Az értesítések csak akkor jelennek meg natív módon, ha az alkalmazás nem aktív (háttérben van)."
+                      : "Notifications only appear natively when the app is inactive (in background)."}</li>
+                    <li>{settings.language === "hu" 
+                      ? "Az alkalmazás megjelenik a Rendszerbeállítások > Értesítések és fókusz menüben production build után."
+                      : "The app will appear in System Settings > Notifications & Focus after production build."}</li>
+                  </ul>
+                </div>
+              )}
             </div>
           )}
         </div>

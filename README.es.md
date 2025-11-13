@@ -35,6 +35,7 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 - 📋 **Duplicación** - Duplicación fácil de cotizaciones
 - 🖱️ **Arrastrar y soltar** - Reordenar cotizaciones, filamentos e impresoras arrastrando
 - 📱 **Menús contextuales** - Menús de clic derecho para acciones rápidas (editar, eliminar, duplicar, exportar)
+- 🍎 **Funciones específicas de plataforma** - Badge de Dock de macOS, barra de progreso de Taskbar de Windows, notificaciones nativas, integración de bandeja del sistema
 
 ## 📸 Capturas de pantalla
 
@@ -240,6 +241,18 @@ Lekszikov Miklós (LexyGuru)
 Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automáticamente, compilando la versión beta.
 
 ## 📋 Historial de versiones
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Taskbar progress bar support (progress overlay on app icon), native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
 ### v0.5.56 (2025)
 - 🌍 **Traducciones completas de idiomas** – Completadas las traducciones completas para 6 archivos de idioma restantes: checo (cs), español (es), italiano (it), polaco (pl), portugués (pt) y eslovaco (sk). Cada archivo contiene las 813 claves de traducción, por lo que la aplicación ahora está completamente soportada en estos idiomas.
@@ -479,7 +492,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ---
 
-**Versión**: 0.5.56
+**Versión**: 0.5.57
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 

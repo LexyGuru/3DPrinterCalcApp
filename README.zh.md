@@ -35,6 +35,7 @@
 - 📋 **复制** - 轻松复制报价
 - 🖱️ **拖放** - 通过拖拽重新排序报价、耗材和打印机
 - 📱 **上下文菜单** - 右键菜单用于快速操作（编辑、删除、复制、导出）
+- 🍎 **平台特定功能** - macOS Dock 徽章、Windows 任务栏进度条、原生通知、系统托盘集成
 
 ## 📸 截图
 
@@ -240,6 +241,18 @@ Lekszikov Miklós (LexyGuru)
 推送到 `beta` 分支时，GitHub Actions 工作流自动运行，构建 Beta 版本。
 
 ## 📋 版本历史
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Taskbar progress bar support (progress overlay on app icon), native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
 ### v0.5.56 (2025)
 - 🌍 **完整语言翻译** – 完成了 6 个剩余语言文件的完整翻译：捷克语 (cs)、西班牙语 (es)、意大利语 (it)、波兰语 (pl)、葡萄牙语 (pt) 和斯洛伐克语 (sk)。每个文件包含所有 813 个翻译键，因此应用程序现在完全支持这些语言。
@@ -479,7 +492,7 @@ Lekszikov Miklós (LexyGuru)
 
 ---
 
-**版本**: 0.5.56
+**版本**: 0.5.57
 
 如果您有任何问题或发现错误，请在 GitHub 存储库中打开一个问题！
 

@@ -241,6 +241,18 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ## 📋 Histórico de versões
 
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Taskbar progress bar support (progress overlay on app icon), native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
+
 ### v0.5.56 (2025)
 - 🌍 **Traduções completas de idiomas** – Completadas as traduções completas para 6 arquivos de idioma restantes: tcheco (cs), espanhol (es), italiano (it), polonês (pl), português (pt) e eslovaco (sk). Cada arquivo contém todas as 813 chaves de tradução, então a aplicação agora está totalmente suportada nesses idiomas.
 - 🔒 **Correção de permissões Tauri** – O arquivo `update_filamentLibrary.json` agora está explicitamente habilitado para operações de leitura, escrita e criação no arquivo de capacidades Tauri, garantindo que as atualizações da biblioteca de filamentos funcionem de forma confiável.
@@ -479,7 +491,7 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ---
 
-**Versão**: 0.5.56
+**Versão**: 0.5.57
 
 Se você tiver alguma dúvida ou encontrar um bug, por favor abra uma issue no repositório GitHub!
 
