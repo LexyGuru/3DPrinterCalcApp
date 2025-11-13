@@ -1190,7 +1190,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               </Tooltip>
               <Tooltip content={t("calculator.tooltip.saveOffer")}>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (!offerCustomerName.trim()) {
                       showToast(`${t("common.error")}: ${t("calculator.toast.customerNameRequired")}`, "error");
                       return;
