@@ -44,26 +44,46 @@ export async function sendNativeNotification(title: string, body: string): Promi
     const hasPermission = await checkNotificationPermission();
     if (!hasPermission) {
       console.warn("Nincs értesítési engedély. Kérj engedélyt először!");
-      throw new Error("Nincs értesítési engedély");
+      // macOS-on próbáljuk meg automatikusan kérni az engedélyt
+      const platform = getPlatform();
+      if (platform === "macos") {
+        console.log("macOS: Automatikus engedélykérés próbálása...");
+        const granted = await requestNotificationPermission();
+        if (!granted) {
+          throw new Error("Értesítési engedély megtagadva");
+        }
+      } else {
+        throw new Error("Nincs értesítési engedély");
+      }
     }
     
     // macOS-on az értesítések csak akkor jelennek meg natív módon, ha az alkalmazás nem aktív
     // vagy ha explicit módon küldjük az értesítést a notification plugin-nel
     // A sendNotification API natív értesítést küld
+    console.log("Értesítés küldése...", { title, body, hasPermission });
+    
     await sendNotification({
       title,
       body,
     });
-    console.log("Értesítés elküldve:", { title, body });
+    
+    console.log("Értesítés sikeresen elküldve:", { title, body });
+    
+    // macOS-on: várunk egy kicsit, hogy az értesítés megjelenjen
+    const platform = getPlatform();
+    if (platform === "macos") {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
   } catch (error) {
     console.error("Értesítés küldése sikertelen:", error);
     // Fallback: ha a plugin nem működik, próbáljuk meg az invoke-t
     try {
       await invoke("send_notification", { title, body });
+      console.log("Értesítés elküldve invoke fallback-kel");
     } catch (invokeError) {
       console.error("Invoke fallback is sikertelen:", invokeError);
+      throw error;
     }
-    throw error;
   }
 }
 

@@ -2867,23 +2867,32 @@ export const SettingsPage: React.FC<Props> = ({
                           // macOS-on az alkalmazás csak akkor jelenik meg az Értesítések beállításokban,
                           // ha már próbált értesítést küldeni. Ezért küldünk egy teszt értesítést.
                           try {
+                            // Várunk egy kicsit, hogy az engedély teljesen aktiválódjon
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            
                             await sendNativeNotification(
                               settings.language === "hu" ? "Engedély megadva" : "Permission granted",
                               settings.language === "hu" 
                                 ? "Az alkalmazás most már megjelenik az Értesítések beállításokban."
                                 : "The app will now appear in Notification Settings."
                             );
+                            
+                            showToast(
+                              settings.language === "hu" 
+                                ? "Értesítési engedély megadva! Teszt értesítés elküldve. Ha nem látod, próbáld meg az alkalmazást háttérbe küldeni (Cmd+H)."
+                                : "Notification permission granted! Test notification sent. If you don't see it, try hiding the app (Cmd+H).",
+                              "success"
+                            );
                           } catch (notifError) {
                             // Ha az értesítés küldése sikertelen, az nem baj, az engedély mégis megadva
-                            console.log("Teszt értesítés küldése:", notifError);
+                            console.error("Teszt értesítés küldése sikertelen:", notifError);
+                            showToast(
+                              settings.language === "hu" 
+                                ? "Értesítési engedély megadva, de az értesítés küldése sikertelen. Próbáld meg az alkalmazást háttérbe küldeni (Cmd+H) és újra küldeni az értesítést."
+                                : "Notification permission granted, but sending notification failed. Try hiding the app (Cmd+H) and sending notification again.",
+                              "warning"
+                            );
                           }
-                          
-                          showToast(
-                            settings.language === "hu" 
-                              ? "Értesítési engedély megadva! Az alkalmazás megjelenik az Értesítések beállításokban."
-                              : "Notification permission granted! The app will appear in Notification Settings.",
-                            "success"
-                          );
                         } else {
                           showToast(
                             settings.language === "hu" 
