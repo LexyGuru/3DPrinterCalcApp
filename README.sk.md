@@ -2,7 +2,7 @@
 
 > **🌍 Výber jazyka**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená pomocou Tauri v2, React frontendu a Rust backendu.
 
@@ -22,7 +22,7 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 - 🖼️ **Obrázky filamentov v PDF** - Zobrazenie log filamentov a vzoriek farieb v generovaných PDF
 - 🧾 **Import G-code a vytváranie konceptu** - Načítanie exportov G-code/JSON (Prusa, Cura, Orca, Qidi) z modalu v kalkulačke, s podrobným zhrnutím a automatickým generovaním konceptu ponuky
 - 📈 **Štatistiky** - Prehľadný dashboard pre spotrebu filamentu, príjmy, zisk
-- 🌍 **Viacjazyčnosť** - Úplný preklad do maďarčiny, angličtiny, nemčiny, francúzštiny, zjednodušenej čínštiny, češtiny, španielčiny, taliančiny, poľštiny, portugalčiny a slovenčiny (12 jazykov, 813 prekladových kľúčov na jazyk)
+- 🌍 **Viacjazyčnosť** - Úplný preklad do maďarčiny, angličtiny, nemčiny, francúzštiny, zjednodušenej čínštiny, češtiny, španielčiny, taliančiny, poľštiny, portugalčiny, slovenčiny, ukrajinčiny a ruštiny (14 jazykov, 813 prekladových kľúčov na jazyk)
 - 💱 **Viaceré meny** - EUR, HUF, USD
 - 🔄 **Automatické aktualizácie** - Kontroluje GitHub Releases pre nové verzie
 - 🧪 **Beta verzie** - Podpora beta vetvy a beta buildu

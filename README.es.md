@@ -2,7 +2,7 @@
 
 > **🌍 Selección de idioma**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 Una aplicación de escritorio moderna para calcular costos de impresión 3D. Construida con Tauri v2, frontend React y backend Rust.
 
@@ -22,7 +22,7 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 - 🖼️ **Imágenes de filamento en PDF** - Mostrar logotipos de filamento y muestras de color en PDFs generados
 - 🧾 **Importación G-code y creación de borrador** - Cargar exportaciones G-code/JSON (Prusa, Cura, Orca, Qidi) desde modal en calculadora, con resumen detallado y generación automática de borrador de cotización
 - 📈 **Estadísticas** - Panel de resumen para consumo de filamento, ingresos, ganancias
-- 🌍 **Multilingüe** - Traducción completa en húngaro, inglés, alemán, francés, chino simplificado, checo, español, italiano, polaco, portugués y eslovaco (12 idiomas, 813 claves de traducción por idioma)
+- 🌍 **Multilingüe** - Traducción completa en húngaro, inglés, alemán, francés, chino simplificado, checo, español, italiano, polaco, portugués, eslovaco, ucraniano y ruso (14 idiomas, 813 claves de traducción por idioma)
 - 💱 **Múltiples monedas** - EUR, HUF, USD
 - 🔄 **Actualizaciones automáticas** - Verifica GitHub Releases para nuevas versiones
 - 🧪 **Versiones beta** - Soporte para branch beta y build beta

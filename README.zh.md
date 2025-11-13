@@ -2,7 +2,7 @@
 
 > **🌍 语言选择**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 一个用于计算3D打印成本的现代桌面应用程序。使用 Tauri v2、React 前端和 Rust 后端构建。
 
@@ -22,7 +22,7 @@
 - 🖼️ **PDF 中的耗材图像** - 在生成的 PDF 中显示耗材徽标和颜色样本
 - 🧾 **G-code 导入和草稿创建** - 从计算器中的模态加载 G-code/JSON 导出（Prusa、Cura、Orca、Qidi），包含详细摘要和自动报价草稿生成
 - 📈 **统计** - 耗材消耗、收入、利润的摘要仪表板
-- 🌍 **多语言** - 完整翻译为匈牙利语、英语、德语、法语、简体中文、捷克语、西班牙语、意大利语、波兰语、葡萄牙语和斯洛伐克语（12 种语言，每种语言 813 个翻译键）
+- 🌍 **多语言** - 完整翻译为匈牙利语、英语、德语、法语、简体中文、捷克语、西班牙语、意大利语、波兰语、葡萄牙语、斯洛伐克语、乌克兰语和俄语（14 种语言，每种语言 813 个翻译键）
 - 💱 **多种货币** - EUR、HUF、USD
 - 🔄 **自动更新** - 检查 GitHub Releases 以获取新版本
 - 🧪 **Beta 版本** - Beta 分支和 Beta 构建支持

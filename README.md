@@ -1,8 +1,8 @@
 # 🖨️ 3D Printer Calculator App
 
-> **🌍 Language / Nyelv / Sprache / Idioma / Lingua / Język / Jazyk / Língua / Langue / 语言**
+> **🌍 Language / Nyelv / Sprache / Idioma / Lingua / Język / Jazyk / Língua / Langue / 语言 / Мова / Язык**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 A modern desktop application for calculating 3D printing costs. Built with Tauri v2, React frontend, and Rust backend.
 
@@ -22,7 +22,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 🖼️ **Filament Images in PDF** - Display filament logos and color swatches in generated PDFs
 - 🧾 **G-code Import & Draft Creation** - Load G-code/JSON exports (Prusa, Cura, Orca, Qidi) from modal in calculator, with detailed summary and automatic quote draft generation
 - 📈 **Statistics** - Summary dashboard for filament consumption, revenue, profit
-- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, and Slovak (12 languages, 813 translation keys per language)
+- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (14 languages, 813 translation keys per language)
 - 💱 **Multiple Currencies** - EUR, HUF, USD
 - 🔄 **Auto Updates** - Checks GitHub Releases for new versions
 - 🧪 **Beta Versions** - Beta branch and beta build support
