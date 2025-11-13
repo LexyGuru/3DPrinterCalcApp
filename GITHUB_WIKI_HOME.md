@@ -1,6 +1,14 @@
 # 3D Printer Calculator App – GitHub Wiki
 
-## 📌 Gyors összefoglaló
+> **🌍 Language / Nyelv / Sprache / Idioma / Lingua / Język / Jazyk / Língua / Langue / 语言**  
+> [🇭🇺 Magyar](#magyar-verzió) | [🇬🇧 English](#english-version) | [🇩🇪 Deutsch](#deutsch-version) | [🇪🇸 Español](#español-version) | [🇮🇹 Italiano](#italiano-version) | [🇵🇱 Polski](#polski-version) | [🇨🇿 Čeština](#čeština-version) | [🇸🇰 Slovenčina](#slovenčina-version) | [🇵🇹 Português](#português-version) | [🇫🇷 Français](#français-version) | [🇨🇳 中文](#中文版本)
+
+---
+
+<a name="magyar-verzió"></a>
+## 🇭🇺 Magyar verzió
+
+### 📌 Gyors összefoglaló
 
 |                     |                                                                 |
 |---------------------|-----------------------------------------------------------------|
@@ -266,4 +274,166 @@ cargo tauri dev
 
 **Verzió**: `0.5.56`
 Ha kérdésed van vagy hibát találsz, nyiss issue-t a GitHub repóban! 🎯
+
+---
+
+<a name="english-version"></a>
+## 🇬🇧 English Version
+
+*For English version, see [GITHUB_WIKI_HOME.en.md](../GITHUB_WIKI_HOME.en.md)*
+
+<a name="deutsch-version"></a>
+## 🇩🇪 Deutsch Version
+
+*Deutsche Übersetzung folgt in Kürze...*
+
+<a name="español-version"></a>
+## 🇪🇸 Español Version
+
+*Traducción al español próximamente...*
+
+<a name="italiano-version"></a>
+## 🇮🇹 Italiano Version
+
+*Traduzione italiana in arrivo...*
+
+<a name="polski-version"></a>
+## 🇵🇱 Polski Version
+
+*Polskie tłumaczenie wkrótce...*
+
+<a name="čeština-version"></a>
+## 🇨🇿 Čeština Version
+
+*Český překlad brzy...*
+
+<a name="slovenčina-version"></a>
+## 🇸🇰 Slovenčina Version
+
+*Slovenský preklad čoskoro...*
+
+<a name="português-version"></a>
+## 🇵🇹 Português Version
+
+*Tradução em português em breve...*
+
+<a name="français-version"></a>
+## 🇫🇷 Français Version
+
+*Traduction française à venir...*
+
+<a name="中文版本"></a>
+## 🇨🇳 中文版本
+
+*中文翻译即将推出...*
+
+---
+
+## 📖 GitHub Wiki-n való használat útmutatója
+
+### Hogyan lehet többnyelvű Wiki-t létrehozni GitHub-on?
+
+A GitHub Wiki-nál több módszer is létezik többnyelvű dokumentáció létrehozására:
+
+#### **Módszer 1: Külön Wiki oldalak nyelvenként (Ajánlott)**
+
+1. **Wiki oldalak létrehozása:**
+   - Lépj be a GitHub repóba → **Wiki** fül
+   - Kattints az **"New Page"** gombra
+   - Hozz létre külön oldalakat:
+     - `Home` (vagy `Home-hu`) – magyar verzió
+     - `Home-en` – angol verzió
+     - `Home-de` – német verzió
+     - stb.
+
+2. **Főoldal (Home) beállítása nyelvi switcherrel:**
+   ```markdown
+   # 3D Printer Calculator App – Wiki
+   
+   > **🌍 Válassz nyelvet / Choose Language / Sprache wählen**
+   > 
+   > - [🇭🇺 Magyar](Home-hu)
+   > - [🇬🇧 English](Home-en)
+   > - [🇩🇪 Deutsch](Home-de)
+   > - [🇪🇸 Español](Home-es)
+   > - stb.
+   ```
+
+3. **Minden nyelvi oldal másolása:**
+   - Másold be a `GITHUB_WIKI_HOME.md` tartalmát a `Home-hu` oldalba
+   - Másold be a `GITHUB_WIKI_HOME.en.md` tartalmát a `Home-en` oldalba
+   - Stb.
+
+#### **Módszer 2: Egy oldal több nyelvi verzióval (jelenlegi megoldás)**
+
+Ez a módszer akkor jó, ha egyetlen oldalon szeretnéd megjeleníteni az összes nyelvet:
+
+1. **Wiki oldal létrehozása:**
+   - Hozz létre egy `Home` oldalt a Wiki-ben
+   - Másold be a jelenlegi `GITHUB_WIKI_HOME.md` tartalmát
+
+2. **Előnyök:**
+   - Minden nyelv egy helyen
+   - Könnyű karbantartás
+   - Anchor linkekkel navigálható
+
+3. **Hátrányok:**
+   - Hosszabb oldal (görgetés szükséges)
+   - Nehezebb külön nyelvi oldalakat linkelni
+
+#### **Módszer 3: Git-alapú Wiki kezelés (Fejlett)**
+
+A GitHub Wiki egy külön Git repository-ként működik:
+
+```bash
+# Wiki repository klónozása
+git clone https://github.com/FELHASZNÁLÓNÉV/REPÓNÉV.wiki.git
+
+# Fájlok szerkesztése lokálisan
+cd REPÓNÉV.wiki
+# Szerkeszd a fájlokat
+
+# Változások commitolása és pusholása
+git add .
+git commit -m "Add multilingual support"
+git push origin master
+```
+
+**Előnyök:**
+- Verziókezelés
+- Batch szerkesztés
+- Automatizálható (CI/CD)
+
+### Ajánlott struktúra GitHub Wiki-n
+
+```
+Wiki Root
+├── Home (nyelvi switcher)
+├── Home-hu (Magyar)
+├── Home-en (English)
+├── Home-de (Deutsch)
+├── Installation-hu
+├── Installation-en
+├── Installation-de
+├── Contributing-hu
+├── Contributing-en
+└── ...
+```
+
+### Tippek
+
+1. **Konzisztens elnevezés:** Használj `-hu`, `-en`, `-de` szuffixeket
+2. **Főoldal nyelvi switcher:** Mindig legyen egy főoldal, ahonnan könnyen navigálható
+3. **Anchor linkek:** Használj anchor linkeket (`#section`) a hosszabb oldalakon belüli navigációhoz
+4. **Frissítés:** Amikor új funkciót adsz hozzá, frissítsd az összes nyelvi verziót
+
+### Példa: Wiki oldal létrehozása GitHub-on
+
+1. Menj a repó **Wiki** fülre
+2. Kattints **"New Page"**-re
+3. Add meg az oldal nevét (pl. `Home-en`)
+4. Másold be a megfelelő markdown tartalmat
+5. Kattints **"Save Page"**-re
+
+**Megjegyzés:** A jelenlegi `GITHUB_WIKI_HOME.md` és `GITHUB_WIKI_HOME.en.md` fájlok közvetlenül másolhatók a GitHub Wiki-be!
 
