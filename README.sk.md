@@ -251,6 +251,232 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 - 🌍 **Doplnky prekladov** – Pridané nové kľúče a popisky i18n pre selektor tlačiarne, čo zabezpečuje konzistentné UI editora vo všetkých podporovaných jazykoch.
 - 📄 **Aktualizácia dokumentácie** – README rozšírené o popis nových funkcií, vydanie v0.5.55 pridané do histórie verzií.
 
+### v0.5.11 (2025)
+- 🗂️ **Jazyková modularizácia** – Rozšírenie aplikácie o prekladové súbory organizované do nového adresára `languages/`, čo uľahčuje pridávanie nových jazykov a správu existujúcich textov.
+- 🌍 **Zjednotené preklady UI** – Rozhranie pre import sliceru teraz funguje z centrálneho prekladového systému, všetky tlačidlá, chybové správy a súhrny sú lokalizované.
+- 🔁 **Aktualizácia výberu jazyka** – V Nastaveniach sa výber jazyka načítava na základe objavených jazykových súborov, takže v budúcnosti stačí pridať nový jazykový súbor.
+- 🌐 **Nové jazykové základy** – Prekladové súbory pripravené pre francúzštinu, taliančinu, španielčinu, poľštinu, češtinu, slovenčinu, brazílsku portugalčinu a zjednodušenú čínštinu (s anglickým fallbackom), skutočné preklady možno ľahko doplniť.
+
+### v0.5.0 (2025)
+- 🔎 **Tlačidlo porovnania cien filamentu** – Každý vlastný filament má teraz ikonu lupu, ktorá otvára vyhľadávanie Google/Bing na základe značky/typu/farby, poskytuje rýchle odkazy na aktuálne ceny.
+- 💶 **Podpora desatinnej ceny** – Polia ceny filamentu teraz prijímajú desatinné čísla (14.11 € atď.), vstup je automaticky validovaný a formátovaný pri uložení.
+- 🌐 **Reverzné vyhľadávanie fallback** – Ak shell Tauri nemôže otvoriť prehliadač, aplikácia automaticky otvorí novú kartu, takže vyhľadávanie funguje na všetkých platformách.
+
+### v0.4.99 (2025)
+- 🧾 **Integrovaný import G-code v kalkulátore** – Nový modálny `SlicerImportModal` v hornej časti kalkulátora, ktorý načítava exporty G-code/JSON jedným kliknutím, prenáša čas tlače, množstvo filamentu a vytvára návrh ponuky.
+- 📊 **Dáta sliceru z hlavičky** – Hodnoty hlavičky G-code `total filament weight/length/volume` automaticky preberajú súhrny, presne spracovávajú straty pri zmene farby.
+
+### v0.4.98 (2025)
+- 🧵 **Podpora viacfarebného filamentu** – Knižnica filamentov a UI pre správu teraz samostatne označujú viacfarebné (dúhové/duálne/trojfarebné) filamenty s poznámkami a náhľadom dúhy.
+- 🌐 **Automatický preklad pri importe CSV** – Názvy farieb importované z externej databázy dostávajú maďarské a nemecké štítky, čím zostáva výber farieb viacjazyčný bez ručnej úpravy.
+- 🔄 **Zlúčenie knižnice aktualizácií** – Obsah súboru `update_filamentLibrary.json` je automaticky deduplikovaný a zlúčený s existujúcou knižnicou pri spustení, bez prepísania používateľských úprav.
+- 📁 **Aktualizácia prevodníka CSV** – Skript `convert-filament-csv.mjs` už neprepisuje trvalý `filamentLibrary.json`, namiesto toho vytvára aktualizačný súbor a generuje viacjazyčné štítky.
+- ✨ **Ladenie animačného zážitku** – Nové možnosti prechodu stránok (flip, parallax), výber štýlu mikrointerakcie, pulzujúca spätná väzba, kostrový zoznam knižnice filamentov a jemne vyladené efekty hover kariet.
+- 🎨 **Rozšírenia dielne motívov** – Štyri nové vstavané motívy (Forest, Pastel, Charcoal, Midnight), okamžité duplikovanie aktívneho motívu pre vlastnú úpravu, vylepšené spracovanie gradientu/kontrastu a zjednodušený proces zdieľania.
+
+### v0.4.0 (2025)
+- 🧵 **Integrácia databázy filamentov** – Viac ako 2 000 továrenských farieb z vstavanej JSON knižnice (snímok filamentcolors.xyz), usporiadaných podľa značky a materiálu
+- 🪟 **Panely výberu pevnej veľkosti** – Zoznamy značiek a typov otvárané tlačidlom, prehľadateľné, posúvateľné, ktoré sa navzájom vylučujú, čím je formulár transparentnejší
+- 🎯 **Vylepšenia výberu farieb** – Keď sú rozpoznané prvky knižnice, povrchová úprava a hex kód sú automaticky nastavené, samostatné polia dostupné pri prepnutí na vlastný režim
+- 💾 **Editor knižnice filamentov** – Nová záložka nastavení s popup formulárom, spracovanie duplikátov a trvalé ukladanie `filamentLibrary.json` založené na Tauri FS
+- 📄 **Aktualizácia dokumentácie** – Nová odrážka v hlavnom zozname funkcií pre knižnicu farieb filamentov, čistenie README/FEATURE_SUGGESTIONS
+
+### v0.3.9 (2025)
+- 🔍 **Predvolby filtrov ponúk** – Ukladateľné, pomenovateľné nastavenie filtrov, predvolené rýchle predvolby (Dnes, Včera, Týždenný, Mesačný atď.) a aplikácia/odstránenie jedným kliknutím
+- 📝 **Poznámky k zmene stavu** – Nový modálny pre úpravu stavu ponuky s voliteľnou poznámkou uloženou v histórii stavu
+- 🖼️ **Rozšírenie exportu PDF** – Obrázky uložené s filamentmi sa zobrazujú v tabuľke PDF so štýlom optimalizovaným pre tlač
+- 🧾 **Dátový list firemnej značky** – Názov spoločnosti, adresa, daňové ID, bankový účet, kontakt a nahratie loga; automaticky zahrnuté do hlavičky PDF
+- 🎨 **Výber šablóny PDF** – Tri štýly (Moderný, Minimalistický, Profesionálny) na výber vzhľadu ponuky
+- 👁️ **Integrovaný náhľad PDF** – Samostatné tlačidlo pri detailoch ponuky pre okamžitú vizuálnu kontrolu pred exportom
+- 📊 **Dashboard stavu** – Karty stavu so súhrnom, rýchle filtre stavu a časová osa nedávnych zmien stavu v ponukách
+- 📈 **Štatistické grafy** – Graf trendu príjmov/nákladov/zisku, koláčový graf distribúcie filamentov, stĺpcový graf príjmov na tlačiareň, všetko exportovateľné vo formáte SVG/PNG a možno tiež uložiť ako PDF
+
+### v0.3.8 (2025)
+- 🐛 **Oprava formátovania čísel správy** - Formátovanie na 2 desatinné miesta v správach:
+  - Hlavné štatistické karty (Príjmy, Výdavky, Zisk, Ponuky): `formatNumber(formatCurrency(...), 2)`
+  - Hodnoty nad grafmi: `formatNumber(formatCurrency(...), 2)`
+  - Podrobné štatistiky (Priemerný zisk/ponuka): `formatNumber(formatCurrency(...), 2)`
+  - Teraz konzistentné s domovskou stránkou (napr. `6.45` namiesto `6.45037688333333`)
+- 🎨 **Oprava navigácie záložiek nastavení** - Vylepšenia farby pozadia a textu:
+  - Pozadie sekcie navigácie záložiek: `rgba(255, 255, 255, 0.85)` pre gradientné motívy + `blur(10px)`
+  - Pozadia tlačidiel záložiek: Aktívne `rgba(255, 255, 255, 0.9)`, neaktívne `rgba(255, 255, 255, 0.7)` pre gradientné motívy
+  - Farba textu tlačidiel záložiek: `#1a202c` (tmavá) pre gradientné motívy pre čitateľnosť
+  - Efekty hover: `rgba(255, 255, 255, 0.85)` pre gradientné motívy
+  - Filter pozadia: `blur(8px)` pre tlačidlá záložiek, `blur(10px)` pre sekciu navigácie
+
+### v0.3.7 (2025)
+- 🎨 **Modernizácia dizajnu** - Kompletná vizuálna transformácia s animáciami a novými motívmi:
+  - Nové motívy: Gradient, Neon, Cyberpunk, Sunset, Ocean (5 nových moderných motívov)
+  - Animácie Framer Motion integrované (fadeIn, slideIn, stagger, efekty hover)
+  - Efekt glassmorphism pre gradientné motívy (rozostrenie + priehľadné pozadie)
+  - Efekt neonového žiarenia pre neon/cyberpunk motívy
+  - Modernizované karty a povrchy (väčší padding, zaoblené rohy, lepšie tiene)
+- 🎨 **Vylepšenia farieb** - Lepší kontrast a čitateľnosť pre všetky motívy:
+  - Tmavý text (#1a202c) na bielom/svetlom pozadí pre gradientné motívy
+  - Vstupné polia, štítky, farebné označenie h3 vylepšené vo všetkých komponentoch
+  - Konzistentné spracovanie farieb na všetkých stránkach (Filaments, Printers, Calculator, Offers, Settings, Console)
+  - Tieň textu pridaný pre gradientné motívy pre lepšiu čitateľnosť
+- 📊 **Vylepšenia štýlu tabuľky** - Rozmazané pozadie a lepší kontrast textu:
+  - Farba pozadia: rgba(255, 255, 255, 0.85) pre gradientné motívy (predtým 0.95)
+  - Filter pozadia: blur(8px) pre rozmazaný efekt
+  - Farba textu: #333 (tmavosivá) pre gradientné motívy pre lepšiu čitateľnosť
+  - Pozadia buniek: rgba(255, 255, 255, 0.7) pre rozmazaný efekt
+- 🎨 **Vylepšenia farby pozadia kariet** - Rozmazané pozadie, lepšia čitateľnosť:
+  - Farba pozadia: rgba(255, 255, 255, 0.75) pre gradientné motívy (predtým 0.95)
+  - Filter pozadia: blur(12px) pre silnejšie rozostrenie
+  - Nepriehľadnosť: 0.85 pre matný efekt
+  - Farba textu: #1a202c (tmavá) pre gradientné motívy
+- 📈 **Modernizácia domovskej stránky** - Týždenné/mesačné/ročné štatistiky a porovnanie období:
+  - Karty porovnania období (Týždenný, Mesačný, Ročný) s farebnými akcentnými pruhmi
+  - Komponenty StatCard modernizované (ikony s farebnými pozadiami, akcentné pruhy)
+  - Sekcia súhrnu usporiadaná v kartách s ikonami
+  - Sekcia porovnania období pridaná
+- 🐛 **Oprava filtra dátumu** - Presnejšie filtrovanie období:
+  - Reset času (00:00:00) pre presné porovnanie
+  - Horný limit nastavený (dnes je zahrnuté)
+  - Týždenný: posledných 7 dní (dnes zahrnuté)
+  - Mesačný: posledných 30 dní (dnes zahrnuté)
+  - Ročný: posledných 365 dní (dnes zahrnuté)
+- 🎨 **Modernizácia bočného panelu** - Ikony, glassmorphism, efekty neonového žiarenia
+- 🎨 **Modernizácia ConfirmDialog** - Vlastnosť motívu pridaná, harmonizované farebné označenie
+
+### v0.3.6 (2025)
+- 🎨 **Reorganizácia UI nastavení** - Systém záložiek (Všeobecné, Vzhľad, Pokročilé, Správa dát) pre lepšiu UX a čistejšiu navigáciu
+- 🌐 **Vylepšenia prekladov** - Celý hardcodovaný maďarský text preložený vo všetkých komponentoch (HU/EN/DE):
+  - Calculator: "výpočet nákladov 3D tlače"
+  - Filaments: "Spravovať a upravovať filamenty"
+  - Printers: "Spravovať tlačiarne a systémy AMS"
+  - Offers: "Spravovať a exportovať uložené ponuky"
+  - Home: Názvy štatistík, súhrn, štítky exportu CSV (hod/Std/hrs, ks/Stk/pcs)
+  - VersionHistory: "História verzií nie je k dispozícii"
+- 💾 **Systém cache histórie verzií** - Fyzické uloženie do localStorage, kontrola GitHub každú 1 hodinu:
+  - Detekcia zmien založená na kontrolnom súčte (sťahuje iba pri nových vydaniach)
+  - Samostatná cache pre každý jazyk (Maďarčina/Angličtina/Nemčina)
+  - Rýchle prepínanie jazyka z cache (žiadne nové preklady)
+  - Automatická invalidácia cache pri novom vydaní
+- 🌐 **Inteligentný preklad** - Prekladá iba nové vydania, používa staré preklady z cache:
+  - Validácia cache (neukladať do cache, ak rovnaký text)
+  - API MyMemory fallback, ak preklad zlyhá
+  - Auto-reset počítadla chýb (resetuje sa po 5 minútach)
+  - MAX_CONSECUTIVE_ERRORS: 10, MAX_RETRIES: 2
+- 🔧 **LibreTranslate odstránený** - Iba použitie API MyMemory (chyby 400 eliminované, požiadavka GET, žiadny CORS)
+- 🔄 **Refaktoring tlačidla opakovať** - Jednoduchší mechanizmus spúšťania s useEffect
+- 🐛 **Opravy chýb zostavenia** - Problémy s odsadením JSX opravené (sekcia Export/Import Settings.tsx)
+
+### v0.3.5 (2025)
+- ✅ **Integrácia API MyMemory** - Bezplatné prekladové API namiesto LibreTranslate
+- ✅ **Otvorenie stránky vydaní GitHub** - Tlačidlo na otvorenie stránky vydaní GitHub pri limite rýchlosti
+- ✅ **Vylepšenie spracovania chýb limitu rýchlosti** - Jasné chybové správy a tlačidlo opakovať
+- 🐛 **Opravy chýb zostavenia** - Nepoužívané importy odstránené (offerCalc.ts)
+
+### v0.3.4 (2025)
+- ✅ **Vylepšenie validácie vstupu** - Centrálny nástroj validácie vytvorený a integrovaný do komponentov Calculator, Filaments, Printers
+- ✅ **Chybové správy validácie** - Viacjazyčné (HU/EN/DE) chybové správy s toast notifikáciami
+- ✅ **Optimalizácia výkonu** - Komponenty lazy loading (rozdelenie kódu), optimalizácia useMemo a useCallback
+- ✅ **Inicializácia špecifická pre platformu** - Základy inicializácie špecifickej pre platformu macOS, Windows, Linux
+- 🐛 **Oprava chyby zostavenia** - Funkcie kontextového menu Printers.tsx pridané
+
+### v0.3.3 (2025)
+- 🖱️ **Funkcie pretiahnutia a pustenia** - Zmena poradia ponúk, filamentov a tlačiarní pretiahnutím
+- 📱 **Kontextové menu** - Menu pravého tlačidla myši pre rýchle akcie (upraviť, zmazať, duplikovať, exportovať PDF)
+- 🎨 **Vizuálna spätná väzba** - Zmena nepriehľadnosti a kurzora počas pretiahnutia a pustenia
+- 🔔 **Toast notifikácie** - Notifikácie po zmene poradia
+- 🐛 **Oprava chyby zostavenia** - Oprava Calculator.tsx theme.colors.error -> theme.colors.danger
+
+### v0.3.2 (2025)
+- 📋 **Funkcie šablón** - Ukladanie a načítanie výpočtov ako šablón v komponente Calculator
+- 📜 **História/Verzovanie pre ponuky** - Verzovanie ponúk, zobrazenie histórie, sledovanie zmien
+- 🧹 **Oprava duplikácie** - Duplikované funkcie exportu/importu CSV/JSON odstránené z komponentov Filaments a Printers (zostali v Settings)
+
+### v0.3.1 (2025)
+- ✅ **Vylepšenie validácie vstupu** - Záporné čísla zakázané, maximálne hodnoty nastavené (hmotnosť filamentu, čas tlače, výkon atď.)
+- 📊 **Export/Import CSV/JSON** - Hromadný export/import filamentov a tlačiarní vo formáte CSV a JSON
+- 📥 **Tlačidlá Importovať/Exportovať** - Ľahký prístup k funkciám exportu/importu na stránkach Filaments a Printers
+- 🎨 **Vylepšenie prázdnych stavov** - Informatívne prázdne stavy zobrazené, keď nie sú žiadne dáta
+
+### v0.3.0 (2025)
+- ✏️ **Úprava ponúk** - Upraviť uložené ponuky (názov zákazníka, kontakt, popis, percento zisku, filamenty)
+- ✏️ **Upraviť filamenty v ponuke** - Upraviť, pridať, zmazať filamenty v rámci ponuky
+- ✏️ **Tlačidlo úpravy** - Nové tlačidlo úpravy vedľa tlačidla zmazať v zozname ponúk
+- 📊 **Funkcia exportu štatistík** - Exportovať štatistiky vo formáte JSON alebo CSV z domovskej stránky
+- 📈 **Generovanie správ** - Generovať týždenné/mesačné/ročné/všetky správy vo formáte JSON s filtrovaním období
+- 📋 **Zobrazenie histórie verzií** - Zobraziť históriu verzií v nastaveniach, integrácia API GitHub Releases
+- 🌐 **Preklad vydaní GitHub** - Automatický preklad Maďarčina -> Angličtina/Nemčina (API MyMemory)
+- 💾 **Cache prekladov** - Cache localStorage pre preložené poznámky k vydaniu
+- 🔄 **Dynamická história verzií** - Verzie beta a release zobrazené samostatne
+- 🐛 **Opravy chýb** - Nepoužívané premenné odstránené, čistenie kódu, chyby linteru opravené
+
+### v0.2.55 (2025)
+- 🖥️ **Funkcia Console/Log** - Nová položka menu Console na ladenie a zobrazenie logov
+- 🖥️ **Nastavenie Console** - Možno povoliť zobrazenie položky menu Console v nastaveniach
+- 📊 **Zhromažďovanie logov** - Automatické zaznamenávanie všetkých správ console.log, console.error, console.warn
+- 📊 **Zaznamenávanie globálnych chýb** - Automatické zaznamenávanie udalostí chýb okna a nespracovaných odmietnutí promise
+- 🔍 **Filtrovanie logov** - Filtrovať podľa úrovne (all, error, warn, info, log, debug)
+- 🔍 **Export logov** - Exportovať logy vo formáte JSON
+- 🧹 **Mazanie logov** - Mazanie logov jedným tlačidlom
+- 📜 **Auto-posun** - Automatické posúvanie k novým logom
+- 💾 **Úplné protokolovanie** - Všetky kritické operácie protokolované (uložiť, exportovať, importovať, zmazať, exportovať PDF, stiahnuť aktualizáciu)
+- 🔄 **Oprava tlačidla aktualizácie** - Tlačidlo sťahovania teraz používa plugin shell Tauri, funguje spoľahlivo
+- 🔄 **Protokolovanie aktualizácie** - Úplné protokolovanie kontroly a sťahovania aktualizácie
+- ⌨️ **Klávesové skratky** - `Ctrl/Cmd+N` (nový), `Ctrl/Cmd+S` (uložiť), `Escape` (zrušiť), `Ctrl/Cmd+?` (nápoveda)
+- ⌨️ **Oprava klávesových skratiek macOS** - Spracovanie Cmd vs Ctrl, spracovanie udalostí fázy zachytenia
+- ⏳ **Stavy načítania** - Komponenta LoadingSpinner pre stavy načítania
+- 💾 **Zálohovanie a obnovenie** - Úplné zálohovanie a obnovenie dát s dialógom Tauri a pluginmi fs
+- 🛡️ **Hranice chýb** - React ErrorBoundary na spracovanie chýb na úrovni aplikácie
+- 💾 **Automatické ukladanie** - Automatické ukladanie s obmedzením času s konfigurovateľným intervalom (predvolené 30 sekúnd)
+- 🔔 **Nastavenia notifikácií** - Toast notifikácie zapnuté/vypnuté a nastavenie trvania
+- ⌨️ **Menu nápovedy skratiek** - Zoznam klávesových skratiek v modálnom okne (`Ctrl/Cmd+?`)
+- 🎬 **Animácie a prechody** - Plynulé prechody a animácie kľúčových snímok (fadeIn, slideIn, scaleIn, pulse)
+- 💬 **Tooltips** - Kontextová nápoveda pre všetky dôležité prvky pri najazdení myšou
+- 🐛 **Oprava chyby renderovania React** - Asynchrónna operácia loggeru konzoly, aby neblokovala renderovanie
+- 🔧 **Aktualizácia num-bigint-dig** - Aktualizované na v0.9.1 (oprava varovania o zastaranosti)
+
+### v0.2.0 (2025)
+- 🎨 **Systém motívov** - 6 moderných motívov (Svetlý, Tmavý, Modrý, Zelený, Fialový, Oranžový)
+- 🎨 **Výber motívu** - Motív vybrateľný v nastaveniach, okamžite sa prejaví
+- 🎨 **Úplná integrácia motívov** - Všetky komponenty (Filaments, Printers, Calculator, Offers, Home, Settings, Sidebar) používajú motívy
+- 🎨 **Dynamické farby** - Všetky hardcodované farby nahradené farbami motívu
+- 🎨 **Responzívny motív** - Ponuky a päta Sidebar tiež používajú motívy
+- 💱 **Dynamická konverzia meny** - Ponuky sú teraz zobrazené v mene aktuálnych nastavení (automatická konverzia)
+- 💱 **Zmena meny** - Mena zmenená v nastaveniach okamžite ovplyvňuje zobrazenie ponúk
+- 💱 **Konverzia meny PDF** - Export PDF je tiež vytvorený v mene aktuálnych nastavení
+- 💱 **Konverzia ceny filamentu** - Ceny filamentov sú tiež automaticky prevedené
+
+### v0.1.85 (2025)
+- 🎨 **Vylepšenia UI/UX**:
+  - ✏️ Duplikované ikony odstránené (Tlačidlá Upraviť, Uložiť, Zrušiť)
+  - 📐 Sekcie Export/Import v rozložení 2 stĺpcov (vedľa seba)
+  - 💾 Natívny dialóg ukladania použitý na ukladanie PDF (dialóg Tauri)
+  - 📊 Toast notifikácie na ukladanie PDF (úspech/chyba)
+  - 🖼️ Veľkosť okna aplikácie: 1280x720 (predtým 1000x700)
+- 🐛 **Opravy chýb**:
+  - Chýbajúce informácie pridané v generovaní PDF (customerContact, zisk v samostatnom riadku, príjmy)
+  - Prekladové kľúče pridané (calculator.profit, calculator.revenue, calculator.totalPrice, offers.customerContact, common.close)
+- 📄 **Vylepšenia exportu PDF**:
+  - Kontakt zákazníka (e-mail/telefón) zobrazený v PDF
+  - Výpočet zisku v samostatnom riadku s percentom zisku
+  - Príjmy (Celková cena) v samostatnom riadku, zvýraznené
+  - Úplný rozpis nákladov v PDF
+
+### v0.1.56 (2025)
+- ✨ **Vylepšenia rozloženia kalkulátora**: Pretečenie kariet filamentov opravené, responzívne flexbox rozloženie
+- ✨ **Responzívny rozpis nákladov**: Teraz dynamicky reaguje na zmeny veľkosti okna
+- 🐛 **Oprava chyby**: Obsah nepreteká z okna pri pridávaní filamentu
+- 🐛 **Oprava chyby**: Všetky prvky Calculator správne reagujú na zmeny veľkosti okna
+
+### v0.1.55 (2025)
+- ✨ **Dialógy potvrdenia**: Potvrdenie požadované pred zmazaním (Filamenty, Tlačiarne, Ponuky)
+- ✨ **Toast notifikácie**: Notifikácie po úspešných operáciách (pridať, aktualizovať, zmazať)
+- ✨ **Validácia vstupu**: Záporné čísla zakázané, maximálne hodnoty nastavené
+- ✨ **Stavy načítania**: Spinner načítania pri spustení aplikácie
+- ✨ **Hranica chýb**: Spracovanie chýb na úrovni aplikácie
+- ✨ **Vyhľadávanie a filtrovanie**: Vyhľadávať filamenty, tlačiarne a ponuky
+- ✨ **Duplikácia**: Ľahká duplikácia ponúk
+- ✨ **Zbaliteľné formuláre**: Formuláre na pridanie filamentu a tlačiarne sú zbaliteľné
+- ✨ **Rozšírenia ponuky**: Polia názvu zákazníka, kontaktu a popisu pridané
+- 🐛 **Čistenie Console.log**: Žiadne console.logs v produkčnom zostavení
+- 🐛 **Oprava poľa popisu**: Dlhé texty sa správne zalamujú.
+
 ---
 
 **Verzia**: 0.5.56
