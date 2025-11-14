@@ -33,27 +33,26 @@ pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(),
     if let Some(window) = app.get_webview_window("main") {
         if let Some(progress_value) = progress {
             let clamped_progress = progress_value.clamp(0.0, 1.0);
-
-            let progress_state = ProgressBarState::Normal(clamped_progress);
-
+            
+            // Tauri v2.9.2-ben a set_progress_bar Option<ProgressBarState>-et vár
+            // Windows-on explicit konstrukcióval próbáljuk megkerülni az ambiguitást
+            let progress_state = ProgressBarState::Normal {
+                progress: clamped_progress,
+            };
             window
-                .set_progress_bar(progress_state)
+                .set_progress_bar(Some(progress_state))
                 .map_err(|e| format!("Taskbar progress beállítása sikertelen: {}", e))?;
-
             log::info!("Taskbar progress beállítva: {}%", (clamped_progress * 100.0) as u32);
         } else {
-            let progress_state = ProgressBarState::None;
-
+            // Taskbar progress elrejtése - None érték küldése
             window
-                .set_progress_bar(progress_state)
+                .set_progress_bar(None)
                 .map_err(|e| format!("Taskbar progress elrejtése sikertelen: {}", e))?;
-
             log::info!("Taskbar progress törölve");
         }
     } else {
         return Err("Nem található 'main' ablak".to_string());
     }
-
     Ok(())
 }
 
