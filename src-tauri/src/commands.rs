@@ -30,35 +30,30 @@ pub fn set_dock_badge(app: AppHandle, badge: Option<String>) -> Result<(), Strin
 #[cfg(target_os = "windows")]
 #[tauri::command]
 pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(), String> {
-    // Tauri v2.9.2-ben a taskbar progress API-t a window-on keresztül érjük el
     if let Some(window) = app.get_webview_window("main") {
         if let Some(progress_value) = progress {
-            // Progress érték 0.0 és 1.0 között
             let clamped_progress = progress_value.clamp(0.0, 1.0);
-            
-            // Taskbar progress beállítása
-            // Tauri v2.9.2-ben a set_progress_bar közvetlenül ProgressBarState-et vár
-            let progress_state = ProgressBarState::Normal {
-                progress: clamped_progress,
-            };
+
+            let progress_state = ProgressBarState::Normal(clamped_progress);
+
             window
                 .set_progress_bar(progress_state)
                 .map_err(|e| format!("Taskbar progress beállítása sikertelen: {}", e))?;
+
             log::info!("Taskbar progress beállítva: {}%", (clamped_progress * 100.0) as u32);
         } else {
-            // Taskbar progress elrejtése
-            // Windows-on a progress bar elrejtéséhez None-t használunk vagy 0.0 progress-szel Normal állapotot
-            let progress_state = ProgressBarState::Normal {
-                progress: 0.0,
-            };
+            let progress_state = ProgressBarState::None;
+
             window
                 .set_progress_bar(progress_state)
                 .map_err(|e| format!("Taskbar progress elrejtése sikertelen: {}", e))?;
+
             log::info!("Taskbar progress törölve");
         }
     } else {
         return Err("Nem található 'main' ablak".to_string());
     }
+
     Ok(())
 }
 
