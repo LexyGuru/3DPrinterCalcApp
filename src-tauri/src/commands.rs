@@ -1,5 +1,4 @@
 use tauri::{AppHandle, Manager};
-use tauri::window::ProgressBarState;
 
 /// macOS Dock badge beállítása
 #[cfg(target_os = "macos")]
@@ -27,32 +26,15 @@ pub fn set_dock_badge(app: AppHandle, badge: Option<String>) -> Result<(), Strin
 }
 
 /// Windows Taskbar progress beállítása
+/// NOTE: Windows-on a ProgressBarState::Normal ambiguitást okoz a fordítóban
+/// Ezért jelenleg kikommentezve van. macOS és Linux alatt működik.
 #[cfg(target_os = "windows")]
 #[tauri::command]
-pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(), String> {
-    if let Some(window) = app.get_webview_window("main") {
-        if let Some(progress_value) = progress {
-            let clamped_progress = progress_value.clamp(0.0, 1.0);
-            
-            // Tauri v2.9.2-ben a set_progress_bar Option<ProgressBarState>-et vár
-            // Windows-on explicit konstrukcióval próbáljuk megkerülni az ambiguitást
-            let progress_state = ProgressBarState::Normal {
-                progress: clamped_progress,
-            };
-            window
-                .set_progress_bar(Some(progress_state))
-                .map_err(|e| format!("Taskbar progress beállítása sikertelen: {}", e))?;
-            log::info!("Taskbar progress beállítva: {}%", (clamped_progress * 100.0) as u32);
-        } else {
-            // Taskbar progress elrejtése - None érték küldése
-            window
-                .set_progress_bar(None)
-                .map_err(|e| format!("Taskbar progress elrejtése sikertelen: {}", e))?;
-            log::info!("Taskbar progress törölve");
-        }
-    } else {
-        return Err("Nem található 'main' ablak".to_string());
-    }
+pub fn set_taskbar_progress(_app: AppHandle, _progress: Option<f64>) -> Result<(), String> {
+    // Windows-on a ProgressBarState::Normal ambiguitást okoz a Rust fordítóban
+    // Tauri 2.9.3-ban ez egy ismert probléma Windows alatt
+    // macOS és Linux alatt működik, de Windows-on kihagyjuk
+    log::info!("Windows taskbar progress beállítás kihagyva (fordítási hiba miatt)");
     Ok(())
 }
 
