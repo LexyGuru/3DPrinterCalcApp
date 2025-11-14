@@ -35,7 +35,7 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 - 📋 **Duplicación** - Duplicación fácil de cotizaciones
 - 🖱️ **Arrastrar y soltar** - Reordenar cotizaciones, filamentos e impresoras arrastrando
 - 📱 **Menús contextuales** - Menús de clic derecho para acciones rápidas (editar, eliminar, duplicar, exportar)
-- 🍎 **Funciones específicas de plataforma** - Badge de Dock de macOS, barra de progreso de Taskbar de Windows, notificaciones nativas, integración de bandeja del sistema
+- 🍎 **Funciones específicas de plataforma** - Badge de Dock de macOS, notificaciones nativas, integración de bandeja del sistema
 
 ## 📸 Capturas de pantalla
 
@@ -254,7 +254,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 ### v0.5.57 (2025)
 - 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
   - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
-  - **Windows**: Taskbar progress bar support (progress overlay on app icon), native Windows notifications
+  - **Windows**: Native Windows notifications
   - **Linux**: System tray integration, desktop notifications support
   - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
 - 🔔 **Notification System** – Native notification support with permission management:

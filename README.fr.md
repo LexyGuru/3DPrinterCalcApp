@@ -35,7 +35,7 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 - 📋 **Duplication** - Duplication facile des devis
 - 🖱️ **Glisser-déposer** - Réorganiser devis, filaments et imprimantes en glissant
 - 📱 **Menus contextuels** - Menus clic droit pour actions rapides (modifier, supprimer, dupliquer, exporter)
-- 🍎 **Fonctionnalités spécifiques à la plateforme** - Badge Dock macOS, barre de progression Taskbar Windows, notifications natives, intégration de la barre d'état système
+- 🍎 **Fonctionnalités spécifiques à la plateforme** - Badge Dock macOS, notifications natives, intégration de la barre d'état système
 
 ## 📸 Captures d'écran
 
@@ -254,7 +254,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 ### v0.5.57 (2025)
 - 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
   - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
-  - **Windows**: Taskbar progress bar support (progress overlay on app icon), native Windows notifications
+  - **Windows**: Native Windows notifications
   - **Linux**: System tray integration, desktop notifications support
   - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
 - 🔔 **Notification System** – Native notification support with permission management:

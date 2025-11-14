@@ -35,7 +35,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 📋 **Duplikálás** - Árajánlatok könnyű duplikálása
 - 🖱️ **Drag & Drop** - Árajánlatok, filamentek és nyomtatók átrendezése húzással
 - 📱 **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, export)
-- 🍎 **Platform-specifikus funkciók** - macOS Dock badge, Windows Taskbar progress, natív értesítések, system tray integráció
+- 🍎 **Platform-specifikus funkciók** - macOS Dock badge, natív értesítések, system tray integráció
 
 ## 📸 Képernyőképek
 
@@ -254,7 +254,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 ### v0.5.57 (2025)
 - 🍎 **Platform-specifikus funkciók** – Natív platform integráció macOS, Windows és Linux rendszerekhez:
   - **macOS**: Dock badge támogatás (számos/szöveges badge az alkalmazás ikonján), natív Notification Center integráció engedélykezeléssel
-  - **Windows**: Taskbar progress bar támogatás (progress overlay az alkalmazás ikonján), natív Windows értesítések
+  - **Windows**: Natív Windows értesítések
   - **Linux**: System tray integráció, desktop értesítések támogatás
   - **Minden platform**: Natív értesítési API integráció engedélykérési rendszerrel, platform detektálás és automatikus funkció engedélyezés
 - 🔔 **Értesítési rendszer** – Natív értesítési támogatás engedélykezeléssel:

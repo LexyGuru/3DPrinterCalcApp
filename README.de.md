@@ -35,7 +35,7 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 📋 **Duplizierung** - Einfache Angebotsduplizierung
 - 🖱️ **Drag & Drop** - Angebote, Filamente und Drucker durch Ziehen neu anordnen
 - 📱 **Kontextmenüs** - Rechtsklick-Menüs für schnelle Aktionen (bearbeiten, löschen, duplizieren, exportieren)
-- 🍎 **Plattformspezifische Funktionen** - macOS Dock-Badge, Windows Taskbar-Fortschritt, native Benachrichtigungen, System-Tray-Integration
+- 🍎 **Plattformspezifische Funktionen** - macOS Dock-Badge, native Benachrichtigungen, System-Tray-Integration
 
 ## 📸 Screenshots
 
@@ -254,7 +254,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 ### v0.5.57 (2025)
 - 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
   - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
-  - **Windows**: Taskbar progress bar support (progress overlay on app icon), native Windows notifications
+  - **Windows**: Native Windows notifications
   - **Linux**: System tray integration, desktop notifications support
   - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
 - 🔔 **Notification System** – Native notification support with permission management:
