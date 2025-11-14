@@ -38,20 +38,28 @@ pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(),
             let clamped_progress = progress_value.clamp(0.0, 1.0);
             
             // Taskbar progress beállítása
-            // Tauri v2.9.2-ben a set_progress_bar Option<ProgressBarState>-et vár
-            // A ProgressBarState enum variant-ok: Normal, Paused, Error, Indeterminate
-            // Explicit típus annotáció az ambiguitás elkerülésére
-            let progress_state: ProgressBarState = ProgressBarState::Normal {
+            // Tauri v2.9.3-ben a set_progress_bar közvetlenül ProgressBarState-et vár
+            // ProgressBarState egy struct, nem enum, ezért másképp kell konstruálni
+            // Próbáljuk meg a teljesen kvalifikált konstruktort használni
+            use tauri::window::ProgressBarState as PBS;
+            let progress_state = PBS::Normal {
                 progress: clamped_progress,
             };
             window
-                .set_progress_bar(Some(progress_state))
+                .set_progress_bar(progress_state)
                 .map_err(|e| format!("Taskbar progress beállítása sikertelen: {}", e))?;
             log::info!("Taskbar progress beállítva: {}%", (clamped_progress * 100.0) as u32);
         } else {
-            // Taskbar progress elrejtése - None érték küldése
+            // Taskbar progress elrejtése
+            // Windows-on a progress bar elrejtéséhez 0.0 progress-szel Normal állapotot használunk
+            // vagy lehet, hogy van egy külön metódus (pl. clear_progress_bar)
+            // Jelenleg 0.0 progress-szel rejtjük el
+            use tauri::window::ProgressBarState as PBS;
+            let progress_state = PBS::Normal {
+                progress: 0.0,
+            };
             window
-                .set_progress_bar(None)
+                .set_progress_bar(progress_state)
                 .map_err(|e| format!("Taskbar progress elrejtése sikertelen: {}", e))?;
             log::info!("Taskbar progress törölve");
         }
