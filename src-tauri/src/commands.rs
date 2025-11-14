@@ -37,11 +37,11 @@ pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(),
             
             // Taskbar progress beállítása
             // Tauri v2.9.3-ben a set_progress_bar közvetlenül ProgressBarState-et vár
-            // Teljesen kvalifikált szintaxis használata az ambiguitás elkerülésére
-            // ProgressBarState::Normal struct literal konstrukció
-            let progress_state = tauri::window::ProgressBarState::Normal {
-                progress: clamped_progress,
-            };
+            // Explicit típus annotációval próbáljuk megoldani az ambiguitást
+            let progress_state: tauri::window::ProgressBarState = 
+                tauri::window::ProgressBarState::Normal {
+                    progress: clamped_progress,
+                };
             window
                 .set_progress_bar(progress_state)
                 .map_err(|e| format!("Taskbar progress beállítása sikertelen: {}", e))?;
@@ -49,9 +49,10 @@ pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(),
         } else {
             // Taskbar progress elrejtése
             // Windows-on a progress bar elrejtéséhez 0.0 progress-szel Normal állapotot használunk
-            let progress_state = tauri::window::ProgressBarState::Normal {
-                progress: 0.0,
-            };
+            let progress_state: tauri::window::ProgressBarState = 
+                tauri::window::ProgressBarState::Normal {
+                    progress: 0.0,
+                };
             window
                 .set_progress_bar(progress_state)
                 .map_err(|e| format!("Taskbar progress elrejtése sikertelen: {}", e))?;
