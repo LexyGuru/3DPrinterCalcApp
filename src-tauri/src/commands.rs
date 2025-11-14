@@ -1,6 +1,4 @@
 use tauri::{AppHandle, Manager};
-#[cfg(target_os = "windows")]
-use tauri::window::ProgressBarState;
 
 /// macOS Dock badge beállítása
 #[cfg(target_os = "macos")]
@@ -39,10 +37,9 @@ pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(),
             
             // Taskbar progress beállítása
             // Tauri v2.9.3-ben a set_progress_bar közvetlenül ProgressBarState-et vár
-            // ProgressBarState egy struct, nem enum, ezért másképp kell konstruálni
-            // Próbáljuk meg a teljesen kvalifikált konstruktort használni
-            use tauri::window::ProgressBarState as PBS;
-            let progress_state = PBS::Normal {
+            // Teljesen kvalifikált szintaxis használata az ambiguitás elkerülésére
+            // ProgressBarState::Normal struct literal konstrukció
+            let progress_state = tauri::window::ProgressBarState::Normal {
                 progress: clamped_progress,
             };
             window
@@ -52,10 +49,7 @@ pub fn set_taskbar_progress(app: AppHandle, progress: Option<f64>) -> Result<(),
         } else {
             // Taskbar progress elrejtése
             // Windows-on a progress bar elrejtéséhez 0.0 progress-szel Normal állapotot használunk
-            // vagy lehet, hogy van egy külön metódus (pl. clear_progress_bar)
-            // Jelenleg 0.0 progress-szel rejtjük el
-            use tauri::window::ProgressBarState as PBS;
-            let progress_state = PBS::Normal {
+            let progress_state = tauri::window::ProgressBarState::Normal {
                 progress: 0.0,
             };
             window
