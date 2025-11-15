@@ -304,16 +304,16 @@ const writeLibraryToDisk = async (entries: RawLibraryEntry[]) => {
 
 const initializeLibrary = async () => {
   if (libraryLoaded) {
-    console.log("[FilamentLibrary] initializeLibrary skipped (already loaded)");
     return;
   }
-  console.log("[FilamentLibrary] initializeLibrary starting");
   if (!initializePromise) {
     initializePromise = (async () => {
       const entries = await readLibraryFromDisk();
       rebuildIndex(entries, false);
       libraryLoaded = true;
-      console.log("[FilamentLibrary] initializeLibrary completed", { entries: entries.length });
+      if (import.meta.env.DEV) {
+        console.log("[FilamentLibrary] initializeLibrary completed", { entries: entries.length });
+      }
     })().finally(() => {
       initializePromise = null;
     });
@@ -322,7 +322,7 @@ const initializeLibrary = async () => {
 };
 
 export const ensureLibraryOverridesLoaded = () => {
-  console.log("[FilamentLibrary] ensureLibraryOverridesLoaded invoked");
+  // Silently ensure library is loaded (no logging to reduce noise)
   void initializeLibrary();
 };
 
