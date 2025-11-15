@@ -477,9 +477,6 @@ export const findLibraryColorByLabel = (
     }
   }
   
-  if (!match) {
-    console.warn("[FilamentLibrary] No matching color label found", { label, brand, material });
-  }
   if (match) {
     console.log("[FilamentLibrary] Matched library color", {
       label,
@@ -514,6 +511,7 @@ export const resolveLibraryHexFromName = (
     }
   }
   
+  // Only warn if we couldn't resolve the color at all (no match and no fallback)
   console.warn("[FilamentLibrary] Could not resolve hex for", { label, brand, material });
   return undefined;
 };
