@@ -931,6 +931,15 @@ export const languageFr: TranslationMap = {
   "calendar.overdue": "En retard",
   "calendar.dueTomorrow": "Échéance demain",
   "calendar.dueToday": "Échéance aujourd'hui",
+  "calendar.export.button": "Exporter vers le calendrier",
+  "calendar.export.noOffers": "Aucun événement à exporter",
+  "calendar.export.success": "Fichier ICS exporté avec succès",
+  "calendar.export.error": "Erreur lors de l'exportation",
+  "calendar.export.google": "Ouvrez Google Calendar et importez le fichier ICS téléchargé",
+  "calendar.export.outlook": "Ouvrez Outlook et importez le fichier ICS téléchargé",
+  "settings.calendar.provider.label": "Fournisseur de calendrier",
+  "settings.calendar.provider.tooltip": "Choisissez quelle application de calendrier utiliser lors de l'ouverture des fichiers ICS",
+  "settings.calendar.provider.description": "Ce paramètre détermine quelle application de calendrier s'ouvre lors de l'exportation de fichiers ICS",
 };
 
 

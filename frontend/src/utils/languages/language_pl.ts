@@ -888,4 +888,13 @@ export const languagePl: TranslationMap = {
   "calendar.overdue": "Przeterminowane",
   "calendar.dueTomorrow": "Termin jutro",
   "calendar.dueToday": "Termin dzisiaj",
+  "calendar.export.button": "Eksportuj do kalendarza",
+  "calendar.export.noOffers": "Brak wydarzeń do eksportu",
+  "calendar.export.success": "Plik ICS pomyślnie wyeksportowany",
+  "calendar.export.error": "Błąd podczas eksportu",
+  "calendar.export.google": "Otwórz Google Calendar i zaimportuj pobrany plik ICS",
+  "calendar.export.outlook": "Otwórz Outlook i zaimportuj pobrany plik ICS",
+  "settings.calendar.provider.label": "Dostawca kalendarza",
+  "settings.calendar.provider.tooltip": "Wybierz, którą aplikację kalendarza używać przy otwieraniu plików ICS",
+  "settings.calendar.provider.description": "To ustawienie określa, która aplikacja kalendarza otwiera się podczas eksportowania plików ICS",
 };

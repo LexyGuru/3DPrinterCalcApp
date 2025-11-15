@@ -3,6 +3,11 @@ import type { Offer, Settings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { logWithLanguage } from "../utils/languages/global_console";
+import { generateICS } from "../utils/icsExport";
+import { open } from "@tauri-apps/plugin-shell";
+import { writeTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import { useToast } from "./Toast";
+import { getPlatform } from "../utils/platformFeatures";
 
 interface Props {
   offers: Offer[];
@@ -13,9 +18,11 @@ interface Props {
 
 export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles }) => {
   const t = useTranslation(settings.language);
+  const { showToast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   // Get status color helper
   const getStatusColor = (status?: string): string => {
@@ -205,11 +212,89 @@ export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles
   const isGradientBg = typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient');
   const isNeon = theme.name === 'neon' || theme.name === 'cyberpunk';
 
+  // Export to calendar
+  const handleExportToCalendar = async () => {
+    if (offersWithDueDates.length === 0) {
+      showToast(t("calendar.export.noOffers") || "Nincs exportálható esemény", "info");
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const icsContent = generateICS(offersWithDueDates);
+      const fileName = `3dprinter_calendar_${new Date().toISOString().split('T')[0]}.ics`;
+      
+      // Save ICS file
+      await writeTextFile(fileName, icsContent, {
+        baseDir: BaseDirectory.Download,
+      });
+
+      const platform = getPlatform();
+      const calendarProvider = settings.calendarProvider || "google";
+
+      // Open calendar based on provider and platform
+      if (calendarProvider === "ios" && platform === "macos") {
+        // macOS: Open with Calendar app
+        const { downloadDir } = await import("@tauri-apps/api/path");
+        const dir = await downloadDir();
+        const filePath = `${dir}/${fileName}`;
+        await open(filePath);
+      } else if (calendarProvider === "google") {
+        // Google Calendar: Open web interface
+        await open("https://calendar.google.com/calendar/render?action=TEMPLATE");
+        showToast(t("calendar.export.google") || "Nyisd meg a Google Calendar-t és importáld a letöltött ICS fájlt", "info");
+      } else if (calendarProvider === "outlook") {
+        // Outlook: Open web interface
+        await open("https://outlook.live.com/calendar/0/deeplink/compose");
+        showToast(t("calendar.export.outlook") || "Nyisd meg az Outlook-ot és importáld a letöltött ICS fájlt", "info");
+      } else {
+        // Default: Open file with system default app
+        const { downloadDir } = await import("@tauri-apps/api/path");
+        const dir = await downloadDir();
+        const filePath = `${dir}/${fileName}`;
+        await open(filePath);
+      }
+
+      showToast(
+        t("calendar.export.success") || `ICS fájl sikeresen exportálva: ${fileName}`,
+        "success"
+      );
+    } catch (error) {
+      console.error("Calendar export error:", error);
+      showToast(
+        t("calendar.export.error") || "Hiba az exportálás során",
+        "error"
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
-      <h2 style={{ ...themeStyles.pageTitle, marginBottom: "24px" }}>
-        📅 {t("calendar.title") || "Naptár - Esedékes nyomtatások"}
-      </h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+        <h2 style={{ ...themeStyles.pageTitle, margin: 0 }}>
+          📅 {t("calendar.title") || "Naptár - Esedékes nyomtatások"}
+        </h2>
+        {offersWithDueDates.length > 0 && (
+          <button
+            onClick={handleExportToCalendar}
+            disabled={exporting}
+            style={{
+              ...themeStyles.button,
+              ...themeStyles.buttonPrimary,
+              padding: "10px 20px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              opacity: exporting ? 0.6 : 1,
+              cursor: exporting ? "not-allowed" : "pointer",
+            }}
+          >
+            {exporting ? "⏳" : "📅"} {t("calendar.export.button") || "Exportálás naptárba"}
+          </button>
+        )}
+      </div>
 
       {/* Calendar Controls */}
       <div style={{ 

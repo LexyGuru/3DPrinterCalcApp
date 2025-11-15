@@ -888,4 +888,13 @@ export const languageCs: TranslationMap = {
   "calendar.overdue": "Po termínu",
   "calendar.dueTomorrow": "Splatnost zítra",
   "calendar.dueToday": "Splatnost dnes",
+  "calendar.export.button": "Exportovat do kalendáře",
+  "calendar.export.noOffers": "Žádné události k exportu",
+  "calendar.export.success": "ICS soubor úspěšně exportován",
+  "calendar.export.error": "Chyba při exportu",
+  "calendar.export.google": "Otevřete Google Calendar a importujte stažený ICS soubor",
+  "calendar.export.outlook": "Otevřete Outlook a importujte stažený ICS soubor",
+  "settings.calendar.provider.label": "Poskytovatel kalendáře",
+  "settings.calendar.provider.tooltip": "Vyberte, kterou kalendářovou aplikaci použít při otevírání ICS souborů",
+  "settings.calendar.provider.description": "Toto nastavení určuje, která kalendářová aplikace se otevře při exportu ICS souborů",
 };

@@ -2421,7 +2421,7 @@ export const SettingsPage: React.FC<Props> = ({
           </p>
         </div>
         
-        <div style={{ marginBottom: "0" }}>
+        <div style={{ marginBottom: "24px" }}>
           <Tooltip content={t("settings.showConsoleDescription")}>
             <label style={{ 
               display: "flex", 
@@ -2443,6 +2443,43 @@ export const SettingsPage: React.FC<Props> = ({
           </Tooltip>
           <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
             {t("settings.showConsoleDescription")}
+          </p>
+        </div>
+
+        {/* Calendar Provider Settings */}
+        <div style={{ marginBottom: "24px" }}>
+          <Tooltip content={t("settings.calendar.provider.tooltip") || "Válaszd ki, melyik naptár alkalmazást szeretnéd használni az ICS fájlok megnyitásához"}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              width: "fit-content" 
+            }}>
+              📅 {t("settings.calendar.provider.label") || "Naptár szolgáltató"}
+            </label>
+          </Tooltip>
+          <select
+            value={settings.calendarProvider || "google"}
+            onChange={(e) => onChange({ ...settings, calendarProvider: e.target.value as Settings["calendarProvider"] })}
+            onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+            onBlur={(e) => {
+              e.target.style.borderColor = theme.colors.inputBorder;
+              e.target.style.boxShadow = "none";
+            }}
+            style={{ ...themeStyles.select, width: "100%", maxWidth: "300px" }}
+          >
+            <option value="google">📅 Google Calendar</option>
+            <option value="ios">🍎 iOS Calendar (macOS)</option>
+            <option value="outlook">📧 Outlook</option>
+          </select>
+          <p style={{ 
+            marginTop: "8px", 
+            fontSize: "12px", 
+            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
+          }}>
+            {t("settings.calendar.provider.description") || "Ez a beállítás határozza meg, melyik naptár alkalmazás nyílik meg az ICS fájl exportálásakor."}
           </p>
         </div>
 

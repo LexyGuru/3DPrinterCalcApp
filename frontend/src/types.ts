@@ -152,6 +152,8 @@ export const createEmptyCustomThemeDefinition = (): CustomThemeDefinition => ({
   },
 });
 
+export type CalendarProvider = "google" | "ios" | "outlook";
+
 export interface Settings {
   currency: "EUR" | "HUF" | "USD";
   electricityPrice: number; // Ft/kWh
@@ -167,6 +169,7 @@ export interface Settings {
   pdfTemplate?: PdfTemplate;
   animationSettings?: AnimationSettings;
   themeSettings?: ThemeSettings;
+  calendarProvider?: CalendarProvider; // Naptár szolgáltató (Google Calendar, iOS Calendar, Outlook)
 }
 
 export const defaultSettings: Settings = {
@@ -187,6 +190,7 @@ export const defaultSettings: Settings = {
     activeCustomThemeId: undefined,
     autoApplyGradientText: true,
   },
+  calendarProvider: "google", // Alapértelmezett naptár szolgáltató
 };
 
 export interface OfferFilament {

@@ -836,4 +836,13 @@ export const languageZh: TranslationMap = {
   "calendar.overdue": "逾期",
   "calendar.dueTomorrow": "明天到期",
   "calendar.dueToday": "今天到期",
+  "calendar.export.button": "导出到日历",
+  "calendar.export.noOffers": "没有要导出的事件",
+  "calendar.export.success": "ICS文件导出成功",
+  "calendar.export.error": "导出时出错",
+  "calendar.export.google": "打开Google日历并导入下载的ICS文件",
+  "calendar.export.outlook": "打开Outlook并导入下载的ICS文件",
+  "settings.calendar.provider.label": "日历提供商",
+  "settings.calendar.provider.tooltip": "选择打开ICS文件时使用哪个日历应用程序",
+  "settings.calendar.provider.description": "此设置确定导出ICS文件时打开哪个日历应用程序",
 };

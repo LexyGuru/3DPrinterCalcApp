@@ -840,5 +840,14 @@ export const languageUk: TranslationMap = {
   "calendar.overdue": "Прострочено",
   "calendar.dueTomorrow": "Термін завтра",
   "calendar.dueToday": "Термін сьогодні",
+  "calendar.export.button": "Експорт до календаря",
+  "calendar.export.noOffers": "Немає подій для експорту",
+  "calendar.export.success": "ICS файл успішно експортовано",
+  "calendar.export.error": "Помилка під час експорту",
+  "calendar.export.google": "Відкрийте Google Calendar та імпортуйте завантажений ICS файл",
+  "calendar.export.outlook": "Відкрийте Outlook та імпортуйте завантажений ICS файл",
+  "settings.calendar.provider.label": "Постачальник календаря",
+  "settings.calendar.provider.tooltip": "Виберіть, яку календарну програму використовувати при відкритті ICS файлів",
+  "settings.calendar.provider.description": "Цей параметр визначає, яка календарна програма відкривається при експорті ICS файлів",
 };
 

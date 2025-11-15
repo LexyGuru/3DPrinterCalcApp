@@ -887,6 +887,15 @@ export const languageEn: TranslationMap = {
   "calendar.upcoming": "Upcoming prints",
   "calendar.overdue": "Overdue",
   "calendar.dueTomorrow": "Due tomorrow",
-  "calendar.dueToday": "Due today",
+  "calendar.dueToday": "Due Today",
+  "calendar.export.button": "Export to Calendar",
+  "calendar.export.noOffers": "No events to export",
+  "calendar.export.success": "ICS file successfully exported",
+  "calendar.export.error": "Error during export",
+  "calendar.export.google": "Open Google Calendar and import the downloaded ICS file",
+  "calendar.export.outlook": "Open Outlook and import the downloaded ICS file",
+  "settings.calendar.provider.label": "Calendar Provider",
+  "settings.calendar.provider.tooltip": "Choose which calendar application to use when opening ICS files",
+  "settings.calendar.provider.description": "This setting determines which calendar application opens when exporting ICS files",
 };
 
