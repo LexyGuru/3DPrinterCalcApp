@@ -22,7 +22,9 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 🖼️ **Filamentbilder in PDF** - Anzeige von Filament-Logos und Farbmustern in generierten PDFs
 - 🧾 **G-Code-Import & Entwurfserstellung** - G-Code/JSON-Exporte (Prusa, Cura, Orca, Qidi) aus Modal im Rechner laden, mit detaillierter Zusammenfassung und automatischer Angebotsentwurfsgenerierung
 - 📈 **Statistiken** - Übersichtsdashboard für Filamentverbrauch, Umsatz, Gewinn
-- 🌍 **Mehrsprachig** - Vollständige Übersetzung in Ungarisch, Englisch, Deutsch, Französisch, Vereinfachtem Chinesisch, Tschechisch, Spanisch, Italienisch, Polnisch, Portugiesisch, Slowakisch, Ukrainisch und Russisch (14 Sprachen, 813 Übersetzungsschlüssel pro Sprache)
+- 👥 **Kundendatenbank** - Kundenverwaltung mit Kontaktinformationen, Firmendaten und Angebotsstatistiken
+- 📊 **Preisverlauf und Trends** - Verfolgung von Filamentpreisänderungen mit Diagrammen und Statistiken
+- 🌍 **Mehrsprachig** - Vollständige Übersetzung in Ungarisch, Englisch, Deutsch, Französisch, Vereinfachtem Chinesisch, Tschechisch, Spanisch, Italienisch, Polnisch, Portugiesisch, Slowakisch, Ukrainisch und Russisch (14 Sprachen, 850+ Übersetzungsschlüssel pro Sprache)
 - 💱 **Mehrere Währungen** - EUR, HUF, USD
 - 🔄 **Automatische Updates** - Prüft GitHub Releases auf neue Versionen
 - 🧪 **Beta-Versionen** - Beta-Branch und Beta-Build-Unterstützung
@@ -241,6 +243,29 @@ Lekszikov Miklós (LexyGuru)
 Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, der die Beta-Version erstellt.
 
 ## 📋 Versionsgeschichte
+
+### v0.6.0 (2025)
+
+- 👥 **Kundendatenbank** - Vollständiges Kundenverwaltungssystem mit:
+  - Kunden hinzufügen, bearbeiten, löschen
+  - Kontaktinformationen (E-Mail, Telefon)
+  - Firmendaten (optional)
+  - Adresse und Notizen
+  - Kundenstatistiken (Gesamtangebote, letztes Angebotsdatum)
+  - Suchfunktion
+  - Integration mit Rechner für schnelle Kundenauswahl
+- 📊 **Preisverlauf und Trends** - Verfolgung von Filamentpreisänderungen:
+  - Automatische Preisverlaufsverfolgung bei Filamentpreisaktualisierungen
+  - Preis-Trend-Visualisierung mit SVG-Diagrammen
+  - Preisstatistiken (aktueller, durchschnittlicher, min, max Preis)
+  - Trendanalyse (steigend, fallend, stabil)
+  - Preisverlaufstabelle mit detaillierten Änderungsinformationen
+  - Warnungen bei erheblichen Preisänderungen (10%+ Änderungen)
+  - Preisverlaufsanzeige in der Filamente-Komponente während der Bearbeitung
+- 🔧 **Verbesserungen**:
+  - Erweiterter Rechner mit Kundenauswahl-Dropdown
+  - Preisverlaufsintegration im Filament-Bearbeitungsformular
+  - Verbesserte Datenspeicherung für Kunden und Preisverlauf
 
 ### v0.5.58 (2025)
 - 🌍 **Ukrainische und Russische Sprachunterstützung** – Vollständige Übersetzungsunterstützung für Ukrainisch (uk) und Russisch (ru) hinzugefügt:

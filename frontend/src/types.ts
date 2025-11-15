@@ -314,3 +314,44 @@ export interface FilterPreset {
   searchTerm?: string;
   isDefault?: boolean;
 }
+
+// Ügyfél adatbázis
+export interface Customer {
+  id: number;
+  name: string;
+  contact?: string; // Email vagy telefon
+  company?: string; // Cégnév (opcionális)
+  address?: string; // Cím (opcionális)
+  notes?: string; // Megjegyzések
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  totalOffers?: number; // Összes árajánlat száma (számított mező)
+  lastOfferDate?: string; // Utolsó árajánlat dátuma (számított mező)
+}
+
+// Ár előzmények és trendek
+export interface PriceHistory {
+  id: number;
+  filamentBrand: string;
+  filamentType: string;
+  filamentColor?: string;
+  oldPrice: number; // EUR/kg
+  newPrice: number; // EUR/kg
+  priceChange: number; // Változás összege
+  priceChangePercent: number; // Változás százalékban
+  date: string; // ISO date string
+  currency: "EUR" | "HUF" | "USD";
+}
+
+// Filament ár előzmények egy adott filamenthez
+export interface FilamentPriceHistory {
+  brand: string;
+  type: string;
+  color?: string;
+  history: PriceHistory[];
+  currentPrice: number;
+  averagePrice?: number; // Átlagos ár az időszakban
+  minPrice?: number; // Minimum ár
+  maxPrice?: number; // Maximum ár
+  priceTrend?: "increasing" | "decreasing" | "stable"; // Ár trend
+}

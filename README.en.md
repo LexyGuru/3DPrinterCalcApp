@@ -22,7 +22,9 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 🖼️ **Filament Images in PDF** - Display filament logos and color swatches in generated PDFs
 - 🧾 **G-code Import & Draft Creation** - Load G-code/JSON exports (Prusa, Cura, Orca, Qidi) from modal in calculator, with detailed summary and automatic quote draft generation
 - 📈 **Statistics** - Summary dashboard for filament consumption, revenue, profit
-- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (14 languages, 813 translation keys per language)
+- 👥 **Customer Database** - Manage customers with contact information, company details, and offer statistics
+- 📊 **Price History & Trends** - Track filament price changes over time with charts and statistics
+- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (14 languages, 850+ translation keys per language)
 - 💱 **Multiple Currencies** - EUR, HUF, USD
 - 🔄 **Auto Updates** - Checks GitHub Releases for new versions
 - 🧪 **Beta Versions** - Beta branch and beta build support
@@ -241,6 +243,29 @@ Lekszikov Miklós (LexyGuru)
 When pushing to the `beta` branch, the GitHub Actions workflow automatically runs, building the beta version.
 
 ## 📋 Version History
+
+### v0.6.0 (2025)
+
+- 👥 **Customer Database** - Complete customer management system with:
+  - Add, edit, delete customers
+  - Contact information (email, phone)
+  - Company details (optional)
+  - Address and notes
+  - Customer statistics (total offers, last offer date)
+  - Search functionality
+  - Integration with Calculator for quick customer selection
+- 📊 **Price History & Trends** - Track filament price changes:
+  - Automatic price history tracking when filament prices are updated
+  - Price trends visualization with SVG charts
+  - Price statistics (current, average, min, max prices)
+  - Trend analysis (increasing, decreasing, stable)
+  - Price history table with detailed change information
+  - Significant price change warnings (10%+ changes)
+  - Price history display in Filaments component during editing
+- 🔧 **Improvements**:
+  - Enhanced Calculator with customer selection dropdown
+  - Price history integration in Filament editing form
+  - Improved data persistence for customers and price history
 
 ### v0.5.58 (2025)
 - 🌍 **Ukrainian and Russian Language Support** – Added full translation support for Ukrainian (uk) and Russian (ru) languages:

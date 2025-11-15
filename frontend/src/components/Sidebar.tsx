@@ -22,6 +22,8 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
     { key: "printers", label: t("sidebar.printers"), icon: "🖨️" },
     { key: "calculator", label: t("sidebar.calculator"), icon: "🧮" },
     { key: "offers", label: t("sidebar.offers"), icon: "📋" },
+    { key: "customers", label: t("sidebar.customers"), icon: "👥" },
+    { key: "priceTrends", label: t("sidebar.priceTrends"), icon: "📈" },
     { key: "settings", label: t("sidebar.settings"), icon: "⚙️" },
     ...(settings.showConsole ? [{ key: "console", label: t("sidebar.console"), icon: "🖥️" }] : []),
   ];

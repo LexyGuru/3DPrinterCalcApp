@@ -22,7 +22,9 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 - 🖼️ **Obrazy filamentów w PDF** - Wyświetlanie logo filamentów i próbek kolorów w generowanych plikach PDF
 - 🧾 **Import G-code i tworzenie szkicu** - Ładowanie eksportów G-code/JSON (Prusa, Cura, Orca, Qidi) z modala w kalkulatorze, ze szczegółowym podsumowaniem i automatycznym generowaniem szkicu oferty
 - 📈 **Statystyki** - Panel podsumowania zużycia filamentu, przychodów, zysku
-- 🌍 **Wielojęzyczność** - Pełne tłumaczenie na węgierski, angielski, niemiecki, francuski, chiński uproszczony, czeski, hiszpański, włoski, polski, portugalski, słowacki, ukraiński i rosyjski (14 języków, 813 kluczy tłumaczenia na język)
+- 👥 **Baza danych klientów** - Zarządzanie klientami z informacjami kontaktowymi, danymi firmy i statystykami ofert
+- 📊 **Historia i trendy cen** - Śledzenie zmian cen filamentu z wykresami i statystykami
+- 🌍 **Wielojęzyczność** - Pełne tłumaczenie na węgierski, angielski, niemiecki, francuski, chiński uproszczony, czeski, hiszpański, włoski, polski, portugalski, słowacki, ukraiński i rosyjski (14 języków, 850+ kluczy tłumaczenia na język)
 - 💱 **Wiele walut** - EUR, HUF, USD
 - 🔄 **Automatyczne aktualizacje** - Sprawdza GitHub Releases pod kątem nowych wersji
 - 🧪 **Wersje beta** - Obsługa gałęzi beta i kompilacji beta
@@ -240,6 +242,29 @@ Lekszikov Miklós (LexyGuru)
 Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub Actions, który kompiluje wersję beta.
 
 ## 📋 Historia wersji
+
+### v0.6.0 (2025)
+
+- 👥 **Baza danych klientów** - Kompletny system zarządzania klientami z:
+  - Dodawanie, edycja, usuwanie klientów
+  - Informacje kontaktowe (e-mail, telefon)
+  - Dane firmy (opcjonalne)
+  - Adres i notatki
+  - Statystyki klientów (łączna liczba ofert, data ostatniej oferty)
+  - Funkcjonalność wyszukiwania
+  - Integracja z Kalkulatorem dla szybkiego wyboru klienta
+- 📊 **Historia i trendy cen** - Śledzenie zmian cen filamentu:
+  - Automatyczne śledzenie historii cen przy aktualizacji cen filamentu
+  - Wizualizacja trendów cenowych z wykresami SVG
+  - Statystyki cen (cena bieżąca, średnia, min, max)
+  - Analiza trendów (rosnący, malejący, stabilny)
+  - Tabela historii cen ze szczegółowymi informacjami o zmianach
+  - Ostrzeżenia o znaczących zmianach cen (zmiany 10%+)
+  - Wyświetlanie historii cen w komponencie Filamenty podczas edycji
+- 🔧 **Ulepszenia**:
+  - Ulepszony Kalkulator z menu rozwijanym wyboru klienta
+  - Integracja historii cen w formularzu edycji filamentu
+  - Ulepszona trwałość danych dla klientów i historii cen
 
 ### v0.5.58 (2025)
 - 🌍 **Obsługa języków ukraińskiego i rosyjskiego** – Dodano pełne wsparcie tłumaczeń dla ukraińskiego (uk) i rosyjskiego (ru):

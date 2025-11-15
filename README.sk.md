@@ -241,6 +241,29 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ## 📋 História verzií
 
+### v0.6.0 (2025)
+
+- 👥 **Databáza zákazníkov** - Kompletný systém správy zákazníkov s:
+  - Pridávanie, úprava, mazanie zákazníkov
+  - Kontaktné informácie (e-mail, telefón)
+  - Firemné údaje (voliteľné)
+  - Adresa a poznámky
+  - Štatistiky zákazníkov (celkový počet ponúk, dátum poslednej ponuky)
+  - Funkcia vyhľadávania
+  - Integrácia s Kalkulačkou pre rýchly výber zákazníka
+- 📊 **História a trendy cien** - Sledovanie zmien cien filamentu:
+  - Automatické sledovanie histórie cien pri aktualizácii cien filamentu
+  - Vizualizácia cenových trendov s grafmi SVG
+  - Cenové štatistiky (aktuálna, priemerná, min, max cena)
+  - Analýza trendov (rastúci, klesajúci, stabilný)
+  - Tabuľka histórie cien s podrobnými informáciami o zmenách
+  - Varovania pri významných zmenách cien (zmeny 10%+)
+  - Zobrazenie histórie cien v komponente Filamenty počas úpravy
+- 🔧 **Vylepšenia**:
+  - Vylepšená Kalkulačka s rozbalovacím menu výberu zákazníka
+  - Integrácia histórie cien do formulára úpravy filamentu
+  - Vylepšená trvalosť dát pre zákazníkov a históriu cien
+
 ### v0.5.58 (2025)
 - 🌍 **Podpora ukrajinčiny a ruštiny** – Pridaná plná podpora prekladov pre ukrajinčinu (uk) a ruštinu (ru):
   - Kompletné prekladové súbory so všetkými 813 prekladovými kľúčmi pre oba jazyky

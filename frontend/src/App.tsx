@@ -13,11 +13,13 @@ const Filaments = lazy(() => import("./components/Filaments").then(module => ({ 
 const Printers = lazy(() => import("./components/Printers").then(module => ({ default: module.Printers })));
 const Calculator = lazy(() => import("./components/Calculator").then(module => ({ default: module.Calculator })));
 const Offers = lazy(() => import("./components/Offers").then(module => ({ default: module.Offers })));
+const Customers = lazy(() => import("./components/Customers").then(module => ({ default: module.Customers })));
+const PriceTrends = lazy(() => import("./components/PriceTrends").then(module => ({ default: module.PriceTrends })));
 const SettingsPage = lazy(() => import("./components/Settings").then(module => ({ default: module.SettingsPage })));
 const Console = lazy(() => import("./components/Console").then(module => ({ default: module.Console })));
-import type { Printer, Settings, Filament, Offer, ThemeName } from "./types";
+import type { Printer, Settings, Filament, Offer, Customer, ThemeName } from "./types";
 import { defaultSettings } from "./types";
-import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers } from "./utils/store";
+import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers } from "./utils/store";
 import { getThemeStyles, resolveTheme } from "./utils/themes";
 import { defaultAnimationSettings } from "./types";
 import { debounce } from "./utils/debounce";
@@ -26,23 +28,27 @@ import { ShortcutHelp } from "./components/ShortcutHelp";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
 import { logWithLanguage } from "./utils/languages/global_console";
+import { useTranslation } from "./utils/translations";
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
   const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const t = useTranslation(settings.language);
   const [printers, setPrinters] = useState<Printer[]>([]);
   const [filaments, setFilaments] = useState<Filament[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
 
   // 🔹 Betöltés indításkor
   useEffect(() => {
-    const loadData = async () => {
+      const loadData = async () => {
       const loadedPrinters = await loadPrinters();
       const loadedFilaments = await loadFilaments();
       const loadedSettings = await loadSettings();
       const loadedOffers = await loadOffers();
+      const loadedCustomers = await loadCustomers();
       
       if (loadedPrinters.length > 0) {
         setPrinters(loadedPrinters);
@@ -52,6 +58,9 @@ export default function App() {
       }
       if (loadedOffers.length > 0) {
         setOffers(loadedOffers);
+      }
+      if (loadedCustomers.length > 0) {
+        setCustomers(loadedCustomers);
       }
       if (loadedSettings) {
         // Ellenőrizzük hogy az electricityPrice érvényes érték-e
@@ -112,6 +121,12 @@ export default function App() {
   const debouncedSaveOffers = debounce(() => {
     if (isInitialized && autosaveEnabled) {
       saveOffers(offers);
+    }
+  }, autosaveInterval);
+
+  const debouncedSaveCustomers = debounce(() => {
+    if (isInitialized && autosaveEnabled) {
+      saveCustomers(customers);
     }
   }, autosaveInterval);
 
@@ -243,7 +258,7 @@ export default function App() {
       case "printers":
         return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
       case "calculator": 
-        return <Calculator printers={printers} filaments={filaments} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
+        return <Calculator printers={printers} filaments={filaments} customers={customers} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
       case "offers":
         return (
           <Offers
@@ -254,6 +269,26 @@ export default function App() {
             themeStyles={themeStyles}
             printers={printers}
             filaments={filaments}
+          />
+        );
+      case "customers":
+        return (
+          <Customers
+            customers={customers}
+            setCustomers={setCustomers}
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+            offers={offers}
+          />
+        );
+      case "priceTrends":
+        return (
+          <PriceTrends
+            filaments={filaments}
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
           />
         );
       case "settings": 
@@ -274,17 +309,12 @@ export default function App() {
       default: 
         return <Home settings={settings} offers={offers} theme={currentTheme} />;
     }
-  }, [activePage, filaments, printers, offers, settings, currentTheme, themeStyles, handleSaveOffer]);
+  }, [activePage, filaments, printers, offers, customers, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers]);
 
   // Determine if this is a beta build from environment variable (set at build time)
   const isBeta = import.meta.env.VITE_IS_BETA === 'true';
 
-  const loadingMessage =
-    settings.language === "hu"
-      ? "Betöltés..."
-      : settings.language === "de"
-      ? "Laden..."
-      : "Loading...";
+  const loadingMessage = t("common.loading");
 
   const loadingPlaceholder = animationSettings.loadingSkeletons ? (
     <LoadingSkeletonPage theme={currentTheme} />

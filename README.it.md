@@ -22,7 +22,9 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 - 🖼️ **Immagini filamento in PDF** - Mostra loghi filamento e campioni di colore nei PDF generati
 - 🧾 **Importazione G-code e creazione bozza** - Carica esportazioni G-code/JSON (Prusa, Cura, Orca, Qidi) da modale nella calcolatrice, con riepilogo dettagliato e generazione automatica bozza preventivo
 - 📈 **Statistiche** - Dashboard di riepilogo per consumo filamento, ricavi, profitto
-- 🌍 **Multilingue** - Traduzione completa in ungherese, inglese, tedesco, francese, cinese semplificato, ceco, spagnolo, italiano, polacco, portoghese, slovacco, ucraino e russo (14 lingue, 813 chiavi di traduzione per lingua)
+- 👥 **Database clienti** - Gestione clienti con informazioni di contatto, dettagli aziendali e statistiche delle offerte
+- 📊 **Storico e tendenze dei prezzi** - Tracciamento delle variazioni di prezzo del filamento con grafici e statistiche
+- 🌍 **Multilingue** - Traduzione completa in ungherese, inglese, tedesco, francese, cinese semplificato, ceco, spagnolo, italiano, polacco, portoghese, slovacco, ucraino e russo (14 lingue, 850+ chiavi di traduzione per lingua)
 - 💱 **Valute multiple** - EUR, HUF, USD
 - 🔄 **Aggiornamenti automatici** - Controlla GitHub Releases per nuove versioni
 - 🧪 **Versioni beta** - Supporto branch beta e build beta
@@ -241,6 +243,29 @@ Lekszikov Miklós (LexyGuru)
 Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito automaticamente, compilando la versione beta.
 
 ## 📋 Cronologia versioni
+
+### v0.6.0 (2025)
+
+- 👥 **Database clienti** - Sistema completo di gestione clienti con:
+  - Aggiungere, modificare, eliminare clienti
+  - Informazioni di contatto (email, telefono)
+  - Dettagli aziendali (opzionale)
+  - Indirizzo e note
+  - Statistiche clienti (totale offerte, data ultima offerta)
+  - Funzionalità di ricerca
+  - Integrazione con Calcolatrice per selezione rapida clienti
+- 📊 **Storico e tendenze dei prezzi** - Tracciamento delle variazioni di prezzo del filamento:
+  - Tracciamento automatico dello storico prezzi quando i prezzi del filamento vengono aggiornati
+  - Visualizzazione delle tendenze dei prezzi con grafici SVG
+  - Statistiche dei prezzi (prezzo attuale, medio, min, max)
+  - Analisi delle tendenze (in aumento, in diminuzione, stabile)
+  - Tabella dello storico prezzi con informazioni dettagliate sulle variazioni
+  - Avvisi per variazioni significative dei prezzi (variazioni del 10%+)
+  - Visualizzazione dello storico prezzi nel componente Filamenti durante la modifica
+- 🔧 **Miglioramenti**:
+  - Calcolatrice migliorata con menu a tendina di selezione clienti
+  - Integrazione dello storico prezzi nel modulo di modifica filamento
+  - Persistenza dei dati migliorata per clienti e storico prezzi
 
 ### v0.5.58 (2025)
 - 🌍 **Supporto lingue ucraino e russo** – Aggiunto supporto completo per le traduzioni per ucraino (uk) e russo (ru):

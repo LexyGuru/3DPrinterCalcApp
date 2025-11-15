@@ -22,7 +22,9 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
 - 🧾 **G-code import és piszkozat készítés** - A kalkulátorban modális ablakból tölthető be G-code/JSON export (Prusa, Cura, Orca, Qidi), részletes összefoglalóval és automatikus árajánlat piszkozat generálással
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
-- 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia, egyszerűsített kínai, cseh, spanyol, olasz, lengyel, portugál, szlovák, ukrán és orosz nyelveken (14 nyelv, összesen 813 fordítási kulcs minden nyelven)
+- 👥 **Ügyfél adatbázis** - Ügyfelek kezelése kapcsolattartási adatokkal, cégadatokkal és árajánlat statisztikákkal
+- 📊 **Ár előzmények és trendek** - Filament ár változások követése grafikonokkal és statisztikákkal
+- 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia, egyszerűsített kínai, cseh, spanyol, olasz, lengyel, portugál, szlovák, ukrán és orosz nyelveken (14 nyelv, összesen 850+ fordítási kulcs minden nyelven)
 - 💱 **Több pénznem** - EUR, HUF, USD
 - 🔄 **Automatikus frissítések** - Ellenőrzi a GitHub Releases-t új verziókért
 - 🧪 **Beta verziók** - Beta branch és beta buildelés támogatás
@@ -241,6 +243,29 @@ Lekszikov Miklós (LexyGuru)
 A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
 ## 📋 Verziótörténet
+
+### v0.6.0 (2025)
+
+- 👥 **Ügyfél adatbázis** - Teljes ügyfélkezelő rendszer:
+  - Ügyfelek hozzáadása, szerkesztése, törlése
+  - Kapcsolattartási információk (email, telefon)
+  - Cégadatok (opcionális)
+  - Cím és megjegyzések
+  - Ügyfél statisztikák (összes árajánlat, utolsó árajánlat dátuma)
+  - Keresési funkció
+  - Kalkulátor integráció gyors ügyfél kiválasztáshoz
+- 📊 **Ár előzmények és trendek** - Filament ár változások követése:
+  - Automatikus ár előzmény követés filament ár módosításnál
+  - Ár trendek vizualizáció SVG grafikonokkal
+  - Ár statisztikák (jelenlegi, átlagos, min, max ár)
+  - Trend elemzés (növekvő, csökkenő, stabil)
+  - Ár előzmények táblázat részletes változási információkkal
+  - Jelentős ár változás figyelmeztetések (10%+ változások)
+  - Ár előzmények megjelenítése a Filaments komponensben szerkesztéskor
+- 🔧 **Javítások**:
+  - Továbbfejlesztett Kalkulátor ügyfél kiválasztó dropdown-nal
+  - Ár előzmények integráció a Filament szerkesztési formban
+  - Továbbfejlesztett adatmegőrzés ügyfelekhez és ár előzményekhez
 
 ### v0.5.58 (2025)
 - 🌍 **Ukrán és Orosz nyelv támogatás** – Teljes fordítási támogatás hozzáadva az ukrán (uk) és orosz (ru) nyelvekhez:

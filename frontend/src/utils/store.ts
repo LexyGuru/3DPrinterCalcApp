@@ -1,5 +1,5 @@
 import { Store } from "@tauri-apps/plugin-store";
-import type { Printer, Filament, Settings, Offer, CalculationTemplate } from "../types";
+import type { Printer, Filament, Settings, Offer, CalculationTemplate, Customer, PriceHistory } from "../types";
 
 // Lazy-initialized store
 let storeInstance: Store | null = null;
@@ -164,6 +164,62 @@ export async function loadTemplates(): Promise<CalculationTemplate[]> {
     return templates;
   } catch (error) {
     console.error("❌ Hiba a template-ek betöltésekor:", error);
+    return [];
+  }
+}
+
+// Customers
+export async function saveCustomers(customers: Customer[]): Promise<void> {
+  try {
+    console.log("💾 Ügyfelek mentése...", { count: customers.length });
+    const store = await getStore();
+    await store.set("customers", customers);
+    await store.save();
+    console.log("✅ Ügyfelek sikeresen mentve", { count: customers.length });
+  } catch (error) {
+    console.error("❌ Hiba az ügyfelek mentésekor:", error);
+    throw error;
+  }
+}
+
+export async function loadCustomers(): Promise<Customer[]> {
+  const store = await getStore();
+  try {
+    console.log("📥 Ügyfelek betöltése...");
+    const data = await store.get("customers");
+    const customers = Array.isArray(data) ? data : [];
+    console.log("✅ Ügyfelek betöltve", { count: customers.length });
+    return customers;
+  } catch (error) {
+    console.error("❌ Hiba az ügyfelek betöltésekor:", error);
+    return [];
+  }
+}
+
+// Price History
+export async function savePriceHistory(priceHistory: PriceHistory[]): Promise<void> {
+  try {
+    console.log("💾 Ár előzmények mentése...", { count: priceHistory.length });
+    const store = await getStore();
+    await store.set("priceHistory", priceHistory);
+    await store.save();
+    console.log("✅ Ár előzmények sikeresen mentve", { count: priceHistory.length });
+  } catch (error) {
+    console.error("❌ Hiba az ár előzmények mentésekor:", error);
+    throw error;
+  }
+}
+
+export async function loadPriceHistory(): Promise<PriceHistory[]> {
+  const store = await getStore();
+  try {
+    console.log("📥 Ár előzmények betöltése...");
+    const data = await store.get("priceHistory");
+    const priceHistory = Array.isArray(data) ? data : [];
+    console.log("✅ Ár előzmények betöltve", { count: priceHistory.length });
+    return priceHistory;
+  } catch (error) {
+    console.error("❌ Hiba az ár előzmények betöltésekor:", error);
     return [];
   }
 }

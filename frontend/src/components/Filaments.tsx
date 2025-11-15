@@ -34,6 +34,8 @@ import {
   ensureLibraryEntry,
 } from "../utils/filamentLibrary";
 import { logWithLanguage } from "../utils/languages/global_console";
+import { addPriceHistory, isSignificantPriceChange, getFilamentPriceHistory, calculatePriceStats } from "../utils/priceHistory";
+import type { PriceHistory, FilamentPriceHistory } from "../types";
 
 const DEFAULT_WEIGHT_UNITS = ["g", "kg"] as const;
 
@@ -81,6 +83,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [brandFilter, setBrandFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [libraryVersion, setLibraryVersion] = useState(0);
+  const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([]);
+  const [showPriceHistory, setShowPriceHistory] = useState(false);
   const LIBRARY_FINISHES: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
   const resolveBaseLanguage = (language: Settings["language"]): "hu" | "en" | "de" =>
     language === "hu" || language === "de" ? language : "en";
@@ -683,8 +687,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         pricePerKg,
         hasImage: !!optimizedImage,
       });
+      const oldFilament = filaments[editingIndex];
       const updated = [...filaments];
-      updated[editingIndex] = { 
+      const newFilament: Filament = { 
         brand, 
         type, 
         weight, 
@@ -695,12 +700,40 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         colorMode: entryColorMode,
         multiColorHint: entryColorMode === "multicolor" ? entryMultiColorHint || color || undefined : undefined,
       };
+      updated[editingIndex] = newFilament;
+      
+      // Ár előzmény mentése, ha az ár változott
+      if (oldFilament.pricePerKg !== newFilament.pricePerKg) {
+        try {
+          await addPriceHistory(oldFilament, newFilament, settings);
+          
+          // Jelentős ár változás esetén figyelmeztetés
+          if (isSignificantPriceChange(oldFilament.pricePerKg, newFilament.pricePerKg, 10)) {
+            const changePercent = Math.abs(
+              ((newFilament.pricePerKg - oldFilament.pricePerKg) / oldFilament.pricePerKg) * 100
+            );
+            showToast(
+              t("filaments.priceChange.significant", {
+                changePercent: changePercent.toFixed(1),
+                oldPrice: oldFilament.pricePerKg.toFixed(2),
+                newPrice: newFilament.pricePerKg.toFixed(2),
+              }),
+              "info"
+            );
+          }
+        } catch (error) {
+          logWithLanguage(settings.language, "error", "filaments.priceHistory.saveError", error);
+        }
+      }
+      
       setFilaments(updated);
       logWithLanguage(settings.language, "log", "filaments.edit.success", {
         index: editingIndex,
       });
       showToast(t("common.filamentUpdated"), "success");
       resetForm();
+      setPriceHistory([]);
+      setShowPriceHistory(false);
     } else {
       // Új filament hozzáadása
       logWithLanguage(settings.language, "log", "filaments.addNew.start", {
@@ -767,10 +800,29 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setMultiColorHint(detectedMode === "multicolor" ? detectedHint : "");
     setImagePreview(filament.imageBase64 || null);
     setEditingIndex(index);
+    
+    // Ár előzmények betöltése
+    const loadHistory = async () => {
+      try {
+        const history = await getFilamentPriceHistory(
+          filament.brand,
+          filament.type,
+          filament.color
+        );
+        setPriceHistory(history);
+        setShowPriceHistory(false);
+      } catch (error) {
+        console.error("Hiba az ár előzmények betöltésekor:", error);
+        setPriceHistory([]);
+      }
+    };
+    loadHistory();
   };
 
   const cancelEdit = () => {
     resetForm();
+    setPriceHistory([]);
+    setShowPriceHistory(false);
   };
 
   const deleteFilament = (index: number) => {
@@ -1428,6 +1480,88 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               }}
               style={{ ...themeStyles.input, width: "100%" }}
             />
+            {/* Ár előzmények gomb és megjelenítés */}
+            {editingIndex !== null && priceHistory.length > 0 && (
+              <div style={{ marginTop: "8px" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowPriceHistory(!showPriceHistory)}
+                  style={{
+                    ...themeStyles.buttonSecondary,
+                    padding: "4px 8px",
+                    fontSize: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  {showPriceHistory ? "📉" : "📈"} {t("filaments.priceHistory.show")} ({priceHistory.length})
+                </button>
+                {showPriceHistory && (
+                  <div style={{
+                    marginTop: "8px",
+                    padding: "8px",
+                    backgroundColor: theme.colors.surface,
+                    borderRadius: "6px",
+                    border: `1px solid ${theme.colors.border}`,
+                    fontSize: "12px",
+                  }}>
+                    <div style={{ fontWeight: "600", marginBottom: "4px", color: theme.colors.text }}>
+                      {t("filaments.priceHistory.title")}
+                    </div>
+                    <div style={{ maxHeight: "120px", overflowY: "auto" }}>
+                      {priceHistory.slice(0, 5).map((entry) => {
+                        const isIncrease = entry.priceChange > 0;
+                        const changeColor = isIncrease ? theme.colors.danger : theme.colors.success;
+                        return (
+                          <div key={entry.id} style={{ 
+                            display: "flex", 
+                            justifyContent: "space-between", 
+                            marginBottom: "4px",
+                            padding: "4px 0",
+                            borderBottom: `1px solid ${theme.colors.border}`,
+                          }}>
+                            <span style={{ color: theme.colors.textSecondary }}>
+                              {new Date(entry.date).toLocaleDateString((() => {
+                                const LANGUAGE_LOCALES: Record<string, string> = {
+                                  hu: "hu-HU", de: "de-DE", fr: "fr-FR", it: "it-IT", es: "es-ES",
+                                  pl: "pl-PL", cs: "cs-CZ", sk: "sk-SK", zh: "zh-CN", "pt-BR": "pt-BR",
+                                  uk: "uk-UA", ru: "ru-RU", en: "en-US",
+                                };
+                                return LANGUAGE_LOCALES[settings.language] ?? "en-US";
+                              })(), {
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                            <span style={{ color: theme.colors.textSecondary }}>
+                              {entry.oldPrice.toFixed(2)} →
+                            </span>
+                            <span style={{ fontWeight: "600", color: theme.colors.text }}>
+                              {entry.newPrice.toFixed(2)} {entry.currency}
+                            </span>
+                            <span style={{ color: changeColor, fontWeight: "600" }}>
+                              {isIncrease ? "+" : ""}{entry.priceChangePercent.toFixed(1)}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                      {priceHistory.length > 5 && (
+                        <div style={{ 
+                          textAlign: "center", 
+                          marginTop: "4px", 
+                          fontSize: "11px", 
+                          color: theme.colors.textSecondary,
+                          fontStyle: "italic",
+                        }}>
+                          {t("filaments.priceHistory.more").replace("{count}", String(priceHistory.length - 5))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div style={{ flex: "1 1 280px", minWidth: "220px" }}>
             <label style={{ 
