@@ -10,6 +10,7 @@ export type ConsoleMessageKey =
   | "offers.edit.start"
   | "offers.save.start"
   | "offers.save.success"
+  | "offers.save.printDueDate"
   | "offers.noPrinter"
   | "offers.pdf.start"
   | "offers.pdf.windowBlocked"
@@ -127,6 +128,7 @@ const englishMessages: Record<ConsoleMessageKey, string> = {
   "offers.edit.start": "✏️ Starting offer edit...",
   "offers.save.start": "💾 Saving offer...",
   "offers.save.success": "✅ Offer saved successfully",
+  "offers.save.printDueDate": "📅 Saving print due date",
   "offers.noPrinter": "⚠️ Cannot save offer because no printer is selected",
   "offers.pdf.start": "📄 Starting PDF export...",
   "offers.pdf.windowBlocked": "Window blocked, showing preview",
@@ -245,6 +247,7 @@ const hungarianMessages: Partial<Record<ConsoleMessageKey, string>> = {
   "offers.edit.start": "✏️ Árajánlat szerkesztése indítása...",
   "offers.save.start": "💾 Árajánlat mentése...",
   "offers.save.success": "✅ Árajánlat sikeresen mentve",
+  "offers.save.printDueDate": "📅 Nyomtatás esedékességi dátum mentése",
   "offers.noPrinter": "⚠️ Nem választható nyomtató, a mentés nem folytatható",
   "offers.pdf.start": "📄 PDF export indítása...",
   "offers.pdf.windowBlocked": "Ablak blokkolva, előnézet megjelenítése",

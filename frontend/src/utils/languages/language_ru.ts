@@ -622,6 +622,8 @@ export const languageRu: TranslationMap = {
   "offers.customerContact": "Контакт:",
   "offers.description": "Описание:",
   "offers.profitPercentage": "Процент прибыли:",
+  "offers.printDueDate": "Срок печати",
+  "offers.printDueDateHint": "Эта дата появится в календаре и укажет предстоящие печати.",
   "offers.date": "Дата:",
   "offers.printer": "Принтер:",
   "offers.printTime": "Время печати:",
@@ -818,5 +820,18 @@ export const languageRu: TranslationMap = {
   "sidebar.priceTrends": "Ценовые тренды",
   "sidebar.settings": "Настройки",
   "sidebar.console": "Консоль",
+  "common.search": "Поиск...",
+  // Calendar
+  "calendar.title": "Календарь - Предстоящие печати",
+  "calendar.today": "Сегодня",
+  "calendar.month": "Месяц",
+  "calendar.week": "Неделя",
+  "calendar.day": "День",
+  "calendar.offers": "предложение",
+  "calendar.noOffers": "В этот день нет предстоящих печатей.",
+  "calendar.upcoming": "Предстоящие печати",
+  "calendar.overdue": "Просрочено",
+  "calendar.dueTomorrow": "Срок завтра",
+  "calendar.dueToday": "Срок сегодня",
 };
 

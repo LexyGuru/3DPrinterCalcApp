@@ -617,6 +617,8 @@ export const languageZh: TranslationMap = {
   "offers.customerName": "客户名称:",
   "offers.customerContact": "联系:",
   "offers.description": "描述:",
+  "offers.printDueDate": "打印到期日期",
+  "offers.printDueDateHint": "此日期将出现在日历中并指示即将进行的打印。",
   "offers.profitPercentage": "利润百分比:",
   "offers.date": "日期:",
   "offers.printer": "打印机:",
@@ -812,5 +814,17 @@ export const languageZh: TranslationMap = {
   "sidebar.offers": "优惠",
   "sidebar.settings": "设置",
   "sidebar.console": "控制台",
-
+  "common.search": "搜索...",
+  // Calendar
+  "calendar.title": "日历 - 即将进行的打印",
+  "calendar.today": "今天",
+  "calendar.month": "月",
+  "calendar.week": "周",
+  "calendar.day": "日",
+  "calendar.offers": "优惠",
+  "calendar.noOffers": "这一天没有即将进行的打印。",
+  "calendar.upcoming": "即将进行的打印",
+  "calendar.overdue": "逾期",
+  "calendar.dueTomorrow": "明天到期",
+  "calendar.dueToday": "今天到期",
 };

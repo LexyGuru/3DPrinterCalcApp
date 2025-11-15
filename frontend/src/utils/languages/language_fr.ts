@@ -694,6 +694,8 @@ export const languageFr: TranslationMap = {
   "offers.customerName": "Nom du client :",
   "offers.customerContact": "Contact :",
   "offers.description": "Description :",
+  "offers.printDueDate": "Date d'échéance d'impression",
+  "offers.printDueDateHint": "Cette date apparaîtra dans le calendrier et indiquera les impressions à venir.",
   "offers.profitPercentage": "Pourcentage de bénéfice :",
   "offers.date": "Date :",
   "offers.printer": "Imprimante :",
@@ -907,6 +909,19 @@ export const languageFr: TranslationMap = {
     "Supprimer toutes les entrées en double ? La première entrée de chaque groupe sera conservée.",
   "settings.library.duplicates.confirm": "Supprimer les doublons",
   "settings.library.duplicates.toast": "Doublons supprimés.",
+  "common.search": "Rechercher...",
+  // Calendar
+  "calendar.title": "Calendrier - Impressions à venir",
+  "calendar.today": "Aujourd'hui",
+  "calendar.month": "Mois",
+  "calendar.week": "Semaine",
+  "calendar.day": "Jour",
+  "calendar.offers": "offre",
+  "calendar.noOffers": "Aucune impression à venir ce jour-là.",
+  "calendar.upcoming": "Impressions à venir",
+  "calendar.overdue": "En retard",
+  "calendar.dueTomorrow": "Échéance demain",
+  "calendar.dueToday": "Échéance aujourd'hui",
 };
 
 

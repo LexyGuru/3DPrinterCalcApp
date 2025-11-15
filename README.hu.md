@@ -13,6 +13,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🖨️ **Nyomtató kezelés** - Nyomtatók és AMS rendszerek kezelése
 - 💰 **Profit számítás** - Választható profit százalék (10%, 20%, 30%, 40%, 50%)
 - 📄 **Árajánlatok** - Mentés, kezelés és PDF export árajánlatokhoz (ügyfél név, elérhetőség, leírás)
+- 📅 **Naptár integráció** - Nyomtatás esedékességi dátumok beállítása árajánlatokhoz, naptár nézet az elfogadott/kész/elutasított árajánlatokkal, státusz jelzések (elfogadva ✅, elutasítva ❌, befejezve ✔️), esedékes nyomtatások listája (ma és holnap), lejárt nyomtatások jelzése
 - 🧠 **Szűrő presetek** - Árajánlat szűrők mentése, gyors presetek alkalmazása, dátum/idő alapú automatikus filterek
 - 🗂️ **Státusz dashboard** - Státusz kártyák, gyors szűrők és idővonal a legutóbbi státuszváltozásokról
 - 📝 **Státusz megjegyzések** - Minden státuszváltás opcionális jegyzettel és előzmény naplózással

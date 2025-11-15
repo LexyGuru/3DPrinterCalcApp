@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./components/Sidebar";
+import { Header } from "./components/Header";
 import { UpdateChecker } from "./components/UpdateChecker";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
@@ -15,6 +16,7 @@ const Calculator = lazy(() => import("./components/Calculator").then(module => (
 const Offers = lazy(() => import("./components/Offers").then(module => ({ default: module.Offers })));
 const Customers = lazy(() => import("./components/Customers").then(module => ({ default: module.Customers })));
 const PriceTrends = lazy(() => import("./components/PriceTrends").then(module => ({ default: module.PriceTrends })));
+const Calendar = lazy(() => import("./components/Calendar").then(module => ({ default: module.Calendar })));
 const SettingsPage = lazy(() => import("./components/Settings").then(module => ({ default: module.SettingsPage })));
 const Console = lazy(() => import("./components/Console").then(module => ({ default: module.Console })));
 import type { Printer, Settings, Filament, Offer, Customer, ThemeName } from "./types";
@@ -40,6 +42,7 @@ export default function App() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // 🔹 Betöltés indításkor
   useEffect(() => {
@@ -291,6 +294,16 @@ export default function App() {
             themeStyles={themeStyles}
           />
         );
+      case "calendar":
+        return (
+          <Calendar
+            offers={offers}
+            setOffers={setOffers}
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+          />
+        );
       case "settings": 
         return <SettingsPage 
           settings={settings} 
@@ -344,9 +357,23 @@ export default function App() {
           color: currentTheme.colors.text,
         }}>
           <UpdateChecker settings={settings} />
-          <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} isBeta={isBeta} theme={currentTheme} />
+          <Sidebar 
+            activePage={activePage} 
+            setActivePage={setActivePage} 
+            settings={settings} 
+            isBeta={isBeta} 
+            theme={currentTheme}
+            isOpen={isSidebarOpen}
+          />
+          <Header 
+            settings={settings} 
+            theme={currentTheme}
+            onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            isSidebarOpen={isSidebarOpen}
+          />
           <main style={{ 
-            padding: 20, 
+            padding: "20px", 
+            paddingTop: "90px",
             backgroundColor: currentTheme.colors.background?.includes('gradient')
               ? "transparent"
               : currentTheme.colors.background,
@@ -354,10 +381,11 @@ export default function App() {
             overflowY: "auto",
             overflowX: "hidden",
             position: "relative",
-            left: "200px",
-            width: "calc(100vw - 200px)",
+            left: isSidebarOpen ? "260px" : "0",
+            width: isSidebarOpen ? "calc(100vw - 260px)" : "100vw",
             height: "100vh",
             boxSizing: "border-box",
+            transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             perspective: animationSettings.pageTransition === "flip" ? "1200px" : undefined,
           }}>
             {!isInitialized ? (

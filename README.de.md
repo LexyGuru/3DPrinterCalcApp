@@ -13,6 +13,7 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 🖨️ **Druckerverwaltung** - Drucker und AMS-Systeme verwalten
 - 💰 **Gewinnberechnung** - Wählbarer Gewinnprozentsatz (10%, 20%, 30%, 40%, 50%)
 - 📄 **Angebote** - Angebote speichern, verwalten und als PDF exportieren (Kundenname, Kontakt, Beschreibung)
+- 📅 **Kalender-Integration** - Druckfälligkeitsdaten für Angebote festlegen, Kalenderansicht mit akzeptierten/abgeschlossenen/abgelehnten Angeboten, Statusindikatoren (akzeptiert ✅, abgelehnt ❌, abgeschlossen ✔️), Liste der anstehenden Drucke (heute und morgen), Benachrichtigung über überfällige Drucke
 - 🧠 **Filter-Voreinstellungen** - Angebotsfilter speichern, schnelle Voreinstellungen anwenden, datums-/zeitbasierte automatische Filter
 - 🗂️ **Status-Dashboard** - Statuskarten, schnelle Filter und Zeitachse der letzten Statusänderungen
 - 📝 **Statusnotizen** - Jede Statusänderung mit optionalen Notizen und Verlaufprotokollierung

@@ -232,6 +232,7 @@ export interface OfferStatusHistory {
 export interface Offer {
   id: number;
   date: string; // ISO date string
+  printDueDate?: string; // ISO date string - mikor kell kinyomtatni
   printerName: string;
   printerType: string;
   printerId?: number;

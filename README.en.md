@@ -13,6 +13,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 🖨️ **Printer Management** - Manage printers and AMS systems
 - 💰 **Profit Calculation** - Selectable profit percentage (10%, 20%, 30%, 40%, 50%)
 - 📄 **Quotes** - Save, manage, and export PDF quotes (customer name, contact, description)
+- 📅 **Calendar Integration** - Set print due dates for offers, calendar view with accepted/completed/rejected offers, status indicators (accepted ✅, rejected ❌, completed ✔️), upcoming prints list (today and tomorrow), overdue prints notification
 - 🧠 **Filter Presets** - Save quote filters, apply quick presets, date/time-based automatic filters
 - 🗂️ **Status Dashboard** - Status cards, quick filters, and timeline of recent status changes
 - 📝 **Status Notes** - Every status change with optional notes and history logging

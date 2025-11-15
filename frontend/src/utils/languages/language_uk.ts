@@ -622,6 +622,8 @@ export const languageUk: TranslationMap = {
   "offers.customerContact": "Контакт:",
   "offers.description": "Опис:",
   "offers.profitPercentage": "Відсоток прибутку:",
+  "offers.printDueDate": "Термін друку",
+  "offers.printDueDateHint": "Ця дата з'явиться в календарі та вкаже на майбутні друки.",
   "offers.date": "Дата:",
   "offers.printer": "Принтер:",
   "offers.printTime": "Час друку:",
@@ -818,5 +820,18 @@ export const languageUk: TranslationMap = {
   "sidebar.priceTrends": "Цінові тренди",
   "sidebar.settings": "Налаштування",
   "sidebar.console": "Консоль",
+  "common.search": "Пошук...",
+  // Calendar
+  "calendar.title": "Календар - Майбутні друки",
+  "calendar.today": "Сьогодні",
+  "calendar.month": "Місяць",
+  "calendar.week": "Тиждень",
+  "calendar.day": "День",
+  "calendar.offers": "пропозиція",
+  "calendar.noOffers": "У цей день немає майбутніх друків.",
+  "calendar.upcoming": "Майбутні друки",
+  "calendar.overdue": "Прострочено",
+  "calendar.dueTomorrow": "Термін завтра",
+  "calendar.dueToday": "Термін сьогодні",
 };
 
