@@ -141,18 +141,24 @@ export function getFinishLabel(finish: FilamentFinish, language: Settings["langu
   return labels ? labels[language] ?? labels.en : finish;
 }
 
+const containsHungarianCharacters = (text: string): boolean => {
+  // Check for Hungarian-specific characters (á, é, í, ó, ö, ő, ú, ü, ű)
+  return /[áéíóöőúüűÁÉÍÓÖŐÚÜŰ]/.test(text);
+};
+
 export function findColorOptionByLabel(label?: string | null): FilamentColorOption | undefined {
   if (!label) return undefined;
   const normalized = label.trim().toLowerCase();
   if (!normalized) return undefined;
+  const isHungarian = containsHungarianCharacters(label);
   
   // First try exact match
   let match = ALL_COLOR_OPTIONS.find(option =>
     Object.values(option.labels).some(value => value.toLowerCase() === normalized)
   );
   
-  // If no exact match, try fuzzy matching (remove accents, spaces, special chars)
-  if (!match) {
+  // If no exact match and Hungarian text, try fuzzy matching (remove accents, spaces, special chars)
+  if (!match && isHungarian) {
     const fuzzySearch = normalized
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -170,8 +176,8 @@ export function findColorOptionByLabel(label?: string | null): FilamentColorOpti
     );
   }
   
-  // If still no match, try partial matching (e.g., "Ég Kék" -> "Kék")
-  if (!match && normalized.includes(" ")) {
+  // If still no match and Hungarian text, try partial matching (e.g., "Ég Kék" -> "Kék")
+  if (!match && isHungarian && normalized.includes(" ")) {
     const words = normalized.split(/\s+/).filter(w => w.length > 2);
     for (const word of words) {
       match = ALL_COLOR_OPTIONS.find(option =>
@@ -195,9 +201,13 @@ export function resolveColorHexFromName(label?: string | null): string | undefin
   if (option) {
     return normalizeHex(option.hex);
   }
-  const keywordEntry = COLOR_KEYWORD_HEX.find(entry => entry.regex.test(label));
-  if (keywordEntry) {
-    return normalizeHex(keywordEntry.hex);
+  // Only use Hungarian-specific keywords if the label contains Hungarian characters
+  const isHungarian = containsHungarianCharacters(label);
+  if (isHungarian) {
+    const keywordEntry = COLOR_KEYWORD_HEX.find(entry => entry.regex.test(label));
+    if (keywordEntry) {
+      return normalizeHex(keywordEntry.hex);
+    }
   }
   return undefined;
 }

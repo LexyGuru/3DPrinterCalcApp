@@ -402,6 +402,11 @@ export const getLibraryColorOptions = (brand?: string | null, material?: string 
   return options;
 };
 
+const containsHungarianCharacters = (text: string): boolean => {
+  // Check for Hungarian-specific characters (á, é, í, ó, ö, ő, ú, ü, ű)
+  return /[áéíóöőúüűÁÉÍÓÖŐÚÜŰ]/.test(text);
+};
+
 export const findLibraryColorByLabel = (
   label?: string | null,
   brand?: string | null,
@@ -414,6 +419,7 @@ export const findLibraryColorByLabel = (
   }
 
   const entries = filterEntries(brand, material);
+  const isHungarian = containsHungarianCharacters(normalizeText(label));
   
   // First try exact match
   let match = entries.find(entry => {
@@ -426,8 +432,8 @@ export const findLibraryColorByLabel = (
     return candidates.some(value => normalizeText(value).toLowerCase() === search);
   });
   
-  // If no exact match, try fuzzy matching (remove accents, spaces, special chars)
-  if (!match) {
+  // If no exact match and Hungarian text, try fuzzy matching (remove accents, spaces, special chars)
+  if (!match && isHungarian) {
     const fuzzySearch = search
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -451,8 +457,8 @@ export const findLibraryColorByLabel = (
     });
   }
   
-  // If still no match, try partial matching (e.g., "Ég Kék" -> "Kék")
-  if (!match && search.includes(" ")) {
+  // If still no match and Hungarian text, try partial matching (e.g., "Ég Kék" -> "Kék")
+  if (!match && isHungarian && search.includes(" ")) {
     const words = search.split(/\s+/).filter(w => w.length > 2);
     for (const word of words) {
       match = entries.find(entry => {
@@ -498,11 +504,14 @@ export const resolveLibraryHexFromName = (
     return normalizeHex(match.hex);
   }
   
-  // Fallback to filamentColors.ts color resolution (supports Hungarian colors from COLOR_PRESETS)
-  const fallbackHex = resolveColorHexFromName(label);
-  if (fallbackHex) {
-    console.log("[FilamentLibrary] Resolved hex via fallback", { label, brand, material, hex: fallbackHex });
-    return fallbackHex;
+  // Fallback to filamentColors.ts color resolution (only for Hungarian labels)
+  const isHungarian = label ? containsHungarianCharacters(normalizeText(label)) : false;
+  if (isHungarian) {
+    const fallbackHex = resolveColorHexFromName(label);
+    if (fallbackHex) {
+      console.log("[FilamentLibrary] Resolved hex via fallback", { label, brand, material, hex: fallbackHex });
+      return fallbackHex;
+    }
   }
   
   console.warn("[FilamentLibrary] Could not resolve hex for", { label, brand, material });
