@@ -898,6 +898,14 @@ export const getThemeStyles = (theme: Theme) => {
     textShadow: isGradientBackground ? pageTextShadow : "none",
     transition: "color 0.3s ease",
   },
+  heading: {
+    margin: 0,
+    marginBottom: "16px",
+    fontSize: "24px",
+    fontWeight: "600",
+    color: isGradientBackground ? "#1a202c" : theme.colors.text,
+    textShadow: isGradientBackground ? "none" : (isNeon ? textShadow : "none"),
+  },
   // Helper színek a komponensekhez
   textColor: textColor,
   textSecondaryColor: textSecondaryColor,

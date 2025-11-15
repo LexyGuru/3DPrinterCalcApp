@@ -9,7 +9,9 @@ export type LanguageCode =
   | "cs"
   | "sk"
   | "zh"
-  | "pt-BR";
+  | "pt-BR"
+  | "uk"
+  | "ru";
 
 export type BaseLanguageCode = "hu" | "en" | "de";
 
@@ -150,6 +152,8 @@ export const createEmptyCustomThemeDefinition = (): CustomThemeDefinition => ({
   },
 });
 
+export type CalendarProvider = "google" | "ios" | "outlook";
+
 export interface Settings {
   currency: "EUR" | "HUF" | "USD";
   electricityPrice: number; // Ft/kWh
@@ -165,6 +169,7 @@ export interface Settings {
   pdfTemplate?: PdfTemplate;
   animationSettings?: AnimationSettings;
   themeSettings?: ThemeSettings;
+  calendarProvider?: CalendarProvider; // Naptár szolgáltató (Google Calendar, iOS Calendar, Outlook)
 }
 
 export const defaultSettings: Settings = {
@@ -185,6 +190,7 @@ export const defaultSettings: Settings = {
     activeCustomThemeId: undefined,
     autoApplyGradientText: true,
   },
+  calendarProvider: "google", // Alapértelmezett naptár szolgáltató
 };
 
 export interface OfferFilament {
@@ -230,6 +236,7 @@ export interface OfferStatusHistory {
 export interface Offer {
   id: number;
   date: string; // ISO date string
+  printDueDate?: string; // ISO date string - mikor kell kinyomtatni
   printerName: string;
   printerType: string;
   printerId?: number;
@@ -311,4 +318,45 @@ export interface FilterPreset {
   quickFilter?: QuickFilterType;
   searchTerm?: string;
   isDefault?: boolean;
+}
+
+// Ügyfél adatbázis
+export interface Customer {
+  id: number;
+  name: string;
+  contact?: string; // Email vagy telefon
+  company?: string; // Cégnév (opcionális)
+  address?: string; // Cím (opcionális)
+  notes?: string; // Megjegyzések
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  totalOffers?: number; // Összes árajánlat száma (számított mező)
+  lastOfferDate?: string; // Utolsó árajánlat dátuma (számított mező)
+}
+
+// Ár előzmények és trendek
+export interface PriceHistory {
+  id: number;
+  filamentBrand: string;
+  filamentType: string;
+  filamentColor?: string;
+  oldPrice: number; // EUR/kg
+  newPrice: number; // EUR/kg
+  priceChange: number; // Változás összege
+  priceChangePercent: number; // Változás százalékban
+  date: string; // ISO date string
+  currency: "EUR" | "HUF" | "USD";
+}
+
+// Filament ár előzmények egy adott filamenthez
+export interface FilamentPriceHistory {
+  brand: string;
+  type: string;
+  color?: string;
+  history: PriceHistory[];
+  currentPrice: number;
+  averagePrice?: number; // Átlagos ár az időszakban
+  minPrice?: number; // Minimum ár
+  maxPrice?: number; // Maximum ár
+  priceTrend?: "increasing" | "decreasing" | "stable"; // Ár trend
 }

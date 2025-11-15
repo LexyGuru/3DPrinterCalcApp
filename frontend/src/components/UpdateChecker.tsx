@@ -19,7 +19,7 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
   const t = useTranslation(settings.language);
 
   useEffect(() => {
-    // Ellenőrzés indításkor, amikor a beta beállítás változik, és 5 perc múlva
+    // Ellenőrzés indításkor és 5 perc múlva
     checkUpdates();
     const interval = setInterval(checkUpdates, 5 * 60 * 1000); // 5 perc
     
@@ -29,7 +29,7 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
   // Ha a beta beállítás változik, azonnal újra ellenőrizzük és visszaállítjuk a dismissed-et
   useEffect(() => {
     setDismissed(false); // Visszaállítjuk, hogy az új verziókat lássa
-    checkUpdates();
+    // Ne hívjuk meg itt is a checkUpdates-t, mert a fenti useEffect már kezeli a beta változást
   }, [settings.checkForBetaUpdates]);
 
   const checkUpdates = async () => {

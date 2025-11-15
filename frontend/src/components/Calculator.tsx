@@ -9,6 +9,7 @@ import { saveTemplates, loadTemplates } from "../utils/store";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { SlicerImportModal } from "./SlicerImportModal";
 import { validatePrintTime, validateUsedGrams, validateDryingTime, validateDryingPower, validateProfitPercentage } from "../utils/validation";
+import { sendNativeNotification } from "../utils/platformFeatures";
 
 interface SelectedFilament {
   filamentIndex: number;
@@ -21,13 +22,14 @@ interface SelectedFilament {
 interface Props {
   printers: Printer[];
   filaments: Filament[];
+  customers: import("../types").Customer[];
   settings: Settings;
   onSaveOffer?: (offer: any) => void;
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
 
-export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onSaveOffer, theme, themeStyles }) => {
+export const Calculator: React.FC<Props> = ({ printers, filaments, customers, settings, onSaveOffer, theme, themeStyles }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [selectedPrinterId, setSelectedPrinterId] = useState<number | "">("");
@@ -36,9 +38,21 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
   const [printTimeMinutes, setPrintTimeMinutes] = useState<number>(0);
   const [printTimeSeconds, setPrintTimeSeconds] = useState<number>(0);
   const [showOfferDialog, setShowOfferDialog] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | "">("");
   const [offerCustomerName, setOfferCustomerName] = useState("");
   const [offerCustomerContact, setOfferCustomerContact] = useState("");
   const [offerDescription, setOfferDescription] = useState("");
+
+  // Ügyfél kiválasztás kezelése
+  useEffect(() => {
+    if (selectedCustomerId !== "" && selectedCustomerId !== null) {
+      const customer = customers.find(c => c.id === selectedCustomerId);
+      if (customer) {
+        setOfferCustomerName(customer.name);
+        setOfferCustomerContact(customer.contact || "");
+      }
+    }
+  }, [selectedCustomerId, customers]);
   const [offerProfitPercentage, setOfferProfitPercentage] = useState<number>(30);
   const [templates, setTemplates] = useState<CalculationTemplate[]>([]);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
@@ -1088,6 +1102,43 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
             </h3>
             
             <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
+              {/* Ügyfél kiválasztó */}
+              {customers.length > 0 && (
+                <div style={{ width: "180px", flexShrink: 0 }}>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600", 
+                    fontSize: "14px", 
+                    color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                    whiteSpace: "nowrap" 
+                  }}>
+                    {t("customers.selectCustomer")}
+                  </label>
+                  <select
+                    value={selectedCustomerId}
+                    onChange={(e) => {
+                      const value = e.target.value === "" ? "" : Number(e.target.value);
+                      setSelectedCustomerId(value);
+                      if (value === "") {
+                        setOfferCustomerName("");
+                        setOfferCustomerContact("");
+                      }
+                    }}
+                    onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+                    onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                    style={{ ...themeStyles.select, width: "100%" }}
+                  >
+                    <option value="">{t("customers.selectCustomerPlaceholder")}</option>
+                    {customers.map(customer => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name}{customer.company ? ` (${customer.company})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
               <div style={{ width: "180px", flexShrink: 0 }}>
                 <label style={{ 
                   display: "block", 
@@ -1103,7 +1154,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   type="text"
                   placeholder={t("offers.customerName")}
                   value={offerCustomerName}
-                  onChange={e => setOfferCustomerName(e.target.value)}
+                  onChange={e => {
+                    setOfferCustomerName(e.target.value);
+                    // Ha manuálisan módosítják, töröljük a kiválasztott ügyfelet
+                    if (selectedCustomerId !== "") {
+                      setSelectedCustomerId("");
+                    }
+                  }}
                   onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                   onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                   style={{ ...themeStyles.input, width: "100%" }}
@@ -1118,7 +1175,13 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   type="text"
                   placeholder={t("calculator.offer.contactPlaceholder")}
                   value={offerCustomerContact}
-                  onChange={e => setOfferCustomerContact(e.target.value)}
+                  onChange={e => {
+                    setOfferCustomerContact(e.target.value);
+                    // Ha manuálisan módosítják, töröljük a kiválasztott ügyfelet
+                    if (selectedCustomerId !== "") {
+                      setSelectedCustomerId("");
+                    }
+                  }}
                   onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                   onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                   style={{ ...themeStyles.input, width: "100%" }}
@@ -1172,6 +1235,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                 <button
                   onClick={() => {
                     setShowOfferDialog(false);
+                    setSelectedCustomerId("");
                     setOfferCustomerName("");
                     setOfferCustomerContact("");
                     setOfferDescription("");
@@ -1189,7 +1253,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
               </Tooltip>
               <Tooltip content={t("calculator.tooltip.saveOffer")}>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (!offerCustomerName.trim()) {
                       showToast(`${t("common.error")}: ${t("calculator.toast.customerNameRequired")}`, "error");
                       return;
@@ -1259,7 +1323,19 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, settings, onS
                   onSaveOffer(offer);
                   console.log("✅ Árajánlat sikeresen mentve", { offerId: offer.id });
                   showToast(t("common.offerSaved"), "success");
+                  // Natív értesítés küldése (ha engedélyezve van)
+                  if (settings.notificationEnabled !== false) {
+                    try {
+                      await sendNativeNotification(
+                        t("common.offerSaved"),
+                        offer.customerName || t("offers.customerName")
+                      );
+                    } catch (error) {
+                      console.log("Értesítés küldése sikertelen:", error);
+                    }
+                  }
                   setShowOfferDialog(false);
+                  setSelectedCustomerId("");
                   setOfferCustomerName("");
                   setOfferCustomerContact("");
                   setOfferDescription("");

@@ -2,7 +2,7 @@
 
 > **🌍 Wybór języka**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tauri v2, frontendem React i backendem Rust.
 
@@ -22,7 +22,9 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 - 🖼️ **Obrazy filamentów w PDF** - Wyświetlanie logo filamentów i próbek kolorów w generowanych plikach PDF
 - 🧾 **Import G-code i tworzenie szkicu** - Ładowanie eksportów G-code/JSON (Prusa, Cura, Orca, Qidi) z modala w kalkulatorze, ze szczegółowym podsumowaniem i automatycznym generowaniem szkicu oferty
 - 📈 **Statystyki** - Panel podsumowania zużycia filamentu, przychodów, zysku
-- 🌍 **Wielojęzyczność** - Pełne tłumaczenie na węgierski, angielski, niemiecki, francuski, chiński uproszczony, czeski, hiszpański, włoski, polski, portugalski i słowacki (12 języków, 813 kluczy tłumaczenia na język)
+- 👥 **Baza danych klientów** - Zarządzanie klientami z informacjami kontaktowymi, danymi firmy i statystykami ofert
+- 📊 **Historia i trendy cen** - Śledzenie zmian cen filamentu z wykresami i statystykami
+- 🌍 **Wielojęzyczność** - Pełne tłumaczenie na węgierski, angielski, niemiecki, francuski, chiński uproszczony, czeski, hiszpański, włoski, polski, portugalski, słowacki, ukraiński i rosyjski (14 języków, 850+ kluczy tłumaczenia na język)
 - 💱 **Wiele walut** - EUR, HUF, USD
 - 🔄 **Automatyczne aktualizacje** - Sprawdza GitHub Releases pod kątem nowych wersji
 - 🧪 **Wersje beta** - Obsługa gałęzi beta i kompilacji beta
@@ -35,6 +37,26 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 - 📋 **Duplikowanie** - Łatwe duplikowanie ofert
 - 🖱️ **Przeciąganie i upuszczanie** - Zmiana kolejności ofert, filamentów i drukarek przez przeciąganie
 - 📱 **Menu kontekstowe** - Menu prawego przycisku myszy do szybkich akcji (edytuj, usuń, duplikuj, eksportuj)
+
+## 📋 Dziennik zmian (Changelog)
+
+### v0.6.0 (Najnowsza)
+
+#### 🐛 Naprawy błędów
+- **Optymalizacja logowania**: Zmniejszenie nadmiernego i zduplikowanego logowania
+  - Logi informacyjne pojawiają się tylko w trybie deweloperskim (DEV)
+  - Błędy nadal są logowane w buildach produkcyjnych
+  - Inicjalizacja FilamentLibrary odbywa się cicho
+- **Naprawa fałszywych ostrzeżeń**: Rozpoznawanie koloru filamentu ostrzega tylko wtedy, gdy biblioteka jest już załadowana i kolor nadal nie został znaleziony
+  - Zapobiega fałszywym ostrzeżeniom podczas asynchronicznego ładowania biblioteki
+  - Ostrzeżenia pojawiają się tylko w przypadku rzeczywistych problemów
+- **Naprawa duplikacji sprawdzania aktualizacji**: Usunięcie zduplikowanych wywołań sprawdzania aktualizacji
+- **Naprawa logowania skrótów klawiszowych**: Loguje tylko wtedy, gdy istnieje skrót, pomija nieprawidłowe kombinacje
+
+#### ⚡ Ulepszenia wydajności
+- Optymalizacja logowania operacji magazynu (tylko tryb DEV)
+- Mniej operacji konsoli w buildach produkcyjnych
+- Czystsze wyjście konsoli podczas rozwoju
 
 ## 📸 Zrzuty ekranu
 
@@ -240,6 +262,50 @@ Lekszikov Miklós (LexyGuru)
 Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub Actions, który kompiluje wersję beta.
 
 ## 📋 Historia wersji
+
+### v0.6.0 (2025)
+
+- 👥 **Baza danych klientów** - Kompletny system zarządzania klientami z:
+  - Dodawanie, edycja, usuwanie klientów
+  - Informacje kontaktowe (e-mail, telefon)
+  - Dane firmy (opcjonalne)
+  - Adres i notatki
+  - Statystyki klientów (łączna liczba ofert, data ostatniej oferty)
+  - Funkcjonalność wyszukiwania
+  - Integracja z Kalkulatorem dla szybkiego wyboru klienta
+- 📊 **Historia i trendy cen** - Śledzenie zmian cen filamentu:
+  - Automatyczne śledzenie historii cen przy aktualizacji cen filamentu
+  - Wizualizacja trendów cenowych z wykresami SVG
+  - Statystyki cen (cena bieżąca, średnia, min, max)
+  - Analiza trendów (rosnący, malejący, stabilny)
+  - Tabela historii cen ze szczegółowymi informacjami o zmianach
+  - Ostrzeżenia o znaczących zmianach cen (zmiany 10%+)
+  - Wyświetlanie historii cen w komponencie Filamenty podczas edycji
+- 🔧 **Ulepszenia**:
+  - Ulepszony Kalkulator z menu rozwijanym wyboru klienta
+  - Integracja historii cen w formularzu edycji filamentu
+  - Ulepszona trwałość danych dla klientów i historii cen
+
+### v0.5.58 (2025)
+- 🌍 **Obsługa języków ukraińskiego i rosyjskiego** – Dodano pełne wsparcie tłumaczeń dla ukraińskiego (uk) i rosyjskiego (ru):
+  - Kompletne pliki tłumaczeń ze wszystkimi 813 kluczami tłumaczenia dla obu języków
+  - Obsługa locale ukraińskiego (uk-UA) dla formatowania daty/czasu
+  - Obsługa locale rosyjskiego (ru-RU) dla formatowania daty/czasu
+  - Wszystkie pliki README zaktualizowane z nowymi językami w menu językowym
+  - Liczba języków zaktualizowana z 12 do 14 języków
+  - Utworzono pliki dokumentacji README.uk.md i README.ru.md
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
 ### v0.5.56 (2025)
 - 🌍 **Pełne tłumaczenia językowe** – Ukończono pełne tłumaczenia dla 6 pozostałych plików językowych: czeski (cs), hiszpański (es), włoski (it), polski (pl), portugalski (pt) i słowacki (sk). Każdy plik zawiera wszystkie 813 kluczy tłumaczenia, więc aplikacja jest teraz w pełni obsługiwana w tych językach.
@@ -479,7 +545,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 0.5.56
+**Wersja**: 0.6.0
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

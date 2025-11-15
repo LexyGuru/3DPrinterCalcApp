@@ -2,7 +2,7 @@
 
 > **🌍 Výběr jazyka**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pomocí Tauri v2, React frontendu a Rust backendu.
 
@@ -22,7 +22,7 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 - 🖼️ **Obrázky filamentů v PDF** - Zobrazení log filamentů a vzorků barev v generovaných PDF
 - 🧾 **Import G-code a vytváření konceptu** - Načítání exportů G-code/JSON (Prusa, Cura, Orca, Qidi) z modalu v kalkulačce, s podrobným shrnutím a automatickým generováním konceptu nabídky
 - 📈 **Statistiky** - Přehledný dashboard pro spotřebu filamentu, příjmy, zisk
-- 🌍 **Vícejazyčnost** - Úplný překlad do maďarštiny, angličtiny, němčiny, francouzštiny, zjednodušené čínštiny, češtiny, španělštiny, italštiny, polštiny, portugalštiny a slovenštiny (12 jazyků, 813 překladových klíčů na jazyk)
+- 🌍 **Vícejazyčnost** - Úplný překlad do maďarštiny, angličtiny, němčiny, francouzštiny, zjednodušené čínštiny, češtiny, španělštiny, italštiny, polštiny, portugalštiny, slovenštiny, ukrajinštiny a ruštiny (14 jazyků, 813 překladových klíčů na jazyk)
 - 💱 **Více měn** - EUR, HUF, USD
 - 🔄 **Automatické aktualizace** - Kontroluje GitHub Releases pro nové verze
 - 🧪 **Beta verze** - Podpora beta větve a beta buildu
@@ -35,6 +35,26 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 - 📋 **Duplikace** - Snadná duplikace nabídek
 - 🖱️ **Drag & Drop** - Přeskupování nabídek, filamentů a tiskáren tažením
 - 📱 **Kontextová menu** - Menu pravého tlačítka pro rychlé akce (upravit, smazat, duplikovat, exportovat)
+
+## 📋 Seznam změn (Changelog)
+
+### v0.6.0 (Nejnovější)
+
+#### 🐛 Opravy chyb
+- **Optimalizace protokolování**: Snížení nadměrného a duplicitního protokolování
+  - Informační protokoly se zobrazují pouze v režimu vývoje (DEV)
+  - Chyby se stále protokolují i v produkčních sestaveních
+  - Inicializace FilamentLibrary probíhá tiše
+- **Oprava falešných varování**: Rozlišení barvy filamentu varuje pouze tehdy, když je knihovna již načtena a barva stále nebyla nalezena
+  - Zabraňuje falešným varováním během asynchronního načítání knihovny
+  - Varování se zobrazují pouze u skutečných problémů
+- **Oprava duplikace kontroly aktualizací**: Odstranění duplicitních volání kontroly aktualizací
+- **Oprava protokolování klávesových zkratek**: Protokoluje pouze tehdy, když existuje zkratka, přeskočí neplatné kombinace
+
+#### ⚡ Vylepšení výkonu
+- Optimalizace protokolování operací úložiště (pouze režim DEV)
+- Méně operací konzole v produkčních sestaveních
+- Čistší výstup konzole během vývoje
 
 ## 📸 Screenshoty
 
@@ -240,6 +260,50 @@ Lekszikov Miklós (LexyGuru)
 Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions, který sestaví beta verzi.
 
 ## 📋 Historie verzí
+
+### v0.6.0 (2025)
+
+- 👥 **Databáze zákazníků** - Kompletní systém správy zákazníků s:
+  - Přidávání, úprava, mazání zákazníků
+  - Kontaktní informace (e-mail, telefon)
+  - Firemní údaje (volitelné)
+  - Adresa a poznámky
+  - Statistiky zákazníků (celkový počet nabídek, datum poslední nabídky)
+  - Funkce vyhledávání
+  - Integrace s Kalkulačkou pro rychlý výběr zákazníka
+- 📊 **Historie a trendy cen** - Sledování změn cen filamentu:
+  - Automatické sledování historie cen při aktualizaci cen filamentu
+  - Vizualizace cenových trendů s grafy SVG
+  - Cenové statistiky (aktuální, průměrná, min, max cena)
+  - Analýza trendů (rostoucí, klesající, stabilní)
+  - Tabulka historie cen s podrobnými informacemi o změnách
+  - Varování při významných změnách cen (změny 10%+)
+  - Zobrazení historie cen v komponentě Filamenty během úpravy
+- 🔧 **Vylepšení**:
+  - Vylepšená Kalkulačka s rozbalovacím menu výběru zákazníka
+  - Integrace historie cen do formuláře úpravy filamentu
+  - Vylepšená trvalost dat pro zákazníky a historii cen
+
+### v0.5.58 (2025)
+- 🌍 **Podpora ukrajinštiny a ruštiny** – Přidána plná podpora překladů pro ukrajinštinu (uk) a ruštinu (ru):
+  - Kompletní překladové soubory se všemi 813 překladovými klíči pro oba jazyky
+  - Podpora ukrajinského locale (uk-UA) pro formátování data/času
+  - Podpora ruského locale (ru-RU) pro formátování data/času
+  - Všechny soubory README aktualizovány s novými jazyky v jazykovém menu
+  - Počet jazyků aktualizován z 12 na 14 jazyků
+  - Vytvořeny dokumentační soubory README.uk.md a README.ru.md
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
 ### v0.5.56 (2025)
 - 🌍 **Úplné jazykové překlady** – Dokončeny úplné překlady pro 6 zbývajících jazykových souborů: čeština (cs), španělština (es), italština (it), polština (pl), portugalština (pt) a slovenština (sk). Každý soubor obsahuje všech 813 překladových klíčů, takže aplikace je nyní plně podporována v těchto jazycích.
@@ -479,7 +543,7 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 
 ---
 
-**Verze**: 0.5.56
+**Verze**: 0.6.0
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 

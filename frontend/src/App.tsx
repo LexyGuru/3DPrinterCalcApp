@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./components/Sidebar";
+import { Header } from "./components/Header";
 import { UpdateChecker } from "./components/UpdateChecker";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
@@ -13,11 +14,14 @@ const Filaments = lazy(() => import("./components/Filaments").then(module => ({ 
 const Printers = lazy(() => import("./components/Printers").then(module => ({ default: module.Printers })));
 const Calculator = lazy(() => import("./components/Calculator").then(module => ({ default: module.Calculator })));
 const Offers = lazy(() => import("./components/Offers").then(module => ({ default: module.Offers })));
+const Customers = lazy(() => import("./components/Customers").then(module => ({ default: module.Customers })));
+const PriceTrends = lazy(() => import("./components/PriceTrends").then(module => ({ default: module.PriceTrends })));
+const Calendar = lazy(() => import("./components/Calendar").then(module => ({ default: module.Calendar })));
 const SettingsPage = lazy(() => import("./components/Settings").then(module => ({ default: module.SettingsPage })));
 const Console = lazy(() => import("./components/Console").then(module => ({ default: module.Console })));
-import type { Printer, Settings, Filament, Offer, ThemeName } from "./types";
+import type { Printer, Settings, Filament, Offer, Customer, ThemeName } from "./types";
 import { defaultSettings } from "./types";
-import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers } from "./utils/store";
+import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers } from "./utils/store";
 import { getThemeStyles, resolveTheme } from "./utils/themes";
 import { defaultAnimationSettings } from "./types";
 import { debounce } from "./utils/debounce";
@@ -26,23 +30,28 @@ import { ShortcutHelp } from "./components/ShortcutHelp";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
 import { logWithLanguage } from "./utils/languages/global_console";
+import { useTranslation } from "./utils/translations";
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
   const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const t = useTranslation(settings.language);
   const [printers, setPrinters] = useState<Printer[]>([]);
   const [filaments, setFilaments] = useState<Filament[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // 🔹 Betöltés indításkor
   useEffect(() => {
-    const loadData = async () => {
+      const loadData = async () => {
       const loadedPrinters = await loadPrinters();
       const loadedFilaments = await loadFilaments();
       const loadedSettings = await loadSettings();
       const loadedOffers = await loadOffers();
+      const loadedCustomers = await loadCustomers();
       
       if (loadedPrinters.length > 0) {
         setPrinters(loadedPrinters);
@@ -52,6 +61,9 @@ export default function App() {
       }
       if (loadedOffers.length > 0) {
         setOffers(loadedOffers);
+      }
+      if (loadedCustomers.length > 0) {
+        setCustomers(loadedCustomers);
       }
       if (loadedSettings) {
         // Ellenőrizzük hogy az electricityPrice érvényes érték-e
@@ -115,6 +127,12 @@ export default function App() {
     }
   }, autosaveInterval);
 
+  const debouncedSaveCustomers = debounce(() => {
+    if (isInitialized && autosaveEnabled) {
+      saveCustomers(customers);
+    }
+  }, autosaveInterval);
+
   useEffect(() => {
     if (isInitialized && autosaveEnabled) {
       debouncedSavePrinters();
@@ -147,6 +165,14 @@ export default function App() {
       saveOffers(offers);
     }
   }, [offers, isInitialized, autosaveEnabled]);
+
+  useEffect(() => {
+    if (isInitialized && autosaveEnabled) {
+      debouncedSaveCustomers();
+    } else if (isInitialized && !autosaveEnabled) {
+      saveCustomers(customers);
+    }
+  }, [customers, isInitialized, autosaveEnabled]);
 
   const handleSaveOffer = useCallback((offer: Offer) => {
     setOffers(prevOffers => [...prevOffers, offer]);
@@ -243,7 +269,7 @@ export default function App() {
       case "printers":
         return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
       case "calculator": 
-        return <Calculator printers={printers} filaments={filaments} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
+        return <Calculator printers={printers} filaments={filaments} customers={customers} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
       case "offers":
         return (
           <Offers
@@ -254,6 +280,35 @@ export default function App() {
             themeStyles={themeStyles}
             printers={printers}
             filaments={filaments}
+          />
+        );
+      case "customers":
+        return (
+          <Customers
+            customers={customers}
+            setCustomers={setCustomers}
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+            offers={offers}
+          />
+        );
+      case "priceTrends":
+        return (
+          <PriceTrends
+            filaments={filaments}
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+          />
+        );
+      case "calendar":
+        return (
+          <Calendar
+            offers={offers}
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
           />
         );
       case "settings": 
@@ -274,17 +329,12 @@ export default function App() {
       default: 
         return <Home settings={settings} offers={offers} theme={currentTheme} />;
     }
-  }, [activePage, filaments, printers, offers, settings, currentTheme, themeStyles, handleSaveOffer]);
+  }, [activePage, filaments, printers, offers, customers, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers]);
 
   // Determine if this is a beta build from environment variable (set at build time)
   const isBeta = import.meta.env.VITE_IS_BETA === 'true';
 
-  const loadingMessage =
-    settings.language === "hu"
-      ? "Betöltés..."
-      : settings.language === "de"
-      ? "Laden..."
-      : "Loading...";
+  const loadingMessage = t("common.loading");
 
   const loadingPlaceholder = animationSettings.loadingSkeletons ? (
     <LoadingSkeletonPage theme={currentTheme} />
@@ -314,9 +364,23 @@ export default function App() {
           color: currentTheme.colors.text,
         }}>
           <UpdateChecker settings={settings} />
-          <Sidebar activePage={activePage} setActivePage={setActivePage} settings={settings} isBeta={isBeta} theme={currentTheme} />
+          <Sidebar 
+            activePage={activePage} 
+            setActivePage={setActivePage} 
+            settings={settings} 
+            isBeta={isBeta} 
+            theme={currentTheme}
+            isOpen={isSidebarOpen}
+          />
+          <Header 
+            settings={settings} 
+            theme={currentTheme}
+            onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            isSidebarOpen={isSidebarOpen}
+          />
           <main style={{ 
-            padding: 20, 
+            padding: "20px", 
+            paddingTop: "90px",
             backgroundColor: currentTheme.colors.background?.includes('gradient')
               ? "transparent"
               : currentTheme.colors.background,
@@ -324,10 +388,11 @@ export default function App() {
             overflowY: "auto",
             overflowX: "hidden",
             position: "relative",
-            left: "200px",
-            width: "calc(100vw - 200px)",
+            left: isSidebarOpen ? "260px" : "0",
+            width: isSidebarOpen ? "calc(100vw - 260px)" : "100vw",
             height: "100vh",
             boxSizing: "border-box",
+            transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             perspective: animationSettings.pageTransition === "flip" ? "1200px" : undefined,
           }}>
             {!isInitialized ? (

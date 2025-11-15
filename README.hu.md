@@ -2,7 +2,7 @@
 
 > **🌍 Nyelv választás**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-vel készült, React frontend-del és Rust backend-del.
 
@@ -13,6 +13,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🖨️ **Nyomtató kezelés** - Nyomtatók és AMS rendszerek kezelése
 - 💰 **Profit számítás** - Választható profit százalék (10%, 20%, 30%, 40%, 50%)
 - 📄 **Árajánlatok** - Mentés, kezelés és PDF export árajánlatokhoz (ügyfél név, elérhetőség, leírás)
+- 📅 **Naptár integráció** - Nyomtatás esedékességi dátumok beállítása árajánlatokhoz, naptár nézet az elfogadott/kész/elutasított árajánlatokkal, státusz jelzések (elfogadva ✅, elutasítva ❌, befejezve ✔️), esedékes nyomtatások listája (ma és holnap), lejárt nyomtatások jelzése
 - 🧠 **Szűrő presetek** - Árajánlat szűrők mentése, gyors presetek alkalmazása, dátum/idő alapú automatikus filterek
 - 🗂️ **Státusz dashboard** - Státusz kártyák, gyors szűrők és idővonal a legutóbbi státuszváltozásokról
 - 📝 **Státusz megjegyzések** - Minden státuszváltás opcionális jegyzettel és előzmény naplózással
@@ -22,7 +23,9 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
 - 🧾 **G-code import és piszkozat készítés** - A kalkulátorban modális ablakból tölthető be G-code/JSON export (Prusa, Cura, Orca, Qidi), részletes összefoglalóval és automatikus árajánlat piszkozat generálással
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
-- 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia, egyszerűsített kínai, cseh, spanyol, olasz, lengyel, portugál és szlovák nyelveken (12 nyelv, összesen 813 fordítási kulcs minden nyelven)
+- 👥 **Ügyfél adatbázis** - Ügyfelek kezelése kapcsolattartási adatokkal, cégadatokkal és árajánlat statisztikákkal
+- 📊 **Ár előzmények és trendek** - Filament ár változások követése grafikonokkal és statisztikákkal
+- 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia, egyszerűsített kínai, cseh, spanyol, olasz, lengyel, portugál, szlovák, ukrán és orosz nyelveken (14 nyelv, összesen 850+ fordítási kulcs minden nyelven)
 - 💱 **Több pénznem** - EUR, HUF, USD
 - 🔄 **Automatikus frissítések** - Ellenőrzi a GitHub Releases-t új verziókért
 - 🧪 **Beta verziók** - Beta branch és beta buildelés támogatás
@@ -35,6 +38,27 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 📋 **Duplikálás** - Árajánlatok könnyű duplikálása
 - 🖱️ **Drag & Drop** - Árajánlatok, filamentek és nyomtatók átrendezése húzással
 - 📱 **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, export)
+- 🍎 **Platform-specifikus funkciók** - macOS Dock badge, natív értesítések, system tray integráció
+
+## 📋 Változások (Changelog)
+
+### v0.6.0 (Legutóbbi)
+
+#### 🐛 Hibajavítások
+- **Logolás optimalizálása**: Csökkentettük a felesleges és duplikált logolást
+  - Információs logok csak fejlesztői módban jelennek meg (DEV)
+  - Hibák továbbra is logolódnak production buildben is
+  - FilamentLibrary inicializálás csendes módban történik
+- **Hamis figyelmeztetések javítása**: A filament színfeloldás csak akkor ír WARN-t, ha a library már betöltve van és még mindig nem található a szín
+  - Megakadályozza a hamis figyelmeztetéseket az aszinkron library betöltés során
+  - Csak valódi problémák esetén jelennek meg figyelmeztetések
+- **Update Checker duplikáció javítása**: Eltávolítottuk a duplikált update check hívásokat
+- **Gyorsbillentyű logolás javítása**: Csak akkor logol, ha van regisztrált shortcut, kihagyja az érvénytelen kombinációkat
+
+#### ⚡ Teljesítmény javítások
+- Store műveletek logolása optimalizálva (csak DEV módban)
+- Kevesebb console művelet production buildben
+- Tisztább console output fejlesztés során
 
 ## 📸 Képernyőképek
 
@@ -240,6 +264,50 @@ Lekszikov Miklós (LexyGuru)
 A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
 ## 📋 Verziótörténet
+
+### v0.6.0 (2025)
+
+- 👥 **Ügyfél adatbázis** - Teljes ügyfélkezelő rendszer:
+  - Ügyfelek hozzáadása, szerkesztése, törlése
+  - Kapcsolattartási információk (email, telefon)
+  - Cégadatok (opcionális)
+  - Cím és megjegyzések
+  - Ügyfél statisztikák (összes árajánlat, utolsó árajánlat dátuma)
+  - Keresési funkció
+  - Kalkulátor integráció gyors ügyfél kiválasztáshoz
+- 📊 **Ár előzmények és trendek** - Filament ár változások követése:
+  - Automatikus ár előzmény követés filament ár módosításnál
+  - Ár trendek vizualizáció SVG grafikonokkal
+  - Ár statisztikák (jelenlegi, átlagos, min, max ár)
+  - Trend elemzés (növekvő, csökkenő, stabil)
+  - Ár előzmények táblázat részletes változási információkkal
+  - Jelentős ár változás figyelmeztetések (10%+ változások)
+  - Ár előzmények megjelenítése a Filaments komponensben szerkesztéskor
+- 🔧 **Javítások**:
+  - Továbbfejlesztett Kalkulátor ügyfél kiválasztó dropdown-nal
+  - Ár előzmények integráció a Filament szerkesztési formban
+  - Továbbfejlesztett adatmegőrzés ügyfelekhez és ár előzményekhez
+
+### v0.5.58 (2025)
+- 🌍 **Ukrán és Orosz nyelv támogatás** – Teljes fordítási támogatás hozzáadva az ukrán (uk) és orosz (ru) nyelvekhez:
+  - Teljes fordítási fájlok mindkét nyelvhez, összesen 813 fordítási kulccsal
+  - Ukrán locale támogatás (uk-UA) dátum/idő formázáshoz
+  - Orosz locale támogatás (ru-RU) dátum/idő formázáshoz
+  - Minden README fájl frissítve az új nyelvekkel a nyelvmenüben
+  - Nyelvszámláló frissítve 12-ről 14 nyelvre
+  - README.uk.md és README.ru.md dokumentációs fájlok létrehozva
+
+### v0.5.57 (2025)
+- 🍎 **Platform-specifikus funkciók** – Natív platform integráció macOS, Windows és Linux rendszerekhez:
+  - **macOS**: Dock badge támogatás (számos/szöveges badge az alkalmazás ikonján), natív Notification Center integráció engedélykezeléssel
+  - **Windows**: Natív Windows értesítések
+  - **Linux**: System tray integráció, desktop értesítések támogatás
+  - **Minden platform**: Natív értesítési API integráció engedélykérési rendszerrel, platform detektálás és automatikus funkció engedélyezés
+- 🔔 **Értesítési rendszer** – Natív értesítési támogatás engedélykezeléssel:
+  - Engedélykérési rendszer macOS értesítésekhez
+  - Értesítési teszt gombok a Beállításokban
+  - Automatikus engedély ellenőrzés és státusz megjelenítés
+  - Platform-specifikus értesítés kezelés (macOS Notification Center, Windows Action Center, Linux desktop értesítések)
 
 ### v0.5.56 (2025)
 - 🌍 **Teljes nyelvi fordítások** – Elkészült a maradék 6 nyelvi fájl teljes fordítása: cseh (cs), spanyol (es), olasz (it), lengyel (pl), portugál (pt) és szlovák (sk). Minden fájl tartalmazza az összes 813 fordítási kulcsot, így az alkalmazás mostantól teljes mértékben támogatott ezeken a nyelveken.
@@ -479,7 +547,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.5.56
+**Verzió**: 0.6.0
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

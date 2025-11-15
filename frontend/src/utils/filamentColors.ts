@@ -99,10 +99,12 @@ const COLOR_PRESETS: Record<string, FilamentColorOption[]> = {
 const ALL_COLOR_OPTIONS: FilamentColorOption[] = Object.values(COLOR_PRESETS).flat();
 
 const COLOR_KEYWORD_HEX: Array<{ regex: RegExp; hex: string }> = [
-  { regex: /(natural\s*brown|brown\s*natural|brown)/i, hex: "#8B4513" },
+  { regex: /(natural\s*brown|brown\s*natural|brown|kávé|kave|coffee)/i, hex: "#8B4513" },
   { regex: /(woodfill|wood\s?grain|mahogany|walnut|chestnut|oak)/i, hex: "#8B5A2B" },
   { regex: /(beige|tan|sand)/i, hex: "#D2B48C" },
   { regex: /(ivory|cream)/i, hex: "#FFF8E1" },
+  { regex: /(ég\s*kék|eg\s*kek|sky\s*blue|light\s*blue)/i, hex: "#87CEEB" },
+  { regex: /(szivárvány|szivarvany|rainbow|multicolor|multi[\s-]?color)/i, hex: "#FF0000" }, // Multicolor placeholder
 ];
 
 export function normalizeHex(hex?: string | null): string {
@@ -139,13 +141,56 @@ export function getFinishLabel(finish: FilamentFinish, language: Settings["langu
   return labels ? labels[language] ?? labels.en : finish;
 }
 
+const containsHungarianCharacters = (text: string): boolean => {
+  // Check for Hungarian-specific characters (á, é, í, ó, ö, ő, ú, ü, ű)
+  return /[áéíóöőúüűÁÉÍÓÖŐÚÜŰ]/.test(text);
+};
+
 export function findColorOptionByLabel(label?: string | null): FilamentColorOption | undefined {
   if (!label) return undefined;
   const normalized = label.trim().toLowerCase();
   if (!normalized) return undefined;
-  return ALL_COLOR_OPTIONS.find(option =>
+  const isHungarian = containsHungarianCharacters(label);
+  
+  // First try exact match
+  let match = ALL_COLOR_OPTIONS.find(option =>
     Object.values(option.labels).some(value => value.toLowerCase() === normalized)
   );
+  
+  // If no exact match and Hungarian text, try fuzzy matching (remove accents, spaces, special chars)
+  if (!match && isHungarian) {
+    const fuzzySearch = normalized
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+    
+    match = ALL_COLOR_OPTIONS.find(option =>
+      Object.values(option.labels).some(value => {
+        const normalizedValue = value
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]/g, "");
+        return normalizedValue === fuzzySearch || normalizedValue.includes(fuzzySearch) || fuzzySearch.includes(normalizedValue);
+      })
+    );
+  }
+  
+  // If still no match and Hungarian text, try partial matching (e.g., "Ég Kék" -> "Kék")
+  if (!match && isHungarian && normalized.includes(" ")) {
+    const words = normalized.split(/\s+/).filter(w => w.length > 2);
+    for (const word of words) {
+      match = ALL_COLOR_OPTIONS.find(option =>
+        Object.values(option.labels).some(value => {
+          const normalizedValue = value.toLowerCase();
+          return normalizedValue === word || normalizedValue.includes(word) || word.includes(normalizedValue);
+        })
+      );
+      if (match) break;
+    }
+  }
+  
+  return match;
 }
 
 export function resolveColorHexFromName(label?: string | null): string | undefined {
@@ -156,9 +201,13 @@ export function resolveColorHexFromName(label?: string | null): string | undefin
   if (option) {
     return normalizeHex(option.hex);
   }
-  const keywordEntry = COLOR_KEYWORD_HEX.find(entry => entry.regex.test(label));
-  if (keywordEntry) {
-    return normalizeHex(keywordEntry.hex);
+  // Only use Hungarian-specific keywords if the label contains Hungarian characters
+  const isHungarian = containsHungarianCharacters(label);
+  if (isHungarian) {
+    const keywordEntry = COLOR_KEYWORD_HEX.find(entry => entry.regex.test(label));
+    if (keywordEntry) {
+      return normalizeHex(keywordEntry.hex);
+    }
   }
   return undefined;
 }

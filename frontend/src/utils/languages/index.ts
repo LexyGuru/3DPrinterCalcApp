@@ -10,6 +10,8 @@ import { languageCs } from "./language_cs";
 import { languageSk } from "./language_sk";
 import { languageZh } from "./language_zh";
 import { languagePt } from "./language_pt";
+import { languageUk } from "./language_uk";
+import { languageRu } from "./language_ru";
 
 const languageDefinitions: LanguageDefinition[] = [
   { code: "hu", label: "Magyar", flag: "🇭🇺", translations: languageHu },
@@ -23,6 +25,8 @@ const languageDefinitions: LanguageDefinition[] = [
   { code: "sk", label: "Slovenčina", flag: "🇸🇰", translations: languageSk },
   { code: "zh", label: "中文（简体）", flag: "🇨🇳", translations: languageZh },
   { code: "pt-BR", label: "Português (Brasil)", flag: "🇧🇷", translations: languagePt },
+  { code: "uk", label: "Українська", flag: "🇺🇦", translations: languageUk },
+  { code: "ru", label: "Русский", flag: "🇷🇺", translations: languageRu },
 ];
 
 export const translations: Record<LanguageCode, TranslationMap> = languageDefinitions.reduce(

@@ -2,7 +2,7 @@
 
 > **🌍 Sélection de la langue**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 Une application desktop moderne pour calculer les coûts d'impression 3D. Construite avec Tauri v2, frontend React et backend Rust.
 
@@ -22,7 +22,9 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 - 🖼️ **Images de filament dans PDF** - Afficher les logos de filament et échantillons de couleur dans les PDF générés
 - 🧾 **Importation G-code et création de brouillon** - Charger les exportations G-code/JSON (Prusa, Cura, Orca, Qidi) depuis modal dans la calculatrice, avec résumé détaillé et génération automatique de brouillon de devis
 - 📈 **Statistiques** - Tableau de bord de résumé pour consommation de filament, revenus, profit
-- 🌍 **Multilingue** - Traduction complète en hongrois, anglais, allemand, français, chinois simplifié, tchèque, espagnol, italien, polonais, portugais et slovaque (12 langues, 813 clés de traduction par langue)
+- 👥 **Base de données clients** - Gestion des clients avec informations de contact, détails d'entreprise et statistiques d'offres
+- 📊 **Historique et tendances des prix** - Suivi des changements de prix de filament avec graphiques et statistiques
+- 🌍 **Multilingue** - Traduction complète en hongrois, anglais, allemand, français, chinois simplifié, tchèque, espagnol, italien, polonais, portugais, slovaque, ukrainien et russe (14 langues, 850+ clés de traduction par langue)
 - 💱 **Plusieurs devises** - EUR, HUF, USD
 - 🔄 **Mises à jour automatiques** - Vérifie GitHub Releases pour nouvelles versions
 - 🧪 **Versions bêta** - Support de branche bêta et build bêta
@@ -35,6 +37,27 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 - 📋 **Duplication** - Duplication facile des devis
 - 🖱️ **Glisser-déposer** - Réorganiser devis, filaments et imprimantes en glissant
 - 📱 **Menus contextuels** - Menus clic droit pour actions rapides (modifier, supprimer, dupliquer, exporter)
+- 🍎 **Fonctionnalités spécifiques à la plateforme** - Badge Dock macOS, notifications natives, intégration de la barre d'état système
+
+## 📋 Journal des modifications (Changelog)
+
+### v0.6.0 (Dernière)
+
+#### 🐛 Corrections de bugs
+- **Optimisation de la journalisation**: Réduction de la journalisation excessive et dupliquée
+  - Les journaux informatifs n'apparaissent qu'en mode développement (DEV)
+  - Les erreurs sont toujours journalisées dans les builds de production
+  - L'initialisation de FilamentLibrary se fait silencieusement
+- **Correction des avertissements faux**: La résolution de couleur de filament n'avertit que lorsque la bibliothèque est déjà chargée et que la couleur n'est toujours pas trouvée
+  - Empêche les avertissements faux pendant le chargement asynchrone de la bibliothèque
+  - Les avertissements n'apparaissent que pour les vrais problèmes
+- **Correction de la duplication du vérificateur de mises à jour**: Suppression des appels de vérification de mises à jour dupliqués
+- **Correction de la journalisation des raccourcis clavier**: Journalise uniquement lorsqu'un raccourci existe, ignore les combinaisons invalides
+
+#### ⚡ Améliorations des performances
+- Journalisation des opérations de stockage optimisée (mode DEV uniquement)
+- Moins d'opérations de console dans les builds de production
+- Sortie de console plus propre pendant le développement
 
 ## 📸 Captures d'écran
 
@@ -240,6 +263,50 @@ Lekszikov Miklós (LexyGuru)
 Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute automatiquement, compilant la version bêta.
 
 ## 📋 Historique des versions
+
+### v0.6.0 (2025)
+
+- 👥 **Base de données clients** - Système complet de gestion des clients avec:
+  - Ajouter, modifier, supprimer des clients
+  - Informations de contact (e-mail, téléphone)
+  - Détails d'entreprise (optionnel)
+  - Adresse et notes
+  - Statistiques des clients (total des offres, date de la dernière offre)
+  - Fonctionnalité de recherche
+  - Intégration avec la Calculatrice pour la sélection rapide de clients
+- 📊 **Historique et tendances des prix** - Suivi des changements de prix de filament:
+  - Suivi automatique de l'historique des prix lors de la mise à jour des prix de filament
+  - Visualisation des tendances de prix avec des graphiques SVG
+  - Statistiques de prix (prix actuel, moyen, min, max)
+  - Analyse des tendances (croissant, décroissant, stable)
+  - Tableau de l'historique des prix avec des informations détaillées sur les changements
+  - Avertissements pour les changements de prix significatifs (changements de 10%+)
+  - Affichage de l'historique des prix dans le composant Filaments pendant l'édition
+- 🔧 **Améliorations**:
+  - Calculatrice améliorée avec menu déroulant de sélection de clients
+  - Intégration de l'historique des prix dans le formulaire d'édition de filament
+  - Persistance des données améliorée pour les clients et l'historique des prix
+
+### v0.5.58 (2025)
+- 🌍 **Support des langues ukrainienne et russe** – Ajout du support complet de traduction pour l'ukrainien (uk) et le russe (ru):
+  - Fichiers de traduction complets avec toutes les 813 clés de traduction pour les deux langues
+  - Support de locale ukrainienne (uk-UA) pour le formatage date/heure
+  - Support de locale russe (ru-RU) pour le formatage date/heure
+  - Tous les fichiers README mis à jour avec les nouvelles langues dans le menu des langues
+  - Nombre de langues mis à jour de 12 à 14 langues
+  - Fichiers de documentation README.uk.md et README.ru.md créés
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
 ### v0.5.56 (2025)
 - 🌍 **Traductions linguistiques complètes** – Terminées les traductions complètes pour 6 fichiers linguistiques restants: tchèque (cs), espagnol (es), italien (it), polonais (pl), portugais (pt) et slovaque (sk). Chaque fichier contient toutes les 813 clés de traduction, donc l'application est maintenant entièrement prise en charge dans ces langues.
@@ -479,7 +546,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 0.5.56
+**Version**: 0.6.0
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

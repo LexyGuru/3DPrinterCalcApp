@@ -48,6 +48,8 @@ const LANGUAGE_LOCALES: Record<string, string> = {
   sk: "sk-SK",
   zh: "zh-CN",
   "pt-BR": "pt-BR",
+  uk: "uk-UA",
+  ru: "ru-RU",
   en: "en-US",
 };
 
@@ -327,7 +329,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         const label =
           f.type && f.brand
             ? `${f.brand} · ${f.type}`
-            : f.type || f.brand || (settings.language === "hu" ? "Ismeretlen filament" : settings.language === "de" ? "Unbekanntes Filament" : "Unknown filament");
+            : f.type || f.brand || t("home.chart.unknownFilament");
         map.set(label, (map.get(label) ?? 0) + f.usedGrams);
       });
     });
@@ -389,7 +391,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
   const exportChartAsSvg = (svg: SVGSVGElement | null, filename: string) => {
     if (!svg) {
       showToast(
-        settings.language === "hu" ? "Nem található a grafikon" : settings.language === "de" ? "Diagram nicht gefunden" : "Chart not found",
+        t("home.chart.notFound"),
         "error"
       );
       return;
@@ -402,7 +404,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
     const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`;
     downloadDataUrl(dataUrl, filename);
     showToast(
-      settings.language === "hu" ? "SVG exportálva" : settings.language === "de" ? "SVG exportiert" : "SVG exported",
+      t("home.chart.export.svg"),
       "success"
     );
   };
@@ -451,7 +453,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
   const exportChartAsPng = async (svg: SVGSVGElement | null, filename: string) => {
     if (!svg) {
       showToast(
-        settings.language === "hu" ? "Nem található a grafikon" : settings.language === "de" ? "Diagram nicht gefunden" : "Chart not found",
+        t("home.chart.notFound"),
         "error"
       );
       return;
@@ -461,13 +463,13 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
       const dataUrl = await svgToPngDataUrl(svg, background || "#ffffff");
       downloadDataUrl(dataUrl, filename);
       showToast(
-        settings.language === "hu" ? "PNG exportálva" : settings.language === "de" ? "PNG exportiert" : "PNG exported",
+        t("home.chart.export.png"),
         "success"
       );
     } catch (error) {
       logWithLanguage(settings.language, "error", "stats.pngError", { error });
       showToast(
-        settings.language === "hu" ? "PNG export hiba" : settings.language === "de" ? "Fehler beim PNG-Export" : "PNG export failed",
+        t("home.chart.export.pngFailed"),
         "error"
       );
     }
@@ -477,17 +479,17 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
     const charts: Array<{ ref: React.MutableRefObject<SVGSVGElement | null>; title: string; available: boolean }> = [
       {
         ref: trendChartRef,
-        title: settings.language === "hu" ? "Pénzügyi trendek" : settings.language === "de" ? "Finanztrends" : "Financial trends",
+        title: t("home.chart.financialTrends"),
         available: hasTrendData,
       },
       {
         ref: filamentChartRef,
-        title: settings.language === "hu" ? "Filament megoszlás" : settings.language === "de" ? "Filamentverteilung" : "Filament breakdown",
+        title: t("home.chart.filamentBreakdown"),
         available: hasFilamentData,
       },
       {
         ref: printerChartRef,
-        title: settings.language === "hu" ? "Bevétel nyomtatónként" : settings.language === "de" ? "Umsatz je Drucker" : "Revenue by printer",
+        title: t("home.chart.revenueByPrinter"),
         available: hasPrinterData,
       },
     ];
@@ -495,7 +497,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
     const usableCharts = charts.filter(chart => chart.available && chart.ref.current);
     if (usableCharts.length === 0) {
       showToast(
-        settings.language === "hu" ? "Nincs exportálható grafikon" : settings.language === "de" ? "Keine Diagramme zum Export" : "No charts to export",
+        t("home.chart.export.noCharts"),
         "error"
       );
       return;
@@ -524,13 +526,13 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
 
       pdf.save(`charts_${new Date().toISOString().split("T")[0]}.pdf`);
       showToast(
-        settings.language === "hu" ? "PDF exportálva" : settings.language === "de" ? "PDF exportiert" : "PDF exported",
+        t("home.chart.export.pdf"),
         "success"
       );
     } catch (error) {
       logWithLanguage(settings.language, "error", "stats.pdfError", { error });
       showToast(
-        settings.language === "hu" ? "PDF export hiba" : settings.language === "de" ? "Fehler beim PDF-Export" : "PDF export failed",
+        t("home.chart.export.pdfFailed"),
         "error"
       );
     }
@@ -603,9 +605,9 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
       } else {
         // CSV formátum
         const csvRows: string[] = [];
-        const categoryLabel = settings.language === "hu" ? "Kategória" : settings.language === "de" ? "Kategorie" : "Category";
-        const valueLabel = settings.language === "hu" ? "Érték" : settings.language === "de" ? "Wert" : "Value";
-        const unitLabel = settings.language === "hu" ? "Egység" : settings.language === "de" ? "Einheit" : "Unit";
+        const categoryLabel = t("home.csv.category");
+        const valueLabel = t("home.csv.value");
+        const unitLabel = t("home.csv.unit");
         csvRows.push(`${categoryLabel},${valueLabel},${unitLabel}`);
         const filamentLabel = statsLabels.totalFilament;
         const revenueLabel = statsLabels.totalRevenue;
@@ -624,19 +626,19 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         csvRows.push(`${costLabel},${formatCurrency(statsToExport.totalCosts).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
         csvRows.push(`${profitLabel},${formatCurrency(statsToExport.totalProfit).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
         csvRows.push(`${printTimeLabel},${statsToExport.totalPrintTime.toFixed(1)},${timeUnit}`);
-        csvRows.push(`${offerCountLabel},${statsToExport.offerCount},${settings.language === "hu" ? "db" : settings.language === "de" ? "Stk" : "pcs"}`);
+        csvRows.push(`${offerCountLabel},${statsToExport.offerCount},${t("home.csv.unit.pcs")}`);
         csvRows.push(`${avgProfitLabel},${statsToExport.offerCount > 0 ? formatCurrency(statsToExport.totalProfit / statsToExport.offerCount).toFixed(2) : "0.00"},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
         csvRows.push(`${profitMarginLabel},${statsToExport.totalRevenue > 0 ? ((statsToExport.totalProfit / statsToExport.totalRevenue) * 100).toFixed(1) : "0.0"},%`);
         csvRows.push("");
-        const offerDetailsLabel = settings.language === "hu" ? "Árajánlat részletek" : settings.language === "de" ? "Angebotsdetails" : "Offer details";
+        const offerDetailsLabel = t("home.csv.offerDetails");
         csvRows.push(offerDetailsLabel);
-        const idLabel = settings.language === "hu" ? "ID" : "ID";
-        const dateLabel = settings.language === "hu" ? "Dátum" : settings.language === "de" ? "Datum" : "Date";
-        const customerLabel = settings.language === "hu" ? "Ügyfél név" : settings.language === "de" ? "Kundenname" : "Customer name";
-        const totalCostLabel = settings.language === "hu" ? "Összes költség" : settings.language === "de" ? "Gesamtkosten" : "Total cost";
-        const profitPercentLabel = settings.language === "hu" ? "Profit százalék" : settings.language === "de" ? "Gewinnprozentsatz" : "Profit percentage";
-        const revenueLabel2 = settings.language === "hu" ? "Bevétel" : settings.language === "de" ? "Einnahmen" : "Revenue";
-        const currencyLabel = settings.language === "hu" ? "Pénznem" : settings.language === "de" ? "Währung" : "Currency";
+        const idLabel = "ID";
+        const dateLabel = t("home.csv.date");
+        const customerLabel = t("home.csv.customerName");
+        const totalCostLabel = t("home.csv.totalCost");
+        const profitPercentLabel = t("home.csv.profitPercentage");
+        const revenueLabel2 = t("home.csv.revenue");
+        const currencyLabel = t("home.csv.currency");
         
         csvRows.push(`${idLabel},${dateLabel},${customerLabel},${totalCostLabel},${profitPercentLabel},${revenueLabel2},${currencyLabel}`);
         filterOffersByPeriod(offers, selectedPeriod).forEach(o => {
@@ -669,9 +671,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           format: exportFormat,
         });
         showToast(
-          settings.language === "hu" ? "Statisztikák sikeresen exportálva" :
-          settings.language === "de" ? "Statistiken erfolgreich exportiert" :
-          "Statistics exported successfully",
+          t("settings.dataExport.success"),
           "success"
         );
       } else {
@@ -680,9 +680,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
     } catch (error) {
       logWithLanguage(settings.language, "error", "stats.export.error", { error });
       showToast(
-        settings.language === "hu" ? "Hiba történt az export során" :
-        settings.language === "de" ? "Fehler beim Export" :
-        "Error exporting statistics",
+        t("settings.dataExport.error"),
         "error"
       );
     }
@@ -806,9 +804,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           period: reportPeriod,
         });
         showToast(
-          settings.language === "hu" ? "Riport sikeresen generálva" :
-          settings.language === "de" ? "Bericht erfolgreich generiert" :
-          "Report generated successfully",
+          t("common.success"),
           "success"
         );
         setShowReportDialog(false);
@@ -818,9 +814,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
     } catch (error) {
       logWithLanguage(settings.language, "error", "reports.generate.error", { error });
       showToast(
-        settings.language === "hu" ? "Hiba történt a riport generálása során" :
-        settings.language === "de" ? "Fehler beim Generieren des Berichts" :
-        "Error generating report",
+        t("common.error"),
         "error"
       );
     }
@@ -1451,7 +1445,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
               gap: "8px",
             }}>
               <span style={{ fontSize: "24px" }}>📊</span>
-              {settings.language === "hu" ? "Időszak összehasonlítás" : settings.language === "de" ? "Zeitraum Vergleich" : "Period Comparison"}
+              {t("home.periodComparison.title")}
             </h3>
             <div style={{
               display: "grid",
@@ -1459,9 +1453,9 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
               gap: "16px"
             }}>
               {[
-                { label: settings.language === "hu" ? "Heti" : settings.language === "de" ? "Wöchentlich" : "Weekly", stats: weeklyStats, icon: "📅", color: "#4299e1" },
-                { label: settings.language === "hu" ? "Havi" : settings.language === "de" ? "Monatlich" : "Monthly", stats: monthlyStats, icon: "📆", color: "#48bb78" },
-                { label: settings.language === "hu" ? "Éves" : settings.language === "de" ? "Jährlich" : "Yearly", stats: yearlyStats, icon: "📊", color: "#667eea" },
+                { label: t("home.period.option.week"), stats: weeklyStats, icon: "📅", color: "#4299e1" },
+                { label: t("home.period.option.month"), stats: monthlyStats, icon: "📆", color: "#48bb78" },
+                { label: t("home.period.option.year"), stats: yearlyStats, icon: "📊", color: "#667eea" },
               ].map((period, index) => (
                 <div key={index} style={{
                   padding: "20px",
@@ -1624,7 +1618,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     gap: "10px",
                   }}>
                     <span style={{ fontSize: "24px" }}>📈</span>
-                    {settings.language === "hu" ? "Pénzügyi trendek" : settings.language === "de" ? "Finanztrends" : "Financial trends"}
+                    {t("home.chart.financialTrends")}
                   </h3>
                   <p style={{
                     margin: "8px 0 0 0",
@@ -1708,15 +1702,15 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                   </div>
                   <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginTop: "16px" }}>
                     {[{
-                      label: settings.language === "hu" ? "Bevétel összesen" : settings.language === "de" ? "Gesamteinnahmen" : "Total revenue",
+                      label: t("home.stats.totalRevenue"),
                       value: trendTotals.revenue,
                       color: "#22D3EE",
                     }, {
-                      label: settings.language === "hu" ? "Költség összesen" : settings.language === "de" ? "Gesamtkosten" : "Total costs",
+                      label: t("home.stats.totalCost"),
                       value: trendTotals.costs,
                       color: "#F97316",
                     }, {
-                      label: settings.language === "hu" ? "Profit összesen" : settings.language === "de" ? "Gesamtgewinn" : "Total profit",
+                      label: t("home.stats.netProfit"),
                       value: trendTotals.profit,
                       color: "#4ADE80",
                     }].map(item => (
@@ -1755,7 +1749,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                   border: `1px dashed ${theme.colors.border}`,
                   borderRadius: "16px",
                 }}>
-                  {settings.language === "hu" ? "Nincs elegendő adat a grafikonhoz" : settings.language === "de" ? "Nicht genügend Daten für das Diagramm" : "Not enough data to render the chart"}
+                  {t("home.chart.notEnoughData")}
                 </div>
               )}
             </div>
@@ -1791,7 +1785,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                       alignItems: "center",
                     }}>
                       <span style={{ fontSize: "20px" }}>🧵</span>
-                      {settings.language === "hu" ? "Filament megoszlás" : settings.language === "de" ? "Filamentverteilung" : "Filament breakdown"}
+                      {t("home.chart.filamentBreakdown")}
                     </h3>
                     <p style={{
                       margin: "6px 0 0 0",
@@ -1845,7 +1839,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                 {hasFilamentData ? (
                   <>
                     <div style={{ marginTop: "16px", height: "280px" }}>
-                      <PieChart data={filamentBreakdown} theme={theme} svgRef={filamentChartRef} emptyLabel={settings.language === "hu" ? "Nincs adat" : settings.language === "de" ? "Keine Daten" : "No data"} />
+                      <PieChart data={filamentBreakdown} theme={theme} svgRef={filamentChartRef} emptyLabel={t("home.chart.noData")} />
                     </div>
                     <div style={{ marginTop: "18px", display: "flex", flexDirection: "column", gap: "8px" }}>
                       {filamentBreakdown.map(slice => {
@@ -1873,7 +1867,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     border: `1px dashed ${theme.colors.border}`,
                     borderRadius: "16px",
                   }}>
-                    {settings.language === "hu" ? "Nincs filament adat" : settings.language === "de" ? "Keine Filamentdaten" : "No filament data"}
+                    {t("home.chart.noFilamentData")}
                   </div>
                 )}
               </div>
@@ -1901,7 +1895,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                       alignItems: "center",
                     }}>
                       <span style={{ fontSize: "20px" }}>🖨️</span>
-                      {settings.language === "hu" ? "Bevétel nyomtatónként" : settings.language === "de" ? "Umsatz je Drucker" : "Revenue by printer"}
+                      {t("home.chart.revenueByPrinter")}
                     </h3>
                     <p style={{
                       margin: "6px 0 0 0",
@@ -1984,7 +1978,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     border: `1px dashed ${theme.colors.border}`,
                     borderRadius: "16px",
                   }}>
-                    {settings.language === "hu" ? "Nincs nyomtató adat" : settings.language === "de" ? "Keine Druckerdaten" : "No printer data"}
+                    {t("home.chart.noPrinterData")}
                   </div>
                 )}
               </div>
@@ -2115,12 +2109,12 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         const filteredOffers = filterOffersByPeriod(offers, reportPeriod);
         const reportStats = calculateStatistics(filteredOffers);
         const periodLabel = reportPeriod === "all" 
-          ? (settings.language === "hu" ? "Összes" : settings.language === "de" ? "Alle" : "All")
+          ? t("home.period.option.all")
           : reportPeriod === "week"
-          ? (settings.language === "hu" ? "Utolsó hét" : settings.language === "de" ? "Letzte Woche" : "Last week")
+          ? t("home.period.option.week")
           : reportPeriod === "month"
-          ? (settings.language === "hu" ? "Utolsó hónap" : settings.language === "de" ? "Letzter Monat" : "Last month")
-          : (settings.language === "hu" ? "Utolsó év" : settings.language === "de" ? "Letztes Jahr" : "Last year");
+          ? t("home.period.option.month")
+          : t("home.period.option.year");
         
         return (
           <div style={{
@@ -2173,14 +2167,14 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     gap: "12px"
                   }}>
                     <span style={{ fontSize: "32px" }}>📊</span>
-                    {settings.language === "hu" ? "Statisztikai Riport" : settings.language === "de" ? "Statistikbericht" : "Statistics Report"}
+                    {t("home.report.title")}
                   </h2>
                   <p style={{ 
                     margin: 0,
                     fontSize: "14px",
                     color: theme.colors.textMuted
                   }}>
-                    {periodLabel} • {new Date().toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US")}
+                    {periodLabel} • {new Date().toLocaleDateString(locale)}
                   </p>
                 </div>
                 <button
@@ -2217,7 +2211,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                   fontWeight: "700", 
                   color: theme.colors.text
                 }}>
-                  {settings.language === "hu" ? "Időszak" : settings.language === "de" ? "Zeitraum" : "Period"}
+                  {t("home.report.period")}
                 </label>
                 <select
                   value={reportPeriod}
@@ -2243,10 +2237,10 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     e.currentTarget.style.boxShadow = "none";
                   }}
                 >
-                  <option value="all">{settings.language === "hu" ? "Összes" : settings.language === "de" ? "Alle" : "All"}</option>
-                  <option value="week">{settings.language === "hu" ? "Utolsó hét" : settings.language === "de" ? "Letzte Woche" : "Last week"}</option>
-                  <option value="month">{settings.language === "hu" ? "Utolsó hónap" : settings.language === "de" ? "Letzter Monat" : "Last month"}</option>
-                  <option value="year">{settings.language === "hu" ? "Utolsó év" : settings.language === "de" ? "Letztes Jahr" : "Last year"}</option>
+                  <option value="all">{t("home.period.option.all")}</option>
+                  <option value="week">{t("home.period.option.week")}</option>
+                  <option value="month">{t("home.period.option.month")}</option>
+                  <option value="year">{t("home.period.option.year")}</option>
                 </select>
               </div>
 
@@ -2270,7 +2264,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     color: theme.colors.textMuted,
                     marginBottom: "8px"
                   }}>
-                    {settings.language === "hu" ? "Bevétel" : settings.language === "de" ? "Einnahmen" : "Revenue"}
+                    {t("home.stats.totalRevenue")}
                   </div>
                   <div style={{ 
                     fontSize: "20px", 
@@ -2294,7 +2288,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     color: theme.colors.textMuted,
                     marginBottom: "8px"
                   }}>
-                    {settings.language === "hu" ? "Kiadás" : settings.language === "de" ? "Ausgaben" : "Costs"}
+                    {t("home.stats.totalCost")}
                   </div>
                   <div style={{ 
                     fontSize: "20px", 
@@ -2318,7 +2312,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     color: theme.colors.textMuted,
                     marginBottom: "8px"
                   }}>
-                    {settings.language === "hu" ? "Profit" : settings.language === "de" ? "Gewinn" : "Profit"}
+                    {t("home.stats.netProfit")}
                   </div>
                   <div style={{ 
                     fontSize: "20px", 
@@ -2342,7 +2336,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                     color: theme.colors.textMuted,
                     marginBottom: "8px"
                   }}>
-                    {settings.language === "hu" ? "Árajánlatok" : settings.language === "de" ? "Angebote" : "Offers"}
+                    {t("home.summary.offerCount")}
                   </div>
                   <div style={{ 
                     fontSize: "20px", 
@@ -2416,7 +2410,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                           textOrientation: "mixed",
                           transform: "rotate(180deg)"
                         }}>
-                          {settings.language === "hu" ? "Bevétel" : settings.language === "de" ? "Einnahmen" : "Revenue"}
+                          {t("home.stats.totalRevenue")}
                         </div>
                       </div>
                       <div style={{ 
@@ -2426,7 +2420,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                         color: theme.colors.text,
                         textAlign: "center"
                       }}>
-                        {settings.language === "hu" ? "Bevétel" : settings.language === "de" ? "Einnahmen" : "Revenue"}
+                        {t("home.stats.totalRevenue")}
                       </div>
                     </div>
                     {/* Kiadás oszlop */}
@@ -2470,7 +2464,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                           textOrientation: "mixed",
                           transform: "rotate(180deg)"
                         }}>
-                          {settings.language === "hu" ? "Kiadás" : settings.language === "de" ? "Ausgaben" : "Costs"}
+                          {t("home.stats.totalCost")}
                         </div>
                       </div>
                       <div style={{ 
@@ -2480,7 +2474,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                         color: theme.colors.text,
                         textAlign: "center"
                       }}>
-                        {settings.language === "hu" ? "Kiadás" : settings.language === "de" ? "Ausgaben" : "Costs"}
+                        {t("home.stats.totalCost")}
                       </div>
                     </div>
                     {/* Profit oszlop */}
@@ -2524,7 +2518,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                           textOrientation: "mixed",
                           transform: "rotate(180deg)"
                         }}>
-                          {settings.language === "hu" ? "Profit" : settings.language === "de" ? "Gewinn" : "Profit"}
+                          {t("home.stats.netProfit")}
                         </div>
                       </div>
                       <div style={{ 
@@ -2534,7 +2528,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
                         color: theme.colors.text,
                         textAlign: "center"
                       }}>
-                        {settings.language === "hu" ? "Profit" : settings.language === "de" ? "Gewinn" : "Profit"}
+                        {t("home.stats.netProfit")}
                       </div>
                     </div>
                   </div>

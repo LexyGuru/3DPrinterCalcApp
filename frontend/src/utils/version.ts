@@ -11,7 +11,7 @@ export interface VersionInfo {
   isBeta: boolean;
 }
 
-const CURRENT_VERSION = "0.5.56"; // Frissítsd ezt, amikor új verziót adsz ki
+const CURRENT_VERSION = "0.6.0"; // Frissítsd ezt, amikor új verziót adsz ki
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp"; // Frissítsd a saját repository nevedre
 const RATE_LIMIT_BACKOFF_MS = 15 * 60 * 1000; // 15 perc
 
@@ -51,10 +51,12 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       };
     }
 
-    console.log(getConsoleMessage(undefined, "update.check.start"), {
-      currentVersion: CURRENT_VERSION,
-      betaMode: beta,
-    });
+    if (import.meta.env.DEV) {
+      console.log(getConsoleMessage(undefined, "update.check.start"), {
+        currentVersion: CURRENT_VERSION,
+        betaMode: beta,
+      });
+    }
     
     // GitHub Releases API
     const url = beta 
@@ -123,12 +125,14 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       // Ez lehetővé teszi, hogy main build-ről beta-ra frissítsen, ha van újabb beta verzió
       const isNewer = compareVersions(latestVersion, CURRENT_VERSION) > 0;
 
-      console.log(getConsoleMessage(undefined, "update.beta.result"), {
-        currentVersion: CURRENT_VERSION,
-        latestVersion,
-        isNewer,
-        releaseUrl: latestRelease.html_url,
-      });
+      if (import.meta.env.DEV) {
+        console.log(getConsoleMessage(undefined, "update.beta.result"), {
+          currentVersion: CURRENT_VERSION,
+          latestVersion,
+          isNewer,
+          releaseUrl: latestRelease.html_url,
+        });
+      }
 
       return {
         current: CURRENT_VERSION,
@@ -143,12 +147,14 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
       const latestVersion = release.tag_name.replace(/^v/, "");
       const isNewer = compareVersions(latestVersion, CURRENT_VERSION) > 0;
 
-      console.log(getConsoleMessage(undefined, "update.stable.result"), {
-        currentVersion: CURRENT_VERSION,
-        latestVersion,
-        isNewer,
-        releaseUrl: release.html_url,
-      });
+      if (import.meta.env.DEV) {
+        console.log(getConsoleMessage(undefined, "update.stable.result"), {
+          currentVersion: CURRENT_VERSION,
+          latestVersion,
+          isNewer,
+          releaseUrl: release.html_url,
+        });
+      }
 
       return {
         current: CURRENT_VERSION,

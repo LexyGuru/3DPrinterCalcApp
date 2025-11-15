@@ -2,7 +2,7 @@
 
 > **🌍 语言选择**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 一个用于计算3D打印成本的现代桌面应用程序。使用 Tauri v2、React 前端和 Rust 后端构建。
 
@@ -22,7 +22,9 @@
 - 🖼️ **PDF 中的耗材图像** - 在生成的 PDF 中显示耗材徽标和颜色样本
 - 🧾 **G-code 导入和草稿创建** - 从计算器中的模态加载 G-code/JSON 导出（Prusa、Cura、Orca、Qidi），包含详细摘要和自动报价草稿生成
 - 📈 **统计** - 耗材消耗、收入、利润的摘要仪表板
-- 🌍 **多语言** - 完整翻译为匈牙利语、英语、德语、法语、简体中文、捷克语、西班牙语、意大利语、波兰语、葡萄牙语和斯洛伐克语（12 种语言，每种语言 813 个翻译键）
+- 👥 **客户数据库** - 管理客户，包含联系信息、公司详情和报价统计
+- 📊 **价格历史和趋势** - 使用图表和统计数据跟踪耗材价格变化
+- 🌍 **多语言** - 完整翻译为匈牙利语、英语、德语、法语、简体中文、捷克语、西班牙语、意大利语、波兰语、葡萄牙语、斯洛伐克语、乌克兰语和俄语（14 种语言，每种语言 850+ 个翻译键）
 - 💱 **多种货币** - EUR、HUF、USD
 - 🔄 **自动更新** - 检查 GitHub Releases 以获取新版本
 - 🧪 **Beta 版本** - Beta 分支和 Beta 构建支持
@@ -35,6 +37,27 @@
 - 📋 **复制** - 轻松复制报价
 - 🖱️ **拖放** - 通过拖拽重新排序报价、耗材和打印机
 - 📱 **上下文菜单** - 右键菜单用于快速操作（编辑、删除、复制、导出）
+- 🍎 **平台特定功能** - macOS Dock 徽章、Windows 任务栏进度条、原生通知、系统托盘集成
+
+## 📋 更新日志 (Changelog)
+
+### v0.6.0 (最新)
+
+#### 🐛 错误修复
+- **日志优化**: 减少过度和重复的日志记录
+  - 信息日志仅在开发模式 (DEV) 下显示
+  - 错误仍会在生产构建中记录
+  - FilamentLibrary 初始化静默进行
+- **修复虚假警告**: 线材颜色解析仅在库已加载且仍未找到颜色时发出警告
+  - 防止在异步库加载期间出现虚假警告
+  - 警告仅针对真正的问题出现
+- **更新检查器重复修复**: 删除重复的更新检查调用
+- **键盘快捷键日志修复**: 仅在存在快捷键时记录，跳过无效组合
+
+#### ⚡ 性能改进
+- 存储操作日志优化（仅 DEV 模式）
+- 生产构建中更少的控制台操作
+- 开发期间更干净的控制台输出
 
 ## 📸 截图
 
@@ -240,6 +263,50 @@ Lekszikov Miklós (LexyGuru)
 推送到 `beta` 分支时，GitHub Actions 工作流自动运行，构建 Beta 版本。
 
 ## 📋 版本历史
+
+### v0.6.0 (2025)
+
+- 👥 **客户数据库** - 完整的客户管理系统，包括：
+  - 添加、编辑、删除客户
+  - 联系信息（电子邮件、电话）
+  - 公司详情（可选）
+  - 地址和备注
+  - 客户统计（总报价数、最后报价日期）
+  - 搜索功能
+  - 与计算器集成，用于快速选择客户
+- 📊 **价格历史和趋势** - 跟踪耗材价格变化：
+  - 更新耗材价格时自动跟踪价格历史
+  - 使用SVG图表可视化价格趋势
+  - 价格统计（当前、平均、最低、最高价格）
+  - 趋势分析（上涨、下跌、稳定）
+  - 价格历史表，包含详细的变更信息
+  - 重大价格变化警告（10%+变化）
+  - 在编辑期间在耗材组件中显示价格历史
+- 🔧 **改进**：
+  - 增强的计算器，带客户选择下拉菜单
+  - 在耗材编辑表单中集成价格历史
+  - 改进的客户和价格历史数据持久性
+
+### v0.5.58 (2025)
+- 🌍 **乌克兰语和俄语支持** – 添加了乌克兰语（uk）和俄语（ru）的完整翻译支持：
+  - 两种语言的完整翻译文件，包含所有 813 个翻译键
+  - 乌克兰语区域设置支持（uk-UA）用于日期/时间格式化
+  - 俄语区域设置支持（ru-RU）用于日期/时间格式化
+  - 所有 README 文件已更新，语言菜单中包含新语言
+  - 语言数量从 12 种更新为 14 种
+  - 创建了 README.uk.md 和 README.ru.md 文档文件
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
 ### v0.5.56 (2025)
 - 🌍 **完整语言翻译** – 完成了 6 个剩余语言文件的完整翻译：捷克语 (cs)、西班牙语 (es)、意大利语 (it)、波兰语 (pl)、葡萄牙语 (pt) 和斯洛伐克语 (sk)。每个文件包含所有 813 个翻译键，因此应用程序现在完全支持这些语言。
@@ -479,7 +546,7 @@ Lekszikov Miklós (LexyGuru)
 
 ---
 
-**版本**: 0.5.56
+**版本**: 0.6.0
 
 如果您有任何问题或发现错误，请在 GitHub 存储库中打开一个问题！
 

@@ -2,7 +2,7 @@
 
 > **🌍 Sprachauswahl**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit Tauri v2, React Frontend und Rust Backend.
 
@@ -13,6 +13,7 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 🖨️ **Druckerverwaltung** - Drucker und AMS-Systeme verwalten
 - 💰 **Gewinnberechnung** - Wählbarer Gewinnprozentsatz (10%, 20%, 30%, 40%, 50%)
 - 📄 **Angebote** - Angebote speichern, verwalten und als PDF exportieren (Kundenname, Kontakt, Beschreibung)
+- 📅 **Kalender-Integration** - Druckfälligkeitsdaten für Angebote festlegen, Kalenderansicht mit akzeptierten/abgeschlossenen/abgelehnten Angeboten, Statusindikatoren (akzeptiert ✅, abgelehnt ❌, abgeschlossen ✔️), Liste der anstehenden Drucke (heute und morgen), Benachrichtigung über überfällige Drucke
 - 🧠 **Filter-Voreinstellungen** - Angebotsfilter speichern, schnelle Voreinstellungen anwenden, datums-/zeitbasierte automatische Filter
 - 🗂️ **Status-Dashboard** - Statuskarten, schnelle Filter und Zeitachse der letzten Statusänderungen
 - 📝 **Statusnotizen** - Jede Statusänderung mit optionalen Notizen und Verlaufprotokollierung
@@ -22,7 +23,9 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 🖼️ **Filamentbilder in PDF** - Anzeige von Filament-Logos und Farbmustern in generierten PDFs
 - 🧾 **G-Code-Import & Entwurfserstellung** - G-Code/JSON-Exporte (Prusa, Cura, Orca, Qidi) aus Modal im Rechner laden, mit detaillierter Zusammenfassung und automatischer Angebotsentwurfsgenerierung
 - 📈 **Statistiken** - Übersichtsdashboard für Filamentverbrauch, Umsatz, Gewinn
-- 🌍 **Mehrsprachig** - Vollständige Übersetzung in Ungarisch, Englisch, Deutsch, Französisch, Vereinfachtem Chinesisch, Tschechisch, Spanisch, Italienisch, Polnisch, Portugiesisch und Slowakisch (12 Sprachen, 813 Übersetzungsschlüssel pro Sprache)
+- 👥 **Kundendatenbank** - Kundenverwaltung mit Kontaktinformationen, Firmendaten und Angebotsstatistiken
+- 📊 **Preisverlauf und Trends** - Verfolgung von Filamentpreisänderungen mit Diagrammen und Statistiken
+- 🌍 **Mehrsprachig** - Vollständige Übersetzung in Ungarisch, Englisch, Deutsch, Französisch, Vereinfachtem Chinesisch, Tschechisch, Spanisch, Italienisch, Polnisch, Portugiesisch, Slowakisch, Ukrainisch und Russisch (14 Sprachen, 850+ Übersetzungsschlüssel pro Sprache)
 - 💱 **Mehrere Währungen** - EUR, HUF, USD
 - 🔄 **Automatische Updates** - Prüft GitHub Releases auf neue Versionen
 - 🧪 **Beta-Versionen** - Beta-Branch und Beta-Build-Unterstützung
@@ -35,6 +38,27 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 📋 **Duplizierung** - Einfache Angebotsduplizierung
 - 🖱️ **Drag & Drop** - Angebote, Filamente und Drucker durch Ziehen neu anordnen
 - 📱 **Kontextmenüs** - Rechtsklick-Menüs für schnelle Aktionen (bearbeiten, löschen, duplizieren, exportieren)
+- 🍎 **Plattformspezifische Funktionen** - macOS Dock-Badge, native Benachrichtigungen, System-Tray-Integration
+
+## 📋 Änderungsprotokoll (Changelog)
+
+### v0.6.0 (Neueste)
+
+#### 🐛 Fehlerbehebungen
+- **Protokollierungsoptimierung**: Reduzierung übermäßiger und doppelter Protokollierung
+  - Informationsprotokolle erscheinen nur im Entwicklungsmodus (DEV)
+  - Fehler werden weiterhin auch in Production-Builds protokolliert
+  - FilamentLibrary-Initialisierung erfolgt still
+- **Falsche Warnungen behoben**: Filament-Farbauflösung warnt nur, wenn die Bibliothek bereits geladen ist und die Farbe immer noch nicht gefunden wird
+  - Verhindert falsche Warnungen während des asynchronen Bibliotheksladens
+  - Warnungen erscheinen nur bei echten Problemen
+- **Update Checker-Duplikation behoben**: Entfernung doppelter Update-Check-Aufrufe
+- **Tastenkürzel-Protokollierung behoben**: Protokolliert nur, wenn ein Shortcut vorhanden ist, überspringt ungültige Kombinationen
+
+#### ⚡ Leistungsverbesserungen
+- Store-Operationen-Protokollierung optimiert (nur DEV-Modus)
+- Weniger Konsolenoperationen in Production-Builds
+- Sauberere Konsolenausgabe während der Entwicklung
 
 ## 📸 Screenshots
 
@@ -240,6 +264,50 @@ Lekszikov Miklós (LexyGuru)
 Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, der die Beta-Version erstellt.
 
 ## 📋 Versionsgeschichte
+
+### v0.6.0 (2025)
+
+- 👥 **Kundendatenbank** - Vollständiges Kundenverwaltungssystem mit:
+  - Kunden hinzufügen, bearbeiten, löschen
+  - Kontaktinformationen (E-Mail, Telefon)
+  - Firmendaten (optional)
+  - Adresse und Notizen
+  - Kundenstatistiken (Gesamtangebote, letztes Angebotsdatum)
+  - Suchfunktion
+  - Integration mit Rechner für schnelle Kundenauswahl
+- 📊 **Preisverlauf und Trends** - Verfolgung von Filamentpreisänderungen:
+  - Automatische Preisverlaufsverfolgung bei Filamentpreisaktualisierungen
+  - Preis-Trend-Visualisierung mit SVG-Diagrammen
+  - Preisstatistiken (aktueller, durchschnittlicher, min, max Preis)
+  - Trendanalyse (steigend, fallend, stabil)
+  - Preisverlaufstabelle mit detaillierten Änderungsinformationen
+  - Warnungen bei erheblichen Preisänderungen (10%+ Änderungen)
+  - Preisverlaufsanzeige in der Filamente-Komponente während der Bearbeitung
+- 🔧 **Verbesserungen**:
+  - Erweiterter Rechner mit Kundenauswahl-Dropdown
+  - Preisverlaufsintegration im Filament-Bearbeitungsformular
+  - Verbesserte Datenspeicherung für Kunden und Preisverlauf
+
+### v0.5.58 (2025)
+- 🌍 **Ukrainische und Russische Sprachunterstützung** – Vollständige Übersetzungsunterstützung für Ukrainisch (uk) und Russisch (ru) hinzugefügt:
+  - Vollständige Übersetzungsdateien mit allen 813 Übersetzungsschlüsseln für beide Sprachen
+  - Ukrainische Locale-Unterstützung (uk-UA) für Datums-/Zeitformatierung
+  - Russische Locale-Unterstützung (ru-RU) für Datums-/Zeitformatierung
+  - Alle README-Dateien mit neuen Sprachen im Sprachmenü aktualisiert
+  - Sprachanzahl von 12 auf 14 Sprachen aktualisiert
+  - README.uk.md und README.ru.md Dokumentationsdateien erstellt
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
 ### v0.5.56 (2025)
 - 🌍 **Vollständige Sprachübersetzungen** – Vollständige Übersetzungen für 6 verbleibende Sprachdateien abgeschlossen: Tschechisch (cs), Spanisch (es), Italienisch (it), Polnisch (pl), Portugiesisch (pt) und Slowakisch (sk). Jede Datei enthält alle 813 Übersetzungsschlüssel, sodass die Anwendung nun vollständig in diesen Sprachen unterstützt wird.
@@ -479,7 +547,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 0.5.56
+**Version**: 0.6.0
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

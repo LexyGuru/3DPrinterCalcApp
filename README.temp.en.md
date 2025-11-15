@@ -2,7 +2,7 @@
 
 > **🌍 Language Selection**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
 
 A modern desktop application for calculating 3D printing costs. Built with Tauri v2, React frontend, and Rust backend.
 
@@ -13,7 +13,6 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 🖨️ **Printer Management** - Manage printers and AMS systems
 - 💰 **Profit Calculation** - Selectable profit percentage (10%, 20%, 30%, 40%, 50%)
 - 📄 **Quotes** - Save, manage, and export PDF quotes (customer name, contact, description)
-- 📅 **Calendar Integration** - Set print due dates for offers, calendar view with accepted/completed/rejected offers, status indicators (accepted ✅, rejected ❌, completed ✔️), upcoming prints list (today and tomorrow), overdue prints notification
 - 🧠 **Filter Presets** - Save quote filters, apply quick presets, date/time-based automatic filters
 - 🗂️ **Status Dashboard** - Status cards, quick filters, and timeline of recent status changes
 - 📝 **Status Notes** - Every status change with optional notes and history logging
@@ -23,9 +22,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 🖼️ **Filament Images in PDF** - Display filament logos and color swatches in generated PDFs
 - 🧾 **G-code Import & Draft Creation** - Load G-code/JSON exports (Prusa, Cura, Orca, Qidi) from modal in calculator, with detailed summary and automatic quote draft generation
 - 📈 **Statistics** - Summary dashboard for filament consumption, revenue, profit
-- 👥 **Customer Database** - Manage customers with contact information, company details, and offer statistics
-- 📊 **Price History & Trends** - Track filament price changes over time with charts and statistics
-- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (14 languages, 850+ translation keys per language)
+- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, and Slovak (12 languages, 813 translation keys per language)
 - 💱 **Multiple Currencies** - EUR, HUF, USD
 - 🔄 **Auto Updates** - Checks GitHub Releases for new versions
 - 🧪 **Beta Versions** - Beta branch and beta build support
@@ -38,27 +35,6 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 📋 **Duplication** - Easy quote duplication
 - 🖱️ **Drag & Drop** - Reorder quotes, filaments, and printers by dragging
 - 📱 **Context Menus** - Right-click menus for quick actions (edit, delete, duplicate, export)
-- 🍎 **Platform-Specific Features** - macOS Dock badge, native notifications, system tray integration
-
-## 📋 Changelog
-
-### v0.6.0 (Latest)
-
-#### 🐛 Bug Fixes
-- **Logging optimization**: Reduced excessive and duplicate logging
-  - Informational logs only appear in development mode (DEV)
-  - Errors still log in production builds
-  - FilamentLibrary initialization happens silently
-- **False warning fixes**: Filament color resolution only warns when library is already loaded and color still not found
-  - Prevents false warnings during async library loading
-  - Warnings only appear for real issues
-- **Update Checker duplication fix**: Removed duplicate update check calls
-- **Keyboard shortcut logging fix**: Only logs when shortcut exists, skips invalid combinations
-
-#### ⚡ Performance Improvements
-- Store operations logging optimized (DEV mode only)
-- Fewer console operations in production builds
-- Cleaner console output during development
 
 ## 📸 Screenshots
 
@@ -264,38 +240,6 @@ Lekszikov Miklós (LexyGuru)
 When pushing to the `beta` branch, the GitHub Actions workflow automatically runs, building the beta version.
 
 ## 📋 Version History
-
-### v0.6.0 (2025)
-
-- 👥 **Customer Database** - Complete customer management system with:
-  - Add, edit, delete customers
-  - Contact information (email, phone)
-  - Company details (optional)
-  - Address and notes
-  - Customer statistics (total offers, last offer date)
-  - Search functionality
-  - Integration with Calculator for quick customer selection
-- 📊 **Price History & Trends** - Track filament price changes:
-  - Automatic price history tracking when filament prices are updated
-  - Price trends visualization with SVG charts
-  - Price statistics (current, average, min, max prices)
-  - Trend analysis (increasing, decreasing, stable)
-  - Price history table with detailed change information
-  - Significant price change warnings (10%+ changes)
-  - Price history display in Filaments component during editing
-- 🔧 **Improvements**:
-  - Enhanced Calculator with customer selection dropdown
-  - Price history integration in Filament editing form
-  - Improved data persistence for customers and price history
-
-### v0.5.58 (2025)
-- 🌍 **Ukrainian and Russian Language Support** – Added full translation support for Ukrainian (uk) and Russian (ru) languages:
-  - Complete translation files with all 813 translation keys for both languages
-  - Ukrainian locale support (uk-UA) for date/time formatting
-  - Russian locale support (ru-RU) for date/time formatting
-  - Updated all README files with new languages in language menu
-  - Language count updated from 12 to 14 languages
-  - Created README.uk.md and README.ru.md documentation files
 
 ### v0.5.57 (2025)
 - 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
@@ -547,7 +491,7 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 0.6.0
+**Version**: 0.5.57
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
 

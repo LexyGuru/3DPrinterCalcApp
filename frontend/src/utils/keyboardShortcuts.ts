@@ -46,18 +46,23 @@ class KeyboardShortcutsManager {
 
     const key = e.key.toLowerCase();
     
-    // Debug logolás (csak fejlesztéskor)
-    if (import.meta.env.DEV && (e.metaKey || e.ctrlKey)) {
-      console.log("⌨️ Gyorsbillentyű észlelve:", {
-        key: e.key,
-        keyLower: key,
-        ctrlKey: e.ctrlKey,
-        metaKey: e.metaKey,
-        shiftKey: e.shiftKey,
-        altKey: e.altKey,
-        target: target.tagName,
-        registeredShortcuts: Array.from(this.shortcuts.keys())
-      });
+    // Debug logolás (csak fejlesztéskor, és csak ha van regisztrált shortcut)
+    // Ne logoljuk a meta+meta vagy egyéb érvénytelen kombinációkat
+    if (import.meta.env.DEV && (e.metaKey || e.ctrlKey) && key !== 'meta') {
+      const exactKey = this.buildShortcutKey(key, e.ctrlKey, e.shiftKey, e.altKey, e.metaKey);
+      const hasShortcut = this.shortcuts.has(exactKey);
+      if (hasShortcut) {
+        console.log("⌨️ Gyorsbillentyű észlelve:", {
+          key: e.key,
+          keyLower: key,
+          ctrlKey: e.ctrlKey,
+          metaKey: e.metaKey,
+          shiftKey: e.shiftKey,
+          altKey: e.altKey,
+          target: target.tagName,
+          shortcut: exactKey
+        });
+      }
     }
     
     // macOS-en a metaKey = Command, Windows/Linux-en a ctrlKey = Ctrl
@@ -93,9 +98,8 @@ class KeyboardShortcutsManager {
       e.preventDefault();
       e.stopPropagation();
       shortcut.callback(e);
-    } else if (import.meta.env.DEV && (e.metaKey || e.ctrlKey)) {
-      console.log("❌ Nincs regisztrált gyorsbillentyű:", exactKey);
     }
+    // Ne logoljuk az érvénytelen kombinációkat (pl. meta+meta)
   }
 
   private buildShortcutKey(

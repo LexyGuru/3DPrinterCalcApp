@@ -2,7 +2,7 @@
 
 > **🌍 Seleção de idioma**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 Uma aplicação desktop moderna para calcular custos de impressão 3D. Construída com Tauri v2, frontend React e backend Rust.
 
@@ -22,7 +22,9 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 - 🖼️ **Imagens de filamento em PDF** - Exibir logotipos de filamento e amostras de cor em PDFs gerados
 - 🧾 **Importação G-code e criação de rascunho** - Carregar exportações G-code/JSON (Prusa, Cura, Orca, Qidi) do modal na calculadora, com resumo detalhado e geração automática de rascunho de cotação
 - 📈 **Estatísticas** - Painel de resumo para consumo de filamento, receita, lucro
-- 🌍 **Multilíngue** - Tradução completa em húngaro, inglês, alemão, francês, chinês simplificado, tcheco, espanhol, italiano, polonês, português e eslovaco (12 idiomas, 813 chaves de tradução por idioma)
+- 👥 **Base de dados de clientes** - Gestão de clientes com informações de contato, detalhes da empresa e estatísticas de ofertas
+- 📊 **Histórico e tendências de preços** - Rastreamento de mudanças de preços de filamento com gráficos e estatísticas
+- 🌍 **Multilíngue** - Tradução completa em húngaro, inglês, alemão, francês, chinês simplificado, tcheco, espanhol, italiano, polonês, português, eslovaco, ucraniano e russo (14 idiomas, 850+ chaves de tradução por idioma)
 - 💱 **Múltiplas moedas** - EUR, HUF, USD
 - 🔄 **Atualizações automáticas** - Verifica GitHub Releases para novas versões
 - 🧪 **Versões beta** - Suporte para branch beta e build beta
@@ -35,6 +37,26 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 - 📋 **Duplicação** - Duplicação fácil de cotações
 - 🖱️ **Arrastar e soltar** - Reordenar cotações, filamentos e impressoras arrastrando
 - 📱 **Menus contextuais** - Menus de botão direito para ações rápidas (editar, excluir, duplicar, exportar)
+
+## 📋 Registro de alterações (Changelog)
+
+### v0.6.0 (Mais recente)
+
+#### 🐛 Correções de bugs
+- **Otimização de registro**: Redução de registros excessivos e duplicados
+  - Registros informativos aparecem apenas no modo de desenvolvimento (DEV)
+  - Erros ainda são registrados em builds de produção
+  - Inicialização do FilamentLibrary ocorre silenciosamente
+- **Correção de avisos falsos**: A resolução de cor do filamento avisa apenas quando a biblioteca já está carregada e a cor ainda não foi encontrada
+  - Previne avisos falsos durante o carregamento assíncrono da biblioteca
+  - Avisos aparecem apenas para problemas reais
+- **Correção de duplicação do verificador de atualizações**: Remoção de chamadas duplicadas de verificação de atualizações
+- **Correção de registro de atalhos de teclado**: Registra apenas quando existe um atalho, ignora combinações inválidas
+
+#### ⚡ Melhorias de desempenho
+- Registro de operações de armazenamento otimizado (apenas modo DEV)
+- Menos operações de console em builds de produção
+- Saída de console mais limpa durante o desenvolvimento
 
 ## 📸 Capturas de tela
 
@@ -240,6 +262,50 @@ Lekszikov Miklós (LexyGuru)
 Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado automaticamente, compilando a versão beta.
 
 ## 📋 Histórico de versões
+
+### v0.6.0 (2025)
+
+- 👥 **Base de dados de clientes** - Sistema completo de gestão de clientes com:
+  - Adicionar, editar, excluir clientes
+  - Informações de contato (e-mail, telefone)
+  - Detalhes da empresa (opcional)
+  - Endereço e notas
+  - Estatísticas de clientes (total de ofertas, data da última oferta)
+  - Funcionalidade de pesquisa
+  - Integração com Calculadora para seleção rápida de clientes
+- 📊 **Histórico e tendências de preços** - Rastreamento de mudanças de preços de filamento:
+  - Rastreamento automático do histórico de preços quando os preços do filamento são atualizados
+  - Visualização de tendências de preços com gráficos SVG
+  - Estatísticas de preços (preço atual, médio, mínimo, máximo)
+  - Análise de tendências (aumentando, diminuindo, estável)
+  - Tabela de histórico de preços com informações detalhadas de mudanças
+  - Avisos de mudanças significativas de preços (mudanças de 10%+)
+  - Visualização do histórico de preços no componente Filamentos durante a edição
+- 🔧 **Melhorias**:
+  - Calculadora aprimorada com menu suspenso de seleção de clientes
+  - Integração do histórico de preços no formulário de edição de filamento
+  - Persistência de dados aprimorada para clientes e histórico de preços
+
+### v0.5.58 (2025)
+- 🌍 **Suporte para idiomas ucraniano e russo** – Adicionado suporte completo de tradução para ucraniano (uk) e russo (ru):
+  - Arquivos de tradução completos com todas as 813 chaves de tradução para ambos os idiomas
+  - Suporte de locale ucraniano (uk-UA) para formatação de data/hora
+  - Suporte de locale russo (ru-RU) para formatação de data/hora
+  - Todos os arquivos README atualizados com novos idiomas no menu de idiomas
+  - Contagem de idiomas atualizada de 12 para 14 idiomas
+  - Arquivos de documentação README.uk.md e README.ru.md criados
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
 
 ### v0.5.56 (2025)
 - 🌍 **Traduções completas de idiomas** – Completadas as traduções completas para 6 arquivos de idioma restantes: tcheco (cs), espanhol (es), italiano (it), polonês (pl), português (pt) e eslovaco (sk). Cada arquivo contém todas as 813 chaves de tradução, então a aplicação agora está totalmente suportada nesses idiomas.
@@ -479,7 +545,7 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ---
 
-**Versão**: 0.5.56
+**Versão**: 0.6.0
 
 Se você tiver alguma dúvida ou encontrar um bug, por favor abra uma issue no repositório GitHub!
 

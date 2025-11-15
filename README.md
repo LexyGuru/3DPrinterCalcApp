@@ -1,8 +1,8 @@
 # 🖨️ 3D Printer Calculator App
 
-> **🌍 Language / Nyelv / Sprache / Idioma / Lingua / Język / Jazyk / Língua / Langue / 语言**
+> **🌍 Language / Nyelv / Sprache / Idioma / Lingua / Język / Jazyk / Língua / Langue / 语言 / Мова / Язык**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 A modern desktop application for calculating 3D printing costs. Built with Tauri v2, React frontend, and Rust backend.
 
@@ -22,7 +22,9 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 🖼️ **Filament Images in PDF** - Display filament logos and color swatches in generated PDFs
 - 🧾 **G-code Import & Draft Creation** - Load G-code/JSON exports (Prusa, Cura, Orca, Qidi) from modal in calculator, with detailed summary and automatic quote draft generation
 - 📈 **Statistics** - Summary dashboard for filament consumption, revenue, profit
-- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, and Slovak (12 languages, 813 translation keys per language)
+- 👥 **Customer Database** - Manage customers with contact information, company details, and offer statistics
+- 📊 **Price History & Trends** - Track filament price changes over time with charts and statistics
+- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (14 languages, 850+ translation keys per language)
 - 💱 **Multiple Currencies** - EUR, HUF, USD
 - 🔄 **Auto Updates** - Checks GitHub Releases for new versions
 - 🧪 **Beta Versions** - Beta branch and beta build support
@@ -35,6 +37,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 📋 **Duplication** - Easy quote duplication
 - 🖱️ **Drag & Drop** - Reorder quotes, filaments, and printers by dragging
 - 📱 **Context Menus** - Right-click menus for quick actions (edit, delete, duplicate, export)
+- 🍎 **Platform-Specific Features** - macOS Dock badge, native notifications, system tray integration
 
 ## 📸 Screenshots
 
@@ -240,6 +243,51 @@ Lekszikov Miklós (LexyGuru)
 When pushing to the `beta` branch, the GitHub Actions workflow automatically runs, building the beta version.
 
 ## 📋 Version History
+
+### v0.6.0 (2025)
+
+- 👥 **Customer Database** - Complete customer management system with:
+  - Add, edit, delete customers
+  - Contact information (email, phone)
+  - Company details (optional)
+  - Address and notes
+  - Customer statistics (total offers, last offer date)
+  - Search functionality
+  - Integration with Calculator for quick customer selection
+- 📊 **Price History & Trends** - Track filament price changes:
+  - Automatic price history tracking when filament prices are updated
+  - Price trends visualization with SVG charts
+  - Price statistics (current, average, min, max prices)
+  - Trend analysis (increasing, decreasing, stable)
+  - Price history table with detailed change information
+  - Significant price change warnings (10%+ changes)
+  - Price history display in Filaments component during editing
+- 🔧 **Improvements**:
+  - Enhanced Calculator with customer selection dropdown
+  - Price history integration in Filament editing form
+  - Improved data persistence for customers and price history
+
+### v0.5.58 (2025)
+- 🌍 **Ukrainian and Russian Language Support** – Added full translation support for Ukrainian (uk) and Russian (ru) languages:
+  - Complete translation files with all 813 translation keys for both languages
+  - Ukrainian locale support (uk-UA) for date/time formatting
+  - Russian locale support (ru-RU) for date/time formatting
+  - Updated all README files with new languages in language menu
+  - Language count updated from 12 to 14 languages
+  - Created README.uk.md and README.ru.md documentation files
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
+
 
 ### v0.5.56 (2025)
 - 🌍 **Complete Language Translations** – Completed full translations for 6 remaining language files: Czech (cs), Spanish (es), Italian (it), Polish (pl), Portuguese (pt), and Slovak (sk). Each file contains all 813 translation keys, so the application is now fully supported in these languages.
@@ -479,6 +527,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 0.5.56
+**Version**: 0.6.0
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!

@@ -2,7 +2,7 @@
 
 > **🌍 Selezione lingua**
 > 
-> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md)
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
 
 Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata con Tauri v2, frontend React e backend Rust.
 
@@ -22,7 +22,9 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 - 🖼️ **Immagini filamento in PDF** - Mostra loghi filamento e campioni di colore nei PDF generati
 - 🧾 **Importazione G-code e creazione bozza** - Carica esportazioni G-code/JSON (Prusa, Cura, Orca, Qidi) da modale nella calcolatrice, con riepilogo dettagliato e generazione automatica bozza preventivo
 - 📈 **Statistiche** - Dashboard di riepilogo per consumo filamento, ricavi, profitto
-- 🌍 **Multilingue** - Traduzione completa in ungherese, inglese, tedesco, francese, cinese semplificato, ceco, spagnolo, italiano, polacco, portoghese e slovacco (12 lingue, 813 chiavi di traduzione per lingua)
+- 👥 **Database clienti** - Gestione clienti con informazioni di contatto, dettagli aziendali e statistiche delle offerte
+- 📊 **Storico e tendenze dei prezzi** - Tracciamento delle variazioni di prezzo del filamento con grafici e statistiche
+- 🌍 **Multilingue** - Traduzione completa in ungherese, inglese, tedesco, francese, cinese semplificato, ceco, spagnolo, italiano, polacco, portoghese, slovacco, ucraino e russo (14 lingue, 850+ chiavi di traduzione per lingua)
 - 💱 **Valute multiple** - EUR, HUF, USD
 - 🔄 **Aggiornamenti automatici** - Controlla GitHub Releases per nuove versioni
 - 🧪 **Versioni beta** - Supporto branch beta e build beta
@@ -35,6 +37,27 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 - 📋 **Duplicazione** - Duplicazione facile dei preventivi
 - 🖱️ **Trascina e rilascia** - Riordina preventivi, filamenti e stampanti trascinando
 - 📱 **Menu contestuali** - Menu tasto destro per azioni rapide (modifica, elimina, duplica, esporta)
+- 🍎 **Funzionalità specifiche della piattaforma** - Badge Dock macOS, notifiche native, integrazione system tray
+
+## 📋 Registro delle modifiche (Changelog)
+
+### v0.6.0 (Più recente)
+
+#### 🐛 Correzioni di bug
+- **Ottimizzazione del logging**: Riduzione della registrazione eccessiva e duplicata
+  - I log informativi compaiono solo in modalità sviluppo (DEV)
+  - Gli errori vengono ancora registrati nelle build di produzione
+  - L'inizializzazione di FilamentLibrary avviene silenziosamente
+- **Correzione di avvisi falsi**: La risoluzione del colore del filamento avvisa solo quando la libreria è già caricata e il colore non è ancora stato trovato
+  - Previene avvisi falsi durante il caricamento asincrono della libreria
+  - Gli avvisi compaiono solo per problemi reali
+- **Correzione della duplicazione del controllo aggiornamenti**: Rimozione delle chiamate duplicate di controllo aggiornamenti
+- **Correzione del logging delle scorciatoie da tastiera**: Registra solo quando esiste una scorciatoia, ignora combinazioni non valide
+
+#### ⚡ Miglioramenti delle prestazioni
+- Logging delle operazioni di archiviazione ottimizzato (solo modalità DEV)
+- Meno operazioni console nelle build di produzione
+- Output console più pulito durante lo sviluppo
 
 ## 📸 Screenshot
 
@@ -241,9 +264,53 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ## 📋 Cronologia versioni
 
+### v0.6.0 (2025)
+
+- 👥 **Database clienti** - Sistema completo di gestione clienti con:
+  - Aggiungere, modificare, eliminare clienti
+  - Informazioni di contatto (email, telefono)
+  - Dettagli aziendali (opzionale)
+  - Indirizzo e note
+  - Statistiche clienti (totale offerte, data ultima offerta)
+  - Funzionalità di ricerca
+  - Integrazione con Calcolatrice per selezione rapida clienti
+- 📊 **Storico e tendenze dei prezzi** - Tracciamento delle variazioni di prezzo del filamento:
+  - Tracciamento automatico dello storico prezzi quando i prezzi del filamento vengono aggiornati
+  - Visualizzazione delle tendenze dei prezzi con grafici SVG
+  - Statistiche dei prezzi (prezzo attuale, medio, min, max)
+  - Analisi delle tendenze (in aumento, in diminuzione, stabile)
+  - Tabella dello storico prezzi con informazioni dettagliate sulle variazioni
+  - Avvisi per variazioni significative dei prezzi (variazioni del 10%+)
+  - Visualizzazione dello storico prezzi nel componente Filamenti durante la modifica
+- 🔧 **Miglioramenti**:
+  - Calcolatrice migliorata con menu a tendina di selezione clienti
+  - Integrazione dello storico prezzi nel modulo di modifica filamento
+  - Persistenza dei dati migliorata per clienti e storico prezzi
+
+### v0.5.58 (2025)
+- 🌍 **Supporto lingue ucraino e russo** – Aggiunto supporto completo per le traduzioni per ucraino (uk) e russo (ru):
+  - File di traduzione completi con tutte le 813 chiavi di traduzione per entrambe le lingue
+  - Supporto locale ucraino (uk-UA) per la formattazione data/ora
+  - Supporto locale russo (ru-RU) per la formattazione data/ora
+  - Tutti i file README aggiornati con nuove lingue nel menu delle lingue
+  - Conteggio lingue aggiornato da 12 a 14 lingue
+  - File di documentazione README.uk.md e README.ru.md creati
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
+
 ### v0.5.56 (2025)
 - 🌍 **Traduzioni linguistiche complete** – Completate le traduzioni complete per 6 file linguistici rimanenti: ceco (cs), spagnolo (es), italiano (it), polacco (pl), portoghese (pt) e slovacco (sk). Ogni file contiene tutte le 813 chiavi di traduzione, quindi l'applicazione è ora completamente supportata in queste lingue.
-- 🔒 **Correzione permessi Tauri** – Il file `update_filamentLibrary.json` è ora esplicitamente abilitato per operazioni di lettura, scrittura e creazione nel file delle capacità Tauri, garantendo che gli aggiornamenti della libreria filamenti funzionino in modo affidabile.
+- 🔒 **Correzione permessi Tauri** – Il file `update_filamentLibrary.json` è ora esplicitamente abilitato per operazioni di lettura, scrittura e creazione nel file delle capacità Tauri, garantendo che gli aggiornamenti della libreria dei filamenti funzionino in modo affidabile.
 
 ### v0.5.55 (2025)
 - 🧵 **Miglioramento modifica preventivi** – I preventivi salvati ora consentono la selezione o modifica diretta della stampante, con costi ricalcolati automaticamente insieme alle modifiche del filamento.
@@ -479,7 +546,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 0.5.56
+**Versione**: 0.6.0
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

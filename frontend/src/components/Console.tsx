@@ -64,7 +64,7 @@ export const Console: React.FC<Props> = ({ settings, theme, themeStyles }) => {
   };
 
   const formatTimestamp = (date: Date) => {
-    return date.toLocaleTimeString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", {
+    return date.toLocaleTimeString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : settings.language === "uk" ? "uk-UA" : settings.language === "ru" ? "ru-RU" : "en-US", {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",

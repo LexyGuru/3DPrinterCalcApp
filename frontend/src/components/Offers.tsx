@@ -20,6 +20,7 @@ import { logWithLanguage } from "../utils/languages/global_console";
 import { validateUsedGrams, validateDryingTime, validateDryingPower } from "../utils/validation";
 import { getFilamentPlaceholder } from "../utils/filamentPlaceholder";
 import { DEFAULT_COLOR_HEX, normalizeHex, resolveColorHexFromName } from "../utils/filamentColors";
+import { notifyExportComplete, notifyOfferStatusChange } from "../utils/platformFeatures";
 
 const STATUS_ORDER: OfferStatus[] = ["draft", "sent", "accepted", "rejected", "completed"];
 
@@ -54,6 +55,7 @@ export const Offers: React.FC<Props> = ({
   const [editCustomerContact, setEditCustomerContact] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editProfitPercentage, setEditProfitPercentage] = useState<number>(30);
+  const [editPrintDueDate, setEditPrintDueDate] = useState<string>("");
   const [editFilaments, setEditFilaments] = useState<Offer["filaments"]>([]);
   const [editPrinterId, setEditPrinterId] = useState<number | null>(null);
   const [selectedLibraryFilamentIndex, setSelectedLibraryFilamentIndex] = useState<number | "">("");
@@ -63,7 +65,7 @@ export const Offers: React.FC<Props> = ({
   const [statusChangeTarget, setStatusChangeTarget] = useState<OfferStatus | null>(null);
   const [statusChangeNote, setStatusChangeNote] = useState("");
   const [statusFilter, setStatusFilter] = useState<OfferStatus | "all">("all");
-  const locale = settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US";
+  const locale = settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : settings.language === "uk" ? "uk-UA" : settings.language === "ru" ? "ru-RU" : "en-US";
   const filamentOptions = useMemo(
     () =>
       filaments.map((filament, index) => ({
@@ -154,7 +156,7 @@ export const Offers: React.FC<Props> = ({
     setDeleteConfirmId(id);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteConfirmId === null) return;
     const id = deleteConfirmId;
     const offerToDelete = offers.find(o => o.id === id);
@@ -168,6 +170,18 @@ export const Offers: React.FC<Props> = ({
     }
     logWithLanguage(settings.language, "log", "offers.delete.success", { offerId: id });
     showToast(t("common.offerDeleted"), "success");
+    // Natív értesítés küldése (ha engedélyezve van)
+    if (settings.notificationEnabled !== false && offerToDelete) {
+      try {
+        const { sendNativeNotification } = await import("../utils/platformFeatures");
+        await sendNativeNotification(
+          t("common.offerDeleted"),
+          offerToDelete.customerName || t("offers.customerName")
+        );
+      } catch (error) {
+        console.log("Értesítés küldése sikertelen:", error);
+      }
+    }
     setDeleteConfirmId(null);
   };
 
@@ -216,7 +230,7 @@ export const Offers: React.FC<Props> = ({
     }
   };
 
-  const changeOfferStatus = (offer: Offer, newStatus: OfferStatus, note?: string) => {
+  const changeOfferStatus = async (offer: Offer, newStatus: OfferStatus, note?: string) => {
     const timestamp = new Date().toISOString();
     const historyEntry: OfferStatusHistory = {
       status: newStatus,
@@ -248,18 +262,35 @@ export const Offers: React.FC<Props> = ({
     setStatusChangeNote("");
 
     showToast(`${t("offers.toast.statusUpdated")} ${getStatusLabel(newStatus)}`, "success");
+    // Natív értesítés küldése (ha engedélyezve van)
+    if (settings.notificationEnabled !== false && updated) {
+      try {
+        await notifyOfferStatusChange(updated.customerName || t("offers.customerName"), getStatusLabel(newStatus));
+      } catch (error) {
+        console.log("Értesítés küldése sikertelen:", error);
+      }
+    }
   };
 
   const startEditOffer = (offer: Offer) => {
     logWithLanguage(settings.language, "log", "offers.edit.start", {
       offerId: offer.id,
       customerName: offer.customerName,
+      printDueDate: offer.printDueDate || "none",
     });
     setEditingOffer(offer);
     setEditCustomerName(offer.customerName || "");
     setEditCustomerContact(offer.customerContact || "");
     setEditDescription(offer.description || "");
     setEditProfitPercentage(offer.profitPercentage || 30);
+    const dateValue = offer.printDueDate ? offer.printDueDate.split('T')[0] : "";
+    logWithLanguage(settings.language, "log", "offers.save.printDueDate", {
+      action: "loading",
+      offerId: offer.id,
+      printDueDate: offer.printDueDate || "none",
+      dateValue,
+    });
+    setEditPrintDueDate(dateValue);
     setEditFilaments([...offer.filaments]);
     const matchedPrinter =
       (offer.printerId && printers.find(p => p.id === offer.printerId)) ||
@@ -275,12 +306,13 @@ export const Offers: React.FC<Props> = ({
     setEditCustomerContact("");
     setEditDescription("");
     setEditProfitPercentage(30);
+    setEditPrintDueDate("");
     setEditFilaments([]);
     setEditPrinterId(null);
     setSelectedLibraryFilamentIndex("");
   };
 
-  const saveEditOffer = () => {
+  const saveEditOffer = async () => {
     if (!editingOffer) return;
     
     if (!editCustomerName.trim()) {
@@ -306,11 +338,13 @@ export const Offers: React.FC<Props> = ({
       return;
     }
     const printerChanged = (editingOffer.printerId ?? null) !== selectedPrinter.id;
+    const dueDateChanged = editingOffer.printDueDate !== (editPrintDueDate ? new Date(editPrintDueDate).toISOString() : undefined);
     const hasChanges =
       editingOffer.customerName !== editCustomerName.trim() ||
       editingOffer.customerContact !== (editCustomerContact.trim() || undefined) ||
       editingOffer.description !== (editDescription.trim() || undefined) ||
       editingOffer.profitPercentage !== editProfitPercentage ||
+      dueDateChanged ||
       filamentsChanged ||
       printerChanged;
 
@@ -354,12 +388,21 @@ export const Offers: React.FC<Props> = ({
       currentVersion = currentVersion + 1;
     }
 
+    const printDueDateISO = editPrintDueDate ? new Date(editPrintDueDate).toISOString() : undefined;
+    
+    logWithLanguage(settings.language, "log", "offers.save.printDueDate", {
+      offerId: editingOffer.id,
+      printDueDate: printDueDateISO || "none",
+      editPrintDueDate,
+    });
+
     const updatedOffer: Offer = {
       ...editingOffer,
       customerName: editCustomerName.trim(),
       customerContact: editCustomerContact.trim() || undefined,
       description: editDescription.trim() || undefined,
       profitPercentage: editProfitPercentage,
+      printDueDate: printDueDateISO,
       filaments: editFilaments,
       costs: newCosts,
       history: history,
@@ -383,6 +426,15 @@ export const Offers: React.FC<Props> = ({
     });
     const versionSuffix = hasChanges ? ` (${t("offers.versionPrefix")}${currentVersion})` : "";
     showToast(`${t("offers.toast.saveSuccess")}${versionSuffix}`, "success");
+    // Natív értesítés küldése (ha engedélyezve van)
+    if (settings.notificationEnabled !== false) {
+      try {
+        const { notifySaveComplete } = await import("../utils/platformFeatures");
+        await notifySaveComplete();
+      } catch (error) {
+        console.log("Értesítés küldése sikertelen:", error);
+      }
+    }
   };
 
   const exportToPDF = (offer: Offer) => {
@@ -489,6 +541,14 @@ export const Offers: React.FC<Props> = ({
       if (filePath) {
         await writeTextFile(filePath, htmlContent);
         showToast(`${t("offers.toast.exportHtmlSuccess")} ${fileName}`, "success");
+        // Natív értesítés küldése (ha engedélyezve van)
+        if (settings.notificationEnabled !== false) {
+          try {
+            await notifyExportComplete(fileName);
+          } catch (error) {
+            console.log("Értesítés küldése sikertelen:", error);
+          }
+        }
       }
     } catch (error) {
       logWithLanguage(settings.language, "error", "offers.pdf.error", { error });
@@ -1544,6 +1604,25 @@ export const Offers: React.FC<Props> = ({
                             {selectedOffer.customerContact || t("offers.details.contactMissing")}
                           </span>
                         </div>
+                        {selectedOffer.printDueDate && (
+                          <div style={{
+                            backgroundColor: theme.colors.surfaceHover,
+                            border: `1px solid ${theme.colors.border}`,
+                            borderRadius: "12px",
+                            padding: "14px"
+                          }}>
+                            <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.textSecondary }}>
+                              📅 {t("offers.printDueDate") || "Nyomtatás esedékességi dátuma"}
+                            </span>
+                            <div style={{ fontSize: "14px", fontWeight: "600", color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
+                              {new Date(selectedOffer.printDueDate).toLocaleDateString(locale, {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric"
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
@@ -1713,6 +1792,27 @@ export const Offers: React.FC<Props> = ({
                                 <option value={50}>50%</option>
                               </select>
                             </div>
+                            {/* Nyomtatás esedékességi dátuma */}
+                            <div style={{ width: "250px", flexShrink: 0 }}>
+                              <label style={{ 
+                                display: "block", 
+                                marginBottom: "8px", 
+                                fontWeight: "600", 
+                                fontSize: "14px", 
+                                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                                whiteSpace: "nowrap"
+                              }}>
+                                📅 {t("offers.printDueDate") || "Nyomtatás esedékességi dátuma"}
+                              </label>
+                              <input
+                                type="date"
+                                value={editPrintDueDate}
+                                onChange={e => setEditPrintDueDate(e.target.value)}
+                                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                style={{ ...themeStyles.input, width: "100%", maxWidth: "250px", boxSizing: "border-box" }}
+                              />
+                            </div>
                           </div>
                           <div style={{ marginTop: "20px", width: "100%", maxWidth: "600px" }}>
                             <label style={{ 
@@ -1732,6 +1832,11 @@ export const Offers: React.FC<Props> = ({
                               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                               style={{ ...themeStyles.input, width: "100%", maxWidth: "600px", minHeight: "100px", maxHeight: "200px", resize: "vertical", boxSizing: "border-box" }}
                             />
+                            {editPrintDueDate && (
+                              <p style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
+                                💡 {t("offers.printDueDateHint") || "Ez a dátum megjelenik a naptárban és jelzi az esedékes nyomtatásokat."}
+                              </p>
+                            )}
                           </div>
                           
                           {/* Filamentek szerkesztése */}

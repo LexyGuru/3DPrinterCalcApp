@@ -1,7 +1,7 @@
 import rawLibrary from "../data/filamentLibrarySample.json";
 import type { FilamentColorOption, FilamentFinish } from "./filamentColors";
 import type { ColorMode } from "../types";
-import { normalizeHex } from "./filamentColors";
+import { normalizeHex, resolveColorHexFromName } from "./filamentColors";
 import { translateText } from "./translator";
 import { BaseDirectory, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 
@@ -304,16 +304,16 @@ const writeLibraryToDisk = async (entries: RawLibraryEntry[]) => {
 
 const initializeLibrary = async () => {
   if (libraryLoaded) {
-    console.log("[FilamentLibrary] initializeLibrary skipped (already loaded)");
     return;
   }
-  console.log("[FilamentLibrary] initializeLibrary starting");
   if (!initializePromise) {
     initializePromise = (async () => {
       const entries = await readLibraryFromDisk();
       rebuildIndex(entries, false);
       libraryLoaded = true;
-      console.log("[FilamentLibrary] initializeLibrary completed", { entries: entries.length });
+      if (import.meta.env.DEV) {
+        console.log("[FilamentLibrary] initializeLibrary completed", { entries: entries.length });
+      }
     })().finally(() => {
       initializePromise = null;
     });
@@ -322,7 +322,7 @@ const initializeLibrary = async () => {
 };
 
 export const ensureLibraryOverridesLoaded = () => {
-  console.log("[FilamentLibrary] ensureLibraryOverridesLoaded invoked");
+  // Silently ensure library is loaded (no logging to reduce noise)
   void initializeLibrary();
 };
 
@@ -402,6 +402,11 @@ export const getLibraryColorOptions = (brand?: string | null, material?: string 
   return options;
 };
 
+const containsHungarianCharacters = (text: string): boolean => {
+  // Check for Hungarian-specific characters (á, é, í, ó, ö, ő, ú, ü, ű)
+  return /[áéíóöőúüűÁÉÍÓÖŐÚÜŰ]/.test(text);
+};
+
 export const findLibraryColorByLabel = (
   label?: string | null,
   brand?: string | null,
@@ -414,7 +419,10 @@ export const findLibraryColorByLabel = (
   }
 
   const entries = filterEntries(brand, material);
-  const match = entries.find(entry => {
+  const isHungarian = containsHungarianCharacters(normalizeText(label));
+  
+  // First try exact match
+  let match = entries.find(entry => {
     const candidates = [
       entry.rawColor,
       entry.labels.hu,
@@ -423,9 +431,52 @@ export const findLibraryColorByLabel = (
     ];
     return candidates.some(value => normalizeText(value).toLowerCase() === search);
   });
-  if (!match) {
-    console.warn("[FilamentLibrary] No matching color label found", { label, brand, material });
+  
+  // If no exact match and Hungarian text, try fuzzy matching (remove accents, spaces, special chars)
+  if (!match && isHungarian) {
+    const fuzzySearch = search
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+    
+    match = entries.find(entry => {
+      const candidates = [
+        entry.rawColor,
+        entry.labels.hu,
+        entry.labels.en,
+        entry.labels.de,
+      ];
+      return candidates.some(value => {
+        const normalized = normalizeText(value)
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]/g, "");
+        return normalized === fuzzySearch || normalized.includes(fuzzySearch) || fuzzySearch.includes(normalized);
+      });
+    });
   }
+  
+  // If still no match and Hungarian text, try partial matching (e.g., "Ég Kék" -> "Kék")
+  if (!match && isHungarian && search.includes(" ")) {
+    const words = search.split(/\s+/).filter(w => w.length > 2);
+    for (const word of words) {
+      match = entries.find(entry => {
+        const candidates = [
+          entry.rawColor,
+          entry.labels.hu,
+          entry.labels.en,
+          entry.labels.de,
+        ];
+        return candidates.some(value => {
+          const normalized = normalizeText(value).toLowerCase();
+          return normalized === word || normalized.includes(word) || word.includes(normalized);
+        });
+      });
+      if (match) break;
+    }
+  }
+  
   if (match) {
     console.log("[FilamentLibrary] Matched library color", {
       label,
@@ -446,10 +497,28 @@ export const resolveLibraryHexFromName = (
   material?: string | null
 ): string | undefined => {
   const match = findLibraryColorByLabel(label, brand, material);
-  if (!match) {
+  if (match) {
+    return normalizeHex(match.hex);
+  }
+  
+  // Fallback to filamentColors.ts color resolution (only for Hungarian labels)
+  const isHungarian = label ? containsHungarianCharacters(normalizeText(label)) : false;
+  if (isHungarian) {
+    const fallbackHex = resolveColorHexFromName(label);
+    if (fallbackHex) {
+      if (import.meta.env.DEV) {
+        console.log("[FilamentLibrary] Resolved hex via fallback", { label, brand, material, hex: fallbackHex });
+      }
+      return fallbackHex;
+    }
+  }
+  
+  // Only warn if library is already loaded and we still couldn't resolve the color
+  // This prevents false warnings during initial library loading
+  if (libraryLoaded) {
     console.warn("[FilamentLibrary] Could not resolve hex for", { label, brand, material });
   }
-  return match ? normalizeHex(match.hex) : undefined;
+  return undefined;
 };
 
 export const persistLibraryEntries = async (entries: RawLibraryEntry[]) => {
