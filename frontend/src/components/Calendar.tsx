@@ -5,7 +5,8 @@ import { useTranslation } from "../utils/translations";
 import { logWithLanguage } from "../utils/languages/global_console";
 import { generateICS } from "../utils/icsExport";
 import { open } from "@tauri-apps/plugin-shell";
-import { writeTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { useToast } from "./Toast";
 import { getPlatform } from "../utils/platformFeatures";
 
@@ -222,12 +223,27 @@ export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles
     setExporting(true);
     try {
       const icsContent = generateICS(offersWithDueDates);
-      const fileName = `3dprinter_calendar_${new Date().toISOString().split('T')[0]}.ics`;
+      const defaultFileName = `3dprinter_calendar_${new Date().toISOString().split('T')[0]}.ics`;
       
-      // Save ICS file
-      await writeTextFile(fileName, icsContent, {
-        baseDir: BaseDirectory.Download,
+      // Use save dialog to let user choose where to save the file
+      const filePath = await save({
+        defaultPath: defaultFileName,
+        filters: [
+          {
+            name: "ICS Calendar",
+            extensions: ["ics"],
+          },
+        ],
       });
+
+      if (!filePath) {
+        // User cancelled the save dialog
+        setExporting(false);
+        return;
+      }
+
+      // Save ICS file to the selected path
+      await writeTextFile(filePath, icsContent);
 
       const platform = getPlatform();
       const calendarProvider = settings.calendarProvider || "google";
@@ -235,26 +251,21 @@ export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles
       // Open calendar based on provider and platform
       if (calendarProvider === "ios" && platform === "macos") {
         // macOS: Open with Calendar app
-        const { downloadDir } = await import("@tauri-apps/api/path");
-        const dir = await downloadDir();
-        const filePath = `${dir}/${fileName}`;
         await open(filePath);
       } else if (calendarProvider === "google") {
         // Google Calendar: Open web interface
         await open("https://calendar.google.com/calendar/render?action=TEMPLATE");
-        showToast(t("calendar.export.google") || "Nyisd meg a Google Calendar-t és importáld a letöltött ICS fájlt", "info");
+        showToast(t("calendar.export.google") || "Nyisd meg a Google Calendar-t és importáld a mentett ICS fájlt", "info");
       } else if (calendarProvider === "outlook") {
         // Outlook: Open web interface
         await open("https://outlook.live.com/calendar/0/deeplink/compose");
-        showToast(t("calendar.export.outlook") || "Nyisd meg az Outlook-ot és importáld a letöltött ICS fájlt", "info");
+        showToast(t("calendar.export.outlook") || "Nyisd meg az Outlook-ot és importáld a mentett ICS fájlt", "info");
       } else {
         // Default: Open file with system default app
-        const { downloadDir } = await import("@tauri-apps/api/path");
-        const dir = await downloadDir();
-        const filePath = `${dir}/${fileName}`;
         await open(filePath);
       }
 
+      const fileName = filePath.split(/[/\\]/).pop() || defaultFileName;
       showToast(
         t("calendar.export.success") || `ICS fájl sikeresen exportálva: ${fileName}`,
         "success"
