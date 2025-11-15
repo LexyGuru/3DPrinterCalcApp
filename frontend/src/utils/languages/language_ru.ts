@@ -811,6 +811,10 @@ export const languageRu: TranslationMap = {
   "slicerImport.actions.createDraftDescription": "Создает черновик в разделе Предложения, используя импортированные данные о времени и филаменте.",
   // Sidebar
   "sidebar.menu": "Меню",
+  "sidebar.section.main": "ГЛАВНОЕ МЕНЮ",
+  "sidebar.section.management": "УПРАВЛЕНИЕ",
+  "sidebar.section.analytics": "АНАЛИТИКА",
+  "sidebar.section.system": "СИСТЕМА",
   "sidebar.home": "Главная",
   "sidebar.filaments": "Филамент",
   "sidebar.printers": "Принтеры",
@@ -818,8 +822,11 @@ export const languageRu: TranslationMap = {
   "sidebar.offers": "Предложения",
   "sidebar.customers": "Клиенты",
   "sidebar.priceTrends": "Ценовые тренды",
+  "sidebar.calendar": "Календарь",
   "sidebar.settings": "Настройки",
   "sidebar.console": "Консоль",
+  "sidebar.footer.author": "Создано: LexyGuru",
+  "sidebar.footer.version": "Версия",
   "common.search": "Поиск...",
   // Calendar
   "calendar.title": "Календарь - Предстоящие печати",

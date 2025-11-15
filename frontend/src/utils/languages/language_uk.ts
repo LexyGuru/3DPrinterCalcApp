@@ -811,6 +811,10 @@ export const languageUk: TranslationMap = {
   "slicerImport.actions.createDraftDescription": "Створює чернетку в розділі Пропозиції, використовуючи імпортовані дані про час та нитку.",
   // Sidebar
   "sidebar.menu": "Меню",
+  "sidebar.section.main": "ГОЛОВНЕ МЕНЮ",
+  "sidebar.section.management": "УПРАВЛІННЯ",
+  "sidebar.section.analytics": "АНАЛІТИКА",
+  "sidebar.section.system": "СИСТЕМА",
   "sidebar.home": "Головна",
   "sidebar.filaments": "Нитка",
   "sidebar.printers": "Принтери",
@@ -818,8 +822,11 @@ export const languageUk: TranslationMap = {
   "sidebar.offers": "Пропозиції",
   "sidebar.customers": "Клієнти",
   "sidebar.priceTrends": "Цінові тренди",
+  "sidebar.calendar": "Календар",
   "sidebar.settings": "Налаштування",
   "sidebar.console": "Консоль",
+  "sidebar.footer.author": "Створено: LexyGuru",
+  "sidebar.footer.version": "Версія",
   "common.search": "Пошук...",
   // Calendar
   "calendar.title": "Календар - Майбутні друки",

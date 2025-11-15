@@ -897,13 +897,22 @@ export const languageFr: TranslationMap = {
 
   // Sidebar
   "sidebar.menu": "Menu",
+  "sidebar.section.main": "MENU PRINCIPAL",
+  "sidebar.section.management": "GESTION",
+  "sidebar.section.analytics": "ANALYSE",
+  "sidebar.section.system": "SYSTÈME",
   "sidebar.home": "Accueil",
   "sidebar.filaments": "Filaments",
   "sidebar.printers": "Imprimantes",
   "sidebar.calculator": "Calculateur",
   "sidebar.offers": "Offres",
+  "sidebar.customers": "Clients",
+  "sidebar.priceTrends": "Tendances des prix",
+  "sidebar.calendar": "Calendrier",
   "sidebar.settings": "Paramètres",
   "sidebar.console": "Console",
+  "sidebar.footer.author": "Créé par: LexyGuru",
+  "sidebar.footer.version": "Version",
   "settings.library.duplicates.title": "Supprimer les doublons",
   "settings.library.duplicates.message":
     "Supprimer toutes les entrées en double ? La première entrée de chaque groupe sera conservée.",

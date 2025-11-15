@@ -854,6 +854,10 @@ export const languageSk: TranslationMap = {
   "slicerImport.actions.createDraftDescription": "Vytvorí koncept v sekcii Ponuky pomocou importovaných dát o čase a filamente.",
   // Sidebar
   "sidebar.menu": "Menu",
+  "sidebar.section.main": "HLAVNÉ MENU",
+  "sidebar.section.management": "SPRÁVA",
+  "sidebar.section.analytics": "ANALÝZA",
+  "sidebar.section.system": "SYSTÉM",
   "sidebar.home": "Domov",
   "sidebar.filaments": "Filamenty",
   "sidebar.printers": "Tlačiarne",
@@ -861,8 +865,11 @@ export const languageSk: TranslationMap = {
   "sidebar.offers": "Ponuky",
   "sidebar.customers": "Zákazníci",
   "sidebar.priceTrends": "Cenové trendy",
+  "sidebar.calendar": "Kalendár",
   "sidebar.settings": "Nastavenia",
   "sidebar.console": "Konzola",
+  "sidebar.footer.author": "Vytvoril: LexyGuru",
+  "sidebar.footer.version": "Verzia",
   "common.search": "Hľadať...",
   // Calendar
   "calendar.title": "Kalendár - Nadchádzajúce tlače",

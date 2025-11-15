@@ -859,6 +859,10 @@ export const languagePt: TranslationMap = {
   "slicerImport.actions.createDraftDescription": "Cria um rascunho na seção Ofertas usando os dados importados de tempo e filamento.",
   // Sidebar
   "sidebar.menu": "Menu",
+  "sidebar.section.main": "MENU PRINCIPAL",
+  "sidebar.section.management": "GERENCIAMENTO",
+  "sidebar.section.analytics": "ANÁLISE",
+  "sidebar.section.system": "SISTEMA",
   "sidebar.home": "Início",
   "sidebar.filaments": "Filamentos",
   "sidebar.printers": "Impressoras",
@@ -866,8 +870,11 @@ export const languagePt: TranslationMap = {
   "sidebar.offers": "Ofertas",
   "sidebar.customers": "Clientes",
   "sidebar.priceTrends": "Tendências de preços",
+  "sidebar.calendar": "Calendário",
   "sidebar.settings": "Configurações",
   "sidebar.console": "Console",
+  "sidebar.footer.author": "Criado por: LexyGuru",
+  "sidebar.footer.version": "Versão",
   "common.search": "Pesquisar...",
   // Calendar
   "calendar.title": "Calendário - Impressões futuras",
