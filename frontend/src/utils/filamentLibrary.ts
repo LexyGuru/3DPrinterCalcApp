@@ -1,7 +1,7 @@
 import rawLibrary from "../data/filamentLibrarySample.json";
 import type { FilamentColorOption, FilamentFinish } from "./filamentColors";
 import type { ColorMode } from "../types";
-import { normalizeHex } from "./filamentColors";
+import { normalizeHex, resolveColorHexFromName } from "./filamentColors";
 import { translateText } from "./translator";
 import { BaseDirectory, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 
@@ -414,7 +414,9 @@ export const findLibraryColorByLabel = (
   }
 
   const entries = filterEntries(brand, material);
-  const match = entries.find(entry => {
+  
+  // First try exact match
+  let match = entries.find(entry => {
     const candidates = [
       entry.rawColor,
       entry.labels.hu,
@@ -423,6 +425,52 @@ export const findLibraryColorByLabel = (
     ];
     return candidates.some(value => normalizeText(value).toLowerCase() === search);
   });
+  
+  // If no exact match, try fuzzy matching (remove accents, spaces, special chars)
+  if (!match) {
+    const fuzzySearch = search
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+    
+    match = entries.find(entry => {
+      const candidates = [
+        entry.rawColor,
+        entry.labels.hu,
+        entry.labels.en,
+        entry.labels.de,
+      ];
+      return candidates.some(value => {
+        const normalized = normalizeText(value)
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]/g, "");
+        return normalized === fuzzySearch || normalized.includes(fuzzySearch) || fuzzySearch.includes(normalized);
+      });
+    });
+  }
+  
+  // If still no match, try partial matching (e.g., "Ég Kék" -> "Kék")
+  if (!match && search.includes(" ")) {
+    const words = search.split(/\s+/).filter(w => w.length > 2);
+    for (const word of words) {
+      match = entries.find(entry => {
+        const candidates = [
+          entry.rawColor,
+          entry.labels.hu,
+          entry.labels.en,
+          entry.labels.de,
+        ];
+        return candidates.some(value => {
+          const normalized = normalizeText(value).toLowerCase();
+          return normalized === word || normalized.includes(word) || word.includes(normalized);
+        });
+      });
+      if (match) break;
+    }
+  }
+  
   if (!match) {
     console.warn("[FilamentLibrary] No matching color label found", { label, brand, material });
   }
@@ -446,10 +494,19 @@ export const resolveLibraryHexFromName = (
   material?: string | null
 ): string | undefined => {
   const match = findLibraryColorByLabel(label, brand, material);
-  if (!match) {
-    console.warn("[FilamentLibrary] Could not resolve hex for", { label, brand, material });
+  if (match) {
+    return normalizeHex(match.hex);
   }
-  return match ? normalizeHex(match.hex) : undefined;
+  
+  // Fallback to filamentColors.ts color resolution (supports Hungarian colors from COLOR_PRESETS)
+  const fallbackHex = resolveColorHexFromName(label);
+  if (fallbackHex) {
+    console.log("[FilamentLibrary] Resolved hex via fallback", { label, brand, material, hex: fallbackHex });
+    return fallbackHex;
+  }
+  
+  console.warn("[FilamentLibrary] Could not resolve hex for", { label, brand, material });
+  return undefined;
 };
 
 export const persistLibraryEntries = async (entries: RawLibraryEntry[]) => {
