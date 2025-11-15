@@ -506,13 +506,18 @@ export const resolveLibraryHexFromName = (
   if (isHungarian) {
     const fallbackHex = resolveColorHexFromName(label);
     if (fallbackHex) {
-      console.log("[FilamentLibrary] Resolved hex via fallback", { label, brand, material, hex: fallbackHex });
+      if (import.meta.env.DEV) {
+        console.log("[FilamentLibrary] Resolved hex via fallback", { label, brand, material, hex: fallbackHex });
+      }
       return fallbackHex;
     }
   }
   
-  // Only warn if we couldn't resolve the color at all (no match and no fallback)
-  console.warn("[FilamentLibrary] Could not resolve hex for", { label, brand, material });
+  // Only warn if library is already loaded and we still couldn't resolve the color
+  // This prevents false warnings during initial library loading
+  if (libraryLoaded) {
+    console.warn("[FilamentLibrary] Could not resolve hex for", { label, brand, material });
+  }
   return undefined;
 };
 
