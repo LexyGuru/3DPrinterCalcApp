@@ -114,7 +114,7 @@ export const PriceTrends: React.FC<Props> = ({ filaments, settings, theme, theme
     const recentHistory = filamentPriceHistory.history.slice(0, 20).reverse();
     
     return {
-      labels: recentHistory.map((entry, idx) => {
+      labels: recentHistory.map((entry) => {
         const date = new Date(entry.date);
         const locale = LANGUAGE_LOCALES[settings.language] ?? "en-US";
         return date.toLocaleDateString(locale, {

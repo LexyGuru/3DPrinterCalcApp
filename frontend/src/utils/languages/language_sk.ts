@@ -182,6 +182,11 @@ export const languageSk: TranslationMap = {
   "filaments.colorMode.placeholder": "napr. Dúhový / Dvojitý hodváb",
   "filaments.multicolor.label": "Viacfarebný",
   "filaments.priceSearch.error": "Nedá sa otvoriť prehliadač na vyhľadávanie ceny.",
+  "filaments.priceChange.significant": "⚠️ Významná zmena ceny: {changePercent}% ({oldPrice} → {newPrice} EUR/kg)",
+  "filaments.priceHistory.saveError": "Chyba pri ukladaní histórie cien",
+  "filaments.priceHistory.show": "História cien",
+  "filaments.priceHistory.title": "Posledné zmeny cien",
+  "filaments.priceHistory.more": "+{count} ďalších záznamov",
   // Printers
   "printers.title": "Správa tlačiarní",
   "printers.addTitle": "Pridať novú tlačiareň",

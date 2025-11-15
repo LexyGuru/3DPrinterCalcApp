@@ -110,7 +110,7 @@ export function calculatePriceStats(history: PriceHistory[]): {
   // Átlagos változás az utolsó bejegyzésekben
   const recentChanges = recentEntries
     .slice(0, -1)
-    .map((entry, idx) => entry.priceChangePercent);
+    .map((entry) => entry.priceChangePercent);
   const avgChange = recentChanges.reduce((sum, c) => sum + c, 0) / recentChanges.length;
 
   let priceTrend: "increasing" | "decreasing" | "stable" = "stable";

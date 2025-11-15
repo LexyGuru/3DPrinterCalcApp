@@ -66,6 +66,7 @@ export type ConsoleMessageKey =
   | "filaments.delete.start"
   | "filaments.delete.success"
   | "filaments.priceSearch.error"
+  | "filaments.priceHistory.saveError"
   | "filaments.reorder"
   | "settings.logo.optimizeError"
   | "settings.confirmDialog.error"
@@ -184,6 +185,7 @@ const englishMessages: Record<ConsoleMessageKey, string> = {
   "filaments.delete.start": "🗑️ Deleting filament...",
   "filaments.delete.success": "✅ Filament deleted successfully",
   "filaments.priceSearch.error": "[Filaments] Failed to open price search via shell plugin",
+  "filaments.priceHistory.saveError": "[Filaments] Failed to save price history",
   "filaments.reorder": "🔄 Filaments reordered",
   "settings.logo.optimizeError": "❌ Logo optimization error",
   "settings.confirmDialog.error": "[Settings] Confirm dialog action failed",
@@ -303,6 +305,7 @@ const hungarianMessages: Partial<Record<ConsoleMessageKey, string>> = {
   "filaments.delete.start": "🗑️ Filament törlése...",
   "filaments.delete.success": "✅ Filament sikeresen törölve",
   "filaments.priceSearch.error": "[Filaments] Nem sikerült megnyitni az árkeresést a shell pluginnal",
+  "filaments.priceHistory.saveError": "[Filaments] Az ár előzmény mentése sikertelen",
   "filaments.reorder": "🔄 Filamentek átrendezve",
   "settings.logo.optimizeError": "❌ Logo optimalizálási hiba",
   "settings.confirmDialog.error": "[Settings] Megerősítő párbeszéd művelete sikertelen",

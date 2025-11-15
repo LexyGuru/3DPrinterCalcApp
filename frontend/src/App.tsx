@@ -166,6 +166,14 @@ export default function App() {
     }
   }, [offers, isInitialized, autosaveEnabled]);
 
+  useEffect(() => {
+    if (isInitialized && autosaveEnabled) {
+      debouncedSaveCustomers();
+    } else if (isInitialized && !autosaveEnabled) {
+      saveCustomers(customers);
+    }
+  }, [customers, isInitialized, autosaveEnabled]);
+
   const handleSaveOffer = useCallback((offer: Offer) => {
     setOffers(prevOffers => [...prevOffers, offer]);
   }, []);

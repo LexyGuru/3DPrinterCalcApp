@@ -182,6 +182,11 @@ export const languageEs: TranslationMap = {
   "filaments.colorMode.placeholder": "ej. Arcoíris / Seda dual",
   "filaments.multicolor.label": "Multicolor",
   "filaments.priceSearch.error": "No se pudo abrir el navegador para buscar precios.",
+  "filaments.priceChange.significant": "⚠️ Cambio significativo de precio: {changePercent}% ({oldPrice} → {newPrice} EUR/kg)",
+  "filaments.priceHistory.saveError": "Error al guardar el historial de precios",
+  "filaments.priceHistory.show": "Historial de precios",
+  "filaments.priceHistory.title": "Últimos cambios de precio",
+  "filaments.priceHistory.more": "+{count} entradas más",
   // Printers
   "printers.title": "Gestión de impresoras",
   "printers.addTitle": "Agregar nueva impresora",
