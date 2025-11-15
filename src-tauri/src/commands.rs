@@ -67,3 +67,36 @@ pub fn toggle_system_tray(_app: AppHandle, show: bool) -> Result<(), String> {
     Ok(())
 }
 
+/// Fájl megnyitása a rendszer alapértelmezett alkalmazásával
+#[tauri::command]
+pub async fn open_file(path: String) -> Result<(), String> {
+    use std::process::Command;
+    
+    #[cfg(target_os = "macos")]
+    {
+        Command::new("open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| format!("Nem sikerült megnyitni a fájlt macOS-on: {}", e))?;
+    }
+    
+    #[cfg(target_os = "windows")]
+    {
+        Command::new("cmd")
+            .args(["/C", "start", "", &path])
+            .spawn()
+            .map_err(|e| format!("Nem sikerült megnyitni a fájlt Windows-on: {}", e))?;
+    }
+    
+    #[cfg(target_os = "linux")]
+    {
+        Command::new("xdg-open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| format!("Nem sikerült megnyitni a fájlt Linux-on: {}", e))?;
+    }
+    
+    log::info!("Fájl megnyitva: {}", path);
+    Ok(())
+}
+

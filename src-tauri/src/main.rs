@@ -15,6 +15,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             send_notification,
             toggle_system_tray,
+            open_file,
             #[cfg(target_os = "macos")]
             set_dock_badge,
             #[cfg(target_os = "windows")]

@@ -7,6 +7,7 @@ import { generateICS } from "../utils/icsExport";
 import { open } from "@tauri-apps/plugin-shell";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { invoke } from "@tauri-apps/api/core";
 import { useToast } from "./Toast";
 import { getPlatform } from "../utils/platformFeatures";
 
@@ -249,10 +250,7 @@ export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles
       const calendarProvider = settings.calendarProvider || "google";
 
       // Open calendar based on provider and platform
-      if (calendarProvider === "ios" && platform === "macos") {
-        // macOS: Open with Calendar app
-        await open(filePath);
-      } else if (calendarProvider === "google") {
+      if (calendarProvider === "google") {
         // Google Calendar: Open web interface
         await open("https://calendar.google.com/calendar/render?action=TEMPLATE");
         showToast(t("calendar.export.google") || "Nyisd meg a Google Calendar-t és importáld a mentett ICS fájlt", "info");
@@ -261,8 +259,8 @@ export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles
         await open("https://outlook.live.com/calendar/0/deeplink/compose");
         showToast(t("calendar.export.outlook") || "Nyisd meg az Outlook-ot és importáld a mentett ICS fájlt", "info");
       } else {
-        // Default: Open file with system default app
-        await open(filePath);
+        // iOS Calendar (macOS) or default: Open file with system default app
+        await invoke("open_file", { path: filePath });
       }
 
       const fileName = filePath.split(/[/\\]/).pop() || defaultFileName;
