@@ -58,6 +58,8 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 - Menej operácií konzoly vo výrobných zostavách
 - Čistejší výstup konzoly počas vývoja
 
+## 📸 Screenshoty
+
 Aplikácia obsahuje:
 - Domovský dashboard so štatistikami
 - Správu filamentov

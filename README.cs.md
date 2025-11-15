@@ -36,8 +36,6 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 - 🖱️ **Drag & Drop** - Přeskupování nabídek, filamentů a tiskáren tažením
 - 📱 **Kontextová menu** - Menu pravého tlačítka pro rychlé akce (upravit, smazat, duplikovat, exportovat)
 
-## 📸 Screenshoty
-
 ## 📋 Seznam změn (Changelog)
 
 ### v0.6.0 (Nejnovější)
@@ -57,6 +55,8 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 - Optimalizace protokolování operací úložiště (pouze režim DEV)
 - Méně operací konzole v produkčních sestaveních
 - Čistší výstup konzole během vývoje
+
+## 📸 Screenshoty
 
 Aplikace obsahuje:
 - Domovský dashboard se statistikami
