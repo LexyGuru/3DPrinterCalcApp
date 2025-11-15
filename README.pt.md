@@ -38,6 +38,26 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 - 🖱️ **Arrastar e soltar** - Reordenar cotações, filamentos e impressoras arrastrando
 - 📱 **Menus contextuais** - Menus de botão direito para ações rápidas (editar, excluir, duplicar, exportar)
 
+## 📋 Registro de alterações (Changelog)
+
+### v0.6.0 (Mais recente)
+
+#### 🐛 Correções de bugs
+- **Otimização de registro**: Redução de registros excessivos e duplicados
+  - Registros informativos aparecem apenas no modo de desenvolvimento (DEV)
+  - Erros ainda são registrados em builds de produção
+  - Inicialização do FilamentLibrary ocorre silenciosamente
+- **Correção de avisos falsos**: A resolução de cor do filamento avisa apenas quando a biblioteca já está carregada e a cor ainda não foi encontrada
+  - Previne avisos falsos durante o carregamento assíncrono da biblioteca
+  - Avisos aparecem apenas para problemas reais
+- **Correção de duplicação do verificador de atualizações**: Remoção de chamadas duplicadas de verificação de atualizações
+- **Correção de registro de atalhos de teclado**: Registra apenas quando existe um atalho, ignora combinações inválidas
+
+#### ⚡ Melhorias de desempenho
+- Registro de operações de armazenamento otimizado (apenas modo DEV)
+- Menos operações de console em builds de produção
+- Saída de console mais limpa durante o desenvolvimento
+
 ## 📸 Capturas de tela
 
 A aplicação inclui:

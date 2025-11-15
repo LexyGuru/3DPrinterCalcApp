@@ -38,6 +38,26 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 - 🖱️ **Przeciąganie i upuszczanie** - Zmiana kolejności ofert, filamentów i drukarek przez przeciąganie
 - 📱 **Menu kontekstowe** - Menu prawego przycisku myszy do szybkich akcji (edytuj, usuń, duplikuj, eksportuj)
 
+## 📋 Dziennik zmian (Changelog)
+
+### v0.6.0 (Najnowsza)
+
+#### 🐛 Naprawy błędów
+- **Optymalizacja logowania**: Zmniejszenie nadmiernego i zduplikowanego logowania
+  - Logi informacyjne pojawiają się tylko w trybie deweloperskim (DEV)
+  - Błędy nadal są logowane w buildach produkcyjnych
+  - Inicjalizacja FilamentLibrary odbywa się cicho
+- **Naprawa fałszywych ostrzeżeń**: Rozpoznawanie koloru filamentu ostrzega tylko wtedy, gdy biblioteka jest już załadowana i kolor nadal nie został znaleziony
+  - Zapobiega fałszywym ostrzeżeniom podczas asynchronicznego ładowania biblioteki
+  - Ostrzeżenia pojawiają się tylko w przypadku rzeczywistych problemów
+- **Naprawa duplikacji sprawdzania aktualizacji**: Usunięcie zduplikowanych wywołań sprawdzania aktualizacji
+- **Naprawa logowania skrótów klawiszowych**: Loguje tylko wtedy, gdy istnieje skrót, pomija nieprawidłowe kombinacje
+
+#### ⚡ Ulepszenia wydajności
+- Optymalizacja logowania operacji magazynu (tylko tryb DEV)
+- Mniej operacji konsoli w buildach produkcyjnych
+- Czystsze wyjście konsoli podczas rozwoju
+
 ## 📸 Zrzuty ekranu
 
 Aplikacja zawiera:

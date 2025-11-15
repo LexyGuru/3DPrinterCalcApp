@@ -39,6 +39,26 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 - 📱 **Menus contextuels** - Menus clic droit pour actions rapides (modifier, supprimer, dupliquer, exporter)
 - 🍎 **Fonctionnalités spécifiques à la plateforme** - Badge Dock macOS, notifications natives, intégration de la barre d'état système
 
+## 📋 Journal des modifications (Changelog)
+
+### v0.6.0 (Dernière)
+
+#### 🐛 Corrections de bugs
+- **Optimisation de la journalisation**: Réduction de la journalisation excessive et dupliquée
+  - Les journaux informatifs n'apparaissent qu'en mode développement (DEV)
+  - Les erreurs sont toujours journalisées dans les builds de production
+  - L'initialisation de FilamentLibrary se fait silencieusement
+- **Correction des avertissements faux**: La résolution de couleur de filament n'avertit que lorsque la bibliothèque est déjà chargée et que la couleur n'est toujours pas trouvée
+  - Empêche les avertissements faux pendant le chargement asynchrone de la bibliothèque
+  - Les avertissements n'apparaissent que pour les vrais problèmes
+- **Correction de la duplication du vérificateur de mises à jour**: Suppression des appels de vérification de mises à jour dupliqués
+- **Correction de la journalisation des raccourcis clavier**: Journalise uniquement lorsqu'un raccourci existe, ignore les combinaisons invalides
+
+#### ⚡ Améliorations des performances
+- Journalisation des opérations de stockage optimisée (mode DEV uniquement)
+- Moins d'opérations de console dans les builds de production
+- Sortie de console plus propre pendant le développement
+
 ## 📸 Captures d'écran
 
 L'application comprend:

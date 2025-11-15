@@ -38,6 +38,26 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📸 Screenshoty
 
+## 📋 Seznam změn (Changelog)
+
+### v0.6.0 (Nejnovější)
+
+#### 🐛 Opravy chyb
+- **Optimalizace protokolování**: Snížení nadměrného a duplicitního protokolování
+  - Informační protokoly se zobrazují pouze v režimu vývoje (DEV)
+  - Chyby se stále protokolují i v produkčních sestaveních
+  - Inicializace FilamentLibrary probíhá tiše
+- **Oprava falešných varování**: Rozlišení barvy filamentu varuje pouze tehdy, když je knihovna již načtena a barva stále nebyla nalezena
+  - Zabraňuje falešným varováním během asynchronního načítání knihovny
+  - Varování se zobrazují pouze u skutečných problémů
+- **Oprava duplikace kontroly aktualizací**: Odstranění duplicitních volání kontroly aktualizací
+- **Oprava protokolování klávesových zkratek**: Protokoluje pouze tehdy, když existuje zkratka, přeskočí neplatné kombinace
+
+#### ⚡ Vylepšení výkonu
+- Optimalizace protokolování operací úložiště (pouze režim DEV)
+- Méně operací konzole v produkčních sestaveních
+- Čistší výstup konzole během vývoje
+
 Aplikace obsahuje:
 - Domovský dashboard se statistikami
 - Správu filamentů

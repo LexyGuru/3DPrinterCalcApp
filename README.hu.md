@@ -40,6 +40,26 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 📱 **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, export)
 - 🍎 **Platform-specifikus funkciók** - macOS Dock badge, natív értesítések, system tray integráció
 
+## 📋 Változások (Changelog)
+
+### v0.6.0 (Legutóbbi)
+
+#### 🐛 Hibajavítások
+- **Logolás optimalizálása**: Csökkentettük a felesleges és duplikált logolást
+  - Információs logok csak fejlesztői módban jelennek meg (DEV)
+  - Hibák továbbra is logolódnak production buildben is
+  - FilamentLibrary inicializálás csendes módban történik
+- **Hamis figyelmeztetések javítása**: A filament színfeloldás csak akkor ír WARN-t, ha a library már betöltve van és még mindig nem található a szín
+  - Megakadályozza a hamis figyelmeztetéseket az aszinkron library betöltés során
+  - Csak valódi problémák esetén jelennek meg figyelmeztetések
+- **Update Checker duplikáció javítása**: Eltávolítottuk a duplikált update check hívásokat
+- **Gyorsbillentyű logolás javítása**: Csak akkor logol, ha van regisztrált shortcut, kihagyja az érvénytelen kombinációkat
+
+#### ⚡ Teljesítmény javítások
+- Store műveletek logolása optimalizálva (csak DEV módban)
+- Kevesebb console művelet production buildben
+- Tisztább console output fejlesztés során
+
 ## 📸 Képernyőképek
 
 Az alkalmazás tartalmazza:

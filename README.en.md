@@ -40,6 +40,26 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 📱 **Context Menus** - Right-click menus for quick actions (edit, delete, duplicate, export)
 - 🍎 **Platform-Specific Features** - macOS Dock badge, native notifications, system tray integration
 
+## 📋 Changelog
+
+### v0.6.0 (Latest)
+
+#### 🐛 Bug Fixes
+- **Logging optimization**: Reduced excessive and duplicate logging
+  - Informational logs only appear in development mode (DEV)
+  - Errors still log in production builds
+  - FilamentLibrary initialization happens silently
+- **False warning fixes**: Filament color resolution only warns when library is already loaded and color still not found
+  - Prevents false warnings during async library loading
+  - Warnings only appear for real issues
+- **Update Checker duplication fix**: Removed duplicate update check calls
+- **Keyboard shortcut logging fix**: Only logs when shortcut exists, skips invalid combinations
+
+#### ⚡ Performance Improvements
+- Store operations logging optimized (DEV mode only)
+- Fewer console operations in production builds
+- Cleaner console output during development
+
 ## 📸 Screenshots
 
 The application includes:

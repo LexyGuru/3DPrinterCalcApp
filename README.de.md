@@ -40,6 +40,26 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 📱 **Kontextmenüs** - Rechtsklick-Menüs für schnelle Aktionen (bearbeiten, löschen, duplizieren, exportieren)
 - 🍎 **Plattformspezifische Funktionen** - macOS Dock-Badge, native Benachrichtigungen, System-Tray-Integration
 
+## 📋 Änderungsprotokoll (Changelog)
+
+### v0.6.0 (Neueste)
+
+#### 🐛 Fehlerbehebungen
+- **Protokollierungsoptimierung**: Reduzierung übermäßiger und doppelter Protokollierung
+  - Informationsprotokolle erscheinen nur im Entwicklungsmodus (DEV)
+  - Fehler werden weiterhin auch in Production-Builds protokolliert
+  - FilamentLibrary-Initialisierung erfolgt still
+- **Falsche Warnungen behoben**: Filament-Farbauflösung warnt nur, wenn die Bibliothek bereits geladen ist und die Farbe immer noch nicht gefunden wird
+  - Verhindert falsche Warnungen während des asynchronen Bibliotheksladens
+  - Warnungen erscheinen nur bei echten Problemen
+- **Update Checker-Duplikation behoben**: Entfernung doppelter Update-Check-Aufrufe
+- **Tastenkürzel-Protokollierung behoben**: Protokolliert nur, wenn ein Shortcut vorhanden ist, überspringt ungültige Kombinationen
+
+#### ⚡ Leistungsverbesserungen
+- Store-Operationen-Protokollierung optimiert (nur DEV-Modus)
+- Weniger Konsolenoperationen in Production-Builds
+- Sauberere Konsolenausgabe während der Entwicklung
+
 ## 📸 Screenshots
 
 Die Anwendung enthält:
