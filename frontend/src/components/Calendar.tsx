@@ -9,7 +9,6 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { invoke } from "@tauri-apps/api/core";
 import { useToast } from "./Toast";
-import { getPlatform } from "../utils/platformFeatures";
 
 interface Props {
   offers: Offer[];
@@ -246,10 +245,9 @@ export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles
       // Save ICS file to the selected path
       await writeTextFile(filePath, icsContent);
 
-      const platform = getPlatform();
       const calendarProvider = settings.calendarProvider || "google";
 
-      // Open calendar based on provider and platform
+      // Open calendar based on provider
       if (calendarProvider === "google") {
         // Google Calendar: Open web interface
         await open("https://calendar.google.com/calendar/render?action=TEMPLATE");
