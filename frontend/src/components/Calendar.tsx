@@ -1,21 +1,18 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import type { Offer, Settings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
-import { useToast } from "./Toast";
 import { logWithLanguage } from "../utils/languages/global_console";
 
 interface Props {
   offers: Offer[];
-  setOffers: (offers: Offer[]) => void;
   settings: Settings;
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
 
-export const Calendar: React.FC<Props> = ({ offers, setOffers, settings, theme, themeStyles }) => {
+export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles }) => {
   const t = useTranslation(settings.language);
-  const { showToast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -207,7 +204,6 @@ export const Calendar: React.FC<Props> = ({ offers, setOffers, settings, theme, 
 
   const isGradientBg = typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient');
   const isNeon = theme.name === 'neon' || theme.name === 'cyberpunk';
-  const isLight = theme.name === 'light' || theme.name === 'pastel';
 
   return (
     <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
@@ -388,7 +384,7 @@ export const Calendar: React.FC<Props> = ({ offers, setOffers, settings, theme, 
                   </div>
                   {dayOffers.length > 0 && (
                     <div style={{ marginTop: "4px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                      {dayOffers.slice(0, 3).map((offer, idx) => (
+                      {dayOffers.slice(0, 3).map((offer) => (
                         <div
                           key={offer.id}
                           style={{

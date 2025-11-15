@@ -34,8 +34,8 @@ import {
   ensureLibraryEntry,
 } from "../utils/filamentLibrary";
 import { logWithLanguage } from "../utils/languages/global_console";
-import { addPriceHistory, isSignificantPriceChange, getFilamentPriceHistory, calculatePriceStats } from "../utils/priceHistory";
-import type { PriceHistory, FilamentPriceHistory } from "../types";
+import { addPriceHistory, isSignificantPriceChange, getFilamentPriceHistory } from "../utils/priceHistory";
+import type { PriceHistory } from "../types";
 
 const DEFAULT_WEIGHT_UNITS = ["g", "kg"] as const;
 
@@ -712,14 +712,11 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             const changePercent = Math.abs(
               ((newFilament.pricePerKg - oldFilament.pricePerKg) / oldFilament.pricePerKg) * 100
             );
-            showToast(
-              t("filaments.priceChange.significant", {
-                changePercent: changePercent.toFixed(1),
-                oldPrice: oldFilament.pricePerKg.toFixed(2),
-                newPrice: newFilament.pricePerKg.toFixed(2),
-              }),
-              "info"
-            );
+            const message = t("filaments.priceChange.significant")
+              .replace("{changePercent}", changePercent.toFixed(1))
+              .replace("{oldPrice}", oldFilament.pricePerKg.toFixed(2))
+              .replace("{newPrice}", newFilament.pricePerKg.toFixed(2));
+            showToast(message, "info");
           }
         } catch (error) {
           logWithLanguage(settings.language, "error", "filaments.priceHistory.saveError", error);

@@ -298,7 +298,6 @@ export default function App() {
         return (
           <Calendar
             offers={offers}
-            setOffers={setOffers}
             settings={settings}
             theme={currentTheme}
             themeStyles={themeStyles}

@@ -485,12 +485,11 @@ export const Customers: React.FC<Props> = ({
 
       <ConfirmDialog
         isOpen={deleteConfirmId !== null}
-        onClose={() => setDeleteConfirmId(null)}
+        onCancel={() => setDeleteConfirmId(null)}
         onConfirm={confirmDelete}
         title={t("customers.confirmDelete.title")}
         message={t("customers.confirmDelete.message")}
         theme={theme}
-        themeStyles={themeStyles}
       />
     </div>
   );

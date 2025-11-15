@@ -45,7 +45,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
 
   // Ügyfél kiválasztás kezelése
   useEffect(() => {
-    if (selectedCustomerId && selectedCustomerId !== "") {
+    if (selectedCustomerId !== "" && selectedCustomerId !== null) {
       const customer = customers.find(c => c.id === selectedCustomerId);
       if (customer) {
         setOfferCustomerName(customer.name);
