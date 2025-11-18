@@ -6,6 +6,9 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
 import { saveCustomers } from "../utils/store";
+import { CustomerSearch } from "./Customers/CustomerSearch";
+import { CustomerForm } from "./Customers/CustomerForm";
+import { CustomerList } from "./Customers/CustomerList";
 
 const LANGUAGE_LOCALES: Record<string, string> = {
   hu: "hu-HU",
@@ -181,19 +184,13 @@ export const Customers: React.FC<Props> = ({
       </h2>
 
       {/* Keresés */}
-      <div style={{ marginBottom: "20px" }}>
-        <input
-          type="text"
-          placeholder={t("customers.searchPlaceholder")}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            ...themeStyles.input,
-            width: "100%",
-            maxWidth: "400px",
-          }}
-        />
-      </div>
+      <CustomerSearch
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+      />
 
       {/* Hozzáadás gomb */}
       <div style={{ marginBottom: "20px" }}>
@@ -210,278 +207,43 @@ export const Customers: React.FC<Props> = ({
 
       {/* Hozzáadás form */}
       {showAddForm && (
-        <div style={{
-          ...themeStyles.card,
-          marginBottom: "24px",
-          padding: "20px",
-        }}>
-          <h3 style={{ ...themeStyles.heading, marginBottom: "16px", fontSize: "18px" }}>
-            {t("customers.addNew")}
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                {t("customers.name")} *
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={themeStyles.input}
-                placeholder={t("customers.namePlaceholder")}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                {t("customers.contact")}
-              </label>
-              <input
-                type="text"
-                value={contact}
-                onChange={(e) => setContact(e.target.value)}
-                style={themeStyles.input}
-                placeholder={t("customers.contactPlaceholder")}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                {t("customers.company")}
-              </label>
-              <input
-                type="text"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                style={themeStyles.input}
-                placeholder={t("customers.companyPlaceholder")}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                {t("customers.address")}
-              </label>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                style={themeStyles.input}
-                placeholder={t("customers.addressPlaceholder")}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                {t("customers.notes")}
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                style={{
-                  ...themeStyles.input,
-                  minHeight: "80px",
-                  resize: "vertical",
-                }}
-                placeholder={t("customers.notesPlaceholder")}
-              />
-            </div>
-            <div style={{ display: "flex", gap: "12px" }}>
-              <button onClick={addCustomer} style={themeStyles.buttonPrimary}>
-                {t("common.save")}
-              </button>
-              <button 
-                onClick={() => {
-                  setShowAddForm(false);
-                  setName(""); setContact(""); setCompany(""); setAddress(""); setNotes("");
-                }}
-                style={themeStyles.buttonSecondary}
-              >
-                {t("common.cancel")}
-              </button>
-            </div>
-          </div>
-        </div>
+        <CustomerForm
+          name={name}
+          setName={setName}
+          contact={contact}
+          setContact={setContact}
+          company={company}
+          setCompany={setCompany}
+          address={address}
+          setAddress={setAddress}
+          notes={notes}
+          setNotes={setNotes}
+          onSubmit={addCustomer}
+          onCancel={() => {
+            setShowAddForm(false);
+            setName(""); setContact(""); setCompany(""); setAddress(""); setNotes("");
+          }}
+          settings={settings}
+          theme={theme}
+          themeStyles={themeStyles}
+        />
       )}
 
       {/* Ügyfelek listája */}
-      {filteredCustomers.length === 0 ? (
-        <div style={{
-          ...themeStyles.card,
-          padding: "40px",
-          textAlign: "center",
-          color: theme.colors.textSecondary,
-        }}>
-          {searchTerm ? t("customers.noResults") : t("customers.empty")}
-        </div>
-      ) : (
-        <div style={{ display: "grid", gap: "16px" }}>
-          {filteredCustomers.map((customer) => (
-            <div
-              key={customer.id}
-              style={{
-                ...themeStyles.card,
-                padding: "20px",
-              }}
-            >
-              {editingCustomerId === customer.id ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                      {t("customers.name")} *
-                    </label>
-                    <input
-                      type="text"
-                      value={editingCustomer?.name || ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
-                      style={themeStyles.input}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                      {t("customers.contact")}
-                    </label>
-                    <input
-                      type="text"
-                      value={editingCustomer?.contact || ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, contact: e.target.value })}
-                      style={themeStyles.input}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                      {t("customers.company")}
-                    </label>
-                    <input
-                      type="text"
-                      value={editingCustomer?.company || ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, company: e.target.value })}
-                      style={themeStyles.input}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                      {t("customers.address")}
-                    </label>
-                    <input
-                      type="text"
-                      value={editingCustomer?.address || ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
-                      style={themeStyles.input}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                      {t("customers.notes")}
-                    </label>
-                    <textarea
-                      value={editingCustomer?.notes || ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, notes: e.target.value })}
-                      style={{
-                        ...themeStyles.input,
-                        minHeight: "80px",
-                        resize: "vertical",
-                      }}
-                    />
-                  </div>
-                  <div style={{ display: "flex", gap: "12px" }}>
-                    <button 
-                      onClick={() => saveCustomer(customer.id)} 
-                      style={themeStyles.buttonPrimary}
-                    >
-                      {t("common.save")}
-                    </button>
-                    <button onClick={cancelEdit} style={themeStyles.buttonSecondary}>
-                      {t("common.cancel")}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-                    <div>
-                      <h3 style={{ 
-                        margin: 0, 
-                        marginBottom: "8px", 
-                        fontSize: "20px", 
-                        fontWeight: "600",
-                        color: theme.colors.text 
-                      }}>
-                        {customer.name}
-                      </h3>
-                      {customer.company && (
-                        <p style={{ margin: 0, marginBottom: "4px", color: theme.colors.textSecondary }}>
-                          🏢 {customer.company}
-                        </p>
-                      )}
-                      {customer.contact && (
-                        <p style={{ margin: 0, marginBottom: "4px", color: theme.colors.textSecondary }}>
-                          📧 {customer.contact}
-                        </p>
-                      )}
-                      {customer.address && (
-                        <p style={{ margin: 0, marginBottom: "4px", color: theme.colors.textSecondary }}>
-                          📍 {customer.address}
-                        </p>
-                      )}
-                      {customer.notes && (
-                        <p style={{ margin: 0, marginTop: "8px", color: theme.colors.textSecondary, fontStyle: "italic" }}>
-                          {customer.notes}
-                        </p>
-                      )}
-                    </div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <Tooltip content={t("common.edit")}>
-                        <button
-                          onClick={() => startEdit(customer)}
-                          style={{
-                            ...themeStyles.buttonSecondary,
-                            padding: "8px 12px",
-                            fontSize: "14px",
-                          }}
-                        >
-                          ✏️
-                        </button>
-                      </Tooltip>
-                      <Tooltip content={t("common.delete")}>
-                        <button
-                          onClick={() => deleteCustomer(customer.id)}
-                          style={{
-                            ...themeStyles.buttonDanger,
-                            padding: "8px 12px",
-                            fontSize: "14px",
-                          }}
-                        >
-                          🗑️
-                        </button>
-                      </Tooltip>
-                    </div>
-                  </div>
-                  <div style={{ 
-                    marginTop: "12px", 
-                    paddingTop: "12px", 
-                    borderTop: `1px solid ${theme.colors.border}`,
-                    fontSize: "14px",
-                    color: theme.colors.textSecondary,
-                  }}>
-                    <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-                      <span>
-                        📋 {t("customers.totalOffers")}: <strong>{customer.totalOffers || 0}</strong>
-                      </span>
-                      {customer.lastOfferDate && (
-                        <span>
-                          📅 {t("customers.lastOffer")}: <strong>
-                            {new Date(customer.lastOfferDate).toLocaleDateString(LANGUAGE_LOCALES[settings.language] ?? "en-US")}
-                          </strong>
-                        </span>
-                      )}
-                      <span>
-                        🕒 {t("customers.created")}: {new Date(customer.createdAt).toLocaleDateString(LANGUAGE_LOCALES[settings.language] ?? "en-US")}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      <CustomerList
+        customers={filteredCustomers}
+        editingCustomerId={editingCustomerId}
+        editingCustomer={editingCustomer}
+        setEditingCustomer={setEditingCustomer}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+        onStartEdit={startEdit}
+        onSaveCustomer={saveCustomer}
+        onCancelEdit={cancelEdit}
+        onDeleteCustomer={deleteCustomer}
+        searchTerm={searchTerm}
+      />
 
       <ConfirmDialog
         isOpen={deleteConfirmId !== null}

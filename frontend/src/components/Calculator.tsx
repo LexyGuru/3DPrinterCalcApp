@@ -10,6 +10,8 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { SlicerImportModal } from "./SlicerImportModal";
 import { validatePrintTime, validateUsedGrams, validateDryingTime, validateDryingPower, validateProfitPercentage } from "../utils/validation";
 import { sendNativeNotification } from "../utils/platformFeatures";
+import { CalculationResults } from "./Calculator/CalculationResults";
+import { TemplateManager } from "./Calculator/TemplateManager";
 
 interface SelectedFilament {
   filamentIndex: number;
@@ -363,113 +365,17 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
       </div>
 
       {/* Template lista */}
-      {showTemplateList && templates.length > 0 && (
-        <div style={{ ...themeStyles.card, marginBottom: "24px", maxWidth: "100%", boxSizing: "border-box" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: "18px", 
-              fontWeight: "600", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-            }}>
-              📋 {t("calculator.templates")}
-            </h3>
-            <button
-              onClick={() => setShowTemplateList(false)}
-              style={{
-                padding: "6px 12px",
-                borderRadius: "6px",
-                border: `1px solid ${theme.colors.border}`,
-                backgroundColor: theme.colors.surface,
-                color: theme.colors.text,
-                fontSize: "12px",
-                cursor: "pointer"
-              }}
-            >
-              ✕
-            </button>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {templates.map(template => {
-              const printer = printers.find(p => p.id === template.printerId);
-              return (
-                <div
-                  key={template.id}
-                  style={{
-                    padding: "16px",
-                    backgroundColor: theme.colors.surfaceHover,
-                    borderRadius: "8px",
-                    border: `1px solid ${theme.colors.border}`
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                    <div style={{ flex: 1 }}>
-                      <strong style={{ 
-                        fontSize: "16px", 
-                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                      }}>{template.name}</strong>
-                      {template.description && (
-                        <p style={{ 
-                          margin: "4px 0 0 0", 
-                          fontSize: "12px", 
-                          color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
-                        }}>
-                          {template.description}
-                        </p>
-                      )}
-                      <p style={{ 
-                        margin: "8px 0 0 0", 
-                        fontSize: "12px", 
-                        color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
-                      }}>
-                        {printer ? `${printer.name} (${printer.type})` : t("calculator.templates.printerMissing")} • {template.selectedFilaments.length} {t("calculator.templates.filamentUnit")} • {template.printTimeHours}h {template.printTimeMinutes}m {template.printTimeSeconds}s
-                      </p>
-                    </div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <Tooltip content={t("calculator.tooltip.loadTemplate")}>
-                        <button
-                          onClick={() => handleLoadTemplate(template)}
-                          disabled={!printer}
-                          style={{
-                            padding: "6px 12px",
-                            borderRadius: "6px",
-                            border: `1px solid ${theme.colors.border}`,
-                            backgroundColor: theme.colors.primary,
-                            color: "#fff",
-                            fontSize: "12px",
-                            cursor: printer ? "pointer" : "not-allowed",
-                            opacity: printer ? 1 : 0.5
-                          }}
-                          aria-label={t("calculator.tooltip.loadTemplate")}
-                        >
-                          📥
-                        </button>
-                      </Tooltip>
-                      <Tooltip content={t("common.delete")}>
-                        <button
-                          onClick={() => setDeleteTemplateId(template.id)}
-                          style={{
-                            padding: "6px 12px",
-                            borderRadius: "6px",
-                            border: `1px solid ${theme.colors.border}`,
-                            backgroundColor: theme.colors.danger,
-                            color: "#fff",
-                            fontSize: "12px",
-                            cursor: "pointer"
-                          }}
-                          aria-label={t("common.delete")}
-                        >
-                          🗑️
-                        </button>
-                      </Tooltip>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <TemplateManager
+        templates={templates}
+        showTemplateList={showTemplateList}
+        setShowTemplateList={setShowTemplateList}
+        printers={printers}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+        onLoadTemplate={handleLoadTemplate}
+        onDeleteTemplate={(id) => setDeleteTemplateId(id)}
+      />
 
       {/* Template mentés dialógus */}
       {showTemplateDialog && (
@@ -960,91 +866,17 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
       </div>
 
       {calculations && (
-        <div style={{ 
-          ...themeStyles.card,
-          marginTop: "30px",
-          maxWidth: "100%",
-          boxSizing: "border-box",
-          overflow: "hidden"
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: "20px", 
-              fontWeight: "600", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-            }}>
-              💰 {t("calculator.costBreakdown")} ({settings.currency})
-            </h3>
-            {onSaveOffer && (
-              <Tooltip content={t("calculator.tooltip.saveAsOffer")}>
-                <button
-                  onClick={() => {
-                    if (!selectedPrinter) return;
-                    setShowOfferDialog(true);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      if (!selectedPrinter) return;
-                      setShowOfferDialog(true);
-                    }
-                  }}
-                  onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                  onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
-                  style={{
-                    ...themeStyles.button,
-                    ...themeStyles.buttonSuccess
-                  }}
-                  aria-label={t("calculator.aria.saveOffer")}
-                >
-                  {t("calculator.saveAsOffer")}
-                </button>
-              </Tooltip>
-            )}
-          </div>
-          <div style={{ marginTop: "20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-              <span style={{ 
-                fontSize: "14px", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.filamentCost")}</span>
-              <strong style={{ fontSize: "16px", color: theme.colors.success }}>{calculations.filamentCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-              <span style={{ 
-                fontSize: "14px", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.electricityCost")}</span>
-              <strong style={{ fontSize: "16px", color: "#ffc107" }}>{calculations.electricityCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-            </div>
-            {selectedFilaments.some(sf => sf.needsDrying && sf.dryingTime && sf.dryingTime > 0 && sf.dryingPower && sf.dryingPower > 0) && (
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-                <span style={{ 
-                  fontSize: "14px", 
-                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                }}>{t("calculator.dryingCost")}</span>
-                <strong style={{ fontSize: "16px", color: theme.colors.primary }}>{calculations.totalDryingCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-              </div>
-            )}
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: `2px solid ${theme.colors.border}` }}>
-              <span style={{ 
-                fontSize: "14px", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.usageCost")}</span>
-              <strong style={{ 
-                fontSize: "16px", 
-                color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
-              }}>{calculations.usageCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: theme.colors.surfaceHover, padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
-              <span style={{ 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.totalCost")}</span>
-              <strong style={{ color: theme.colors.primary }}>{calculations.totalCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-            </div>
-          </div>
-        </div>
+        <CalculationResults
+          calculations={calculations}
+          settings={settings}
+          theme={theme}
+          themeStyles={themeStyles}
+          onSaveOffer={onSaveOffer ? () => {
+            if (!selectedPrinter) return;
+            setShowOfferDialog(true);
+          } : undefined}
+          selectedFilaments={selectedFilaments}
+        />
       )}
 
       {(!selectedPrinter || selectedFilaments.length === 0 || !calculations) && (

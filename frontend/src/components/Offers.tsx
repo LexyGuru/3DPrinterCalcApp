@@ -21,6 +21,7 @@ import { validateUsedGrams, validateDryingTime, validateDryingPower } from "../u
 import { getFilamentPlaceholder } from "../utils/filamentPlaceholder";
 import { DEFAULT_COLOR_HEX, normalizeHex, resolveColorHexFromName } from "../utils/filamentColors";
 import { notifyExportComplete, notifyOfferStatusChange } from "../utils/platformFeatures";
+import { OfferSearch } from "./Offers/OfferSearch";
 
 const STATUS_ORDER: OfferStatus[] = ["draft", "sent", "accepted", "rejected", "completed"];
 
@@ -986,36 +987,15 @@ export const Offers: React.FC<Props> = ({
       
       {/* Kereső mező */}
       {offers.length > 0 && (
-        <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: "8px",
-              fontWeight: "600",
-              fontSize: "14px",
-              color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
-            }}
-          >
-            🔍 {t("offers.search.label")}
-          </label>
-          <input
-            type="text"
-            placeholder={t("offers.search.placeholder")}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-            onBlur={(e) => {
-              e.target.style.borderColor = theme.colors.inputBorder;
-              e.target.style.boxShadow = "none";
-            }}
-            style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
-            aria-label={t("offers.search.aria")}
-            aria-describedby="offers-search-description"
-          />
-          <span id="offers-search-description" style={{ display: "none" }}>
-            {t("offers.search.description")}
-          </span>
-        </div>
+        <OfferSearch
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          settings={settings}
+          theme={theme}
+          themeStyles={themeStyles}
+        />
       )}
       
       {offers.length === 0 ? (
