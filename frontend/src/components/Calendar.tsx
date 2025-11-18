@@ -9,6 +9,10 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { invoke } from "@tauri-apps/api/core";
 import { useToast } from "./Toast";
+import { CalendarControls } from "./Calendar/CalendarControls";
+import { CalendarGrid } from "./Calendar/CalendarGrid";
+import { OfferDetails } from "./Calendar/OfferDetails";
+import { UpcomingAlerts } from "./Calendar/UpcomingAlerts";
 
 interface Props {
   offers: Offer[];
@@ -304,399 +308,66 @@ export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles
       </div>
 
       {/* Calendar Controls */}
-      <div style={{ 
-        ...themeStyles.card, 
-        marginBottom: "24px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        flexWrap: "wrap",
-        gap: "16px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <button
-            onClick={goToPreviousMonth}
-            style={{
-              ...themeStyles.button,
-              ...themeStyles.buttonSecondary,
-              padding: "8px 16px",
-            }}
-          >
-            ←
-          </button>
-          <button
-            onClick={goToToday}
-            style={{
-              ...themeStyles.button,
-              ...themeStyles.buttonPrimary,
-              padding: "8px 16px",
-            }}
-          >
-            {t("calendar.today") || "Ma"}
-          </button>
-          <button
-            onClick={goToNextMonth}
-            style={{
-              ...themeStyles.button,
-              ...themeStyles.buttonSecondary,
-              padding: "8px 16px",
-            }}
-          >
-            →
-          </button>
-        </div>
-        <h3 style={{ 
-          margin: 0, 
-          fontSize: "24px", 
-          fontWeight: "700",
-          color: isGradientBg ? "#1a202c" : theme.colors.text,
-        }}>
-          {formatMonthYear(currentDate)}
-        </h3>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button
-            onClick={() => setViewMode("month")}
-            style={{
-              ...themeStyles.button,
-              ...(viewMode === "month" ? themeStyles.buttonPrimary : themeStyles.buttonSecondary),
-              padding: "8px 16px",
-            }}
-          >
-            {t("calendar.month") || "Hónap"}
-          </button>
-          <button
-            onClick={() => setViewMode("week")}
-            style={{
-              ...themeStyles.button,
-              ...(viewMode === "week" ? themeStyles.buttonPrimary : themeStyles.buttonSecondary),
-              padding: "8px 16px",
-            }}
-          >
-            {t("calendar.week") || "Hét"}
-          </button>
-          <button
-            onClick={() => setViewMode("day")}
-            style={{
-              ...themeStyles.button,
-              ...(viewMode === "day" ? themeStyles.buttonPrimary : themeStyles.buttonSecondary),
-              padding: "8px 16px",
-            }}
-          >
-            {t("calendar.day") || "Nap"}
-          </button>
-        </div>
-      </div>
+      <CalendarControls
+        currentDate={currentDate}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        onPreviousMonth={goToPreviousMonth}
+        onNextMonth={goToNextMonth}
+        onToday={goToToday}
+        formatMonthYear={formatMonthYear}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+      />
 
       {/* Calendar Grid */}
       {viewMode === "month" && (
-        <div style={themeStyles.card}>
-          {/* Day names header */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(7, 1fr)",
-            gap: "8px",
-            marginBottom: "8px",
-          }}>
-            {dayNames.map((day, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: "12px",
-                  textAlign: "center",
-                  fontWeight: "600",
-                  fontSize: "14px",
-                  color: theme.colors.textSecondary,
-                  borderBottom: `2px solid ${theme.colors.border}`,
-                }}
-              >
-                {day}
-              </div>
-            ))}
-          </div>
-
-          {/* Calendar days */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(7, 1fr)",
-            gap: "8px",
-          }}>
-            {calendarDays.map((day, index) => {
-              const dayOffers = getOffersForDate(day);
-              const isCurrentMonthDay = isCurrentMonth(day);
-              const isTodayDay = isToday(day);
-              const isPastDay = isPast(day);
-              const isDueTomorrowDay = isDueTomorrow(day);
-
-              return (
-                <div
-                  key={index}
-                  onClick={() => setSelectedDate(day)}
-                  style={{
-                    minHeight: "100px",
-                    padding: "8px",
-                    border: `1px solid ${theme.colors.border}`,
-                    borderRadius: "8px",
-                    backgroundColor: isCurrentMonthDay
-                      ? (isGradientBg ? "rgba(255, 255, 255, 0.7)" : theme.colors.surface)
-                      : (isGradientBg ? "rgba(255, 255, 255, 0.3)" : theme.colors.background),
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                    position: "relative",
-                    ...(isTodayDay ? {
-                      border: `2px solid ${theme.colors.primary}`,
-                      boxShadow: `0 0 0 3px ${theme.colors.primary}20`,
-                    } : {}),
-                    ...(isDueTomorrowDay && dayOffers.length > 0 ? {
-                      border: `2px solid ${theme.colors.danger}`,
-                      boxShadow: `0 0 0 3px ${theme.colors.danger}20`,
-                    } : {}),
-                    ...(isPastDay && dayOffers.length > 0 ? {
-                      border: `2px solid ${theme.colors.danger}`,
-                      backgroundColor: isGradientBg ? "rgba(239, 68, 68, 0.1)" : `${theme.colors.danger}15`,
-                    } : {}),
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "scale(1.02)";
-                    e.currentTarget.style.boxShadow = `0 4px 12px ${theme.colors.shadow}`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "scale(1)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
-                  <div style={{
-                    fontWeight: isTodayDay ? "700" : "500",
-                    fontSize: "14px",
-                    color: isCurrentMonthDay
-                      ? (isTodayDay ? theme.colors.primary : theme.colors.text)
-                      : theme.colors.textMuted,
-                    marginBottom: "4px",
-                  }}>
-                    {day.getDate()}
-                  </div>
-                  {dayOffers.length > 0 && (
-                    <div style={{ marginTop: "4px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                      {dayOffers.slice(0, 3).map((offer) => (
-                        <div
-                          key={offer.id}
-                          style={{
-                            fontSize: "10px",
-                            padding: "2px 6px",
-                            borderRadius: "4px",
-                            backgroundColor: getStatusColor(offer.status) + "20",
-                            color: getStatusColor(offer.status),
-                            border: `1px solid ${getStatusColor(offer.status)}40`,
-                            fontWeight: "600",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                          }}
-                        >
-                          <span>{getStatusIcon(offer.status)}</span>
-                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {offer.customerName || t("offers.customerName") || "Ügyfél"}
-                          </span>
-                        </div>
-                      ))}
-                      {dayOffers.length > 3 && (
-                        <div style={{
-                          fontSize: "10px",
-                          color: theme.colors.textMuted,
-                          textAlign: "center",
-                        }}>
-                          +{dayOffers.length - 3} {t("calendar.offers") || "több"}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {isDueTomorrowDay && dayOffers.length > 0 && (
-                    <div style={{
-                      position: "absolute",
-                      top: "4px",
-                      right: "4px",
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      backgroundColor: theme.colors.danger,
-                      boxShadow: isNeon ? `0 0 8px ${theme.colors.danger}` : "none",
-                    }} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <CalendarGrid
+          calendarDays={calendarDays}
+          dayNames={dayNames}
+          currentDate={currentDate}
+          offersWithDueDates={offersWithDueDates}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          getOffersForDate={getOffersForDate}
+          isCurrentMonth={isCurrentMonth}
+          isToday={isToday}
+          isPast={isPast}
+          isDueTomorrow={isDueTomorrow}
+          getStatusColor={getStatusColor}
+          getStatusIcon={getStatusIcon}
+          settings={settings}
+          theme={theme}
+          themeStyles={themeStyles}
+        />
       )}
 
       {/* Selected Date Details */}
-      {selectedDate && (
-        <div style={{ ...themeStyles.card, marginTop: "24px" }}>
-          <h3 style={{ marginTop: 0, marginBottom: "16px", fontSize: "20px", fontWeight: "600" }}>
-            {formatDate(selectedDate)}
-          </h3>
-          {getOffersForDate(selectedDate).length === 0 ? (
-            <p style={{ color: theme.colors.textMuted }}>
-              {t("calendar.noOffers") || "Nincs esedékes nyomtatás ezen a napon."}
-            </p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {getOffersForDate(selectedDate).map((offer) => (
-                <div
-                  key={offer.id}
-                  style={{
-                    padding: "16px",
-                    border: `2px solid ${getStatusColor(offer.status)}`,
-                    borderRadius: "8px",
-                    backgroundColor: getStatusColor(offer.status) + "10",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                        <span style={{ fontSize: "18px" }}>{getStatusIcon(offer.status)}</span>
-                        <h4 style={{ margin: 0, fontSize: "16px", fontWeight: "600" }}>
-                          {offer.customerName || t("offers.customerName") || "Ügyfél"}
-                        </h4>
-                        <div style={{
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          backgroundColor: getStatusColor(offer.status),
-                          color: "#fff",
-                          fontSize: "11px",
-                          fontWeight: "600",
-                        }}>
-                          {offer.status === "accepted" ? (t("offers.status.accepted") || "Elfogadva") :
-                           offer.status === "rejected" ? (t("offers.status.rejected") || "Elutasítva") :
-                           offer.status === "completed" ? (t("offers.status.completed") || "Befejezve") : ""}
-                        </div>
-                      </div>
-                      <p style={{ margin: "0 0 4px 0", fontSize: "14px", color: theme.colors.textSecondary }}>
-                        {offer.description || t("offers.description") || "Leírás"}
-                      </p>
-                      <p style={{ margin: 0, fontSize: "12px", color: theme.colors.textMuted }}>
-                        {offer.printerName} • {offer.printTimeHours}h {offer.printTimeMinutes}m
-                      </p>
-                    </div>
-                    <div style={{
-                      padding: "8px 12px",
-                      borderRadius: "6px",
-                      backgroundColor: getStatusColor(offer.status),
-                      color: "#fff",
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      marginLeft: "12px",
-                    }}>
-                      {offer.costs.totalCost.toFixed(2)} {offer.currency}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <OfferDetails
+        selectedDate={selectedDate}
+        offers={offersWithDueDates}
+        getOffersForDate={getOffersForDate}
+        formatDate={formatDate}
+        getStatusColor={getStatusColor}
+        getStatusIcon={getStatusIcon}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+      />
 
       {/* Upcoming Alerts */}
-      {offersWithDueDates.length > 0 && (
-        <div style={{ ...themeStyles.card, marginTop: "24px" }}>
-          <h3 style={{ marginTop: 0, marginBottom: "16px", fontSize: "20px", fontWeight: "600" }}>
-            ⚠️ {t("calendar.upcoming") || "Esedékes nyomtatások"}
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {offersWithDueDates
-              .filter(offer => {
-                if (!offer.printDueDate) return false;
-                const dueDate = new Date(offer.printDueDate);
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                tomorrow.setHours(0, 0, 0, 0);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                dueDate.setHours(0, 0, 0, 0);
-                // Check if due date is today or tomorrow
-                const dueDateStr = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`;
-                const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
-                return dueDateStr === todayStr || dueDateStr === tomorrowStr;
-              })
-              .sort((a, b) => {
-                if (!a.printDueDate || !b.printDueDate) return 0;
-                return new Date(a.printDueDate).getTime() - new Date(b.printDueDate).getTime();
-              })
-              .map((offer) => {
-                if (!offer.printDueDate) return null;
-                const dueDate = new Date(offer.printDueDate);
-                const isDueTomorrowDay = isDueTomorrow(dueDate);
-                const isPastDue = isPast(dueDate);
-
-                const statusColor = getStatusColor(offer.status);
-                return (
-                  <div
-                    key={offer.id}
-                    style={{
-                      padding: "16px",
-                      border: `2px solid ${isPastDue ? theme.colors.danger : isDueTomorrowDay ? theme.colors.danger : statusColor}`,
-                      borderRadius: "8px",
-                      backgroundColor: isPastDue
-                        ? `${theme.colors.danger}15`
-                        : isDueTomorrowDay
-                        ? `${theme.colors.danger}10`
-                        : statusColor + "10",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                          <span style={{ fontSize: "18px" }}>{getStatusIcon(offer.status)}</span>
-                          <h4 style={{ margin: 0, fontSize: "16px", fontWeight: "600" }}>
-                            {offer.customerName || t("offers.customerName") || "Ügyfél"}
-                          </h4>
-                          <div style={{
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            backgroundColor: statusColor,
-                            color: "#fff",
-                            fontSize: "11px",
-                            fontWeight: "600",
-                          }}>
-                            {offer.status === "accepted" ? (t("offers.status.accepted") || "Elfogadva") :
-                             offer.status === "rejected" ? (t("offers.status.rejected") || "Elutasítva") :
-                             offer.status === "completed" ? (t("offers.status.completed") || "Befejezve") : ""}
-                          </div>
-                        </div>
-                        <p style={{ margin: "0 0 4px 0", fontSize: "14px", color: theme.colors.textSecondary }}>
-                          {formatDate(dueDate)}
-                        </p>
-                        <p style={{ margin: 0, fontSize: "12px", color: theme.colors.textMuted }}>
-                          {offer.printerName} • {offer.printTimeHours}h {offer.printTimeMinutes}m
-                        </p>
-                      </div>
-                      <div style={{
-                        padding: "8px 12px",
-                        borderRadius: "6px",
-                        backgroundColor: isPastDue
-                          ? theme.colors.danger
-                          : isDueTomorrowDay
-                          ? theme.colors.danger
-                          : statusColor,
-                        color: "#fff",
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        marginLeft: "12px",
-                      }}>
-                        {isPastDue
-                          ? t("calendar.overdue") || "Lejárt"
-                          : isDueTomorrowDay
-                          ? t("calendar.dueTomorrow") || "Holnap esedékes"
-                          : t("calendar.dueToday") || "Ma esedékes"}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      )}
+      <UpcomingAlerts
+        offers={offersWithDueDates}
+        getStatusColor={getStatusColor}
+        getStatusIcon={getStatusIcon}
+        isDueTomorrow={isDueTomorrow}
+        isPast={isPast}
+        formatDate={formatDate}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+      />
     </div>
   );
 };
