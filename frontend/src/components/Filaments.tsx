@@ -36,6 +36,9 @@ import {
 import { logWithLanguage } from "../utils/languages/global_console";
 import { addPriceHistory, isSignificantPriceChange, getFilamentPriceHistory } from "../utils/priceHistory";
 import type { PriceHistory } from "../types";
+import { FilamentSearch } from "./Filaments/FilamentSearch";
+import { FilamentPriceHistory } from "./Filaments/FilamentPriceHistory";
+import { FilamentImageUpload } from "./Filaments/FilamentImageUpload";
 
 const DEFAULT_WEIGHT_UNITS = ["g", "kg"] as const;
 
@@ -530,36 +533,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     });
   };
 
-  // Kép feltöltés és base64 konverzió
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Ellenőrizzük a fájl típusát
-    if (!file.type.startsWith("image/")) {
-      showToast(t("filaments.upload.invalidType"), "error");
-      return;
-    }
-
-    // Ellenőrizzük a fájl méretét (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      showToast(t("filaments.upload.sizeExceeded"), "error");
-      return;
-    }
-
-    // Preview létrehozása
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      setImagePreview(result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // Kép törlése
-  const removeImage = () => {
-    setImagePreview(null);
-  };
+  // Kép feltöltés és törlés most a FilamentImageUpload komponensben van kezelve
 
   // Kép optimalizálása (átméretezés, kompresszió)
   const optimizeImage = (base64: string, maxWidth: number = 800, maxHeight: number = 800, quality: number = 0.8): Promise<string> => {
@@ -991,33 +965,14 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       <p style={themeStyles.pageSubtitle}>{t("filaments.subtitle")}</p>
       
       {/* Kereső mező */}
-      {filaments.length > 0 && (
-        <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: "8px", 
-            fontWeight: "600", 
-            fontSize: "14px", 
-            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-          }}>
-            🔍 {t("filaments.search.label")}
-          </label>
-          <input
-            type="text"
-            placeholder={t("filaments.search.placeholder")}
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-            style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
-            aria-label={t("filaments.search.ariaLabel")}
-            aria-describedby="filament-search-description"
-          />
-          <span id="filament-search-description" style={{ display: "none" }}>
-            {t("filaments.search.description")}
-          </span>
-        </div>
-      )}
+      <FilamentSearch
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+        filamentsCount={filaments.length}
+      />
       
       {/* Új filament hozzáadása gomb */}
       {!showAddForm && editingIndex === null && (
@@ -1478,86 +1433,15 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               style={{ ...themeStyles.input, width: "100%" }}
             />
             {/* Ár előzmények gomb és megjelenítés */}
-            {editingIndex !== null && priceHistory.length > 0 && (
-              <div style={{ marginTop: "8px" }}>
-                <button
-                  type="button"
-                  onClick={() => setShowPriceHistory(!showPriceHistory)}
-                  style={{
-                    ...themeStyles.buttonSecondary,
-                    padding: "4px 8px",
-                    fontSize: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  {showPriceHistory ? "📉" : "📈"} {t("filaments.priceHistory.show")} ({priceHistory.length})
-                </button>
-                {showPriceHistory && (
-                  <div style={{
-                    marginTop: "8px",
-                    padding: "8px",
-                    backgroundColor: theme.colors.surface,
-                    borderRadius: "6px",
-                    border: `1px solid ${theme.colors.border}`,
-                    fontSize: "12px",
-                  }}>
-                    <div style={{ fontWeight: "600", marginBottom: "4px", color: theme.colors.text }}>
-                      {t("filaments.priceHistory.title")}
-                    </div>
-                    <div style={{ maxHeight: "120px", overflowY: "auto" }}>
-                      {priceHistory.slice(0, 5).map((entry) => {
-                        const isIncrease = entry.priceChange > 0;
-                        const changeColor = isIncrease ? theme.colors.danger : theme.colors.success;
-                        return (
-                          <div key={entry.id} style={{ 
-                            display: "flex", 
-                            justifyContent: "space-between", 
-                            marginBottom: "4px",
-                            padding: "4px 0",
-                            borderBottom: `1px solid ${theme.colors.border}`,
-                          }}>
-                            <span style={{ color: theme.colors.textSecondary }}>
-                              {new Date(entry.date).toLocaleDateString((() => {
-                                const LANGUAGE_LOCALES: Record<string, string> = {
-                                  hu: "hu-HU", de: "de-DE", fr: "fr-FR", it: "it-IT", es: "es-ES",
-                                  pl: "pl-PL", cs: "cs-CZ", sk: "sk-SK", zh: "zh-CN", "pt-BR": "pt-BR",
-                                  uk: "uk-UA", ru: "ru-RU", en: "en-US",
-                                };
-                                return LANGUAGE_LOCALES[settings.language] ?? "en-US";
-                              })(), {
-                                month: "short",
-                                day: "numeric",
-                              })}
-                            </span>
-                            <span style={{ color: theme.colors.textSecondary }}>
-                              {entry.oldPrice.toFixed(2)} →
-                            </span>
-                            <span style={{ fontWeight: "600", color: theme.colors.text }}>
-                              {entry.newPrice.toFixed(2)} {entry.currency}
-                            </span>
-                            <span style={{ color: changeColor, fontWeight: "600" }}>
-                              {isIncrease ? "+" : ""}{entry.priceChangePercent.toFixed(1)}%
-                            </span>
-                          </div>
-                        );
-                      })}
-                      {priceHistory.length > 5 && (
-                        <div style={{ 
-                          textAlign: "center", 
-                          marginTop: "4px", 
-                          fontSize: "11px", 
-                          color: theme.colors.textSecondary,
-                          fontStyle: "italic",
-                        }}>
-                          {t("filaments.priceHistory.more").replace("{count}", String(priceHistory.length - 5))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+            {editingIndex !== null && (
+              <FilamentPriceHistory
+                priceHistory={priceHistory}
+                showPriceHistory={showPriceHistory}
+                setShowPriceHistory={setShowPriceHistory}
+                settings={settings}
+                theme={theme}
+                themeStyles={themeStyles}
+              />
             )}
           </div>
           <div style={{ flex: "1 1 280px", minWidth: "220px" }}>
@@ -1756,113 +1640,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         </div>
         
         {/* Kép feltöltés */}
-        <div style={{ marginTop: "20px" }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: "8px",
-              fontWeight: "600",
-              fontSize: "14px",
-              color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
-            }}
-          >
-            📷 {t("filaments.image.label")}
-          </label>
-          {imagePreview ? (
-            <div style={{ position: "relative", display: "inline-block", marginBottom: "8px" }}>
-              <img 
-                src={imagePreview} 
-                alt={t("filaments.imagePreviewAlt")} 
-                style={{ 
-                  maxWidth: "300px", 
-                  maxHeight: "300px", 
-                  borderRadius: "8px",
-                  border: `2px solid ${theme.colors.border}`,
-                  objectFit: "cover",
-                  boxShadow: `0 2px 8px ${theme.colors.shadow}`
-                }} 
-              />
-              <button
-                onClick={removeImage}
-                style={{
-                  position: "absolute",
-                  top: "8px",
-                  right: "8px",
-                  padding: "6px 12px",
-                  fontSize: "14px",
-                  backgroundColor: theme.colors.danger,
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  boxShadow: `0 2px 4px ${theme.colors.shadow}`,
-                }}
-              >
-                ✕ {t("filaments.image.remove")}
-              </button>
-            </div>
-          ) : (
-            <label
-              style={{
-              display: "inline-flex",
-                padding: "20px",
-                border: `2px dashed ${theme.colors.border}`,
-                borderRadius: "8px",
-              textAlign: "center",
-                cursor: "pointer",
-                backgroundColor: theme.colors.surfaceHover,
-                transition: "all 0.2s",
-                minWidth: "200px",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "12px"
-              }}
-              onMouseEnter={(e) => {
-                if (!interactionsEnabled) return;
-                e.currentTarget.style.borderColor = theme.colors.primary;
-                e.currentTarget.style.backgroundColor = theme.colors.primary + "10";
-              }}
-              onMouseLeave={(e) => {
-                if (!interactionsEnabled) return;
-                e.currentTarget.style.borderColor = theme.colors.border;
-                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
-              }}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: "none" }}
-              />
-              <img
-                src={getFilamentPlaceholder(fallbackHex)}
-                alt={t("filaments.placeholderAlt")}
-                style={{ width: "80px", height: "80px" }}
-              />
-              <span
-                style={{
-                  fontSize: "14px",
-                  color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
-                  display: "block",
-                  maxWidth: "220px",
-                }}
-              >
-                {t("filaments.image.uploadPrompt")}
-              </span>
-              <span
-                style={{
-                  fontSize: "11px",
-                  color: theme.colors.textMuted,
-                  display: "block",
-                  marginTop: "4px",
-                }}
-              >
-                {t("filaments.image.uploadLimit")}
-              </span>
-            </label>
-          )}
-        </div>
+        <FilamentImageUpload
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+          colorHex={colorHex}
+          settings={settings}
+          theme={theme}
+          themeStyles={themeStyles}
+          showToast={showToast}
+          interactionsEnabled={interactionsEnabled}
+        />
         <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
           <Tooltip content={editingIndex !== null ? t("filaments.tooltip.saveShortcut") : t("filaments.tooltip.addShortcut")}>
             <button 
