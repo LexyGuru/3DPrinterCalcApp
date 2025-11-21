@@ -196,11 +196,24 @@
 **Módosítások:**
 - `frontend/src/components/Filaments.tsx` - Kedvenc funkció hozzáadása
 - `frontend/src/types.ts` - favorite mező hozzáadása
+- `frontend/src/utils/languages/*.ts` - Fordítások hozzáadása
+
+**Funkciók:**
+- ✅ favorite mező hozzáadva a Filament típushoz
+- ✅ Csillag ikon a táblázatban kedvenc jelöléshez
+- ✅ Kedvenc szűrő gomb a kereső mező mellett
+- ✅ Toggle favorite funkció
+- ✅ Szűrési logika a kedvencekre
+- ✅ Téma-aware UI elemek
+- ✅ Fordítások (hu, en, de)
+- ✅ Logolás a kedvenc váltásokhoz
 
 **Tesztelés:**
 - [ ] Kedvenc jelölés működik
 - [ ] Szűrés működik
 - [ ] Adatok mentve maradnak
+
+**Státusz:** ✅ IMPLEMENTÁLVA - Készen áll a tesztelésre
 
 ---
 
