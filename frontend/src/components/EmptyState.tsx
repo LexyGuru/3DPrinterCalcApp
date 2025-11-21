@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Theme } from '../utils/themes';
 import type { Settings } from '../types';
-import { useTranslation } from '../utils/translations';
 
 interface EmptyStateProps {
   icon?: string;
@@ -22,9 +21,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onAction,
   theme,
   themeStyles,
-  settings,
+  settings: _settings,
 }) => {
-  const t = useTranslation(settings.language);
   const isGradientBg = typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient');
 
   return (
