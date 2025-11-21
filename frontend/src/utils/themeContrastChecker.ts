@@ -5,11 +5,9 @@
 
 import type { Theme } from './themes';
 import {
-  checkWCAGContrast,
   checkAndFixColorPair,
   type WCAGLevel,
   type TextSize,
-  type ColorPairResult,
 } from './colorContrast';
 
 export interface ThemeContrastReport {

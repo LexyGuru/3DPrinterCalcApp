@@ -91,7 +91,6 @@ export const checkWCAGContrast = (
   
   // WCAG AA követelmények
   const aaNormal = 4.5;
-  const aaLarge = 3.0;
   
   // WCAG AAA követelmények
   const aaaNormal = 7.0;
