@@ -755,6 +755,8 @@ export const languageHu: TranslationMap = {
   "common.offerDeleted": "Árajánlat sikeresen törölve!",
   "common.loading": "Betöltés...",
   "common.duplicate": "Duplikálás",
+  "breadcrumb.label": "Breadcrumb navigáció",
+  "breadcrumb.navigateTo": "Navigálás ide",
   "common.image": "Kép",
   "common.offerDuplicated": "Árajánlat sikeresen duplikálva!",
   "common.close": "Bezárás",

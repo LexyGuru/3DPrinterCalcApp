@@ -788,6 +788,8 @@ export const languageDe: TranslationMap = {
   "common.loading": "Laden...",
   "common.duplicate": "Duplizieren",
   "common.image": "Bild",
+  "breadcrumb.label": "Breadcrumb-Navigation",
+  "breadcrumb.navigateTo": "Navigieren zu",
   "common.offerDuplicated": "Angebot erfolgreich dupliziert!",
   "common.close": "Schließen",
   "common.edit": "Bearbeiten",

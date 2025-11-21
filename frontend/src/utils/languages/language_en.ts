@@ -803,6 +803,8 @@ export const languageEn: TranslationMap = {
   "common.offerDeleted": "Offer deleted successfully!",
   "common.loading": "Loading...",
   "common.duplicate": "Duplicate",
+  "breadcrumb.label": "Breadcrumb navigation",
+  "breadcrumb.navigateTo": "Navigate to",
   "common.image": "Image",
   "common.offerDuplicated": "Offer duplicated successfully!",
   "common.close": "Close",

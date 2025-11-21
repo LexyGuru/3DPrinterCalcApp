@@ -423,6 +423,9 @@ export default function App() {
             onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
             isSidebarOpen={isSidebarOpen}
             autosaveInterval={settings.autosaveInterval || 30}
+            activePage={activePage}
+            onPageChange={setActivePage}
+            themeStyles={themeStyles}
           />
           <main style={{ 
             padding: "20px", 

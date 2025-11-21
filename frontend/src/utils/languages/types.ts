@@ -824,6 +824,8 @@ export type TranslationKey =
   | "common.offerDeleted"
   | "common.loading"
   | "common.duplicate"
+  | "breadcrumb.label"
+  | "breadcrumb.navigateTo"
   | "common.noMatches"
   | "common.close"
   | "common.edit"

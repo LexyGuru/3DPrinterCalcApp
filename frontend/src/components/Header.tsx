@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import type { Settings } from "../types";
 import type { Theme } from "../utils/themes";
+import { Breadcrumb } from "./Breadcrumb";
+import { useTranslation } from "../utils/translations";
 
 interface Props {
   settings: Settings;
@@ -9,9 +11,13 @@ interface Props {
   isSidebarOpen: boolean;
   lastSaved: Date | null;
   autosaveInterval?: number; // Másodpercben
+  activePage?: string;
+  onPageChange?: (page: string) => void;
+  themeStyles?: ReturnType<typeof import("../utils/themes").getThemeStyles>;
 }
 
-export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSidebarOpen, lastSaved, autosaveInterval = 30 }) => {
+export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSidebarOpen, lastSaved, autosaveInterval = 30, activePage, onPageChange, themeStyles }) => {
+  const t = useTranslation(settings.language);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
@@ -130,6 +136,43 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
   const borderColor = theme.colors.border;
   const hoverBg = theme.colors.surfaceHover || (isLight ? "rgba(0, 0, 0, 0.05)" : "rgba(255, 255, 255, 0.1)");
 
+  // Breadcrumb items generálása
+  const breadcrumbItems = useMemo(() => {
+    if (!activePage || !onPageChange) {
+      return [];
+    }
+
+    const items: Array<{ key: string; label: string; onClick?: () => void }> = [
+      {
+        key: 'home',
+        label: t('sidebar.home') || 'Home',
+        onClick: () => onPageChange('home'),
+      },
+    ];
+
+    // Oldal-specifikus breadcrumb elemek
+    const pageLabels: Record<string, string> = {
+      calculator: t('sidebar.calculator') || 'Calculator',
+      printers: t('sidebar.printers') || 'Printers',
+      filaments: t('sidebar.filaments') || 'Filaments',
+      customers: t('sidebar.customers') || 'Customers',
+      offers: t('sidebar.offers') || 'Offers',
+      priceTrends: t('sidebar.priceTrends') || 'Price Trends',
+      calendar: t('sidebar.calendar') || 'Calendar',
+      settings: t('sidebar.settings') || 'Settings',
+      console: t('sidebar.console') || 'Console',
+    };
+
+    if (activePage !== 'home' && pageLabels[activePage]) {
+      items.push({
+        key: activePage,
+        label: pageLabels[activePage],
+      });
+    }
+
+    return items;
+  }, [activePage, onPageChange, t]);
+
   return (
     <header
       style={{
@@ -220,6 +263,18 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
             3DPrinterCalcApp
           </span>
         </div>
+        
+        {/* Breadcrumb */}
+        {breadcrumbItems.length > 1 && themeStyles && (
+          <div style={{ marginLeft: '24px' }}>
+            <Breadcrumb
+              items={breadcrumbItems}
+              theme={theme}
+              themeStyles={themeStyles}
+              settings={settings}
+            />
+          </div>
+        )}
       </div>
 
       {/* Right: Date, Time, and Last Saved */}
