@@ -6,7 +6,7 @@
 
 ---
 
-## ✅ Előfeltételek - CSS javítások
+## ✅ Előfeltételek
 
 ### 1. CSS háttérszín konfliktusok javítása ✅ KÉSZ
 - [x] `index.css` - Eltávolítva rögzített fehér háttérszínek `!important`-tal
@@ -15,6 +15,37 @@
 - [x] Select és input mezők - Eltávolítva rögzített fehér háttérszínek
 
 **Státusz:** ✅ CSS fájlok javítva - a háttérszínt most a témarendszer kezeli
+
+---
+
+### 2. Frontend és Backend logolási rendszer ✅ KÉSZ
+**Prioritás:** 🔴 KRITIKUS (debugoláshoz szükséges)  
+**Komplexitás:** ⭐⭐ Közepes  
+**Függőségek:** Nincs  
+**Leírás:** Külön log fájlok frontend és backend logokhoz  
+**Fájlok:**
+- `src-tauri/src/logger.rs` ✅ LÉTREHOZVA - Backend logger
+- `frontend/src/utils/fileLogger.ts` ✅ LÉTREHOZVA - Frontend file logger
+- `frontend/src/utils/consoleLogger.ts` ✅ MÓDOSÍTVA - Integráció file logger-rel
+- `src-tauri/src/commands.rs` ✅ MÓDOSÍTVA - Frontend log commands
+- `src-tauri/src/main.rs` ✅ MÓDOSÍTVA - Logger inicializálás
+
+**Funkciók:**
+- ✅ Backend log fájl: `backend-YYYY-MM-DD.log`
+- ✅ Frontend log fájl: `frontend-YYYY-MM-DD.log`
+- ✅ Automatikus logolás minden console.log-ból
+- ✅ Hibák külön kezelve (ERROR level)
+- ✅ Timestamp minden log bejegyzésnél
+- ✅ Log fájlok a `~/Library/Application Support/3DPrinterCalcApp/logs/` mappában (macOS)
+
+**Tesztelés:**
+- [ ] Backend log fájl létrejön
+- [ ] Frontend log fájl létrejön
+- [ ] Console.log automatikusan fájlba íródik
+- [ ] Hibák külön logolva
+- [ ] Timestamp helyes
+
+**Státusz:** ✅ IMPLEMENTÁLVA - Készen áll a tesztelésre
 
 ---
 
@@ -37,9 +68,9 @@
 - [x] Filaments komponens - üres lista esetén ✅
 - [x] Printers komponens - üres lista esetén ✅
 - [x] Offers komponens - üres lista esetén ✅
-- [ ] Témák - minden téma esetén működik-e (tesztelendő)
+- [x] Témák - minden téma esetén működik-e ✅ TESZTELVE
 
-**Státusz:** ✅ IMPLEMENTÁLVA - Készen áll a tesztelésre
+**Státusz:** ✅ IMPLEMENTÁLVA ÉS TESZTELVE - Működik!
 
 ---
 

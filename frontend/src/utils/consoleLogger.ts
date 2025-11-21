@@ -1,4 +1,6 @@
-// Console Logger - rögzíti a console üzeneteket
+// Console Logger - rögzíti a console üzeneteket és fájlba is ír
+
+import { writeFrontendLog, initFrontendLog } from './fileLogger';
 
 export interface LogEntry {
   id: string;
@@ -12,10 +14,22 @@ class ConsoleLogger {
   private logs: LogEntry[] = [];
   private maxLogs = 1000; // Maximum logok száma
   private listeners: Set<(logs: LogEntry[]) => void> = new Set();
+  private fileLogInitialized = false;
 
   constructor() {
     this.interceptConsole();
     this.interceptErrors();
+    // Inicializáljuk a file logger-t
+    this.initFileLogger();
+  }
+
+  private async initFileLogger() {
+    try {
+      await initFrontendLog();
+      this.fileLogInitialized = true;
+    } catch (error) {
+      console.error('File logger inicializálási hiba:', error);
+    }
   }
 
   // Console metódusok interceptálása
@@ -97,6 +111,14 @@ class ConsoleLogger {
     // Korlátozzuk a logok számát
     if (this.logs.length > this.maxLogs) {
       this.logs.shift();
+    }
+
+    // Fájlba is írunk
+    if (this.fileLogInitialized) {
+      const fileLevel = level === "log" ? "INFO" : level.toUpperCase();
+      writeFrontendLog(fileLevel as "INFO" | "WARN" | "ERROR" | "DEBUG", message).catch(() => {
+        // Ha a file logger nem elérhető, csak console-ra írunk
+      });
     }
 
     // Értesítjük a listener-eket

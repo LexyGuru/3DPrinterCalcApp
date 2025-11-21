@@ -29,6 +29,7 @@ import { useKeyboardShortcut } from "./utils/keyboardShortcuts";
 import { ShortcutHelp } from "./components/ShortcutHelp";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
+import { initFrontendLog } from "./utils/fileLogger"; // Initialize file logger
 import { logWithLanguage } from "./utils/languages/global_console";
 import { useTranslation } from "./utils/translations";
 
@@ -43,6 +44,17 @@ export default function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // 🔹 Frontend log inicializálása
+  useEffect(() => {
+    initFrontendLog().then((path) => {
+      if (path) {
+        console.log("✅ Frontend log fájl inicializálva:", path);
+      }
+    }).catch((error) => {
+      console.error("⚠️ Frontend log inicializálási hiba:", error);
+    });
+  }, []);
 
   // 🔹 Betöltés indításkor
   useEffect(() => {
