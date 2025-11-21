@@ -804,6 +804,8 @@ export const languageSk: TranslationMap = {
   "common.loading": "Načítavanie...",
   "common.duplicate": "Duplikovať",
   "common.image": "Obrázok",
+  "breadcrumb.label": "Breadcrumb navigácia",
+  "breadcrumb.navigateTo": "Prejsť na",
   "common.offerDuplicated": "Ponuka úspešne duplikovaná!",
   "common.close": "Zavrieť",
   "common.edit": "Upraviť",

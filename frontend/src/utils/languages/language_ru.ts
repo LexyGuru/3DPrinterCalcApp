@@ -756,6 +756,8 @@ export const languageRu: TranslationMap = {
   "common.loading": "Загрузка...",
   "common.duplicate": "Дублировать",
   "common.image": "Изображение",
+  "breadcrumb.label": "Навигация breadcrumb",
+  "breadcrumb.navigateTo": "Перейти к",
   "common.offerDuplicated": "Предложение успешно продублировано!",
   "common.close": "Закрыть",
   "common.edit": "Редактировать",

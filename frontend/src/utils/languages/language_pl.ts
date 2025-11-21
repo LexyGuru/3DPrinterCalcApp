@@ -804,6 +804,8 @@ export const languagePl: TranslationMap = {
   "common.loading": "Ładowanie...",
   "common.duplicate": "Duplikuj",
   "common.image": "Obraz",
+  "breadcrumb.label": "Nawigacja breadcrumb",
+  "breadcrumb.navigateTo": "Przejdź do",
   "common.offerDuplicated": "Oferta zduplikowana pomyślnie!",
   "common.close": "Zamknij",
   "common.edit": "Edytuj",

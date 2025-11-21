@@ -756,6 +756,8 @@ export const languageUk: TranslationMap = {
   "common.loading": "Завантаження...",
   "common.duplicate": "Дублювати",
   "common.image": "Зображення",
+  "breadcrumb.label": "Навігація breadcrumb",
+  "breadcrumb.navigateTo": "Перейти до",
   "common.offerDuplicated": "Пропозицію успішно продубльовано!",
   "common.close": "Закрити",
   "common.edit": "Редагувати",

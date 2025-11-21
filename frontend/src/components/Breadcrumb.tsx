@@ -19,12 +19,10 @@ interface BreadcrumbProps {
 export const Breadcrumb: React.FC<BreadcrumbProps> = ({
   items,
   theme,
-  themeStyles,
   settings,
 }) => {
   const t = useTranslation(settings.language);
   const isGradientBg = typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient');
-  const isNeon = theme.name === 'neon' || theme.name === 'cyberpunk';
 
   if (items.length === 0) {
     return null;

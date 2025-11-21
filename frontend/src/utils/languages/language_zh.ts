@@ -752,6 +752,8 @@ export const languageZh: TranslationMap = {
   "common.loading": "正在加载...",
   "common.duplicate": "重复",
   "common.image": "图像",
+  "breadcrumb.label": "面包屑导航",
+  "breadcrumb.navigateTo": "导航到",
   "common.offerDuplicated": "报价复制成功！",
   "common.close": "关闭",
   "common.edit": "编辑",

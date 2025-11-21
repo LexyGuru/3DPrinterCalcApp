@@ -804,6 +804,8 @@ export const languageCs: TranslationMap = {
   "common.loading": "Načítání...",
   "common.duplicate": "Duplikovat",
   "common.image": "Obrázek",
+  "breadcrumb.label": "Breadcrumb navigace",
+  "breadcrumb.navigateTo": "Přejít na",
   "common.offerDuplicated": "Nabídka úspěšně zduplikována!",
   "common.close": "Zavřít",
   "common.edit": "Upravit",

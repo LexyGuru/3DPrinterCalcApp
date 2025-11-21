@@ -831,6 +831,8 @@ export const languageFr: TranslationMap = {
   "common.loading": "Chargement...",
   "common.duplicate": "Dupliquer",
   "common.image": "Image",
+  "breadcrumb.label": "Navigation breadcrumb",
+  "breadcrumb.navigateTo": "Aller à",
   "common.offerDuplicated": "Offre dupliquée avec succès.",
   "common.close": "Fermer",
   "common.edit": "Modifier",
