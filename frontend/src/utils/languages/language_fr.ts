@@ -192,8 +192,6 @@ export const languageFr: TranslationMap = {
   "filaments.bulk.deleteConfirm.title": "Confirmer la suppression en masse",
   "filaments.bulk.deleteConfirm.message": "Êtes-vous sûr de vouloir supprimer les {{count}} filaments sélectionnés ? Cette action ne peut pas être annulée.",
   "filaments.bulk.delete.success": "{{count}} filaments supprimés avec succès",
-  "filaments.favorite.showing": "Favoris",
-  "filaments.favorite.toggled": "Statut favori modifié",
   "filaments.priceChange.significant": "⚠️ Changement de prix significatif : {changePercent}% ({oldPrice} → {newPrice} EUR/kg)",
   "filaments.priceHistory.saveError": "Erreur lors de l'enregistrement de l'historique des prix",
   "filaments.priceHistory.show": "Historique des prix",

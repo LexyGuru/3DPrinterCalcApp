@@ -194,7 +194,6 @@ export const languageZh: TranslationMap = {
   "filaments.bulk.deleteConfirm.title": "确认批量删除",
   "filaments.bulk.deleteConfirm.message": "您确定要删除选中的 {{count}} 个灯丝吗？此操作无法撤销。",
   "filaments.bulk.delete.success": "已成功删除 {{count}} 个灯丝",
-  "filaments.favorite.toggled": "收藏状态已更改",
   "filaments.colorMode.label": "颜色模式",
   "filaments.colorMode.option.solid": "固体",
   "filaments.colorMode.option.multicolor": "多色",
