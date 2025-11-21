@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { open } from "@tauri-apps/plugin-shell";
 import type { Filament, Settings, ColorMode } from "../types";
 import { defaultAnimationSettings } from "../types";
@@ -10,6 +11,7 @@ import { useToast } from "./Toast";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { Tooltip } from "./Tooltip";
 import { EmptyState } from "./EmptyState";
+import { useUndoRedo } from "../hooks/useUndoRedo";
 import { validateFilamentWeight, validateFilamentPrice } from "../utils/validation";
 import type { FilamentFinish, FilamentColorOption } from "../utils/filamentColors";
 import {
@@ -52,6 +54,32 @@ interface Props {
 export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, theme, themeStyles, triggerAddForm }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
+  
+  // Undo/Redo hook
+  const {
+    state: filamentsWithHistory,
+    setState: setFilamentsWithHistory,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset: resetHistory,
+  } = useUndoRedo<Filament[]>(filaments, 50);
+
+  // Sync filaments with history when external changes occur
+  useEffect(() => {
+    if (JSON.stringify(filaments) !== JSON.stringify(filamentsWithHistory)) {
+      resetHistory(filaments);
+    }
+  }, [filaments]);
+
+  // Update parent when history changes
+  useEffect(() => {
+    if (JSON.stringify(filamentsWithHistory) !== JSON.stringify(filaments)) {
+      setFilaments(filamentsWithHistory);
+    }
+  }, [filamentsWithHistory]);
+  
   const [brand, setBrand] = useState("");
   const [type, setType] = useState("");
   const [weight, setWeight] = useState<number>(1000);
@@ -116,6 +144,25 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       setShowAddForm(true);
     }
   }, [triggerAddForm, showAddForm, editingIndex]);
+
+  // Escape billentyű kezelése a modal bezárásához
+  useEffect(() => {
+    if (!showAddForm && editingIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showAddForm) {
+          setShowAddForm(false);
+          resetForm();
+        } else if (editingIndex !== null) {
+          cancelEdit();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAddForm, editingIndex]);
 
   const allBrands = useMemo(() => getAllBrands(), [libraryVersion]);
   const allMaterials = useMemo(() => getAllMaterials(), [libraryVersion]);
@@ -697,8 +744,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         pricePerKg,
         hasImage: !!optimizedImage,
       });
-      const oldFilament = filaments[editingIndex];
-      const updated = [...filaments];
+      const oldFilament = filamentsWithHistory[editingIndex];
+      const updated = [...filamentsWithHistory];
       const newFilament: Filament = { 
         brand, 
         type, 
@@ -733,7 +780,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         }
       }
       
-      setFilaments(updated);
+      setFilamentsWithHistory(updated);
       logWithLanguage(settings.language, "log", "filaments.edit.success", {
         index: editingIndex,
       });
@@ -749,7 +796,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         pricePerKg,
         hasImage: !!optimizedImage,
       });
-      setFilaments([...filaments, { 
+      setFilamentsWithHistory([...filamentsWithHistory, { 
         brand, 
         type, 
         weight, 
@@ -770,7 +817,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   };
 
   const startEdit = (index: number) => {
-    const filament = filaments[index];
+    const filament = filamentsWithHistory[index];
     setBrand(filament.brand);
     setType(filament.type);
     setWeight(filament.weight);
@@ -839,13 +886,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const confirmDelete = () => {
     if (deleteConfirmIndex === null) return;
     const index = deleteConfirmIndex;
-    const filamentToDelete = filaments[index];
+    const filamentToDelete = filamentsWithHistory[index];
     logWithLanguage(settings.language, "log", "filaments.delete.start", {
       index,
       brand: filamentToDelete?.brand,
       type: filamentToDelete?.type,
     });
-    setFilaments(filaments.filter((_, i) => i !== index));
+    setFilamentsWithHistory(filamentsWithHistory.filter((_, i) => i !== index));
     if (editingIndex === index) {
       resetForm();
     }
@@ -880,9 +927,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
 
   // Kedvenc váltás funkció
   const toggleFavorite = (index: number) => {
-    const updated = [...filaments];
+    const updated = [...filamentsWithHistory];
     updated[index] = { ...updated[index], favorite: !updated[index].favorite };
-    setFilaments(updated);
+    setFilamentsWithHistory(updated);
     logWithLanguage(settings.language, "log", "filaments.favorite.toggled", {
       brand: updated[index].brand,
       type: updated[index].type,
@@ -891,7 +938,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   };
 
   // Szűrés a keresési kifejezés és kedvenc alapján
-  const filteredFilaments = filaments.filter(f => {
+  const filteredFilaments = filamentsWithHistory.filter(f => {
     // Kedvenc szűrés
     if (showFavoritesOnly && !f.favorite) return false;
     
@@ -905,6 +952,35 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       (f.colorHex && f.colorHex.toLowerCase().includes(term))
     );
   });
+
+  // Undo/Redo billentyűk
+  useKeyboardShortcut('z', () => {
+    if (canUndo) {
+      undo();
+      showToast(t("common.undo") || "Visszavonás", "info");
+    }
+  }, { ctrl: true });
+
+  useKeyboardShortcut('z', () => {
+    if (canUndo) {
+      undo();
+      showToast(t("common.undo") || "Visszavonás", "info");
+    }
+  }, { meta: true });
+
+  useKeyboardShortcut('z', () => {
+    if (canRedo) {
+      redo();
+      showToast(t("common.redo") || "Újra", "info");
+    }
+  }, { ctrl: true, shift: true });
+
+  useKeyboardShortcut('z', () => {
+    if (canRedo) {
+      redo();
+      showToast(t("common.redo") || "Újra", "info");
+    }
+  }, { meta: true, shift: true });
 
   // Gyorsbillentyűk
   // macOS-en metaKey (Cmd), Windows/Linux-en ctrlKey (Ctrl)
@@ -1017,7 +1093,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       <p style={themeStyles.pageSubtitle}>{t("filaments.subtitle")}</p>
       
       {/* Kereső mező */}
-      {filaments.length > 0 && (
+      {filamentsWithHistory.length > 0 && (
         <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
           <label style={{ 
             display: "block", 
@@ -1028,51 +1104,105 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           }}>
             🔍 {t("filaments.search.label")}
           </label>
-          <input
-            type="text"
-            placeholder={t("filaments.search.placeholder")}
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-            style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
-            aria-label={t("filaments.search.ariaLabel")}
-            aria-describedby="filament-search-description"
-          />
-          <span id="filament-search-description" style={{ display: "none" }}>
-            {t("filaments.search.description")}
-          </span>
-          <Tooltip content={showFavoritesOnly ? t("filaments.favorite.showAll") : t("filaments.favorite.showOnly")}>
-            <button
-              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-              onMouseEnter={(e) => {
-                if (!interactionsEnabled) return;
-                Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
-              }}
-              onMouseLeave={(e) => {
-                if (!interactionsEnabled) return;
-                const btn = e.currentTarget as HTMLButtonElement;
-                btn.style.transform = "translateY(0)";
-                btn.style.boxShadow = showFavoritesOnly 
-                  ? themeStyles.buttonPrimary.boxShadow 
-                  : themeStyles.buttonSecondary.boxShadow;
-              }}
-              style={{
-                ...themeStyles.button,
-                ...(showFavoritesOnly ? themeStyles.buttonPrimary : themeStyles.buttonSecondary),
-                padding: "10px 16px",
-                fontSize: "14px",
-                marginLeft: "12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-              aria-label={showFavoritesOnly ? t("filaments.favorite.showAll") : t("filaments.favorite.showOnly")}
-            >
-              <span style={{ fontSize: "16px" }}>{showFavoritesOnly ? "⭐" : "☆"}</span>
-              {showFavoritesOnly ? t("filaments.favorite.showing") : t("filaments.favorite.filter")}
-            </button>
-          </Tooltip>
+          <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+            <input
+              type="text"
+              placeholder={t("filaments.search.placeholder")}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+              style={{ ...themeStyles.input, flex: "1", minWidth: "200px", maxWidth: "400px" }}
+              aria-label={t("filaments.search.ariaLabel")}
+              aria-describedby="filament-search-description"
+            />
+            <span id="filament-search-description" style={{ display: "none" }}>
+              {t("filaments.search.description")}
+            </span>
+            {/* Undo/Redo és Kedvencek gombok */}
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <Tooltip content={`${t("common.undo")} (Ctrl/Cmd+Z)`}>
+                <button
+                  onClick={() => {
+                    if (canUndo) {
+                      undo();
+                      showToast(t("common.undo"), "info");
+                    }
+                  }}
+                  disabled={!canUndo}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    opacity: canUndo ? 1 : 0.5,
+                    cursor: canUndo ? "pointer" : "not-allowed",
+                    padding: "8px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "14px",
+                  }}
+                >
+                  <span>↶</span>
+                  <span>{t("common.undo")}</span>
+                </button>
+              </Tooltip>
+              <Tooltip content={`${t("common.redo")} (Ctrl/Cmd+Shift+Z)`}>
+                <button
+                  onClick={() => {
+                    if (canRedo) {
+                      redo();
+                      showToast(t("common.redo"), "info");
+                    }
+                  }}
+                  disabled={!canRedo}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    opacity: canRedo ? 1 : 0.5,
+                    cursor: canRedo ? "pointer" : "not-allowed",
+                    padding: "8px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "14px",
+                  }}
+                >
+                  <span>↷</span>
+                  <span>{t("common.redo")}</span>
+                </button>
+              </Tooltip>
+              <Tooltip content={showFavoritesOnly ? t("filaments.favorite.showAll") : t("filaments.favorite.showOnly")}>
+                <button
+                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  onMouseEnter={(e) => {
+                    if (!interactionsEnabled) return;
+                    Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!interactionsEnabled) return;
+                    const btn = e.currentTarget as HTMLButtonElement;
+                    btn.style.transform = "translateY(0)";
+                    btn.style.boxShadow = showFavoritesOnly 
+                      ? themeStyles.buttonPrimary.boxShadow 
+                      : themeStyles.buttonSecondary.boxShadow;
+                  }}
+                  style={{
+                    ...themeStyles.button,
+                    ...(showFavoritesOnly ? themeStyles.buttonPrimary : themeStyles.buttonSecondary),
+                    padding: "8px 12px",
+                    fontSize: "14px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                  aria-label={showFavoritesOnly ? t("filaments.favorite.showAll") : t("filaments.favorite.showOnly")}
+                >
+                  <span style={{ fontSize: "16px" }}>{showFavoritesOnly ? "⭐" : "☆"}</span>
+                  {showFavoritesOnly ? t("filaments.favorite.showing") : t("filaments.favorite.filter")}
+                </button>
+              </Tooltip>
+            </div>
+          </div>
         </div>
       )}
       
@@ -1112,9 +1242,63 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         </div>
       )}
       
-      {/* Új filament hozzáadása form */}
-      {(showAddForm || editingIndex !== null) && (
-      <div style={{ ...themeStyles.card, marginBottom: "24px", backgroundColor: editingIndex !== null ? theme.colors.primary + "20" : theme.colors.surfaceHover, border: editingIndex !== null ? `2px solid ${theme.colors.primary}` : `1px solid ${theme.colors.border}` }}>
+      {/* Új filament hozzáadása form modal */}
+      <AnimatePresence>
+        {(showAddForm || editingIndex !== null) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000,
+              backdropFilter: 'blur(4px)',
+              overflowY: 'auto',
+              padding: '20px',
+            }}
+            onClick={() => {
+              if (showAddForm) {
+                setShowAddForm(false);
+                resetForm();
+              }
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.96 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              style={{
+                backgroundColor: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                  ? 'rgba(255, 255, 255, 0.95)'
+                  : theme.colors.surface,
+                borderRadius: '16px',
+                padding: '24px',
+                width: 'min(900px, 95vw)',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                boxShadow: theme.name === 'neon' || theme.name === 'cyberpunk'
+                  ? `0 0 30px ${theme.colors.shadow}, 0 8px 32px rgba(0,0,0,0.4)`
+                  : `0 8px 32px rgba(0,0,0,0.3)`,
+                color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                  ? '#1a202c'
+                  : theme.colors.text,
+                backdropFilter: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                  ? 'blur(12px)'
+                  : 'none',
+                border: editingIndex !== null ? `2px solid ${theme.colors.primary}` : 'none',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
           <h3 style={{ 
             margin: 0, 
@@ -1146,8 +1330,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             </button>
           )}
         </div>
-        <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
-          <div style={{ width: "200px", flexShrink: 0 }}>
+              <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
+                <div style={{ width: "200px", flexShrink: 0, minWidth: "180px" }}>
             <label style={{ 
               display: "block", 
               marginBottom: "8px", 
@@ -1285,7 +1469,12 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     e.target.style.borderColor = theme.colors.inputBorder;
                     e.target.style.boxShadow = "none";
                   }}
-                  style={{ ...themeStyles.input, width: "100%" }}
+                  style={{ 
+                    ...themeStyles.input, 
+                    width: "100%",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
+                  }}
                   aria-label={t("filaments.brand")}
                   aria-required="true"
                 />
@@ -1446,7 +1635,12 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     e.target.style.borderColor = theme.colors.inputBorder;
                     e.target.style.boxShadow = "none";
                   }}
-                  style={{ ...themeStyles.input, width: "100%" }}
+                  style={{ 
+                    ...themeStyles.input, 
+                    width: "100%",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
+                  }}
                   aria-label={t("filaments.type")}
                   aria-required="true"
                 />
@@ -1532,7 +1726,12 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 e.target.style.boxShadow = "none";
                 handlePriceInputBlur();
               }}
-              style={{ ...themeStyles.input, width: "100%" }}
+              style={{ 
+                ...themeStyles.input, 
+                width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
+              }}
             />
             {/* Ár előzmények gomb és megjelenítés */}
             {editingIndex !== null && priceHistory.length > 0 && (
@@ -1616,8 +1815,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 )}
               </div>
             )}
-          </div>
-          <div style={{ flex: "1 1 280px", minWidth: "220px" }}>
+                </div>
+                <div style={{ flex: "1 1 280px", minWidth: "220px" }}>
             <label style={{ 
               display: "block", 
               marginBottom: "8px", 
@@ -1704,7 +1903,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     e.target.style.boxShadow = "none";
                   }}
                   placeholder={t("filaments.colorMode.placeholder")}
-                  style={{ ...themeStyles.input, width: "60%" }}
+                  style={{ 
+                    ...themeStyles.input, 
+                    width: "60%",
+                    maxWidth: "60%",
+                    boxSizing: "border-box",
+                    minWidth: "200px",
+                  }}
                 />
               </div>
             )}
@@ -1809,11 +2014,11 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 </div>
               </div>
             )}
-          </div>
-        </div>
-        
-        {/* Kép feltöltés */}
-        <div style={{ marginTop: "20px" }}>
+                </div>
+              </div>
+              
+              {/* Kép feltöltés */}
+              <div style={{ marginTop: "20px" }}>
           <label
             style={{
               display: "block",
@@ -1981,11 +2186,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               >
                 {t("filaments.cancel")}
               </button>
-            </Tooltip>
-          )}
-        </div>
-      </div>
-      )}
+                </Tooltip>
+              )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {filteredFilaments.length > 0 ? (
         <div style={{ ...themeStyles.card, overflow: "hidden", padding: 0 }}>
@@ -2003,7 +2210,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             </thead>
             <tbody>
               {filteredFilaments.map((f, i) => {
-                const originalIndex = filaments.findIndex(orig => orig === f);
+                const originalIndex = filamentsWithHistory.findIndex(orig => orig === f);
                 const storedHex = normalizeHex(f.colorHex) || "";
                 const nameBasedHex = resolveLibraryHexFromName(f.color, f.brand, f.type) || resolveColorHexFromName(f.color);
                 const resolvedHex = normalizeHex(
@@ -2218,7 +2425,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             </tbody>
           </table>
         </div>
-      ) : filaments.length > 0 && searchTerm ? (
+      ) : filamentsWithHistory.length > 0 && searchTerm ? (
         <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
           <p

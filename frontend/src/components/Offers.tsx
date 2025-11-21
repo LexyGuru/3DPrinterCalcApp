@@ -170,17 +170,22 @@ export const Offers: React.FC<Props> = ({
       setSelectedOffer(null);
     }
     logWithLanguage(settings.language, "log", "offers.delete.success", { offerId: id });
-    showToast(t("common.offerDeleted"), "success");
-    // Natív értesítés küldése (ha engedélyezve van)
+    
+    // Toast üzenet az ügyfél nevével
+    const customerName = offerToDelete?.customerName || t("offers.customerName");
+    const toastMessage = `${t("common.offerDeleted")} ${t("offers.customerName")}: ${customerName}`;
+    showToast(toastMessage, "success");
+    
+    // Natív értesítés küldése minden platformon (ha engedélyezve van)
     if (settings.notificationEnabled !== false && offerToDelete) {
       try {
         const { sendNativeNotification } = await import("../utils/platformFeatures");
-        await sendNativeNotification(
-          t("common.offerDeleted"),
-          offerToDelete.customerName || t("offers.customerName")
-        );
+        const notificationTitle = t("common.offerDeleted");
+        const notificationBody = `${t("offers.customerName")}: ${customerName}`;
+        await sendNativeNotification(notificationTitle, notificationBody);
       } catch (error) {
         console.log("Értesítés küldése sikertelen:", error);
+        // Fallback: ha a natív értesítés nem működik, legalább a toast üzenet megjelenik
       }
     }
     setDeleteConfirmId(null);

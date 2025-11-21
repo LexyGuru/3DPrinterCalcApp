@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Customer, Settings, Offer } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
@@ -61,6 +62,21 @@ export const Customers: React.FC<Props> = ({
       setShowAddForm(true);
     }
   }, [triggerAddForm, showAddForm, editingCustomerId]);
+
+  // Escape billentyű kezelése a modal bezárásához
+  useEffect(() => {
+    if (!showAddForm) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowAddForm(false);
+        setName(""); setContact(""); setCompany(""); setAddress(""); setNotes("");
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAddForm]);
 
   // Számított mezők: összes árajánlat száma és utolsó árajánlat dátuma
   const customersWithStats = useMemo(() => {
@@ -207,107 +223,250 @@ export const Customers: React.FC<Props> = ({
       {/* Hozzáadás gomb */}
       <div style={{ marginBottom: "20px" }}>
         <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          style={{
-            ...themeStyles.buttonPrimary,
-            marginBottom: showAddForm ? "20px" : "0",
-          }}
+          onClick={() => setShowAddForm(true)}
+          style={themeStyles.buttonPrimary}
         >
-          {showAddForm ? "✖️" : "➕"} {t("customers.addNew")}
+          ➕ {t("customers.addNew")}
         </button>
       </div>
 
-      {/* Hozzáadás form */}
-      {showAddForm && (
-        <div style={{
-          ...themeStyles.card,
-          marginBottom: "24px",
-          padding: "20px",
-        }}>
-          <h3 style={{ ...themeStyles.heading, marginBottom: "16px", fontSize: "18px" }}>
-            {t("customers.addNew")}
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                {t("customers.name")} *
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={themeStyles.input}
-                placeholder={t("customers.namePlaceholder")}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                {t("customers.contact")}
-              </label>
-              <input
-                type="text"
-                value={contact}
-                onChange={(e) => setContact(e.target.value)}
-                style={themeStyles.input}
-                placeholder={t("customers.contactPlaceholder")}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                {t("customers.company")}
-              </label>
-              <input
-                type="text"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                style={themeStyles.input}
-                placeholder={t("customers.companyPlaceholder")}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                {t("customers.address")}
-              </label>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                style={themeStyles.input}
-                placeholder={t("customers.addressPlaceholder")}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                {t("customers.notes")}
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                style={{
-                  ...themeStyles.input,
-                  minHeight: "80px",
-                  resize: "vertical",
-                }}
-                placeholder={t("customers.notesPlaceholder")}
-              />
-            </div>
-            <div style={{ display: "flex", gap: "12px" }}>
-              <button onClick={addCustomer} style={themeStyles.buttonPrimary}>
-                {t("common.save")}
-              </button>
-              <button 
-                onClick={() => {
-                  setShowAddForm(false);
-                  setName(""); setContact(""); setCompany(""); setAddress(""); setNotes("");
-                }}
-                style={themeStyles.buttonSecondary}
-              >
-                {t("common.cancel")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Hozzáadás form modal */}
+      <AnimatePresence>
+        {showAddForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000,
+              backdropFilter: 'blur(4px)',
+            }}
+            onClick={() => {
+              setShowAddForm(false);
+              setName(""); setContact(""); setCompany(""); setAddress(""); setNotes("");
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.96 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              style={{
+                backgroundColor: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                  ? 'rgba(255, 255, 255, 0.95)'
+                  : theme.colors.surface,
+                borderRadius: '16px',
+                padding: '24px',
+                width: 'min(600px, 90vw)',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+                boxShadow: theme.name === 'neon' || theme.name === 'cyberpunk'
+                  ? `0 0 30px ${theme.colors.shadow}, 0 8px 32px rgba(0,0,0,0.4)`
+                  : `0 8px 32px rgba(0,0,0,0.3)`,
+                color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                  ? '#1a202c'
+                  : theme.colors.text,
+                backdropFilter: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                  ? 'blur(12px)'
+                  : 'none',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ 
+                  ...themeStyles.heading, 
+                  margin: 0, 
+                  fontSize: '20px',
+                  color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                    ? '#1a202c'
+                    : theme.colors.text,
+                }}>
+                  {t("customers.addNew")}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setName(""); setContact(""); setCompany(""); setAddress(""); setNotes("");
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                      ? '#1a202c'
+                      : theme.colors.text,
+                    padding: '0',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '6px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                      ? 'rgba(0, 0, 0, 0.05)'
+                      : theme.colors.surfaceHover;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                      ? '#1a202c'
+                      : theme.colors.text,
+                  }}>
+                    {t("customers.name")} *
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    style={{
+                      ...themeStyles.input,
+                      width: '100%',
+                      maxWidth: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                    placeholder={t("customers.namePlaceholder")}
+                  />
+                </div>
+                <div>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                      ? '#1a202c'
+                      : theme.colors.text,
+                  }}>
+                    {t("customers.contact")}
+                  </label>
+                  <input
+                    type="text"
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    style={{
+                      ...themeStyles.input,
+                      width: '100%',
+                      maxWidth: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                    placeholder={t("customers.contactPlaceholder")}
+                  />
+                </div>
+                <div>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                      ? '#1a202c'
+                      : theme.colors.text,
+                  }}>
+                    {t("customers.company")}
+                  </label>
+                  <input
+                    type="text"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    style={{
+                      ...themeStyles.input,
+                      width: '100%',
+                      maxWidth: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                    placeholder={t("customers.companyPlaceholder")}
+                  />
+                </div>
+                <div>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                      ? '#1a202c'
+                      : theme.colors.text,
+                  }}>
+                    {t("customers.address")}
+                  </label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    style={{
+                      ...themeStyles.input,
+                      width: '100%',
+                      maxWidth: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                    placeholder={t("customers.addressPlaceholder")}
+                  />
+                </div>
+                <div>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                      ? '#1a202c'
+                      : theme.colors.text,
+                  }}>
+                    {t("customers.notes")}
+                  </label>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    style={{
+                      ...themeStyles.input,
+                      width: '100%',
+                      maxWidth: '100%',
+                      boxSizing: 'border-box',
+                      minHeight: "80px",
+                      resize: "vertical",
+                    }}
+                    placeholder={t("customers.notesPlaceholder")}
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                  <button onClick={addCustomer} style={themeStyles.buttonPrimary}>
+                    {t("common.save")}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setShowAddForm(false);
+                      setName(""); setContact(""); setCompany(""); setAddress(""); setNotes("");
+                    }}
+                    style={themeStyles.buttonSecondary}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Ügyfelek listája */}
       {filteredCustomers.length === 0 ? (

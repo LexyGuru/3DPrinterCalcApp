@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Printer, Settings, AMS } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
@@ -82,6 +83,21 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       setShowAddForm(true);
     }
   }, [triggerAddForm, showAddForm, editingPrinterId]);
+
+  // Escape billentyű kezelése a modal bezárásához
+  useEffect(() => {
+    if (!showAddForm) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowAddForm(false);
+        setName(""); setType(""); setPower(0); setUsageCost(0); setAmsCount(0);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAddForm]);
 
   const deletePrinter = (id: number) => {
     setDeleteConfirmId(id);
@@ -391,20 +407,104 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
         </div>
       )}
       
-      {/* Új nyomtató hozzáadása form */}
-      {showAddForm && (
-      <div style={{ ...themeStyles.card, marginBottom: "24px", backgroundColor: theme.colors.surfaceHover, border: `1px solid ${theme.colors.border}` }}>
-        <h3 style={{ 
-          marginTop: 0, 
-          marginBottom: "24px", 
-          fontSize: "20px", 
-          fontWeight: "600", 
-          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-        }}>
-          ➕ {t("printers.addTitle")}
-        </h3>
-        <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
-          <div style={{ width: "180px", flexShrink: 0 }}>
+      {/* Új nyomtató hozzáadása form modal */}
+      <AnimatePresence>
+        {showAddForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000,
+              backdropFilter: 'blur(4px)',
+            }}
+            onClick={() => {
+              setShowAddForm(false);
+              setName(""); setType(""); setPower(0); setUsageCost(0); setAmsCount(0);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.96 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              style={{
+                backgroundColor: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                  ? 'rgba(255, 255, 255, 0.95)'
+                  : theme.colors.surface,
+                borderRadius: '16px',
+                padding: '24px',
+                width: 'min(700px, 90vw)',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+                boxShadow: theme.name === 'neon' || theme.name === 'cyberpunk'
+                  ? `0 0 30px ${theme.colors.shadow}, 0 8px 32px rgba(0,0,0,0.4)`
+                  : `0 8px 32px rgba(0,0,0,0.3)`,
+                color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                  ? '#1a202c'
+                  : theme.colors.text,
+                backdropFilter: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                  ? 'blur(12px)'
+                  : 'none',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h3 style={{ 
+                  margin: 0, 
+                  fontSize: "20px", 
+                  fontWeight: "600", 
+                  color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                    ? '#1a202c'
+                    : theme.colors.text 
+                }}>
+                  ➕ {t("printers.addTitle")}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setName(""); setType(""); setPower(0); setUsageCost(0); setAmsCount(0);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                      ? '#1a202c'
+                      : theme.colors.text,
+                    padding: '0',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '6px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                      ? 'rgba(0, 0, 0, 0.05)'
+                      : theme.colors.surfaceHover;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
+                <div style={{ width: "180px", flexShrink: 0, minWidth: "150px" }}>
             <label style={{ 
               display: "block", 
               marginBottom: "8px", 
@@ -421,10 +521,15 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               onChange={e => setName(e.target.value)}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-              style={{ ...themeStyles.input, width: "100%" }}
+              style={{ 
+                ...themeStyles.input, 
+                width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
+              }}
             />
-          </div>
-          <div style={{ width: "180px", flexShrink: 0 }}>
+                </div>
+                <div style={{ width: "180px", flexShrink: 0, minWidth: "150px" }}>
             <label style={{ 
               display: "block", 
               marginBottom: "8px", 
@@ -441,10 +546,15 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               onChange={e => setType(e.target.value)}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-              style={{ ...themeStyles.input, width: "100%" }}
+              style={{ 
+                ...themeStyles.input, 
+                width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
+              }}
             />
-          </div>
-          <div style={{ width: "180px", flexShrink: 0 }}>
+                </div>
+                <div style={{ width: "180px", flexShrink: 0, minWidth: "150px" }}>
             <label style={{ 
               display: "block", 
               marginBottom: "8px", 
@@ -510,10 +620,15 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               }}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-              style={{ ...themeStyles.input, width: "100%" }}
+              style={{ 
+                ...themeStyles.input, 
+                width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
+              }}
             />
-          </div>
-          <div style={{ width: "180px", flexShrink: 0 }}>
+                </div>
+                <div style={{ width: "180px", flexShrink: 0, minWidth: "150px" }}>
             <label style={{ 
               display: "block", 
               marginBottom: "8px", 
@@ -544,8 +659,8 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               style={{ ...themeStyles.input, width: "100%" }}
             />
           </div>
-        </div>
-        <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
+              </div>
+              <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
           <Tooltip content={t("printers.tooltip.submitShortcut")}>
             <button 
               onClick={addPrinter}
@@ -591,9 +706,11 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               {t("filaments.cancel")}
             </button>
           </Tooltip>
-        </div>
-      </div>
-      )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {filteredPrinters.length > 0 ? (
         <div style={{ ...themeStyles.card, overflow: "hidden", padding: 0 }}>
