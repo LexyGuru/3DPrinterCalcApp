@@ -38,7 +38,63 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
-### v0.6.0 (Nejnovější)
+### v1.0.0 (2025) - 🎉 První stabilní verze
+
+- 🎨 **Moderní UI komponenty** - Kompletní přepracování UI s moderními komponentami:
+  - Komponenta Empty State pro lepší uživatelský zážitek
+  - Komponenta Card s hover efekty
+  - Komponenta Progress Bar pro operace exportu/importu PDF
+  - Komponenta Tooltip s integrací tématu
+  - Navigace Breadcrumb pro jasnou hierarchii stránek
+- ⚡ **Rychlé akce** - Tlačítka rychlých akcí v hlavičce pro rychlejší pracovní tok:
+  - Tlačítka rychlého přidání pro Filamenty, Tiskárny a Zákazníky
+  - Dynamická tlačítka na základě aktivní stránky
+  - Integrace klávesových zkratek
+- 🔍 **Globální vyhledávání (Command Palette)** - Výkonná funkce vyhledávání:
+  - `Ctrl/Cmd+K` pro otevření globálního vyhledávání
+  - Vyhledávání stránek a rychlých akcí
+  - Navigace klávesnicí (↑↓, Enter, Esc)
+  - Styl přizpůsobený tématu
+- ⏪ **Funkce Zpět/Znovu** - Správa historie pro Filamenty:
+  - `Ctrl/Cmd+Z` pro zpět
+  - `Ctrl/Cmd+Shift+Z` pro znovu
+  - Vizuální tlačítka zpět/znovu v UI
+  - Podpora historie 50 kroků
+- ⭐ **Oblíbené Filamenty** - Označujte a filtrujte oblíbené filamenty:
+  - Ikona hvězdy pro přepnutí stavu oblíbeného
+  - Filtr pro zobrazení pouze oblíbených
+  - Trvalý stav oblíbeného
+- 📦 **Hromadné operace** - Efektivní hromadná správa:
+  - Výběr checkbox pro více filamentů
+  - Funkce Vybrat vše / Zrušit výběr
+  - Hromadné mazání s potvrzovacím dialogem
+  - Vizuální indikátory výběru
+- 🎨 **Modální dialogy** - Moderní modální zážitek:
+  - Modaly s rozmazaným pozadím pro formuláře přidání/úpravy
+  - Vstupní pole pevné velikosti
+  - Klávesa Escape pro zavření
+  - Plynulé animace s framer-motion
+- ⌨️ **Klávesové zkratky** - Vylepšený systém zkratek:
+  - Přizpůsobitelné klávesové zkratky
+  - Dialog nápovědy zkratek (`Ctrl/Cmd+?`)
+  - Úprava zkratek s zachycením kláves
+  - Trvalé uložení zkratek
+- 📝 **Systém protokolování** - Komplexní protokolování:
+  - Oddělené soubory protokolů pro frontend a backend
+  - Rozlišení adresáře protokolů nezávislé na platformě
+  - Automatická rotace protokolů
+  - Integrace konzole
+- 🔔 **Vylepšení oznámení** - Lepší systém oznámení:
+  - Jméno zákazníka v oznámeních o smazání nabídky
+  - Podpora oznámení napříč platformami
+  - Vylepšená správa chyb
+- 🎯 **Vylepšení UI/UX**:
+  - Pevné velikosti vstupních polí
+  - Lepší rozvržení formulářů
+  - Vylepšená integrace tématu
+  - Zvýšená dostupnost
+
+### v0.6.0 (2025)
 
 #### 🐛 Opravy chyb
 - **Optimalizace protokolování**: Snížení nadměrného a duplicitního protokolování
@@ -543,7 +599,7 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 
 ---
 
-**Verze**: 0.6.0
+**Verze**: 1.0.0
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 

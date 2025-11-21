@@ -40,7 +40,63 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
-### v0.6.0 (Mais recente)
+### v1.0.0 (2025) - 🎉 Primeira versão estável
+
+- 🎨 **Componentes UI modernos** - Reforma completa da UI com componentes modernos:
+  - Componente Empty State para melhor experiência do usuário
+  - Componente Card com efeitos hover
+  - Componente Progress Bar para operações de exportação/importação PDF
+  - Componente Tooltip com integração de tema
+  - Navegação Breadcrumb para hierarquia clara de páginas
+- ⚡ **Ações rápidas** - Botões de ação rápida no cabeçalho para fluxo de trabalho mais rápido:
+  - Botões de adição rápida para Filamentos, Impressoras e Clientes
+  - Botões dinâmicos baseados na página ativa
+  - Integração de atalhos de teclado
+- 🔍 **Busca global (Command Palette)** - Funcionalidade de busca poderosa:
+  - `Ctrl/Cmd+K` para abrir a busca global
+  - Buscar páginas e ações rápidas
+  - Navegação por teclado (↑↓, Enter, Esc)
+  - Estilo adaptado ao tema
+- ⏪ **Funcionalidade Desfazer/Refazer** - Gerenciamento de histórico para Filamentos:
+  - `Ctrl/Cmd+Z` para desfazer
+  - `Ctrl/Cmd+Shift+Z` para refazer
+  - Botões visuais desfazer/refazer na UI
+  - Suporte a histórico de 50 passos
+- ⭐ **Filamentos favoritos** - Marcar e filtrar filamentos favoritos:
+  - Ícone de estrela para alternar status favorito
+  - Filtro para mostrar apenas favoritos
+  - Status favorito persistente
+- 📦 **Operações em massa** - Gerenciamento eficiente em massa:
+  - Seleção por checkbox para múltiplos filamentos
+  - Funcionalidade Selecionar tudo / Desmarcar tudo
+  - Exclusão em massa com diálogo de confirmação
+  - Indicadores visuais de seleção
+- 🎨 **Diálogos modais** - Experiência modal moderna:
+  - Modais com fundo desfocado para formulários de adicionar/editar
+  - Campos de entrada de tamanho fixo
+  - Tecla Escape para fechar
+  - Animações suaves com framer-motion
+- ⌨️ **Atalhos de teclado** - Sistema de atalhos aprimorado:
+  - Atalhos de teclado personalizáveis
+  - Diálogo de ajuda de atalhos (`Ctrl/Cmd+?`)
+  - Editar atalhos com captura de teclas
+  - Armazenamento persistente de atalhos
+- 📝 **Sistema de registro** - Registro abrangente:
+  - Arquivos de log separados para frontend e backend
+  - Resolução de diretório de log independente de plataforma
+  - Rotação automática de logs
+  - Integração de console
+- 🔔 **Melhorias de notificações** - Melhor sistema de notificações:
+  - Nome do cliente em notificações de exclusão de oferta
+  - Suporte a notificações multiplataforma
+  - Tratamento de erros aprimorado
+- 🎯 **Melhorias UI/UX**:
+  - Tamanhos de campos de entrada fixos
+  - Melhores layouts de formulários
+  - Integração de tema aprimorada
+  - Acessibilidade aprimorada
+
+### v0.6.0 (2025)
 
 #### 🐛 Correções de bugs
 - **Otimização de registro**: Redução de registros excessivos e duplicados
@@ -545,7 +601,7 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ---
 
-**Versão**: 0.6.0
+**Versão**: 1.0.0
 
 Se você tiver alguma dúvida ou encontrar um bug, por favor abra uma issue no repositório GitHub!
 

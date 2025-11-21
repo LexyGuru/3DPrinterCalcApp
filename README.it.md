@@ -41,7 +41,63 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
-### v0.6.0 (Più recente)
+### v1.0.0 (2025) - 🎉 Prima versione stabile
+
+- 🎨 **Componenti UI moderni** - Rinnovamento completo dell'UI con componenti moderni:
+  - Componente Empty State per una migliore esperienza utente
+  - Componente Card con effetti hover
+  - Componente Progress Bar per operazioni di export/import PDF
+  - Componente Tooltip con integrazione tema
+  - Navigazione Breadcrumb per una chiara gerarchia delle pagine
+- ⚡ **Azioni rapide** - Pulsanti di azione rapida nell'intestazione per un flusso di lavoro più veloce:
+  - Pulsanti di aggiunta rapida per Filamenti, Stampanti e Clienti
+  - Pulsanti dinamici basati sulla pagina attiva
+  - Integrazione scorciatoie da tastiera
+- 🔍 **Ricerca globale (Command Palette)** - Funzionalità di ricerca potente:
+  - `Ctrl/Cmd+K` per aprire la ricerca globale
+  - Ricerca pagine e azioni rapide
+  - Navigazione da tastiera (↑↓, Enter, Esc)
+  - Stile adattato al tema
+- ⏪ **Funzionalità Annulla/Ripeti** - Gestione cronologia per Filamenti:
+  - `Ctrl/Cmd+Z` per annullare
+  - `Ctrl/Cmd+Shift+Z` per ripetere
+  - Pulsanti visivi annulla/ripeti nell'UI
+  - Supporto cronologia a 50 passi
+- ⭐ **Filamenti preferiti** - Segna e filtra i filamenti preferiti:
+  - Icona stella per attivare/disattivare lo stato preferito
+  - Filtro per mostrare solo i preferiti
+  - Stato preferito persistente
+- 📦 **Operazioni in blocco** - Gestione efficiente in blocco:
+  - Selezione checkbox per più filamenti
+  - Funzionalità Seleziona tutto / Deseleziona tutto
+  - Eliminazione in blocco con dialogo di conferma
+  - Indicatori di selezione visivi
+- 🎨 **Dialoghi modali** - Esperienza modale moderna:
+  - Modali con sfondo sfocato per moduli di aggiunta/modifica
+  - Campi di input a dimensione fissa
+  - Tasto Esc per chiudere
+  - Animazioni fluide con framer-motion
+- ⌨️ **Scorciatoie da tastiera** - Sistema di scorciatoie migliorato:
+  - Scorciatoie da tastiera personalizzabili
+  - Dialogo di aiuto scorciatoie (`Ctrl/Cmd+?`)
+  - Modifica scorciatoie con cattura tasti
+  - Archiviazione scorciatoie persistente
+- 📝 **Sistema di registrazione** - Registrazione completa:
+  - File di log separati per frontend e backend
+  - Risoluzione directory log indipendente dalla piattaforma
+  - Rotazione automatica dei log
+  - Integrazione console
+- 🔔 **Miglioramenti notifiche** - Migliore sistema di notifiche:
+  - Nome cliente nelle notifiche di eliminazione offerta
+  - Supporto notifiche multipiattaforma
+  - Gestione errori migliorata
+- 🎯 **Miglioramenti UI/UX**:
+  - Dimensioni campi di input fisse
+  - Layout moduli migliori
+  - Integrazione tema migliorata
+  - Accessibilità migliorata
+
+### v0.6.0 (2025)
 
 #### 🐛 Correzioni di bug
 - **Ottimizzazione del logging**: Riduzione della registrazione eccessiva e duplicata
@@ -546,7 +602,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 0.6.0
+**Versione**: 1.0.0
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 
