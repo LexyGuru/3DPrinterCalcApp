@@ -280,24 +280,21 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
               onClick={() => setShowTemplateList(!showTemplateList)}
               disabled={templates.length === 0}
               style={{
+                ...themeStyles.button,
                 padding: "8px 16px",
-                borderRadius: "6px",
-                border: `1px solid ${theme.colors.border}`,
-                backgroundColor: theme.colors.surface,
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
                 fontSize: "12px",
                 cursor: templates.length === 0 ? "not-allowed" : "pointer",
                 opacity: templates.length === 0 ? 0.5 : 1,
-                transition: "all 0.2s"
               }}
               onMouseEnter={(e) => {
                 if (templates.length > 0) {
-                  e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                  Object.assign(e.currentTarget.style, themeStyles.buttonHover);
                 }
               }}
               onMouseLeave={(e) => {
                 if (templates.length > 0) {
-                  e.currentTarget.style.backgroundColor = theme.colors.surface;
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = themeStyles.button.boxShadow;
                 }
               }}
               aria-label={t("calculator.tooltip.loadTemplate")}
@@ -310,24 +307,22 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
               onClick={() => setShowTemplateDialog(true)}
               disabled={!selectedPrinterId || selectedFilaments.length === 0}
               style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonPrimary,
                 padding: "8px 16px",
-                borderRadius: "6px",
-                border: `1px solid ${theme.colors.border}`,
-                backgroundColor: theme.colors.primary,
-                color: "#fff",
                 fontSize: "12px",
                 cursor: (!selectedPrinterId || selectedFilaments.length === 0) ? "not-allowed" : "pointer",
                 opacity: (!selectedPrinterId || selectedFilaments.length === 0) ? 0.5 : 1,
-                transition: "all 0.2s"
               }}
               onMouseEnter={(e) => {
                 if (selectedPrinterId && selectedFilaments.length > 0) {
-                  e.currentTarget.style.backgroundColor = theme.colors.primary + "dd";
+                  Object.assign(e.currentTarget.style, themeStyles.buttonHover);
                 }
               }}
               onMouseLeave={(e) => {
                 if (selectedPrinterId && selectedFilaments.length > 0) {
-                  e.currentTarget.style.backgroundColor = theme.colors.primary;
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = themeStyles.buttonPrimary.boxShadow;
                 }
               }}
               aria-label={t("calculator.tooltip.saveTemplate")}
@@ -339,20 +334,16 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
             <button
               onClick={() => setShowSlicerImportModal(true)}
               style={{
+                ...themeStyles.button,
                 padding: "8px 16px",
-                borderRadius: "6px",
-                border: `1px solid ${theme.colors.border}`,
-                backgroundColor: theme.colors.surface,
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
                 fontSize: "12px",
-                cursor: "pointer",
-                transition: "all 0.2s"
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                Object.assign(e.currentTarget.style, themeStyles.buttonHover);
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = theme.colors.surface;
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = themeStyles.button.boxShadow;
               }}
               aria-label={t("calculator.tooltip.importGcode")}
             >
@@ -431,11 +422,9 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
                           onClick={() => handleLoadTemplate(template)}
                           disabled={!printer}
                           style={{
+                            ...themeStyles.button,
+                            ...themeStyles.buttonPrimary,
                             padding: "6px 12px",
-                            borderRadius: "6px",
-                            border: `1px solid ${theme.colors.border}`,
-                            backgroundColor: theme.colors.primary,
-                            color: "#fff",
                             fontSize: "12px",
                             cursor: printer ? "pointer" : "not-allowed",
                             opacity: printer ? 1 : 0.5
@@ -449,11 +438,9 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
                         <button
                           onClick={() => setDeleteTemplateId(template.id)}
                           style={{
+                            ...themeStyles.button,
+                            ...themeStyles.buttonDanger,
                             padding: "6px 12px",
-                            borderRadius: "6px",
-                            border: `1px solid ${theme.colors.border}`,
-                            backgroundColor: theme.colors.danger,
-                            color: "#fff",
                             fontSize: "12px",
                             cursor: "pointer"
                           }}
