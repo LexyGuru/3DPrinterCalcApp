@@ -1,6 +1,7 @@
 // Téma rendszer - több modern dizájn
 import type { ThemeName, CustomThemeDefinition, ThemeSettings } from "../types";
 import { createEmptyCustomThemeDefinition } from "../types";
+import { checkThemeContrast, checkAllThemes, fixThemeContrast } from "./themeContrastChecker";
 export type { ThemeName };
 
 const CUSTOM_THEME_PREFIX = "custom:";
@@ -1119,5 +1120,41 @@ export const resolveTheme = (
 
 export const listAvailableThemes = (themeSettings?: ThemeSettings): Theme[] => {
   return Object.values(getAllThemes(themeSettings));
+};
+
+/**
+ * Kontraszt ellenőrzés integráció
+ * WCAG AA/AAA követelmények ellenőrzése témákhoz
+ */
+
+/**
+ * Egy téma kontraszt ellenőrzése
+ */
+export const validateThemeContrast = (
+  theme: Theme,
+  targetLevel: 'AA' | 'AAA' = 'AA'
+) => {
+  return checkThemeContrast(theme, targetLevel, false);
+};
+
+/**
+ * Összes téma kontraszt ellenőrzése
+ */
+export const validateAllThemesContrast = (
+  themeSettings?: ThemeSettings,
+  targetLevel: 'AA' | 'AAA' = 'AA'
+) => {
+  const allThemes = getAllThemes(themeSettings);
+  return checkAllThemes(allThemes, targetLevel);
+};
+
+/**
+ * Téma automatikus javítása kontraszt problémák esetén
+ */
+export const autoFixThemeContrast = (
+  theme: Theme,
+  targetLevel: 'AA' | 'AAA' = 'AA'
+): Theme => {
+  return fixThemeContrast(theme, targetLevel);
 };
 

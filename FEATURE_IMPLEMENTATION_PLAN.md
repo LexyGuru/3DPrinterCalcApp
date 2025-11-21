@@ -310,21 +310,30 @@
 
 ---
 
-#### 10. Undo/Redo funkció Filaments komponensben
+#### 10. Undo/Redo funkció Filaments komponensben ✅ KÉSZ
 **Prioritás:** 🔵 ALACSONY  
 **Komplexitás:** ⭐⭐⭐ Magas  
 **Függőségek:** undoRedo utility  
 **Leírás:** Undo/Redo funkció Filaments komponensben  
 **Fájlok:**
-- `frontend/src/utils/undoRedo.ts`
-- `frontend/src/hooks/useUndoRedo.ts`
-- `frontend/src/components/Filaments.tsx` - Undo/Redo integráció
+- `frontend/src/utils/undoRedo.ts` ✅ LÉTREHOZVA
+- `frontend/src/hooks/useUndoRedo.ts` ✅ LÉTREHOZVA
+- `frontend/src/components/Filaments.tsx` ✅ INTEGRÁLVA - Undo/Redo integráció
+
+**Funkciók:**
+- ✅ Undo/Redo hook implementálva
+- ✅ Billentyűparancsok (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z)
+- ✅ UI gombok (↶ Visszavonás, ↷ Újra)
+- ✅ Történet kezelés (50 lépés)
+- ✅ Optimistic UI integrációval működik
 
 **Tesztelés:**
-- [ ] Undo működik (Ctrl/Cmd+Z)
-- [ ] Redo működik (Ctrl/Cmd+Shift+Z)
-- [ ] Történet helyes
-- [ ] Adatok helyesek
+- [x] Undo működik (Ctrl/Cmd+Z)
+- [x] Redo működik (Ctrl/Cmd+Shift+Z)
+- [x] Történet helyes
+- [x] Adatok helyesek
+
+**Státusz:** ✅ IMPLEMENTÁLVA ÉS TESZTELVE - Minden funkció működik tökéletesen
 
 ---
 
@@ -380,20 +389,36 @@
 
 ---
 
-#### 13. Színkontraszt utility WCAG AA/AAA ellenőrzéssel
+#### 13. Színkontraszt utility WCAG AA/AAA ellenőrzéssel ✅ KÉSZ
 **Prioritás:** 🔵 ALACSONY  
 **Komplexitás:** ⭐⭐⭐ Magas  
 **Függőségek:** Nincs  
 **Leírás:** Színkontraszt ellenőrzés és javítás  
 **Fájlok:**
-- `frontend/src/utils/colorContrast.ts`
-- `frontend/src/utils/themeContrastChecker.ts`
-- `frontend/src/utils/themes.ts` - Kontraszt ellenőrzés integráció
+- `frontend/src/utils/colorContrast.ts` ✅ LÉTREHOZVA
+- `frontend/src/utils/themeContrastChecker.ts` ✅ LÉTREHOZVA
+- `frontend/src/utils/themes.ts` ✅ INTEGRÁLVA - Kontraszt ellenőrzés integráció
+
+**Funkciók:**
+- ✅ Relatív luminance számítás (WCAG spec szerint)
+- ✅ Kontraszt arány számítás
+- ✅ WCAG AA/AAA ellenőrzés (normál és nagy szöveg)
+- ✅ Automatikus szín javítás kontraszt problémák esetén
+- ✅ Téma kontraszt ellenőrzés (kritikus színpárok)
+- ✅ Összes téma ellenőrzése
+- ✅ Téma automatikus javítása
+- ✅ Integráció a themes.ts-be (validateThemeContrast, validateAllThemesContrast, autoFixThemeContrast)
+
+**WCAG követelmények:**
+- AA: 4.5:1 normál szöveghez, 3:1 nagy szöveghez
+- AAA: 7:1 normál szöveghez, 4.5:1 nagy szöveghez
 
 **Tesztelés:**
 - [ ] Kontraszt ellenőrzés működik
 - [ ] Automatikus javítás működik
 - [ ] Minden téma esetén működik
+
+**Státusz:** ✅ IMPLEMENTÁLVA - Készen áll a tesztelésre
 
 ---
 
