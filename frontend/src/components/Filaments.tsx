@@ -86,22 +86,41 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   } = useUndoRedo<Filament[]>(optimisticFilaments, 50);
 
   // Sync optimistic filaments with history when external changes occur
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevOptimisticRef = useRef<string>(JSON.stringify(optimisticFilaments));
   useEffect(() => {
-    if (JSON.stringify(optimisticFilaments) !== JSON.stringify(filamentsWithHistory)) {
+    const currentOptimistic = JSON.stringify(optimisticFilaments);
+    const currentHistory = JSON.stringify(filamentsWithHistory);
+    
+    // Ha az optimistic változott (külső forrásból, pl. parent update), akkor reset history
+    if (prevOptimisticRef.current !== currentOptimistic && currentOptimistic !== currentHistory) {
       resetHistory(optimisticFilaments);
+      prevOptimisticRef.current = currentOptimistic;
     }
   }, [optimisticFilaments, filamentsWithHistory, resetHistory]);
 
   // Update parent when history changes (optimistic update-t használ)
   // Csak akkor hívjuk meg, ha a filamentsWithHistory változott (nem az optimisticFilaments miatt)
-  const prevHistoryRef = useRef(filamentsWithHistory);
+  const prevHistoryRef = useRef<string>(JSON.stringify(filamentsWithHistory));
+  const isUpdatingRef = useRef(false);
+  
   useEffect(() => {
-    const historyChanged = JSON.stringify(prevHistoryRef.current) !== JSON.stringify(filamentsWithHistory);
-    if (historyChanged && JSON.stringify(filamentsWithHistory) !== JSON.stringify(optimisticFilaments)) {
-      prevHistoryRef.current = filamentsWithHistory;
-      updateOptimistically(filamentsWithHistory).catch((error) => {
-        console.error("Optimistic update hiba:", error);
-      });
+    const currentHistory = JSON.stringify(filamentsWithHistory);
+    const currentOptimistic = JSON.stringify(optimisticFilaments);
+    
+    // Ha a history változott ÉS nem vagyunk éppen update közben ÉS különbözik az optimistic-től
+    if (prevHistoryRef.current !== currentHistory && !isUpdatingRef.current && currentHistory !== currentOptimistic) {
+      isUpdatingRef.current = true;
+      prevHistoryRef.current = currentHistory;
+      
+      updateOptimistically(filamentsWithHistory)
+        .then(() => {
+          isUpdatingRef.current = false;
+        })
+        .catch((error) => {
+          console.error("Optimistic update hiba:", error);
+          isUpdatingRef.current = false;
+        });
     }
   }, [filamentsWithHistory, optimisticFilaments, updateOptimistically]);
   

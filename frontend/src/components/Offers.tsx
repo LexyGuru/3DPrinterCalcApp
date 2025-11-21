@@ -61,18 +61,40 @@ export const Offers: React.FC<Props> = ({
   } = useUndoRedo<Offer[]>(offers, 50);
 
   // Sync offers with history when external changes occur
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevOffersRef = useRef<string>(JSON.stringify(offers));
   useEffect(() => {
-    if (JSON.stringify(offers) !== JSON.stringify(offersWithHistory)) {
+    const currentOffers = JSON.stringify(offers);
+    const currentHistory = JSON.stringify(offersWithHistory);
+    
+    // Ha az offers változott külsőleg (nem a history miatt), akkor reset history
+    if (prevOffersRef.current !== currentOffers && currentOffers !== currentHistory) {
       resetHistory(offers);
+      prevOffersRef.current = currentOffers;
     }
-  }, [offers]);
+  }, [offers, offersWithHistory, resetHistory]);
 
   // Update parent when history changes
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevHistoryRef = useRef<string>(JSON.stringify(offersWithHistory));
+  const isUpdatingRef = useRef(false);
+  
   useEffect(() => {
-    if (JSON.stringify(offersWithHistory) !== JSON.stringify(offers)) {
-      setOffers(offersWithHistory);
+    const currentHistory = JSON.stringify(offersWithHistory);
+    const currentOffers = JSON.stringify(offers);
+    
+    // Ha a history változott ÉS nem vagyunk éppen update közben ÉS különbözik az offers-től
+    if (prevHistoryRef.current !== currentHistory && !isUpdatingRef.current && currentHistory !== currentOffers) {
+      isUpdatingRef.current = true;
+      prevHistoryRef.current = currentHistory;
+      
+      // setTimeout használata, hogy ne blokkolja a renderelést
+      setTimeout(() => {
+        setOffers(offersWithHistory);
+        isUpdatingRef.current = false;
+      }, 0);
     }
-  }, [offersWithHistory]);
+  }, [offersWithHistory, offers, setOffers]);
 
   // Undo/Redo keyboard shortcuts
   useKeyboardShortcut("z", () => {

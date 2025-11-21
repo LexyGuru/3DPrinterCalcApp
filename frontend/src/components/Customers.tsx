@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Customer, Settings, Offer } from "../types";
 import type { Theme } from "../utils/themes";
@@ -60,18 +60,40 @@ export const Customers: React.FC<Props> = ({
   } = useUndoRedo<Customer[]>(customers, 50);
 
   // Sync customers with history when external changes occur
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevCustomersRef = useRef<string>(JSON.stringify(customers));
   useEffect(() => {
-    if (JSON.stringify(customers) !== JSON.stringify(customersWithHistory)) {
+    const currentCustomers = JSON.stringify(customers);
+    const currentHistory = JSON.stringify(customersWithHistory);
+    
+    // Ha a customers változott külsőleg (nem a history miatt), akkor reset history
+    if (prevCustomersRef.current !== currentCustomers && currentCustomers !== currentHistory) {
       resetHistory(customers);
+      prevCustomersRef.current = currentCustomers;
     }
-  }, [customers]);
+  }, [customers, customersWithHistory, resetHistory]);
 
   // Update parent when history changes
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevHistoryRef = useRef<string>(JSON.stringify(customersWithHistory));
+  const isUpdatingRef = useRef(false);
+  
   useEffect(() => {
-    if (JSON.stringify(customersWithHistory) !== JSON.stringify(customers)) {
-      setCustomers(customersWithHistory);
+    const currentHistory = JSON.stringify(customersWithHistory);
+    const currentCustomers = JSON.stringify(customers);
+    
+    // Ha a history változott ÉS nem vagyunk éppen update közben ÉS különbözik a customers-től
+    if (prevHistoryRef.current !== currentHistory && !isUpdatingRef.current && currentHistory !== currentCustomers) {
+      isUpdatingRef.current = true;
+      prevHistoryRef.current = currentHistory;
+      
+      // setTimeout használata, hogy ne blokkolja a renderelést
+      setTimeout(() => {
+        setCustomers(customersWithHistory);
+        isUpdatingRef.current = false;
+      }, 0);
     }
-  }, [customersWithHistory]);
+  }, [customersWithHistory, customers, setCustomers]);
 
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");

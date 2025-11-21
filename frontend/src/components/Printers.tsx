@@ -38,18 +38,40 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
   } = useUndoRedo<Printer[]>(printers, 50);
 
   // Sync printers with history when external changes occur
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevPrintersRef = useRef<string>(JSON.stringify(printers));
   useEffect(() => {
-    if (JSON.stringify(printers) !== JSON.stringify(printersWithHistory)) {
+    const currentPrinters = JSON.stringify(printers);
+    const currentHistory = JSON.stringify(printersWithHistory);
+    
+    // Ha a printers változott külsőleg (nem a history miatt), akkor reset history
+    if (prevPrintersRef.current !== currentPrinters && currentPrinters !== currentHistory) {
       resetHistory(printers);
+      prevPrintersRef.current = currentPrinters;
     }
-  }, [printers]);
+  }, [printers, printersWithHistory, resetHistory]);
 
   // Update parent when history changes
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevHistoryRef = useRef<string>(JSON.stringify(printersWithHistory));
+  const isUpdatingRef = useRef(false);
+  
   useEffect(() => {
-    if (JSON.stringify(printersWithHistory) !== JSON.stringify(printers)) {
-      setPrinters(printersWithHistory);
+    const currentHistory = JSON.stringify(printersWithHistory);
+    const currentPrinters = JSON.stringify(printers);
+    
+    // Ha a history változott ÉS nem vagyunk éppen update közben ÉS különbözik a printers-től
+    if (prevHistoryRef.current !== currentHistory && !isUpdatingRef.current && currentHistory !== currentPrinters) {
+      isUpdatingRef.current = true;
+      prevHistoryRef.current = currentHistory;
+      
+      // setTimeout használata, hogy ne blokkolja a renderelést
+      setTimeout(() => {
+        setPrinters(printersWithHistory);
+        isUpdatingRef.current = false;
+      }, 0);
     }
-  }, [printersWithHistory]);
+  }, [printersWithHistory, printers, setPrinters]);
 
   const [name, setName] = useState("");
   const [type, setType] = useState("");

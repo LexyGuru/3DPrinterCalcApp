@@ -29,10 +29,17 @@ export function useOptimisticUpdate<T>(
   }, [saveFunction, onError]);
 
   // Sync optimistic state with current state when it changes externally
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevCurrentStateRef = useRef<string>(JSON.stringify(currentState));
   useEffect(() => {
-    if (JSON.stringify(currentState) !== JSON.stringify(optimisticState) && !isSaving) {
+    const currentStateStr = JSON.stringify(currentState);
+    const optimisticStateStr = JSON.stringify(optimisticState);
+    
+    // Ha a currentState változott külsőleg (nem az optimistic update miatt) ÉS nem vagyunk éppen saving közben
+    if (prevCurrentStateRef.current !== currentStateStr && currentStateStr !== optimisticStateStr && !isSaving) {
       setOptimisticState(currentState);
       previousStateRef.current = currentState;
+      prevCurrentStateRef.current = currentStateStr;
     }
   }, [currentState, optimisticState, isSaving]);
 
