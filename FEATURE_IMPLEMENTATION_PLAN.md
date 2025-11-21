@@ -457,10 +457,18 @@
 - `frontend/src/components/Offers.tsx`
 - `frontend/src/components/Printers.tsx`
 
+**Funkciók:**
+- ✅ State kezelés: `selectedCustomerIds`, `selectedPrinterIds`, `selectedOfferIds`, `bulkDeleteConfirm`
+- ✅ Funkciók: `toggleSelection`, `selectAll`, `deselectAll`, `handleBulkDelete`, `confirmBulkDelete`
+- ✅ UI elemek: checkbox oszlop, bulk action toolbar, megerősítő dialógus
+- ✅ Fordítási kulcsok hozzáadva minden nyelvhez (13 fájl)
+
 **Tesztelés:**
-- [ ] Minden komponensben működik
-- [ ] Kijelölés működik
-- [ ] Tömeges törlés működik
+- [x] Minden komponensben működik
+- [x] Kijelölés működik
+- [x] Tömeges törlés működik
+
+**Státusz:** ✅ IMPLEMENTÁLVA ÉS TESZTELVE - Minden funkció működik tökéletesen
 
 ---
 
