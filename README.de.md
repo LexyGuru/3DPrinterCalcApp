@@ -42,7 +42,63 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
-### v0.6.0 (Neueste)
+### v1.0.0 (2025) - 🎉 Erste stabile Version
+
+- 🎨 **Moderne UI-Komponenten** - Komplette UI-Überarbeitung mit modernen Komponenten:
+  - Empty State Komponente für bessere Benutzererfahrung
+  - Card Komponente mit Hover-Effekten
+  - Progress Bar Komponente für PDF-Export/Import-Operationen
+  - Tooltip Komponente mit Theme-Integration
+  - Breadcrumb-Navigation für klare Seitenhierarchie
+- ⚡ **Schnellaktionen** - Header-Schnellaktions-Buttons für schnelleren Workflow:
+  - Schnellhinzufügen-Buttons für Filamente, Drucker und Kunden
+  - Dynamische Buttons basierend auf aktiver Seite
+  - Tastenkürzel-Integration
+- 🔍 **Globale Suche (Command Palette)** - Leistungsstarke Suchfunktion:
+  - `Ctrl/Cmd+K` zum Öffnen der globalen Suche
+  - Seiten und Schnellaktionen durchsuchen
+  - Tastatur-Navigation (↑↓, Enter, Esc)
+  - Theme-bewusste Gestaltung
+- ⏪ **Rückgängig/Wiederholen-Funktion** - Verlauf-Verwaltung für Filamente:
+  - `Ctrl/Cmd+Z` für Rückgängig
+  - `Ctrl/Cmd+Shift+Z` für Wiederholen
+  - Visuelle Rückgängig/Wiederholen-Buttons in der UI
+  - 50-Schritte-Verlauf-Unterstützung
+- ⭐ **Favoriten-Filamente** - Favoriten-Filamente markieren und filtern:
+  - Stern-Symbol zum Umschalten des Favoriten-Status
+  - Filter, um nur Favoriten anzuzeigen
+  - Persistenter Favoriten-Status
+- 📦 **Massenoperationen** - Effiziente Massenverwaltung:
+  - Checkbox-Auswahl für mehrere Filamente
+  - Alle auswählen / Auswahl aufheben Funktionalität
+  - Massenlöschung mit Bestätigungsdialog
+  - Visuelle Auswahlindikatoren
+- 🎨 **Modal-Dialoge** - Moderne Modal-Erfahrung:
+  - Verschwommene Hintergrund-Modals für Hinzufügen/Bearbeiten-Formulare
+  - Feste Größe der Eingabefelder
+  - Escape-Taste zum Schließen
+  - Sanfte Animationen mit framer-motion
+- ⌨️ **Tastenkürzel** - Erweiterte Tastenkürzel-Funktion:
+  - Anpassbare Tastenkürzel
+  - Tastenkürzel-Hilfe-Dialog (`Ctrl/Cmd+?`)
+  - Tastenkürzel mit Tastenaufzeichnung bearbeiten
+  - Persistente Tastenkürzel-Speicherung
+- 📝 **Protokollierungssystem** - Umfassende Protokollierung:
+  - Separate Protokolldateien für Frontend und Backend
+  - Plattformunabhängige Protokollverzeichnis-Auflösung
+  - Automatische Protokollrotation
+  - Konsolen-Integration
+- 🔔 **Benachrichtigungsverbesserungen** - Besseres Benachrichtigungssystem:
+  - Kundenname in Angebotslöschungsbenachrichtigungen
+  - Plattformübergreifende Benachrichtigungsunterstützung
+  - Verbesserte Fehlerbehandlung
+- 🎯 **UI/UX-Verbesserungen**:
+  - Feste Größe der Eingabefelder
+  - Bessere Formular-Layouts
+  - Verbesserte Theme-Integration
+  - Verbesserte Barrierefreiheit
+
+### v0.6.0 (2025)
 
 #### 🐛 Fehlerbehebungen
 - **Protokollierungsoptimierung**: Reduzierung übermäßiger und doppelter Protokollierung
@@ -547,7 +603,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 0.6.0
+**Version**: 1.0.0
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 
