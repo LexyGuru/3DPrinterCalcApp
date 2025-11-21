@@ -74,19 +74,30 @@
 
 ---
 
-#### 2. Automatikus mentés visszajelzés
+#### 2. Automatikus mentés visszajelzés ✅ KÉSZ
 **Prioritás:** 🔴 KRITIKUS  
 **Komplexitás:** ⭐ Alacsony  
 **Függőségek:** Nincs  
 **Leírás:** Last saved timestamp megjelenítése a header-ben  
-**Módosítások:**
-- `frontend/src/components/Header.tsx` - Last saved timestamp hozzáadása
-- `frontend/src/App.tsx` - Last saved state kezelése
+**Fájlok:**
+- `frontend/src/components/Header.tsx` ✅ MÓDOSÍTVA - Last saved timestamp hozzáadva
+- `frontend/src/App.tsx` ✅ MÓDOSÍTVA - Last saved state kezelése
+
+**Funkciók:**
+- ✅ Last saved timestamp state App.tsx-ben
+- ✅ Automatikus frissítés minden mentés után (printers, filaments, settings, offers, customers)
+- ✅ Relatív idő formázás (pl. "Most mentve", "5 perce", "2 órája")
+- ✅ Abszolút dátum, ha több mint 24 óra telt el
+- ✅ Többnyelvű támogatás (hu, de, en)
+- ✅ Téma-aware színezés
 
 **Tesztelés:**
 - [ ] Mentés után timestamp frissül
 - [ ] Timestamp formátuma helyes
 - [ ] Minden téma esetén látható
+- [ ] Relatív idő frissül másodpercenként
+
+**Státusz:** ✅ IMPLEMENTÁLVA - Készen áll a tesztelésre
 
 ---
 

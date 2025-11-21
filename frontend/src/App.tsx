@@ -44,6 +44,7 @@ export default function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [lastSaved, setLastSaved] = useState<Date | null>(new Date()); // Kezdeti érték, hogy azonnal látható legyen
 
   // 🔹 Frontend log inicializálása
   useEffect(() => {
@@ -106,6 +107,8 @@ export default function App() {
         setSettings(defaultSettings);
       }
       setIsInitialized(true);
+      // Beállítjuk a lastSaved-et a betöltés után
+      setLastSaved(new Date());
     };
     loadData();
   }, []);
@@ -114,34 +117,63 @@ export default function App() {
   const autosaveEnabled = settings.autosave !== false; // Alapértelmezetten true
   const autosaveInterval = (settings.autosaveInterval || 30) * 1000; // Másodperc -> milliszekundum
 
+  // Helper function to update last saved timestamp
+  const updateLastSaved = () => {
+    const now = new Date();
+    setLastSaved(now);
+    if (import.meta.env.DEV) {
+      console.log("💾 Last saved timestamp frissítve:", now.toLocaleTimeString());
+    }
+  };
+
   // Debounced save functions
   const debouncedSavePrinters = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      savePrinters(printers);
+      savePrinters(printers).then(() => {
+        updateLastSaved();
+      }).catch((error) => {
+        console.error("Hiba a nyomtatók mentésekor:", error);
+      });
     }
   }, autosaveInterval);
 
   const debouncedSaveFilaments = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      saveFilaments(filaments);
+      saveFilaments(filaments).then(() => {
+        updateLastSaved();
+      }).catch((error) => {
+        console.error("Hiba a filamentek mentésekor:", error);
+      });
     }
   }, autosaveInterval);
 
   const debouncedSaveSettings = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      saveSettings(settings);
+      saveSettings(settings).then(() => {
+        updateLastSaved();
+      }).catch((error) => {
+        console.error("Hiba a beállítások mentésekor:", error);
+      });
     }
   }, autosaveInterval);
 
   const debouncedSaveOffers = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      saveOffers(offers);
+      saveOffers(offers).then(() => {
+        updateLastSaved();
+      }).catch((error) => {
+        console.error("Hiba az árajánlatok mentésekor:", error);
+      });
     }
   }, autosaveInterval);
 
   const debouncedSaveCustomers = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      saveCustomers(customers);
+      saveCustomers(customers).then(() => {
+        updateLastSaved();
+      }).catch((error) => {
+        console.error("Hiba az ügyfelek mentésekor:", error);
+      });
     }
   }, autosaveInterval);
 
@@ -150,7 +182,7 @@ export default function App() {
       debouncedSavePrinters();
     } else if (isInitialized && !autosaveEnabled) {
       // Ha az autosave ki van kapcsolva, azonnal mentjük
-      savePrinters(printers);
+      savePrinters(printers).then(() => updateLastSaved());
     }
   }, [printers, isInitialized, autosaveEnabled]);
 
@@ -158,7 +190,7 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       debouncedSaveFilaments();
     } else if (isInitialized && !autosaveEnabled) {
-      saveFilaments(filaments);
+      saveFilaments(filaments).then(() => updateLastSaved());
     }
   }, [filaments, isInitialized, autosaveEnabled]);
 
@@ -166,7 +198,7 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       debouncedSaveSettings();
     } else if (isInitialized && !autosaveEnabled) {
-      saveSettings(settings);
+      saveSettings(settings).then(() => updateLastSaved());
     }
   }, [settings, isInitialized, autosaveEnabled]);
 
@@ -174,7 +206,7 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       debouncedSaveOffers();
     } else if (isInitialized && !autosaveEnabled) {
-      saveOffers(offers);
+      saveOffers(offers).then(() => updateLastSaved());
     }
   }, [offers, isInitialized, autosaveEnabled]);
 
@@ -182,7 +214,7 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       debouncedSaveCustomers();
     } else if (isInitialized && !autosaveEnabled) {
-      saveCustomers(customers);
+      saveCustomers(customers).then(() => updateLastSaved());
     }
   }, [customers, isInitialized, autosaveEnabled]);
 
@@ -384,11 +416,13 @@ export default function App() {
             theme={currentTheme}
             isOpen={isSidebarOpen}
           />
-          <Header 
+          <Header
+            lastSaved={lastSaved} 
             settings={settings} 
             theme={currentTheme}
             onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
             isSidebarOpen={isSidebarOpen}
+            autosaveInterval={settings.autosaveInterval || 30}
           />
           <main style={{ 
             padding: "20px", 

@@ -74,14 +74,17 @@ pub fn log_info(message: &str) {
     write_to_log_file("INFO", message);
 }
 
+#[allow(dead_code)]
 pub fn log_warn(message: &str) {
     write_to_log_file("WARN", message);
 }
 
+#[allow(dead_code)]
 pub fn log_error(message: &str) {
     write_to_log_file("ERROR", message);
 }
 
+#[allow(dead_code)]
 pub fn log_debug(message: &str) {
     write_to_log_file("DEBUG", message);
 }

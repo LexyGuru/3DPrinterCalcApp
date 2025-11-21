@@ -7,17 +7,21 @@ interface Props {
   theme: Theme;
   onMenuToggle: () => void;
   isSidebarOpen: boolean;
+  lastSaved: Date | null;
+  autosaveInterval?: number; // Másodpercben
 }
 
-export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSidebarOpen }) => {
+export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSidebarOpen, lastSaved, autosaveInterval = 30 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDate(new Date());
+      // A currentDate frissítése automatikusan újrarendereli a komponenst,
+      // így a lastSaved relatív idő is frissül
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [lastSaved]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", {
@@ -33,6 +37,51 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const formatLastSaved = (date: Date | null): string => {
+    if (!date) {
+      return settings.language === "hu" ? "Még nem mentve" : settings.language === "de" ? "Noch nicht gespeichert" : "Not saved yet";
+    }
+    
+    // Használjuk a currentDate-et a relatív idő számításához, hogy frissüljön
+    const diffMs = currentDate.getTime() - date.getTime();
+    const diffSeconds = Math.floor(diffMs / 1000);
+    
+    // Visszafelé számolunk: a következő mentésig hátralévő idő
+    const timeUntilNextSave = autosaveInterval - diffSeconds;
+    
+    // Ha már eltelt az autosave intervallum, akkor "Most mentve" vagy "Mentés folyamatban"
+    if (timeUntilNextSave <= 0) {
+      return settings.language === "hu" ? "Mentés folyamatban..." : settings.language === "de" ? "Speichern läuft..." : "Saving...";
+    }
+    
+    // Visszafelé számolás: hátralévő idő a következő mentésig
+    if (timeUntilNextSave < 60) {
+      // Másodpercek
+      return settings.language === "hu" 
+        ? `${timeUntilNextSave} mp múlva mentés` 
+        : settings.language === "de" 
+        ? `Speichern in ${timeUntilNextSave} s` 
+        : `Save in ${timeUntilNextSave}s`;
+    } else {
+      // Percek
+      const minutes = Math.floor(timeUntilNextSave / 60);
+      const seconds = timeUntilNextSave % 60;
+      if (seconds === 0) {
+        return settings.language === "hu" 
+          ? `${minutes} perc múlva mentés` 
+          : settings.language === "de" 
+          ? `Speichern in ${minutes} min` 
+          : `Save in ${minutes}m`;
+      } else {
+        return settings.language === "hu" 
+          ? `${minutes}:${seconds.toString().padStart(2, '0')} múlva mentés` 
+          : settings.language === "de" 
+          ? `Speichern in ${minutes}:${seconds.toString().padStart(2, '0')}` 
+          : `Save in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+    }
   };
 
   // Theme-aware colors
@@ -172,8 +221,41 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
         </div>
       </div>
 
-      {/* Right: Date and Time */}
-      <div style={{ display: "flex", alignItems: "center" }}>
+      {/* Right: Date, Time, and Last Saved */}
+      <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+        {/* Last Saved */}
+        {lastSaved && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: "2px",
+            }}
+          >
+            <span style={{ 
+              fontSize: "10px", 
+              color: mutedText, 
+              fontWeight: "400",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              textShadow: isNeon ? `0 0 4px ${mutedText}` : "none",
+            }}>
+              {settings.language === "hu" ? "Következő mentés" : settings.language === "de" ? "Nächste Speicherung" : "Next save"}
+            </span>
+            <span style={{ 
+              fontSize: "12px", 
+              color: "#4ade80", // Halványzöld
+              fontWeight: "500",
+              opacity: 0.8,
+              textShadow: isNeon ? `0 0 4px #4ade80` : "none",
+            }}>
+              {formatLastSaved(lastSaved)}
+            </span>
+          </div>
+        )}
+        
+        {/* Date and Time */}
         <div
           style={{
             display: "flex",
