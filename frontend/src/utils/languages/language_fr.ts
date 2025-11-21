@@ -959,6 +959,25 @@ export const languageFr: TranslationMap = {
   "settings.calendar.provider.label": "Fournisseur de calendrier",
   "settings.calendar.provider.tooltip": "Choisissez quelle application de calendrier utiliser lors de l'ouverture des fichiers ICS",
   "settings.calendar.provider.description": "Ce paramètre détermine quelle application de calendrier s'ouvre lors de l'exportation de fichiers ICS",
+  // Global Search
+  "globalSearch.placeholder": "Rechercher...",
+  "globalSearch.noResults": "Aucun résultat trouvé",
+  "globalSearch.startTyping": "Commencez à taper pour rechercher...",
+  "globalSearch.type.page": "Page",
+  "globalSearch.type.action": "Action",
+  "globalSearch.page.home": "Accueil",
+  "globalSearch.page.calculator": "Calculateur",
+  "globalSearch.page.printers": "Imprimantes",
+  "globalSearch.page.filaments": "Filaments",
+  "globalSearch.page.customers": "Clients",
+  "globalSearch.page.offers": "Offres",
+  "globalSearch.page.priceTrends": "Tendances des prix",
+  "globalSearch.page.calendar": "Calendrier",
+  "globalSearch.page.settings": "Paramètres",
+  "globalSearch.action.addFilament": "Ajouter un filament",
+  "globalSearch.action.addPrinter": "Ajouter une imprimante",
+  "globalSearch.action.addCustomer": "Ajouter un client",
+  "globalSearch.action.newOffer": "Créer une offre",
 };
 
 

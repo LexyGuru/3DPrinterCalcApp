@@ -27,6 +27,7 @@ import { defaultAnimationSettings } from "./types";
 import { debounce } from "./utils/debounce";
 import { useKeyboardShortcut } from "./utils/keyboardShortcuts";
 import { ShortcutHelp } from "./components/ShortcutHelp";
+import { GlobalSearch } from "./components/GlobalSearch";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
 import { initFrontendLog } from "./utils/fileLogger"; // Initialize file logger
@@ -46,6 +47,7 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(new Date()); // Kezdeti érték, hogy azonnal látható legyen
   const [quickActionTrigger, setQuickActionTrigger] = useState<string | null>(null);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
 
   // 🔹 Frontend log inicializálása
   useEffect(() => {
@@ -306,6 +308,19 @@ export default function App() {
     setShowShortcutHelp(true);
   }, { meta: true });
 
+  // Global search (Ctrl/Cmd + K)
+  useKeyboardShortcut("k", () => {
+    if (!showGlobalSearch) {
+      setShowGlobalSearch(true);
+    }
+  }, { ctrl: true });
+
+  useKeyboardShortcut("k", () => {
+    if (!showGlobalSearch) {
+      setShowGlobalSearch(true);
+    }
+  }, { meta: true });
+
   // Reset quickActionTrigger when page changes or after form opens
   useEffect(() => {
     if (quickActionTrigger) {
@@ -515,6 +530,23 @@ export default function App() {
               />
             )}
           </AnimatePresence>
+          <GlobalSearch
+            isOpen={showGlobalSearch}
+            onClose={() => setShowGlobalSearch(false)}
+            onNavigate={(page) => {
+              setActivePage(page);
+              // If navigating to a page with quick action, trigger it
+              if (page === 'filaments' || page === 'printers' || page === 'customers') {
+                setQuickActionTrigger(`add-${page}`);
+              } else if (page === 'calculator') {
+                // For calculator, we might want to trigger new offer
+                setQuickActionTrigger('new-offer');
+              }
+            }}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+            settings={settings}
+          />
         </div>
       </ToastProvider>
     </ErrorBoundary>
