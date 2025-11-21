@@ -49,11 +49,12 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
     const diffSeconds = Math.floor(diffMs / 1000);
     
     // Visszafelé számolunk: a következő mentésig hátralévő idő
-    const timeUntilNextSave = autosaveInterval - diffSeconds;
+    // Ha eltelt az autosave intervallum, akkor újraindítjuk a számlálót (modulo)
+    const timeUntilNextSave = ((autosaveInterval - (diffSeconds % autosaveInterval)) % autosaveInterval) || autosaveInterval;
     
-    // Ha már eltelt az autosave intervallum, akkor "Most mentve" vagy "Mentés folyamatban"
-    if (timeUntilNextSave <= 0) {
-      return settings.language === "hu" ? "Mentés folyamatban..." : settings.language === "de" ? "Speichern läuft..." : "Saving...";
+    // Ha éppen most mentettünk (0-2 másodperc), akkor "Most mentve"
+    if (diffSeconds < 2) {
+      return settings.language === "hu" ? "Most mentve" : settings.language === "de" ? "Gerade gespeichert" : "Just saved";
     }
     
     // Visszafelé számolás: hátralévő idő a következő mentésig

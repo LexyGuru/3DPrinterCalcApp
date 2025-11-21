@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
+import type { Theme } from "../utils/themes";
 
 interface TooltipProps {
   content: string;
   children: React.ReactNode;
   position?: "top" | "bottom" | "left" | "right";
   delay?: number;
+  theme?: Theme;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({ 
   content, 
   children, 
   position = "top",
-  delay = 300 
+  delay = 300,
+  theme
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -57,10 +60,32 @@ export const Tooltip: React.FC<TooltipProps> = ({
       };
     }
 
+    // Téma-aware színek
+    const isGradientBg = theme && typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient');
+    const isLight = theme && (theme.name === 'light' || theme.name === 'pastel');
+    const isNeon = theme && (theme.name === 'neon' || theme.name === 'cyberpunk');
+    
+    const backgroundColor = theme 
+      ? (isGradientBg 
+          ? (isLight ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)')
+          : theme.colors.surface || '#333')
+      : '#333';
+    
+    const textColor = theme
+      ? (isGradientBg && !isLight
+          ? theme.colors.text || '#1a1a1a'
+          : isGradientBg && isLight
+          ? '#fff'
+          : theme.colors.text || '#fff')
+      : '#fff';
+
+    const borderColor = theme?.colors.border || 'transparent';
+    const shadowColor = theme?.colors.shadow || 'rgba(0,0,0,0.2)';
+
     const baseStyles: React.CSSProperties = {
       position: "absolute",
-      backgroundColor: "#333",
-      color: "#fff",
+      backgroundColor,
+      color: textColor,
       padding: "6px 12px",
       borderRadius: "6px",
       fontSize: "12px",
@@ -69,8 +94,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
       pointerEvents: "none",
       opacity: 1,
       transition: "opacity 0.2s ease-in-out",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+      boxShadow: isNeon 
+        ? `0 0 12px ${shadowColor}, 0 2px 8px ${shadowColor}`
+        : `0 2px 8px ${shadowColor}`,
       visibility: "visible",
+      border: borderColor !== 'transparent' ? `1px solid ${borderColor}` : 'none',
+      backdropFilter: isGradientBg ? 'blur(8px)' : 'none',
     };
 
     switch (position) {
@@ -113,6 +142,15 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
   // Get arrow styles based on position
   const getArrowStyles = (): React.CSSProperties => {
+    const isGradientBg = theme && typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient');
+    const isLight = theme && (theme.name === 'light' || theme.name === 'pastel');
+    
+    const arrowColor = theme
+      ? (isGradientBg
+          ? (isLight ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)')
+          : theme.colors.surface || '#333')
+      : '#333';
+
     const baseArrow: React.CSSProperties = {
       position: "absolute",
       width: 0,
@@ -127,7 +165,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           top: "100%",
           left: "50%",
           transform: "translateX(-50%)",
-          borderTopColor: "#333",
+          borderTopColor: arrowColor,
         };
       case "bottom":
         return {
@@ -135,7 +173,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           bottom: "100%",
           left: "50%",
           transform: "translateX(-50%)",
-          borderBottomColor: "#333",
+          borderBottomColor: arrowColor,
         };
       case "left":
         return {
@@ -143,7 +181,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           left: "100%",
           top: "50%",
           transform: "translateY(-50%)",
-          borderLeftColor: "#333",
+          borderLeftColor: arrowColor,
         };
       case "right":
         return {
@@ -151,7 +189,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           right: "100%",
           top: "50%",
           transform: "translateY(-50%)",
-          borderRightColor: "#333",
+          borderRightColor: arrowColor,
         };
       default:
         return baseArrow;
