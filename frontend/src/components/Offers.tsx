@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import type {
@@ -22,6 +22,8 @@ import { validateUsedGrams, validateDryingTime, validateDryingPower } from "../u
 import { getFilamentPlaceholder } from "../utils/filamentPlaceholder";
 import { DEFAULT_COLOR_HEX, normalizeHex, resolveColorHexFromName } from "../utils/filamentColors";
 import { notifyExportComplete, notifyOfferStatusChange } from "../utils/platformFeatures";
+import { useUndoRedo } from "../hooks/useUndoRedo";
+import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 
 const STATUS_ORDER: OfferStatus[] = ["draft", "sent", "accepted", "rejected", "completed"];
 
@@ -46,6 +48,61 @@ export const Offers: React.FC<Props> = ({
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
+  
+  // Undo/Redo hook
+  const {
+    state: offersWithHistory,
+    setState: setOffersWithHistory,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset: resetHistory,
+  } = useUndoRedo<Offer[]>(offers, 50);
+
+  // Sync offers with history when external changes occur
+  useEffect(() => {
+    if (JSON.stringify(offers) !== JSON.stringify(offersWithHistory)) {
+      resetHistory(offers);
+    }
+  }, [offers]);
+
+  // Update parent when history changes
+  useEffect(() => {
+    if (JSON.stringify(offersWithHistory) !== JSON.stringify(offers)) {
+      setOffers(offersWithHistory);
+    }
+  }, [offersWithHistory]);
+
+  // Undo/Redo keyboard shortcuts
+  useKeyboardShortcut("z", () => {
+    if (canUndo) {
+      undo();
+      showToast(t("common.undo") || "Visszavonás", "info");
+    }
+  }, { ctrl: true });
+
+  useKeyboardShortcut("z", () => {
+    if (canUndo) {
+      undo();
+      showToast(t("common.undo") || "Visszavonás", "info");
+    }
+  }, { meta: true });
+
+  useKeyboardShortcut("z", () => {
+    if (canRedo) {
+      redo();
+      showToast(t("common.redo") || "Újra", "info");
+    }
+  }, { ctrl: true, shift: true });
+
+  useKeyboardShortcut("z", () => {
+    if (canRedo) {
+      redo();
+      showToast(t("common.redo") || "Újra", "info");
+    }
+  }, { meta: true, shift: true });
+
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [printContent, setPrintContent] = useState<string>("");
@@ -66,6 +123,8 @@ export const Offers: React.FC<Props> = ({
   const [statusChangeTarget, setStatusChangeTarget] = useState<OfferStatus | null>(null);
   const [statusChangeNote, setStatusChangeNote] = useState("");
   const [statusFilter, setStatusFilter] = useState<OfferStatus | "all">("all");
+  const [selectedOfferIds, setSelectedOfferIds] = useState<Set<number>>(new Set());
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const locale = settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : settings.language === "uk" ? "uk-UA" : settings.language === "ru" ? "ru-RU" : "en-US";
   const filamentOptions = useMemo(
     () =>
@@ -160,12 +219,12 @@ export const Offers: React.FC<Props> = ({
   const confirmDelete = async () => {
     if (deleteConfirmId === null) return;
     const id = deleteConfirmId;
-    const offerToDelete = offers.find(o => o.id === id);
+    const offerToDelete = offersWithHistory.find(o => o.id === id);
     logWithLanguage(settings.language, "log", "offers.delete.start", {
       offerId: id,
       customerName: offerToDelete?.customerName,
     });
-    setOffers(offers.filter(o => o.id !== id));
+    setOffersWithHistory(offersWithHistory.filter(o => o.id !== id));
     if (selectedOffer?.id === id) {
       setSelectedOffer(null);
     }
@@ -244,7 +303,7 @@ export const Offers: React.FC<Props> = ({
       note: note?.trim() || undefined,
     };
 
-    const updatedOffers = offers.map(o => {
+    const updatedOffers = offersWithHistory.map(o => {
       if (o.id !== offer.id) return o;
       const existingHistory = o.statusHistory ?? [];
       const nextHistory =
@@ -260,7 +319,7 @@ export const Offers: React.FC<Props> = ({
       };
     });
 
-    setOffers(updatedOffers);
+    setOffersWithHistory(updatedOffers);
     const updated = updatedOffers.find(o => o.id === offer.id) || null;
     setSelectedOffer(updated);
     setStatusChangeOffer(null);
@@ -420,8 +479,8 @@ export const Offers: React.FC<Props> = ({
       date: hasChanges ? new Date().toISOString() : editingOffer.date, // Frissítjük a dátumot, ha változott
     };
 
-    const updatedOffers = offers.map(o => o.id === editingOffer.id ? updatedOffer : o);
-    setOffers(updatedOffers);
+    const updatedOffers = offersWithHistory.map(o => o.id === editingOffer.id ? updatedOffer : o);
+    setOffersWithHistory(updatedOffers);
     setSelectedOffer(updatedOffer);
     cancelEditOffer();
     
@@ -807,7 +866,7 @@ export const Offers: React.FC<Props> = ({
       let count = 0;
       let latestChange: string | null = null;
 
-      offers.forEach(offer => {
+      offersWithHistory.forEach(offer => {
         const currentStatus = offer.status ?? "draft";
         if (currentStatus === status) {
           count += 1;
@@ -831,7 +890,7 @@ export const Offers: React.FC<Props> = ({
     });
   }, [offers]);
 
-  const totalOffers = offers.length;
+  const totalOffers = offersWithHistory.length;
 
   const recentStatusChanges = useMemo(() => {
     const entries: Array<{
@@ -842,7 +901,7 @@ export const Offers: React.FC<Props> = ({
       customerName?: string;
     }> = [];
 
-    offers.forEach(offer => {
+    offersWithHistory.forEach(offer => {
       if (offer.statusHistory && offer.statusHistory.length > 0) {
         offer.statusHistory.forEach(history => {
           if (history.date) {
@@ -878,7 +937,7 @@ export const Offers: React.FC<Props> = ({
     return parsed.toLocaleString(locale, { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
   };
 
-  const filteredOffers = offers.filter(o => {
+  const filteredOffers = offersWithHistory.filter(o => {
     if (!searchTerm && statusFilter === "all") return true;
     const term = searchTerm.toLowerCase();
     const date = new Date(o.date).toLocaleDateString();
@@ -901,6 +960,63 @@ export const Offers: React.FC<Props> = ({
     return true;
   });
 
+  // Bulk műveletek
+  const toggleSelection = (offerId: number) => {
+    setSelectedOfferIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(offerId)) {
+        newSet.delete(offerId);
+      } else {
+        newSet.add(offerId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAll = () => {
+    const allIds = new Set(filteredOffers.map(o => o.id));
+    setSelectedOfferIds(allIds);
+  };
+
+  const deselectAll = () => {
+    setSelectedOfferIds(new Set());
+  };
+
+  const handleBulkDelete = () => {
+    setBulkDeleteConfirm(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    if (selectedOfferIds.size === 0) return;
+    
+    const idsToDelete = Array.from(selectedOfferIds);
+    const offersToDelete = offersWithHistory.filter(o => idsToDelete.includes(o.id));
+    
+    logWithLanguage(settings.language, "log", "offers.delete.start", {
+      offerId: idsToDelete[0],
+      customerName: offersToDelete[0]?.customerName,
+    });
+    
+    const updatedOffers = offersWithHistory.filter(o => !idsToDelete.includes(o.id));
+    setOffersWithHistory(updatedOffers);
+    
+    if (selectedOffer && idsToDelete.includes(selectedOffer.id)) {
+      setSelectedOffer(null);
+    }
+    
+    logWithLanguage(settings.language, "log", "offers.delete.success", { offerId: idsToDelete[0] });
+    
+    setSelectedOfferIds(new Set());
+    setBulkDeleteConfirm(false);
+    
+    const successMessage = t("offers.bulk.delete.success").replace("{{count}}", idsToDelete.length.toString());
+    showToast(successMessage, "success");
+  };
+
+  const isAllSelected = filteredOffers.length > 0 && 
+    filteredOffers.every(o => selectedOfferIds.has(o.id));
+  const isSomeSelected = selectedOfferIds.size > 0 && !isAllSelected;
+
   // Drag & Drop funkciók
   const handleDragStart = (e: React.DragEvent, offerId: number) => {
     setDraggedOfferId(offerId);
@@ -920,8 +1036,8 @@ export const Offers: React.FC<Props> = ({
       return;
     }
 
-    const draggedIndex = offers.findIndex(o => o.id === draggedOfferId);
-    const targetIndex = offers.findIndex(o => o.id === targetOfferId);
+    const draggedIndex = offersWithHistory.findIndex(o => o.id === draggedOfferId);
+    const targetIndex = offersWithHistory.findIndex(o => o.id === targetOfferId);
 
     if (draggedIndex === -1 || targetIndex === -1) {
       setDraggedOfferId(null);
@@ -929,11 +1045,11 @@ export const Offers: React.FC<Props> = ({
     }
 
     // Átrendezés
-    const newOffers = [...offers];
+    const newOffers = [...offersWithHistory];
     const [removed] = newOffers.splice(draggedIndex, 1);
     newOffers.splice(targetIndex, 0, removed);
 
-    setOffers(newOffers);
+    setOffersWithHistory(newOffers);
     setDraggedOfferId(null);
     logWithLanguage(settings.language, "log", "offers.reorder", {
       draggedId: draggedOfferId,
@@ -958,7 +1074,7 @@ export const Offers: React.FC<Props> = ({
 
   const handleContextMenuAction = (action: "edit" | "duplicate" | "delete" | "export") => {
     if (!contextMenu) return;
-    const offer = offers.find(o => o.id === contextMenu.offerId);
+    const offer = offersWithHistory.find(o => o.id === contextMenu.offerId);
     if (!offer) {
       closeContextMenu();
       return;
@@ -990,41 +1106,89 @@ export const Offers: React.FC<Props> = ({
       <h2 style={themeStyles.pageTitle}>{t("offers.title")}</h2>
       <p style={themeStyles.pageSubtitle}>{t("offers.subtitle")}</p>
       
-      {/* Kereső mező */}
-      {offers.length > 0 && (
+      {/* Kereső mező és műveletek */}
+      {offersWithHistory.length > 0 && (
         <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: "8px",
-              fontWeight: "600",
-              fontSize: "14px",
-              color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
-            }}
-          >
-            🔍 {t("offers.search.label")}
-          </label>
-          <input
-            type="text"
-            placeholder={t("offers.search.placeholder")}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-            onBlur={(e) => {
-              e.target.style.borderColor = theme.colors.inputBorder;
-              e.target.style.boxShadow = "none";
-            }}
-            style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
-            aria-label={t("offers.search.aria")}
-            aria-describedby="offers-search-description"
-          />
-          <span id="offers-search-description" style={{ display: "none" }}>
-            {t("offers.search.description")}
-          </span>
+          <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ flex: "1", minWidth: "200px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+                }}
+              >
+                🔍 {t("offers.search.label")}
+              </label>
+              <input
+                type="text"
+                placeholder={t("offers.search.placeholder")}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => {
+                  e.target.style.borderColor = theme.colors.inputBorder;
+                  e.target.style.boxShadow = "none";
+                }}
+                style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
+                aria-label={t("offers.search.aria")}
+                aria-describedby="offers-search-description"
+              />
+              <span id="offers-search-description" style={{ display: "none" }}>
+                {t("offers.search.description")}
+              </span>
+            </div>
+            
+            {/* Undo/Redo gombok */}
+            <div style={{ display: "flex", gap: "8px" }}>
+              <Tooltip content={`${t("common.undo")} (Ctrl/Cmd+Z)`}>
+                <button
+                  onClick={() => {
+                    if (canUndo) {
+                      undo();
+                      showToast(t("common.undo") || "Visszavonás", "info");
+                    }
+                  }}
+                  disabled={!canUndo}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    opacity: canUndo ? 1 : 0.5,
+                    cursor: canUndo ? "pointer" : "not-allowed",
+                    padding: "8px 16px",
+                  }}
+                >
+                  ↶ {t("common.undo")}
+                </button>
+              </Tooltip>
+              <Tooltip content={`${t("common.redo")} (Ctrl/Cmd+Shift+Z)`}>
+                <button
+                  onClick={() => {
+                    if (canRedo) {
+                      redo();
+                      showToast(t("common.redo") || "Újra", "info");
+                    }
+                  }}
+                  disabled={!canRedo}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    opacity: canRedo ? 1 : 0.5,
+                    cursor: canRedo ? "pointer" : "not-allowed",
+                    padding: "8px 16px",
+                  }}
+                >
+                  ↷ {t("common.redo")}
+                </button>
+              </Tooltip>
+            </div>
+          </div>
         </div>
       )}
       
-      {offers.length === 0 ? (
+      {offersWithHistory.length === 0 ? (
         <EmptyState
           icon="📄"
           title={t("offers.empty")}
@@ -1228,6 +1392,99 @@ export const Offers: React.FC<Props> = ({
               >
                 📋 {t("offers.list.title")}
               </h3>
+              
+              {/* Bulk műveletek toolbar */}
+              {selectedOfferIds.size > 0 && (
+                <div style={{
+                  ...themeStyles.card,
+                  padding: "12px 16px",
+                  marginBottom: "16px",
+                  backgroundColor: theme.colors.surfaceHover,
+                  borderBottom: `1px solid ${theme.colors.border}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      ref={(input) => {
+                        if (input) input.indeterminate = isSomeSelected;
+                      }}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          selectAll();
+                        } else {
+                          deselectAll();
+                        }
+                      }}
+                      style={{
+                        width: "18px",
+                        height: "18px",
+                        cursor: "pointer",
+                      }}
+                      aria-label={t("offers.bulk.selectAll")}
+                    />
+                    <span style={{ color: theme.colors.text, fontSize: "14px", fontWeight: "600" }}>
+                      {t("offers.bulk.selected").replace("{{count}}", selectedOfferIds.size.toString())}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      onClick={deselectAll}
+                      style={{
+                        ...themeStyles.button,
+                        ...themeStyles.buttonSecondary,
+                        padding: "6px 12px",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {t("offers.bulk.deselectAll")}
+                    </button>
+                    <button
+                      onClick={handleBulkDelete}
+                      style={{
+                        ...themeStyles.button,
+                        ...themeStyles.buttonDanger,
+                        padding: "6px 12px",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {t("offers.bulk.delete").replace("{{count}}", selectedOfferIds.size.toString())}
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Select All checkbox (ha nincs kijelölve semmi) */}
+              {selectedOfferIds.size === 0 && filteredOffers.length > 0 && (
+                <div style={{ marginBottom: "12px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          selectAll();
+                        } else {
+                          deselectAll();
+                        }
+                      }}
+                      style={{
+                        width: "18px",
+                        height: "18px",
+                        cursor: "pointer",
+                      }}
+                    />
+                    <span style={{ color: theme.colors.text, fontSize: "14px" }}>
+                      {t("offers.bulk.selectAll")}
+                    </span>
+                  </label>
+                </div>
+              )}
+              
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {filteredOffers.map(offer => {
                   const date = new Date(offer.date);
@@ -1277,6 +1534,24 @@ export const Offers: React.FC<Props> = ({
                         }
                       }}
                     >
+                      {/* Checkbox a kártya bal felső sarkában */}
+                      <div style={{ position: "absolute", top: "12px", left: "12px" }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedOfferIds.has(offer.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            toggleSelection(offer.id);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            width: "18px",
+                            height: "18px",
+                            cursor: "pointer",
+                          }}
+                          aria-label={t("offers.bulk.select")}
+                        />
+                      </div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}>
                         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
@@ -1358,7 +1633,7 @@ export const Offers: React.FC<Props> = ({
                     </div>
                   );
                 })}
-                {filteredOffers.length === 0 && offers.length > 0 && (
+                {filteredOffers.length === 0 && offersWithHistory.length > 0 && (
                   <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
                     <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
                     <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>
@@ -2162,10 +2437,10 @@ export const Offers: React.FC<Props> = ({
                                 value={selectedOffer.profitPercentage !== undefined ? selectedOffer.profitPercentage : 30}
                                 onChange={e => {
                                   const value = Number(e.target.value);
-                                  const updatedOffers = offers.map(o => 
+                                  const updatedOffers = offersWithHistory.map(o => 
                                     o.id === selectedOffer.id ? { ...o, profitPercentage: value } : o
                                   );
-                                  setOffers(updatedOffers);
+                                  setOffersWithHistory(updatedOffers);
                                   setSelectedOffer({ ...selectedOffer, profitPercentage: value });
                                 }}
                                 onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
@@ -2741,6 +3016,15 @@ export const Offers: React.FC<Props> = ({
         confirmText={t("common.yes")}
         cancelText={t("common.cancel")}
         type="danger"
+      />
+      
+      <ConfirmDialog
+        isOpen={bulkDeleteConfirm}
+        onCancel={() => setBulkDeleteConfirm(false)}
+        onConfirm={confirmBulkDelete}
+        title={t("offers.bulk.deleteConfirm.title")}
+        message={t("offers.bulk.deleteConfirm.message").replace("{{count}}", selectedOfferIds.size.toString())}
+        theme={theme}
       />
     </div>
   );

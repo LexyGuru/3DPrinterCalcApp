@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Printer, Settings, AMS } from "../types";
 import type { Theme } from "../utils/themes";
@@ -10,6 +10,7 @@ import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { Tooltip } from "./Tooltip";
 import { EmptyState } from "./EmptyState";
 import { validatePrinterPower, validateUsageCost, validateAMSCount } from "../utils/validation";
+import { useUndoRedo } from "../hooks/useUndoRedo";
 
 interface Props {
   printers: Printer[];
@@ -18,11 +19,38 @@ interface Props {
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
   triggerAddForm?: boolean; // Gyors művelet gomb esetén automatikusan megnyitja a formot
+  onSettingsChange?: (newSettings: Settings) => void; // Beállítások változtatása callback
 }
 
-export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, theme, themeStyles, triggerAddForm }) => {
+export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, theme, themeStyles, triggerAddForm, onSettingsChange }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
+  
+  // Undo/Redo hook
+  const {
+    state: printersWithHistory,
+    setState: setPrintersWithHistory,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset: resetHistory,
+  } = useUndoRedo<Printer[]>(printers, 50);
+
+  // Sync printers with history when external changes occur
+  useEffect(() => {
+    if (JSON.stringify(printers) !== JSON.stringify(printersWithHistory)) {
+      resetHistory(printers);
+    }
+  }, [printers]);
+
+  // Update parent when history changes
+  useEffect(() => {
+    if (JSON.stringify(printersWithHistory) !== JSON.stringify(printers)) {
+      setPrinters(printersWithHistory);
+    }
+  }, [printersWithHistory]);
+
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [power, setPower] = useState<number>(0);
@@ -36,6 +64,37 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
   const [showAddForm, setShowAddForm] = useState(false);
   const [draggedPrinterId, setDraggedPrinterId] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ printerId: number; x: number; y: number } | null>(null);
+  const [showColumnMenu, setShowColumnMenu] = useState(false);
+  const [sortColumn, setSortColumn] = useState<keyof Printer | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [selectedPrinterIds, setSelectedPrinterIds] = useState<Set<number>>(new Set());
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+
+  // Oszlop láthatóság beállítások
+  const defaultColumnVisibility = {
+    name: true,
+    type: true,
+    power: true,
+    usageCost: true,
+    ams: true,
+    action: true,
+  };
+  const columnVisibility = settings.printerColumnsVisibility || defaultColumnVisibility;
+
+  // Oszlop láthatóság váltása
+  const toggleColumnVisibility = (column: keyof typeof columnVisibility) => {
+    const newVisibility = {
+      ...columnVisibility,
+      [column]: !columnVisibility[column],
+    };
+    const newSettings = {
+      ...settings,
+      printerColumnsVisibility: newVisibility,
+    };
+    if (onSettingsChange) {
+      onSettingsChange(newSettings);
+    }
+  };
 
   const addPrinter = () => {
     if (!name || !type || !power) {
@@ -66,7 +125,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       amsCount: amsCount || undefined,
       ams: amsCount > 0 ? [] : undefined
     };
-    setPrinters([...printers, newPrinter]);
+    setPrintersWithHistory([...printers, newPrinter]);
     if (amsCount > 0) {
       setAmsForms({ ...amsForms, [newId]: Array(amsCount).fill(null).map(() => ({ brand: "", name: "", power: 0 })) });
       setEditingPrinterId(newId);
@@ -99,6 +158,21 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showAddForm]);
 
+  // Oszlop menü bezárása kattintásra kívülre
+  useEffect(() => {
+    if (!showColumnMenu) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-column-menu]')) {
+        setShowColumnMenu(false);
+      }
+    };
+
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, [showColumnMenu]);
+
   const deletePrinter = (id: number) => {
     setDeleteConfirmId(id);
   };
@@ -106,9 +180,9 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
   const confirmDelete = () => {
     if (deleteConfirmId === null) return;
     const id = deleteConfirmId;
-    const printerToDelete = printers.find(p => p.id === id);
+    const printerToDelete = printersWithHistory.find(p => p.id === id);
     console.log("🗑️ Nyomtató törlése...", { printerId: id, name: printerToDelete?.name, type: printerToDelete?.type });
-    setPrinters(printers.filter(p => p.id !== id));
+    setPrintersWithHistory(printersWithHistory.filter(p => p.id !== id));
     const newAmsForms = { ...amsForms };
     delete newAmsForms[id];
     setAmsForms(newAmsForms);
@@ -234,6 +308,120 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     );
   });
 
+  // Rendezés logika
+  const sortedPrinters = useMemo(() => {
+    if (!sortColumn) return filteredPrinters;
+    
+    const sorted = [...filteredPrinters].sort((a: Printer, b: Printer) => {
+      let aValue: any = a[sortColumn];
+      let bValue: any = b[sortColumn];
+      
+      // Szöveges értékek esetén
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      // Számértékek esetén
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+      }
+      
+      // Szöveges értékek esetén
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+    
+    return sorted;
+  }, [filteredPrinters, sortColumn, sortDirection]);
+
+  // Rendezés váltása
+  const handleSort = (column: keyof Printer) => {
+    if (sortColumn === column) {
+      // Ha ugyanaz az oszlop, váltjuk az irányt
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Ha más oszlop, új rendezés növekvő irányban
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  // Undo/Redo keyboard shortcuts
+  useKeyboardShortcut("z", () => {
+    if (canUndo) {
+      undo();
+      showToast(t("common.undo") || "Visszavonás", "info");
+    }
+  }, { ctrl: true });
+
+  useKeyboardShortcut("z", () => {
+    if (canUndo) {
+      undo();
+      showToast(t("common.undo") || "Visszavonás", "info");
+    }
+  }, { meta: true });
+
+  useKeyboardShortcut("z", () => {
+    if (canRedo) {
+      redo();
+      showToast(t("common.redo") || "Újra", "info");
+    }
+  }, { ctrl: true, shift: true });
+
+  useKeyboardShortcut("z", () => {
+    if (canRedo) {
+      redo();
+      showToast(t("common.redo") || "Újra", "info");
+    }
+  }, { meta: true, shift: true });
+
+  // Bulk műveletek
+  const toggleSelection = (printerId: number) => {
+    setSelectedPrinterIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(printerId)) {
+        newSet.delete(printerId);
+      } else {
+        newSet.add(printerId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAll = () => {
+    const allIds = new Set(sortedPrinters.map(p => p.id));
+    setSelectedPrinterIds(allIds);
+  };
+
+  const deselectAll = () => {
+    setSelectedPrinterIds(new Set());
+  };
+
+  const handleBulkDelete = () => {
+    setBulkDeleteConfirm(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    if (selectedPrinterIds.size === 0) return;
+    
+    const idsToDelete = Array.from(selectedPrinterIds);
+    const updatedPrinters = printersWithHistory.filter(p => !idsToDelete.includes(p.id));
+    
+    setPrintersWithHistory(updatedPrinters);
+    setPrinters(updatedPrinters);
+    setSelectedPrinterIds(new Set());
+    setBulkDeleteConfirm(false);
+    
+    const successMessage = t("printers.bulk.delete.success").replace("{{count}}", idsToDelete.length.toString());
+    showToast(successMessage, "success");
+  };
+
+  const isAllSelected = sortedPrinters.length > 0 && 
+    sortedPrinters.every(p => selectedPrinterIds.has(p.id));
+  const isSomeSelected = selectedPrinterIds.size > 0 && !isAllSelected;
+
   // Drag & Drop funkciók
   const handleDragStart = (e: React.DragEvent, printerId: number) => {
     setDraggedPrinterId(printerId);
@@ -253,8 +441,8 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       return;
     }
 
-    const draggedIndex = printers.findIndex(p => p.id === draggedPrinterId);
-    const targetIndex = printers.findIndex(p => p.id === targetPrinterId);
+    const draggedIndex = printersWithHistory.findIndex(p => p.id === draggedPrinterId);
+    const targetIndex = printersWithHistory.findIndex(p => p.id === targetPrinterId);
 
     if (draggedIndex === -1 || targetIndex === -1) {
       setDraggedPrinterId(null);
@@ -262,11 +450,11 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     }
 
     // Átrendezés
-    const newPrinters = [...printers];
+    const newPrinters = [...printersWithHistory];
     const [removed] = newPrinters.splice(draggedIndex, 1);
     newPrinters.splice(targetIndex, 0, removed);
 
-    setPrinters(newPrinters);
+    setPrintersWithHistory(newPrinters);
     setDraggedPrinterId(null);
     console.log("🔄 Nyomtatók átrendezve", { draggedId: draggedPrinterId, targetId: targetPrinterId });
     showToast(t("printers.toast.reordered"), "success");
@@ -288,7 +476,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
 
   const handleContextMenuAction = (action: "edit" | "delete") => {
     if (!contextMenu) return;
-    const printer = printers.find(p => p.id === contextMenu.printerId);
+    const printer = printersWithHistory.find(p => p.id === contextMenu.printerId);
     if (!printer) {
       closeContextMenu();
       return;
@@ -350,38 +538,86 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       <h2 style={themeStyles.pageTitle}>{t("printers.title")}</h2>
       <p style={themeStyles.pageSubtitle}>{t("printers.subtitle")}</p>
       
-      {/* Kereső mező */}
-      {printers.length > 0 && (
+      {/* Kereső mező és műveletek */}
+      {printersWithHistory.length > 0 && (
         <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: "8px", 
-            fontWeight: "600", 
-            fontSize: "14px", 
-            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-          }}>
-            🔍 {t("printers.searchLabel")}
-          </label>
-          <input
-            type="text"
-            placeholder={t("printers.searchPlaceholder")}
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-            style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
-            aria-label={t("printers.searchAria")}
-            aria-describedby="printer-search-description"
-          />
-          <span id="printer-search-description" style={{ display: "none" }}>
-            {t("printers.searchDescription")}
-          </span>
+          <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ flex: "1", minWidth: "200px" }}>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontWeight: "600", 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+              }}>
+                🔍 {t("printers.searchLabel")}
+              </label>
+              <input
+                type="text"
+                placeholder={t("printers.searchPlaceholder")}
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
+                aria-label={t("printers.searchAria")}
+                aria-describedby="printer-search-description"
+              />
+              <span id="printer-search-description" style={{ display: "none" }}>
+                {t("printers.searchDescription")}
+              </span>
+            </div>
+            
+            {/* Undo/Redo gombok */}
+            <div style={{ display: "flex", gap: "8px" }}>
+              <Tooltip content={`${t("common.undo")} (Ctrl/Cmd+Z)`}>
+                <button
+                  onClick={() => {
+                    if (canUndo) {
+                      undo();
+                      showToast(t("common.undo") || "Visszavonás", "info");
+                    }
+                  }}
+                  disabled={!canUndo}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    opacity: canUndo ? 1 : 0.5,
+                    cursor: canUndo ? "pointer" : "not-allowed",
+                    padding: "8px 16px",
+                  }}
+                >
+                  ↶ {t("common.undo")}
+                </button>
+              </Tooltip>
+              <Tooltip content={`${t("common.redo")} (Ctrl/Cmd+Shift+Z)`}>
+                <button
+                  onClick={() => {
+                    if (canRedo) {
+                      redo();
+                      showToast(t("common.redo") || "Újra", "info");
+                    }
+                  }}
+                  disabled={!canRedo}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    opacity: canRedo ? 1 : 0.5,
+                    cursor: canRedo ? "pointer" : "not-allowed",
+                    padding: "8px 16px",
+                  }}
+                >
+                  ↷ {t("common.redo")}
+                </button>
+              </Tooltip>
+            </div>
+          </div>
         </div>
       )}
       
-      {/* Új nyomtató hozzáadása gomb */}
+      {/* Új nyomtató hozzáadása gomb és oszlop kezelő */}
       {!showAddForm && (
-        <div style={{ marginBottom: "24px" }}>
+        <div style={{ marginBottom: "24px", display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
           <Tooltip content={t("printers.tooltip.addShortcut")}>
             <button
               onClick={() => setShowAddForm(true)}
@@ -404,6 +640,89 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               ➕ {t("printers.addTitle")}
             </button>
           </Tooltip>
+          
+          {/* Oszlop kezelő gomb */}
+          {filteredPrinters.length > 0 && (
+            <div style={{ position: "relative" }} data-column-menu>
+              <Tooltip content={t("printers.columns.manage")}>
+                <button
+                  onClick={() => setShowColumnMenu(!showColumnMenu)}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                  style={{ 
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    fontSize: "16px",
+                    padding: "14px 28px"
+                  }}
+                  aria-label={t("printers.columns.manage")}
+                >
+                  📋 {t("printers.columns.title")}
+                </button>
+              </Tooltip>
+              
+              {/* Oszlop kezelő menü */}
+              {showColumnMenu && (
+                <div
+                  data-column-menu
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    marginTop: "8px",
+                    backgroundColor: theme.colors.surface,
+                    border: `1px solid ${theme.colors.border}`,
+                    borderRadius: "8px",
+                    padding: "12px",
+                    minWidth: "200px",
+                    boxShadow: theme.name === 'neon' || theme.name === 'cyberpunk'
+                      ? `0 0 20px ${theme.colors.shadow}, 0 4px 16px rgba(0,0,0,0.3)`
+                      : `0 4px 16px rgba(0,0,0,0.2)`,
+                    zIndex: 1000,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+                    {t("printers.columns.title")}
+                  </div>
+                  {Object.entries(columnVisibility).map(([column, visible]) => (
+                    <label
+                      key={column}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "8px",
+                        cursor: "pointer",
+                        borderRadius: "4px",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={visible}
+                        onChange={() => toggleColumnVisibility(column as keyof typeof columnVisibility)}
+                        style={{
+                          cursor: "pointer",
+                          width: "18px",
+                          height: "18px",
+                        }}
+                      />
+                      <span style={{ fontSize: "14px", color: theme.colors.text }}>
+                        {t(`printers.columns.${column}` as any)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       
@@ -714,19 +1033,181 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
 
       {filteredPrinters.length > 0 ? (
         <div style={{ ...themeStyles.card, overflow: "hidden", padding: 0 }}>
+          {/* Bulk műveletek toolbar */}
+          {selectedPrinterIds.size > 0 && (
+            <div style={{
+              padding: "12px 16px",
+              backgroundColor: theme.colors.surfaceHover,
+              borderBottom: `1px solid ${theme.colors.border}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+            }}>
+              <span style={{ color: theme.colors.text, fontSize: "14px", fontWeight: "600" }}>
+                {t("printers.bulk.selected").replace("{{count}}", selectedPrinterIds.size.toString())}
+              </span>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={deselectAll}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    padding: "6px 12px",
+                    fontSize: "12px",
+                  }}
+                >
+                  {t("printers.bulk.deselectAll")}
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonDanger,
+                    padding: "6px 12px",
+                    fontSize: "12px",
+                  }}
+                >
+                  {t("printers.bulk.delete").replace("{{count}}", selectedPrinterIds.size.toString())}
+                </button>
+              </div>
+            </div>
+          )}
           <table style={themeStyles.table}>
             <thead>
               <tr>
-                <th style={themeStyles.tableHeader}>{t("printers.name")}</th>
-                <th style={themeStyles.tableHeader}>{t("printers.type")}</th>
-                <th style={themeStyles.tableHeader}>{t("printers.power")}</th>
-                <th style={themeStyles.tableHeader}>{t("printers.usageCost")}</th>
-                <th style={themeStyles.tableHeader}>{t("printers.ams")}</th>
-                <th style={themeStyles.tableHeader}>{t("printers.action")}</th>
+                <th style={{ ...themeStyles.tableHeader, width: "50px", textAlign: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = isSomeSelected;
+                    }}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        selectAll();
+                      } else {
+                        deselectAll();
+                      }
+                    }}
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      cursor: "pointer",
+                    }}
+                    aria-label={t("printers.bulk.selectAll")}
+                  />
+                </th>
+                {columnVisibility.name && (
+                  <th 
+                    style={{ 
+                      ...themeStyles.tableHeader, 
+                      cursor: "pointer",
+                      userSelect: "none",
+                      position: "relative",
+                      paddingRight: "24px"
+                    }}
+                    onClick={() => handleSort("name")}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surface;
+                    }}
+                  >
+                    {t("printers.name")}
+                    {sortColumn === "name" && (
+                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </th>
+                )}
+                {columnVisibility.type && (
+                  <th 
+                    style={{ 
+                      ...themeStyles.tableHeader, 
+                      cursor: "pointer",
+                      userSelect: "none",
+                      position: "relative",
+                      paddingRight: "24px"
+                    }}
+                    onClick={() => handleSort("type")}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surface;
+                    }}
+                  >
+                    {t("printers.type")}
+                    {sortColumn === "type" && (
+                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </th>
+                )}
+                {columnVisibility.power && (
+                  <th 
+                    style={{ 
+                      ...themeStyles.tableHeader, 
+                      cursor: "pointer",
+                      userSelect: "none",
+                      position: "relative",
+                      paddingRight: "24px"
+                    }}
+                    onClick={() => handleSort("power")}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surface;
+                    }}
+                  >
+                    {t("printers.power")}
+                    {sortColumn === "power" && (
+                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </th>
+                )}
+                {columnVisibility.usageCost && (
+                  <th 
+                    style={{ 
+                      ...themeStyles.tableHeader, 
+                      cursor: "pointer",
+                      userSelect: "none",
+                      position: "relative",
+                      paddingRight: "24px"
+                    }}
+                    onClick={() => handleSort("usageCost")}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surface;
+                    }}
+                  >
+                    {t("printers.usageCost")}
+                    {sortColumn === "usageCost" && (
+                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </th>
+                )}
+                {columnVisibility.ams && (
+                  <th style={themeStyles.tableHeader}>{t("printers.ams")}</th>
+                )}
+                {columnVisibility.action && (
+                  <th style={themeStyles.tableHeader}>{t("printers.action")}</th>
+                )}
               </tr>
             </thead>
             <tbody>
-              {filteredPrinters.map(p => (
+              {sortedPrinters.map((p: Printer) => (
                 <React.Fragment key={p.id}>
                   <tr 
                     draggable
@@ -751,22 +1232,40 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                       }
                     }}
                   >
-                    <td style={themeStyles.tableCell}><strong>{p.name}</strong></td>
-                    <td style={themeStyles.tableCell}>{p.type}</td>
-                    <td style={themeStyles.tableCell}>{p.power}W</td>
-                    <td style={themeStyles.tableCell}>
-                      <strong style={{ color: theme.colors.success }}>
-                        {(() => {
-                          const convertedCost = convertCurrency(p.usageCost, settings.currency);
-                          const currencySymbol = settings.currency === "HUF" ? "Ft" : settings.currency;
-                          return `${convertedCost.toFixed(2)} ${currencySymbol}/h`;
-                        })()}
-                      </strong>
+                    <td style={{ ...themeStyles.tableCell, textAlign: "center" }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedPrinterIds.has(p.id)}
+                        onChange={() => toggleSelection(p.id)}
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          cursor: "pointer",
+                        }}
+                        aria-label={t("printers.bulk.select")}
+                      />
                     </td>
-                    <td style={themeStyles.tableCell}>
-                      {p.amsCount || 0} {t("printers.ams")}
-                    </td>
-                    <td style={themeStyles.tableCell}>
+                    {columnVisibility.name && <td style={themeStyles.tableCell}><strong>{p.name}</strong></td>}
+                    {columnVisibility.type && <td style={themeStyles.tableCell}>{p.type}</td>}
+                    {columnVisibility.power && <td style={themeStyles.tableCell}>{p.power}W</td>}
+                    {columnVisibility.usageCost && (
+                      <td style={themeStyles.tableCell}>
+                        <strong style={{ color: theme.colors.success }}>
+                          {(() => {
+                            const convertedCost = convertCurrency(p.usageCost, settings.currency);
+                            const currencySymbol = settings.currency === "HUF" ? "Ft" : settings.currency;
+                            return `${convertedCost.toFixed(2)} ${currencySymbol}/h`;
+                          })()}
+                        </strong>
+                      </td>
+                    )}
+                    {columnVisibility.ams && (
+                      <td style={themeStyles.tableCell}>
+                        {p.amsCount || 0} {t("printers.ams")}
+                      </td>
+                    )}
+                    {columnVisibility.action && (
+                      <td style={themeStyles.tableCell}>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                         <Tooltip content={editingPrinterId === p.id ? t("printers.tooltip.saveShortcut") : t("printers.tooltip.edit")}>
                           <button 
@@ -812,11 +1311,12 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                           </button>
                         </Tooltip>
                       </div>
-                    </td>
+                      </td>
+                    )}
                   </tr>
               {editingPrinterId === p.id && editingPrinter && (
                 <tr>
-                  <td colSpan={6} style={{ ...themeStyles.tableCell, padding: "24px", backgroundColor: theme.colors.surfaceHover }}>
+                  <td colSpan={Object.values(columnVisibility).filter(v => v).length} style={{ ...themeStyles.tableCell, padding: "24px", backgroundColor: theme.colors.surfaceHover }}>
                     <div>
                       <h4 style={{ 
                         marginTop: 0, 
@@ -1140,6 +1640,15 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
         confirmText={t("common.yes")}
         cancelText={t("common.cancel")}
         type="danger"
+      />
+      
+      <ConfirmDialog
+        isOpen={bulkDeleteConfirm}
+        onCancel={() => setBulkDeleteConfirm(false)}
+        onConfirm={confirmBulkDelete}
+        title={t("printers.bulk.deleteConfirm.title")}
+        message={t("printers.bulk.deleteConfirm.message").replace("{{count}}", selectedPrinterIds.size.toString())}
+        theme={theme}
       />
 
       {/* Kontextus menü */}

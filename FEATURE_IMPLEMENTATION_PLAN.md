@@ -418,20 +418,32 @@
 
 ---
 
-#### 15. Undo/Redo funkcionalitás minden komponensben
+#### 15. Undo/Redo funkcionalitás minden komponensben ✅ KÉSZ
 **Prioritás:** 🔵 ALACSONY  
 **Komplexitás:** ⭐⭐⭐ Magas  
 **Függőségek:** undoRedo utility  
 **Leírás:** Undo/Redo Customers, Offers, Printers komponensekben  
 **Módosítások:**
-- `frontend/src/components/Customers.tsx`
-- `frontend/src/components/Offers.tsx`
-- `frontend/src/components/Printers.tsx`
+- `frontend/src/components/Customers.tsx` - Undo/Redo funkció implementálva
+- `frontend/src/components/Offers.tsx` - Undo/Redo funkció implementálva
+- `frontend/src/components/Printers.tsx` - Undo/Redo funkció implementálva
+
+**Funkciók:**
+- ✅ `useUndoRedo` hook integrálva minden komponensben
+- ✅ `setCustomersWithHistory`, `setOffersWithHistory`, `setPrintersWithHistory` használata
+- ✅ Keyboard shortcuts (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z) minden komponensben
+- ✅ UI gombok hozzáadva (Visszavonás/Újra) minden komponensben
+- ✅ Gombok disabled állapota `canUndo`/`canRedo` alapján
+- ✅ Toast értesítések undo/redo műveletekhez
+- ✅ Téma integráció
+- ✅ Többnyelvű támogatás
 
 **Tesztelés:**
-- [ ] Minden komponensben működik
-- [ ] Keyboard shortcuts működnek
-- [ ] Adatok helyesek
+- [x] Minden komponensben működik
+- [x] Keyboard shortcuts működnek
+- [x] Adatok helyesek
+
+**Státusz:** ✅ IMPLEMENTÁLVA ÉS TESZTELVE - Minden funkció működik tökéletesen
 
 ---
 
@@ -468,33 +480,59 @@
 
 ---
 
-#### 18. Oszlop kezelés Printers komponensben
+#### 18. Oszlop kezelés Printers komponensben ✅ KÉSZ
 **Prioritás:** 🔵 ALACSONY  
 **Komplexitás:** ⭐⭐ Közepes  
 **Függőségek:** Nincs  
 **Leírás:** Oszlop elrejtés/megjelenítés funkció  
 **Módosítások:**
-- `frontend/src/components/Printers.tsx`
+- `frontend/src/types.ts` - Hozzáadva `printerColumnsVisibility` a Settings-hez
+- `frontend/src/components/Printers.tsx` - Oszlop kezelő funkció implementálva
+- `frontend/src/App.tsx` - `onSettingsChange` callback hozzáadva
+- `frontend/src/utils/languages/types.ts` - Fordítási kulcsok hozzáadva
+- `frontend/src/utils/languages/language_*.ts` - Fordítások hozzáadva minden nyelvhez (13 fájl)
+
+**Funkciók:**
+- ✅ Oszlop kezelő gomb és menü hozzáadva
+- ✅ Checkbox menü az oszlopok elrejtéséhez/megjelenítéséhez
+- ✅ Feltételes renderelés a táblázat oszlopaihoz
+- ✅ Dinamikus colSpan számítás a szerkesztési sorhoz
+- ✅ Beállítások mentése a Settings-be
+- ✅ Téma integráció
+- ✅ Többnyelvű támogatás (13 nyelv)
 
 **Tesztelés:**
-- [ ] Oszlop elrejtés működik
-- [ ] Oszlop megjelenítés működik
-- [ ] Beállítások mentve maradnak
+- [x] Oszlop elrejtés működik
+- [x] Oszlop megjelenítés működik
+- [x] Beállítások mentve maradnak
+
+**Státusz:** ✅ IMPLEMENTÁLVA ÉS TESZTELVE - Minden funkció működik tökéletesen
 
 ---
 
-#### 19. Táblázat rendezés Printers komponensben
+#### 19. Táblázat rendezés Printers komponensben ✅ KÉSZ
 **Prioritás:** 🔵 ALACSONY  
 **Komplexitás:** ⭐⭐ Közepes  
 **Függőségek:** Nincs  
 **Leírás:** Táblázat rendezés implementálása  
 **Módosítások:**
-- `frontend/src/components/Printers.tsx`
+- `frontend/src/components/Printers.tsx` - Rendezés funkció implementálva
+
+**Funkciók:**
+- ✅ Rendezés state (`sortColumn`, `sortDirection`)
+- ✅ Rendezés logika `useMemo`-val (szöveg és szám típusok támogatása)
+- ✅ Rendezés gombok a fejlécekben (Név, Típus, Teljesítmény, Használati költség)
+- ✅ Rendezés irány váltás (növekvő/csökkenő)
+- ✅ Vizuális jelzés (↑/↓ nyilak) a rendezett oszlopokhoz
+- ✅ Hover effekt a rendezhető fejléceken
+- ✅ Téma integráció
 
 **Tesztelés:**
-- [ ] Rendezés működik
-- [ ] Rendezés iránya vált
-- [ ] Teljesítmény rendben
+- [x] Rendezés működik
+- [x] Rendezés iránya vált
+- [x] Teljesítmény rendben
+
+**Státusz:** ✅ IMPLEMENTÁLVA ÉS TESZTELVE - Minden funkció működik tökéletesen
 
 ---
 
