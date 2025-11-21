@@ -225,11 +225,24 @@
 **Fájlok:**
 - `frontend/src/components/Breadcrumb.tsx`
 - `frontend/src/components/Header.tsx` - Breadcrumb integráció
+- `frontend/src/App.tsx` - activePage és themeStyles prop-ok
+- `frontend/src/utils/languages/*.ts` - Fordítások
+
+**Funkciók:**
+- ✅ Breadcrumb komponens létrehozva
+- ✅ Header komponensbe integrálva
+- ✅ Téma-aware színezés
+- ✅ Kattintható breadcrumb elemek (Home mindig kattintható)
+- ✅ Automatikus breadcrumb generálás az oldal alapján
+- ✅ Fordítások hozzáadva (hu, en, de)
+- ✅ Accessibility támogatás (aria-label, aria-current)
 
 **Tesztelés:**
 - [ ] Breadcrumb megjelenik
 - [ ] Navigáció működik
 - [ ] Minden oldal esetén helyes
+
+**Státusz:** ✅ IMPLEMENTÁLVA - Készen áll a tesztelésre
 
 ---
 
