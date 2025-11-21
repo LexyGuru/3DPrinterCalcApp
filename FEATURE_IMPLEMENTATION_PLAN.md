@@ -328,19 +328,34 @@
 
 ---
 
-#### 11. Bulk műveletek filamentekhez
+#### 11. Bulk műveletek filamentekhez ✅ KÉSZ
 **Prioritás:** 🔵 ALACSONY  
 **Komplexitás:** ⭐⭐⭐ Magas  
 **Függőségek:** Nincs  
 **Leírás:** Kijelölés, tömeges törlés filamentekhez  
 **Módosítások:**
 - `frontend/src/components/Filaments.tsx` - Bulk műveletek
+- `frontend/src/utils/languages/types.ts` - Fordítási kulcsok
+- `frontend/src/utils/languages/language_*.ts` - Fordítások (13 nyelv)
+
+**Funkciók:**
+- ✅ Checkbox oszlop a táblázatban
+- ✅ Select all / Deselect all funkció
+- ✅ Tömeges törlés funkció
+- ✅ Bulk műveletek toolbar (kijelölt elemek száma, gombok)
+- ✅ Kijelölt sorok vizuális kiemelése
+- ✅ ConfirmDialog a tömeges törléshez
+- ✅ Index alapú azonosítás (Filament típusnak nincs id mezője)
+- ✅ String interpoláció a fordításokhoz
+- ✅ Fordítások hozzáadva minden nyelvhez (13 nyelv)
 
 **Tesztelés:**
-- [ ] Kijelölés működik
-- [ ] Select all működik
-- [ ] Tömeges törlés működik
-- [ ] Adatok helyesek
+- [x] Kijelölés működik
+- [x] Select all működik
+- [x] Tömeges törlés működik
+- [x] Adatok helyesek
+
+**Státusz:** ✅ IMPLEMENTÁLVA ÉS TESZTELVE - Minden funkció működik tökéletesen
 
 ---
 
