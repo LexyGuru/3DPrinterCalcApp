@@ -64,6 +64,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [draggedFilamentIndex, setDraggedFilamentIndex] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ index: number; x: number; y: number } | null>(null);
@@ -869,8 +870,24 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     }
   };
 
-  // Szűrés a keresési kifejezés alapján
+  // Kedvenc váltás funkció
+  const toggleFavorite = (index: number) => {
+    const updated = [...filaments];
+    updated[index] = { ...updated[index], favorite: !updated[index].favorite };
+    setFilaments(updated);
+    logWithLanguage(settings.language, "log", "filaments.favorite.toggled", {
+      brand: updated[index].brand,
+      type: updated[index].type,
+      favorite: updated[index].favorite,
+    });
+  };
+
+  // Szűrés a keresési kifejezés és kedvenc alapján
   const filteredFilaments = filaments.filter(f => {
+    // Kedvenc szűrés
+    if (showFavoritesOnly && !f.favorite) return false;
+    
+    // Keresési kifejezés szűrés
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
@@ -1017,6 +1034,37 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           <span id="filament-search-description" style={{ display: "none" }}>
             {t("filaments.search.description")}
           </span>
+          <Tooltip content={showFavoritesOnly ? t("filaments.favorite.showAll") : t("filaments.favorite.showOnly")}>
+            <button
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              onMouseEnter={(e) => {
+                if (!interactionsEnabled) return;
+                Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
+              }}
+              onMouseLeave={(e) => {
+                if (!interactionsEnabled) return;
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.transform = "translateY(0)";
+                btn.style.boxShadow = showFavoritesOnly 
+                  ? themeStyles.buttonPrimary.boxShadow 
+                  : themeStyles.buttonSecondary.boxShadow;
+              }}
+              style={{
+                ...themeStyles.button,
+                ...(showFavoritesOnly ? themeStyles.buttonPrimary : themeStyles.buttonSecondary),
+                padding: "10px 16px",
+                fontSize: "14px",
+                marginLeft: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+              aria-label={showFavoritesOnly ? t("filaments.favorite.showAll") : t("filaments.favorite.showOnly")}
+            >
+              <span style={{ fontSize: "16px" }}>{showFavoritesOnly ? "⭐" : "☆"}</span>
+              {showFavoritesOnly ? t("filaments.favorite.showing") : t("filaments.favorite.filter")}
+            </button>
+          </Tooltip>
         </div>
       )}
       
@@ -2025,7 +2073,41 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                         title={hasUploadedImage ? t("filaments.tooltip.viewImage") : undefined}
                       />
                     </td>
-                    <td style={themeStyles.tableCell}>{f.brand}</td>
+                    <td style={themeStyles.tableCell}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(originalIndex);
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!interactionsEnabled) return;
+                            e.currentTarget.style.transform = "scale(1.2)";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!interactionsEnabled) return;
+                            e.currentTarget.style.transform = "scale(1)";
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: "4px",
+                            fontSize: "18px",
+                            color: f.favorite ? "#fbbf24" : theme.colors.textMuted,
+                            transition: "all 0.2s",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                          aria-label={f.favorite ? t("filaments.favorite.remove") : t("filaments.favorite.add")}
+                          title={f.favorite ? t("filaments.favorite.remove") : t("filaments.favorite.add")}
+                        >
+                          {f.favorite ? "⭐" : "☆"}
+                        </button>
+                        <span>{f.brand}</span>
+                      </div>
+                    </td>
                     <td style={themeStyles.tableCell}>{f.type}</td>
                     <td style={themeStyles.tableCell}>
                       {displayName ? (

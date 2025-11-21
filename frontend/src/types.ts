@@ -31,6 +31,7 @@ export interface Filament {
   imageBase64?: string; // Kép base64 stringként (opcionális)
   colorMode?: ColorMode;
   multiColorHint?: string;
+  favorite?: boolean; // Kedvenc jelölés (opcionális)
 }
 
 export type Printer = {
