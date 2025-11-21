@@ -45,6 +45,7 @@ export default function App() {
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(new Date()); // Kezdeti érték, hogy azonnal látható legyen
+  const [quickActionTrigger, setQuickActionTrigger] = useState<string | null>(null);
 
   // 🔹 Frontend log inicializálása
   useEffect(() => {
@@ -305,13 +306,31 @@ export default function App() {
     setShowShortcutHelp(true);
   }, { meta: true });
 
+  // Reset quickActionTrigger when page changes or after form opens
+  useEffect(() => {
+    if (quickActionTrigger) {
+      // If we just navigated to a page, trigger the form after a short delay
+      const timer = setTimeout(() => {
+        if (quickActionTrigger && (
+          (quickActionTrigger === 'add-filament' && activePage === 'filaments') ||
+          (quickActionTrigger === 'add-printer' && activePage === 'printers') ||
+          (quickActionTrigger === 'add-customer' && activePage === 'customers')
+        )) {
+          // Form will be opened by the component's useEffect
+          setTimeout(() => setQuickActionTrigger(null), 200);
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [activePage, quickActionTrigger]);
+
   // Page component (memoized)
   const PageComponent = useMemo(() => {
     switch (activePage) {
       case "filaments": 
-        return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} />; 
+        return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-filament'} />; 
       case "printers":
-        return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
+        return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-printer'} />;
       case "calculator": 
         return <Calculator printers={printers} filaments={filaments} customers={customers} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
       case "offers":
@@ -335,6 +354,7 @@ export default function App() {
             theme={currentTheme}
             themeStyles={themeStyles}
             offers={offers}
+            triggerAddForm={quickActionTrigger === 'add-customer'}
           />
         );
       case "priceTrends":
@@ -373,7 +393,7 @@ export default function App() {
       default: 
         return <Home settings={settings} offers={offers} theme={currentTheme} />;
     }
-  }, [activePage, filaments, printers, offers, customers, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers]);
+  }, [activePage, filaments, printers, offers, customers, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers, quickActionTrigger]);
 
   // Determine if this is a beta build from environment variable (set at build time)
   const isBeta = import.meta.env.VITE_IS_BETA === 'true';
@@ -426,6 +446,24 @@ export default function App() {
             activePage={activePage}
             onPageChange={setActivePage}
             themeStyles={themeStyles}
+            onQuickAction={(action) => {
+              // Navigate to the appropriate page if needed
+              if (action === 'add-filament' && activePage !== 'filaments') {
+                setActivePage('filaments');
+                setQuickActionTrigger(action);
+              } else if (action === 'add-printer' && activePage !== 'printers') {
+                setActivePage('printers');
+                setQuickActionTrigger(action);
+              } else if (action === 'add-customer' && activePage !== 'customers') {
+                setActivePage('customers');
+                setQuickActionTrigger(action);
+              } else if (action === 'add-filament' || action === 'add-printer' || action === 'add-customer') {
+                // If already on the page, just trigger the form
+                setQuickActionTrigger(action);
+                // Reset after a short delay
+                setTimeout(() => setQuickActionTrigger(null), 100);
+              }
+            }}
           />
           <main style={{ 
             padding: "20px", 

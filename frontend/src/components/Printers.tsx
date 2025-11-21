@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { Printer, Settings, AMS } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
@@ -16,9 +16,10 @@ interface Props {
   settings: Settings;
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
+  triggerAddForm?: boolean; // Gyors művelet gomb esetén automatikusan megnyitja a formot
 }
 
-export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, theme, themeStyles }) => {
+export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, theme, themeStyles, triggerAddForm }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [name, setName] = useState("");
@@ -74,6 +75,13 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     setName(""); setType(""); setPower(0); setUsageCost(0); setAmsCount(0);
     setShowAddForm(false);
   };
+
+  // Gyors művelet gomb esetén automatikusan megnyitja a formot
+  useEffect(() => {
+    if (triggerAddForm && !showAddForm && editingPrinterId === null) {
+      setShowAddForm(true);
+    }
+  }, [triggerAddForm, showAddForm, editingPrinterId]);
 
   const deletePrinter = (id: number) => {
     setDeleteConfirmId(id);

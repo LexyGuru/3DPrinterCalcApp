@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import type { Customer, Settings, Offer } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
@@ -30,6 +30,7 @@ interface Props {
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
   offers: Offer[]; // Árajánlatok az előzményekhez
+  triggerAddForm?: boolean; // Gyors művelet gomb esetén automatikusan megnyitja a formot
 }
 
 export const Customers: React.FC<Props> = ({ 
@@ -38,7 +39,8 @@ export const Customers: React.FC<Props> = ({
   settings, 
   theme, 
   themeStyles,
-  offers 
+  offers,
+  triggerAddForm
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
@@ -52,6 +54,13 @@ export const Customers: React.FC<Props> = ({
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Gyors művelet gomb esetén automatikusan megnyitja a formot
+  useEffect(() => {
+    if (triggerAddForm && !showAddForm && editingCustomerId === null) {
+      setShowAddForm(true);
+    }
+  }, [triggerAddForm, showAddForm, editingCustomerId]);
 
   // Számított mezők: összes árajánlat száma és utolsó árajánlat dátuma
   const customersWithStats = useMemo(() => {

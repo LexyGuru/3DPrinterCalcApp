@@ -46,9 +46,10 @@ interface Props {
   settings: Settings;
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
+  triggerAddForm?: boolean; // Gyors művelet gomb esetén automatikusan megnyitja a formot
 }
 
-export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, theme, themeStyles }) => {
+export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, theme, themeStyles, triggerAddForm }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [brand, setBrand] = useState("");
@@ -108,6 +109,13 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       unsubscribe();
     };
   }, []);
+
+  // Gyors művelet gomb esetén automatikusan megnyitja a formot
+  useEffect(() => {
+    if (triggerAddForm && !showAddForm && editingIndex === null) {
+      setShowAddForm(true);
+    }
+  }, [triggerAddForm, showAddForm, editingIndex]);
 
   const allBrands = useMemo(() => getAllBrands(), [libraryVersion]);
   const allMaterials = useMemo(() => getAllMaterials(), [libraryVersion]);

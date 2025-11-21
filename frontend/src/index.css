@@ -56,9 +56,7 @@ button {
   a:hover {
     color: #747bff;
   }
-  button {
-    /* Gomb háttér a témarendszer kezeli */
-  }
+  /* Gomb háttér a témarendszer kezeli */
 }
 
 /* Fix macOS select és option elemek láthatósága - csak szöveg szín, háttér a témától függ */

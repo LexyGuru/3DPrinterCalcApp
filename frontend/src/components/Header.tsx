@@ -3,6 +3,7 @@ import type { Settings } from "../types";
 import type { Theme } from "../utils/themes";
 import { Breadcrumb } from "./Breadcrumb";
 import { useTranslation } from "../utils/translations";
+import { Tooltip } from "./Tooltip";
 
 interface Props {
   settings: Settings;
@@ -14,9 +15,10 @@ interface Props {
   activePage?: string;
   onPageChange?: (page: string) => void;
   themeStyles?: ReturnType<typeof import("../utils/themes").getThemeStyles>;
+  onQuickAction?: (action: string) => void;
 }
 
-export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSidebarOpen, lastSaved, autosaveInterval = 30, activePage, onPageChange, themeStyles }) => {
+export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSidebarOpen, lastSaved, autosaveInterval = 30, activePage, onPageChange, themeStyles, onQuickAction }) => {
   const t = useTranslation(settings.language);
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -173,6 +175,86 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
     return items;
   }, [activePage, onPageChange, t]);
 
+  // Gyors műveletek gombok az aktuális oldal alapján
+  const quickActions = useMemo(() => {
+    if (!activePage || !onPageChange || !onQuickAction) {
+      return [];
+    }
+
+    const actions: Array<{ key: string; label: string; icon: string; onClick: () => void; tooltip: string }> = [];
+
+    switch (activePage) {
+      case 'filaments':
+        actions.push({
+          key: 'add-filament',
+          label: t('header.quickActions.addFilament') || 'Új filament',
+          icon: '➕',
+          onClick: () => {
+            if (onQuickAction) onQuickAction('add-filament');
+            // The Filaments component will handle opening the form
+          },
+          tooltip: t('header.quickActions.addFilamentTooltip') || 'Új filament hozzáadása',
+        });
+        break;
+      case 'printers':
+        actions.push({
+          key: 'add-printer',
+          label: t('header.quickActions.addPrinter') || 'Új nyomtató',
+          icon: '🖨️',
+          onClick: () => {
+            if (onQuickAction) onQuickAction('add-printer');
+            // The Printers component will handle opening the form
+          },
+          tooltip: t('header.quickActions.addPrinterTooltip') || 'Új nyomtató hozzáadása',
+        });
+        break;
+      case 'customers':
+        actions.push({
+          key: 'add-customer',
+          label: t('header.quickActions.addCustomer') || 'Új ügyfél',
+          icon: '👥',
+          onClick: () => {
+            if (onQuickAction) onQuickAction('add-customer');
+            // The Customers component will handle opening the form
+          },
+          tooltip: t('header.quickActions.addCustomerTooltip') || 'Új ügyfél hozzáadása',
+        });
+        break;
+      case 'offers':
+        actions.push({
+          key: 'new-offer',
+          label: t('header.quickActions.newOffer') || 'Új árajánlat',
+          icon: '📋',
+          onClick: () => {
+            onPageChange('calculator');
+            onQuickAction('new-offer');
+          },
+          tooltip: t('header.quickActions.newOfferTooltip') || 'Új árajánlat létrehozása',
+        });
+        break;
+      case 'calculator':
+        actions.push({
+          key: 'new-offer',
+          label: t('header.quickActions.newOffer') || 'Új árajánlat',
+          icon: '📋',
+          onClick: () => onQuickAction('new-offer'),
+          tooltip: t('header.quickActions.newOfferTooltip') || 'Új árajánlat létrehozása',
+        });
+        break;
+      case 'home':
+        actions.push({
+          key: 'calculator',
+          label: t('header.quickActions.calculator') || 'Kalkulátor',
+          icon: '🧮',
+          onClick: () => onPageChange('calculator'),
+          tooltip: t('header.quickActions.calculatorTooltip') || 'Kalkulátor megnyitása',
+        });
+        break;
+    }
+
+    return actions;
+  }, [activePage, onPageChange, onQuickAction, t]);
+
   return (
     <header
       style={{
@@ -277,8 +359,44 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
         )}
       </div>
 
-      {/* Right: Date, Time, and Last Saved */}
-      <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+      {/* Right: Quick Actions, Date, Time, and Last Saved */}
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        {/* Quick Actions */}
+        {quickActions.length > 0 && themeStyles && (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginRight: "8px" }}>
+            {quickActions.map((action) => (
+              <Tooltip key={action.key} content={action.tooltip}>
+                <button
+                  onClick={action.onClick}
+                  onMouseEnter={(e) => {
+                    if (themeStyles.buttonHover) {
+                      Object.assign(e.currentTarget.style, themeStyles.buttonHover);
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = themeStyles.buttonPrimary.boxShadow;
+                  }}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonPrimary,
+                    padding: "8px 12px",
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    whiteSpace: "nowrap",
+                  }}
+                  aria-label={action.tooltip}
+                >
+                  <span>{action.icon}</span>
+                  <span>{action.label}</span>
+                </button>
+              </Tooltip>
+            ))}
+          </div>
+        )}
+        
         {/* Last Saved */}
         {lastSaved && (
           <div
