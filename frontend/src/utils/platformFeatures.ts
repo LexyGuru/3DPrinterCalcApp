@@ -40,39 +40,41 @@ export async function checkNotificationPermission(): Promise<boolean> {
  */
 export async function sendNativeNotification(title: string, body: string): Promise<void> {
   try {
-    // Először ellenőrizzük az engedélyt
+    const platform = getPlatform();
+    
+    // Először ellenőrizzük az engedélyt (minden platformon)
     const hasPermission = await checkNotificationPermission();
     if (!hasPermission) {
       console.warn("Nincs értesítési engedély. Kérj engedélyt először!");
-      // macOS-on próbáljuk meg automatikusan kérni az engedélyt
-      const platform = getPlatform();
-      if (platform === "macos") {
-        console.log("macOS: Automatikus engedélykérés próbálása...");
-        const granted = await requestNotificationPermission();
-        if (!granted) {
+      // Próbáljuk meg automatikusan kérni az engedélyt
+      console.log(`${platform}: Automatikus engedélykérés próbálása...`);
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        // Windows és Linux esetén is próbáljuk meg küldeni, lehet hogy működik engedély nélkül is
+        if (platform === "windows" || platform === "linux") {
+          console.log(`${platform}: Próbáljuk meg küldeni az értesítést engedély nélkül...`);
+        } else {
           throw new Error("Értesítési engedély megtagadva");
         }
-      } else {
-        throw new Error("Nincs értesítési engedély");
       }
     }
     
-    // macOS-on az értesítések csak akkor jelennek meg natív módon, ha az alkalmazás nem aktív
-    // vagy ha explicit módon küldjük az értesítést a notification plugin-nel
-    // A sendNotification API natív értesítést küld
-    console.log("Értesítés küldése...", { title, body, hasPermission });
+    // A sendNotification API natív értesítést küld minden platformon
+    console.log("Értesítés küldése...", { title, body, platform, hasPermission });
     
     await sendNotification({
       title,
       body,
     });
     
-    console.log("Értesítés sikeresen elküldve:", { title, body });
+    console.log("Értesítés sikeresen elküldve:", { title, body, platform });
     
-    // macOS-on: várunk egy kicsit, hogy az értesítés megjelenjen
-    const platform = getPlatform();
+    // Várunk egy kicsit, hogy az értesítés megjelenjen (főleg macOS-on)
     if (platform === "macos") {
       await new Promise(resolve => setTimeout(resolve, 500));
+    } else if (platform === "windows" || platform === "linux") {
+      // Windows és Linux esetén is várunk egy kicsit
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
   } catch (error) {
     console.error("Értesítés küldése sikertelen:", error);
@@ -82,7 +84,8 @@ export async function sendNativeNotification(title: string, body: string): Promi
       console.log("Értesítés elküldve invoke fallback-kel");
     } catch (invokeError) {
       console.error("Invoke fallback is sikertelen:", invokeError);
-      throw error;
+      // Ne dobjunk hibát, csak logoljuk - a toast üzenet már megjelenik
+      console.warn("Natív értesítés nem küldhető, de a toast üzenet megjelenik");
     }
   }
 }

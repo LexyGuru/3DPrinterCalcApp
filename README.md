@@ -244,6 +244,62 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.0.0 (2025) - 🎉 First Stable Release
+
+- 🎨 **Modern UI Components** - Complete UI overhaul with modern components:
+  - Empty State component for better user experience
+  - Card component with hover effects
+  - Progress Bar component for PDF export/import operations
+  - Tooltip component with theme integration
+  - Breadcrumb navigation for clear page hierarchy
+- ⚡ **Quick Actions** - Header quick action buttons for faster workflow:
+  - Quick add buttons for Filaments, Printers, and Customers
+  - Dynamic buttons based on active page
+  - Keyboard shortcuts integration
+- 🔍 **Global Search (Command Palette)** - Powerful search functionality:
+  - `Ctrl/Cmd+K` to open global search
+  - Search pages and quick actions
+  - Keyboard navigation (↑↓, Enter, Esc)
+  - Theme-aware styling
+- ⏪ **Undo/Redo Functionality** - History management for Filaments:
+  - `Ctrl/Cmd+Z` for undo
+  - `Ctrl/Cmd+Shift+Z` for redo
+  - Visual undo/redo buttons in UI
+  - 50-step history support
+- ⭐ **Favorite Filaments** - Mark and filter favorite filaments:
+  - Star icon to toggle favorite status
+  - Filter to show only favorites
+  - Persistent favorite state
+- 📦 **Bulk Operations** - Efficient bulk management:
+  - Checkbox selection for multiple filaments
+  - Select all / Deselect all functionality
+  - Bulk delete with confirmation dialog
+  - Visual selection indicators
+- 🎨 **Modal Dialogs** - Modern modal experience:
+  - Blurred background modals for add/edit forms
+  - Fixed-size input fields
+  - Escape key to close
+  - Smooth animations with framer-motion
+- ⌨️ **Keyboard Shortcuts** - Enhanced shortcut system:
+  - Customizable keyboard shortcuts
+  - Shortcut help dialog (`Ctrl/Cmd+?`)
+  - Edit shortcuts with key capture
+  - Persistent shortcut storage
+- 📝 **Logging System** - Comprehensive logging:
+  - Separate log files for frontend and backend
+  - Platform-independent log directory resolution
+  - Automatic log rotation
+  - Console integration
+- 🔔 **Notification Improvements** - Better notification system:
+  - Customer name in offer deletion notifications
+  - Cross-platform notification support
+  - Improved error handling
+- 🎯 **UI/UX Improvements**:
+  - Fixed input field sizes
+  - Better form layouts
+  - Improved theme integration
+  - Enhanced accessibility
+
 ### v0.6.0 (2025)
 
 - 👥 **Customer Database** - Complete customer management system with:
@@ -527,6 +583,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 0.6.0
+**Version**: 1.0.0
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!

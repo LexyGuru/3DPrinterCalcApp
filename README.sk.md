@@ -40,7 +40,63 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
-### v0.6.0 (Najnovšia)
+### v1.0.0 (2025) - 🎉 Prvá stabilná verzia
+
+- 🎨 **Moderné UI komponenty** - Kompletné prepracovanie UI s modernými komponentmi:
+  - Komponenta Empty State pre lepší používateľský zážitok
+  - Komponenta Card s hover efektmi
+  - Komponenta Progress Bar pre operácie exportu/importu PDF
+  - Komponenta Tooltip s integráciou témy
+  - Navigácia Breadcrumb pre jasnú hierarchiu stránok
+- ⚡ **Rýchle akcie** - Tlačidlá rýchlych akcií v hlavičke pre rýchlejší pracovný tok:
+  - Tlačidlá rýchleho pridania pre Filamenty, Tlačiarne a Zákazníkov
+  - Dynamické tlačidlá na základe aktívnej stránky
+  - Integrácia klávesových skratiek
+- 🔍 **Globálne vyhľadávanie (Command Palette)** - Výkonná funkcia vyhľadávania:
+  - `Ctrl/Cmd+K` pre otvorenie globálneho vyhľadávania
+  - Vyhľadávanie stránok a rýchlych akcií
+  - Navigácia klávesnicou (↑↓, Enter, Esc)
+  - Štýl prispôsobený téme
+- ⏪ **Funkcia Späť/Znovu** - Správa histórie pre Filamenty:
+  - `Ctrl/Cmd+Z` pre späť
+  - `Ctrl/Cmd+Shift+Z` pre znovu
+  - Vizuálne tlačidlá späť/znovu v UI
+  - Podpora histórie 50 krokov
+- ⭐ **Obľúbené Filamenty** - Označujte a filtrujte obľúbené filamenty:
+  - Ikona hviezdy pre prepnutie stavu obľúbeného
+  - Filter pre zobrazenie len obľúbených
+  - Trvalý stav obľúbeného
+- 📦 **Hromadné operácie** - Efektívna hromadná správa:
+  - Výber checkbox pre viac filamentov
+  - Funkcia Vybrať všetko / Zrušiť výber
+  - Hromadné mazanie s potvrdzovacím dialógom
+  - Vizuálne indikátory výberu
+- 🎨 **Modálne dialógy** - Moderný modálny zážitok:
+  - Modaly s rozmazaným pozadím pre formuláre pridania/úpravy
+  - Vstupné polia pevnej veľkosti
+  - Kláves Escape pre zatvorenie
+  - Plynulé animácie s framer-motion
+- ⌨️ **Klávesové skratky** - Vylepšený systém skratiek:
+  - Prispôsobiteľné klávesové skratky
+  - Dialóg nápovedy skratiek (`Ctrl/Cmd+?`)
+  - Úprava skratiek so zachytením klávesov
+  - Trvalé uloženie skratiek
+- 📝 **Systém protokolovania** - Komplexné protokolovanie:
+  - Oddelené súbory protokolov pre frontend a backend
+  - Rozlíšenie adresára protokolov nezávislé od platformy
+  - Automatická rotácia protokolov
+  - Integrácia konzoly
+- 🔔 **Vylepšenia oznámení** - Lepší systém oznámení:
+  - Meno zákazníka v oznámeniach o zmazaní ponuky
+  - Podpora oznámení naprieč platformami
+  - Vylepšená správa chýb
+- 🎯 **Vylepšenia UI/UX**:
+  - Pevné veľkosti vstupných polí
+  - Lepšie rozloženie formulárov
+  - Vylepšená integrácia témy
+  - Zvýšená dostupnosť
+
+### v0.6.0 (2025)
 
 #### 🐛 Opravy chýb
 - **Optimalizácia protokolovania**: Zníženie nadmerného a duplicitného protokolovania
@@ -545,7 +601,7 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ---
 
-**Verzia**: 0.6.0
+**Verzia**: 1.0.0
 
 Ak máte nejaké otázky alebo nájdete chybu, prosím otvorte issue v repozitári GitHub!
 

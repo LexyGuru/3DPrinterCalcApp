@@ -1,23 +1,35 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import type { Settings } from "../types";
 import type { Theme } from "../utils/themes";
+import { Breadcrumb } from "./Breadcrumb";
+import { useTranslation } from "../utils/translations";
+import { Tooltip } from "./Tooltip";
 
 interface Props {
   settings: Settings;
   theme: Theme;
   onMenuToggle: () => void;
   isSidebarOpen: boolean;
+  lastSaved: Date | null;
+  autosaveInterval?: number; // Másodpercben
+  activePage?: string;
+  onPageChange?: (page: string) => void;
+  themeStyles?: ReturnType<typeof import("../utils/themes").getThemeStyles>;
+  onQuickAction?: (action: string) => void;
 }
 
-export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSidebarOpen }) => {
+export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSidebarOpen, lastSaved, autosaveInterval = 30, activePage, onPageChange, themeStyles, onQuickAction }) => {
+  const t = useTranslation(settings.language);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDate(new Date());
+      // A currentDate frissítése automatikusan újrarendereli a komponenst,
+      // így a lastSaved relatív idő is frissül
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [lastSaved]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", {
@@ -33,6 +45,52 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const formatLastSaved = (date: Date | null): string => {
+    if (!date) {
+      return settings.language === "hu" ? "Még nem mentve" : settings.language === "de" ? "Noch nicht gespeichert" : "Not saved yet";
+    }
+    
+    // Használjuk a currentDate-et a relatív idő számításához, hogy frissüljön
+    const diffMs = currentDate.getTime() - date.getTime();
+    const diffSeconds = Math.floor(diffMs / 1000);
+    
+    // Visszafelé számolunk: a következő mentésig hátralévő idő
+    // Ha eltelt az autosave intervallum, akkor újraindítjuk a számlálót (modulo)
+    const timeUntilNextSave = ((autosaveInterval - (diffSeconds % autosaveInterval)) % autosaveInterval) || autosaveInterval;
+    
+    // Ha éppen most mentettünk (0-2 másodperc), akkor "Most mentve"
+    if (diffSeconds < 2) {
+      return settings.language === "hu" ? "Most mentve" : settings.language === "de" ? "Gerade gespeichert" : "Just saved";
+    }
+    
+    // Visszafelé számolás: hátralévő idő a következő mentésig
+    if (timeUntilNextSave < 60) {
+      // Másodpercek
+      return settings.language === "hu" 
+        ? `${timeUntilNextSave} mp múlva mentés` 
+        : settings.language === "de" 
+        ? `Speichern in ${timeUntilNextSave} s` 
+        : `Save in ${timeUntilNextSave}s`;
+    } else {
+      // Percek
+      const minutes = Math.floor(timeUntilNextSave / 60);
+      const seconds = timeUntilNextSave % 60;
+      if (seconds === 0) {
+        return settings.language === "hu" 
+          ? `${minutes} perc múlva mentés` 
+          : settings.language === "de" 
+          ? `Speichern in ${minutes} min` 
+          : `Save in ${minutes}m`;
+      } else {
+        return settings.language === "hu" 
+          ? `${minutes}:${seconds.toString().padStart(2, '0')} múlva mentés` 
+          : settings.language === "de" 
+          ? `Speichern in ${minutes}:${seconds.toString().padStart(2, '0')}` 
+          : `Save in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+    }
   };
 
   // Theme-aware colors
@@ -79,6 +137,123 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
   
   const borderColor = theme.colors.border;
   const hoverBg = theme.colors.surfaceHover || (isLight ? "rgba(0, 0, 0, 0.05)" : "rgba(255, 255, 255, 0.1)");
+
+  // Breadcrumb items generálása
+  const breadcrumbItems = useMemo(() => {
+    if (!activePage || !onPageChange) {
+      return [];
+    }
+
+    const items: Array<{ key: string; label: string; onClick?: () => void }> = [
+      {
+        key: 'home',
+        label: t('sidebar.home') || 'Home',
+        onClick: () => onPageChange('home'),
+      },
+    ];
+
+    // Oldal-specifikus breadcrumb elemek
+    const pageLabels: Record<string, string> = {
+      calculator: t('sidebar.calculator') || 'Calculator',
+      printers: t('sidebar.printers') || 'Printers',
+      filaments: t('sidebar.filaments') || 'Filaments',
+      customers: t('sidebar.customers') || 'Customers',
+      offers: t('sidebar.offers') || 'Offers',
+      priceTrends: t('sidebar.priceTrends') || 'Price Trends',
+      calendar: t('sidebar.calendar') || 'Calendar',
+      settings: t('sidebar.settings') || 'Settings',
+      console: t('sidebar.console') || 'Console',
+    };
+
+    if (activePage !== 'home' && pageLabels[activePage]) {
+      items.push({
+        key: activePage,
+        label: pageLabels[activePage],
+      });
+    }
+
+    return items;
+  }, [activePage, onPageChange, t]);
+
+  // Gyors műveletek gombok az aktuális oldal alapján
+  const quickActions = useMemo(() => {
+    if (!activePage || !onPageChange || !onQuickAction) {
+      return [];
+    }
+
+    const actions: Array<{ key: string; label: string; icon: string; onClick: () => void; tooltip: string }> = [];
+
+    switch (activePage) {
+      case 'filaments':
+        actions.push({
+          key: 'add-filament',
+          label: t('header.quickActions.addFilament') || 'Új filament',
+          icon: '➕',
+          onClick: () => {
+            if (onQuickAction) onQuickAction('add-filament');
+            // The Filaments component will handle opening the form
+          },
+          tooltip: t('header.quickActions.addFilamentTooltip') || 'Új filament hozzáadása',
+        });
+        break;
+      case 'printers':
+        actions.push({
+          key: 'add-printer',
+          label: t('header.quickActions.addPrinter') || 'Új nyomtató',
+          icon: '🖨️',
+          onClick: () => {
+            if (onQuickAction) onQuickAction('add-printer');
+            // The Printers component will handle opening the form
+          },
+          tooltip: t('header.quickActions.addPrinterTooltip') || 'Új nyomtató hozzáadása',
+        });
+        break;
+      case 'customers':
+        actions.push({
+          key: 'add-customer',
+          label: t('header.quickActions.addCustomer') || 'Új ügyfél',
+          icon: '👥',
+          onClick: () => {
+            if (onQuickAction) onQuickAction('add-customer');
+            // The Customers component will handle opening the form
+          },
+          tooltip: t('header.quickActions.addCustomerTooltip') || 'Új ügyfél hozzáadása',
+        });
+        break;
+      case 'offers':
+        actions.push({
+          key: 'new-offer',
+          label: t('header.quickActions.newOffer') || 'Új árajánlat',
+          icon: '📋',
+          onClick: () => {
+            onPageChange('calculator');
+            onQuickAction('new-offer');
+          },
+          tooltip: t('header.quickActions.newOfferTooltip') || 'Új árajánlat létrehozása',
+        });
+        break;
+      case 'calculator':
+        actions.push({
+          key: 'new-offer',
+          label: t('header.quickActions.newOffer') || 'Új árajánlat',
+          icon: '📋',
+          onClick: () => onQuickAction('new-offer'),
+          tooltip: t('header.quickActions.newOfferTooltip') || 'Új árajánlat létrehozása',
+        });
+        break;
+      case 'home':
+        actions.push({
+          key: 'calculator',
+          label: t('header.quickActions.calculator') || 'Kalkulátor',
+          icon: '🧮',
+          onClick: () => onPageChange('calculator'),
+          tooltip: t('header.quickActions.calculatorTooltip') || 'Kalkulátor megnyitása',
+        });
+        break;
+    }
+
+    return actions;
+  }, [activePage, onPageChange, onQuickAction, t]);
 
   return (
     <header
@@ -170,10 +345,91 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
             3DPrinterCalcApp
           </span>
         </div>
+        
+        {/* Breadcrumb */}
+        {breadcrumbItems.length > 1 && themeStyles && (
+          <div style={{ marginLeft: '24px' }}>
+            <Breadcrumb
+              items={breadcrumbItems}
+              theme={theme}
+              themeStyles={themeStyles}
+              settings={settings}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Right: Date and Time */}
-      <div style={{ display: "flex", alignItems: "center" }}>
+      {/* Right: Quick Actions, Date, Time, and Last Saved */}
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        {/* Quick Actions */}
+        {quickActions.length > 0 && themeStyles && (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginRight: "8px" }}>
+            {quickActions.map((action) => (
+              <Tooltip key={action.key} content={action.tooltip}>
+                <button
+                  onClick={action.onClick}
+                  onMouseEnter={(e) => {
+                    if (themeStyles.buttonHover) {
+                      Object.assign(e.currentTarget.style, themeStyles.buttonHover);
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = themeStyles.buttonPrimary.boxShadow;
+                  }}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonPrimary,
+                    padding: "8px 12px",
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    whiteSpace: "nowrap",
+                  }}
+                  aria-label={action.tooltip}
+                >
+                  <span>{action.icon}</span>
+                  <span>{action.label}</span>
+                </button>
+              </Tooltip>
+            ))}
+          </div>
+        )}
+        
+        {/* Last Saved */}
+        {lastSaved && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: "2px",
+            }}
+          >
+            <span style={{ 
+              fontSize: "10px", 
+              color: mutedText, 
+              fontWeight: "400",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              textShadow: isNeon ? `0 0 4px ${mutedText}` : "none",
+            }}>
+              {settings.language === "hu" ? "Következő mentés" : settings.language === "de" ? "Nächste Speicherung" : "Next save"}
+            </span>
+            <span style={{ 
+              fontSize: "12px", 
+              color: "#4ade80", // Halványzöld
+              fontWeight: "500",
+              opacity: 0.8,
+              textShadow: isNeon ? `0 0 4px #4ade80` : "none",
+            }}>
+              {formatLastSaved(lastSaved)}
+            </span>
+          </div>
+        )}
+        
+        {/* Date and Time */}
         <div
           style={{
             display: "flex",

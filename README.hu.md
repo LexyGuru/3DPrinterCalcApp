@@ -42,7 +42,63 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
-### v0.6.0 (Legutóbbi)
+### v1.0.0 (2025) - 🎉 Első stabil kiadás
+
+- 🎨 **Modern UI komponensek** - Teljes UI felújítás modern komponensekkel:
+  - Empty State komponens jobb felhasználói élményért
+  - Card komponens hover effektekkel
+  - Progress Bar komponens PDF export/import műveletekhez
+  - Tooltip komponens téma integrációval
+  - Breadcrumb navigáció az oldal hierarchia egyértelműsítéséhez
+- ⚡ **Gyors műveletek** - Header gyors művelet gombok gyorsabb munkafolyamathoz:
+  - Gyors hozzáadás gombok Filamentekhez, Nyomtatókhoz és Ügyfelekhez
+  - Dinamikus gombok az aktív oldal alapján
+  - Billentyűparancs integráció
+- 🔍 **Globális keresés (Command Palette)** - Hatékony keresési funkció:
+  - `Ctrl/Cmd+K` a globális keresés megnyitásához
+  - Oldalak és gyors műveletek keresése
+  - Billentyűzet navigáció (↑↓, Enter, Esc)
+  - Téma-integrált stílus
+- ⏪ **Undo/Redo funkció** - Előzmény kezelés Filamentekhez:
+  - `Ctrl/Cmd+Z` a visszavonáshoz
+  - `Ctrl/Cmd+Shift+Z` az újra végrehajtáshoz
+  - Vizuális undo/redo gombok az UI-ban
+  - 50 lépés előzmény támogatás
+- ⭐ **Kedvenc Filamentek** - Kedvenc filamentek jelölése és szűrése:
+  - Csillag ikon a kedvenc állapot váltásához
+  - Szűrő csak kedvencek megjelenítéséhez
+  - Tartós kedvenc állapot
+- 📦 **Bulk műveletek** - Hatékony tömeges kezelés:
+  - Checkbox kijelölés több filamenthez
+  - Összes kijelölése / Kijelölés megszüntetése funkció
+  - Tömeges törlés megerősítő dialógussal
+  - Vizuális kijelölési jelzők
+- 🎨 **Modal dialógusok** - Modern modal élmény:
+  - Elmosódott háttér modálok hozzáadás/szerkesztés formokhoz
+  - Fix méretű beviteli mezők
+  - Escape billentyű a bezáráshoz
+  - Sima animációk framer-motion-mal
+- ⌨️ **Billentyűparancsok** - Továbbfejlesztett parancsrendszer:
+  - Testreszabható billentyűparancsok
+  - Parancs súgó dialógus (`Ctrl/Cmd+?`)
+  - Parancsok szerkesztése billentyű rögzítéssel
+  - Tartós parancs tárolás
+- 📝 **Logolási rendszer** - Átfogó logolás:
+  - Külön log fájlok frontend és backend számára
+  - Platform-független log könyvtár feloldás
+  - Automatikus log rotáció
+  - Konzol integráció
+- 🔔 **Értesítési javítások** - Jobb értesítési rendszer:
+  - Ügyfél név az árajánlat törlési értesítésekben
+  - Platformok közötti értesítési támogatás
+  - Továbbfejlesztett hibakezelés
+- 🎯 **UI/UX javítások**:
+  - Fix beviteli mező méretek
+  - Jobb form elrendezések
+  - Továbbfejlesztett téma integráció
+  - Fokozott akadálymentesség
+
+### v0.6.0 (2025)
 
 #### 🐛 Hibajavítások
 - **Logolás optimalizálása**: Csökkentettük a felesleges és duplikált logolást
@@ -547,7 +603,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 0.6.0
+**Verzió**: 1.0.0
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

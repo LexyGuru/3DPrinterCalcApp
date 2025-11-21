@@ -35,6 +35,7 @@ h1 {
   line-height: 1.1;
 }
 
+/* Button stílusok - a témarendszer kezeli */
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -42,55 +43,58 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  /* Háttér, szöveg és border szín a témarendszer kezeli */
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: all 0.3s ease;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
-    background-color: #ffffff;
+    /* Háttér szín a témarendszer kezeli, ne kényszerítsük */
   }
   a:hover {
     color: #747bff;
   }
-  button {
-    background-color: #f9f9f9;
-  }
+  /* Gomb háttér a témarendszer kezeli */
 }
 
-/* Fix macOS select és option elemek láthatósága */
+/* Fix macOS select és option elemek láthatósága - csak szöveg szín, háttér a témától függ */
 select {
-  color: #212529 !important;
-  background-color: #fff !important;
+  /* Szöveg szín csak akkor, ha nincs beállítva a témában */
+  color: inherit;
+  /* Háttér szín a témarendszer kezeli */
+  background-color: inherit;
 }
 
 select option {
-  color: #212529 !important;
-  background-color: #fff !important;
+  /* Szöveg szín csak akkor, ha nincs beállítva a témában */
+  color: inherit;
+  /* Háttér szín a témarendszer kezeli */
+  background-color: inherit;
 }
 
-/* Világos háttér minden szöveghez */
+/* Body háttér - a témarendszer kezeli */
+/* A háttérszínt az App.tsx komponens állítja be a témarendszerrel */
 body {
-  color: #212529 !important;
-  background-color: #ffffff !important;
+  margin: 0;
+  padding: 0;
+  /* Háttér és szöveg szín az App komponensben van beállítva */
 }
 
-/* Input mezők láthatósága */
+/* Input mezők láthatósága - a témarendszer kezeli */
+/* A háttérszínt a getThemeStyles függvény állítja be */
 input[type="text"],
 input[type="number"],
 input[type="email"],
-input[type="password"] {
-  color: #212529 !important;
-  background-color: #fff !important;
+input[type="password"],
+input[type="date"],
+input[type="time"],
+textarea {
+  /* Szöveg és háttér szín a témarendszerrel van beállítva */
+  color: inherit;
+  background-color: inherit;
+  border-color: inherit;
 }
 
 /* Modern animációk */

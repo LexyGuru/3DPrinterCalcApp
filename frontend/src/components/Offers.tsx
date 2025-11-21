@@ -15,6 +15,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 import { convertCurrencyFromTo } from "../utils/currency";
 import { Tooltip } from "./Tooltip";
+import { EmptyState } from "./EmptyState";
 import { calculateOfferCosts } from "../utils/offerCalc";
 import { logWithLanguage } from "../utils/languages/global_console";
 import { validateUsedGrams, validateDryingTime, validateDryingPower } from "../utils/validation";
@@ -169,17 +170,22 @@ export const Offers: React.FC<Props> = ({
       setSelectedOffer(null);
     }
     logWithLanguage(settings.language, "log", "offers.delete.success", { offerId: id });
-    showToast(t("common.offerDeleted"), "success");
-    // Natív értesítés küldése (ha engedélyezve van)
+    
+    // Toast üzenet az ügyfél nevével
+    const customerName = offerToDelete?.customerName || t("offers.customerName");
+    const toastMessage = `${t("common.offerDeleted")} ${t("offers.customerName")}: ${customerName}`;
+    showToast(toastMessage, "success");
+    
+    // Natív értesítés küldése minden platformon (ha engedélyezve van)
     if (settings.notificationEnabled !== false && offerToDelete) {
       try {
         const { sendNativeNotification } = await import("../utils/platformFeatures");
-        await sendNativeNotification(
-          t("common.offerDeleted"),
-          offerToDelete.customerName || t("offers.customerName")
-        );
+        const notificationTitle = t("common.offerDeleted");
+        const notificationBody = `${t("offers.customerName")}: ${customerName}`;
+        await sendNativeNotification(notificationTitle, notificationBody);
       } catch (error) {
         console.log("Értesítés küldése sikertelen:", error);
+        // Fallback: ha a natív értesítés nem működik, legalább a toast üzenet megjelenik
       }
     }
     setDeleteConfirmId(null);
@@ -1019,14 +1025,13 @@ export const Offers: React.FC<Props> = ({
       )}
       
       {offers.length === 0 ? (
-        <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-          <p style={{ 
-            margin: 0, 
-            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
-            fontSize: "16px" 
-          }}>{t("offers.empty")}</p>
-        </div>
+        <EmptyState
+          icon="📄"
+          title={t("offers.empty")}
+          theme={theme}
+          themeStyles={themeStyles}
+          settings={settings}
+        />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           <div

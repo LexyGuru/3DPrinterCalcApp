@@ -68,6 +68,7 @@ export type ConsoleMessageKey =
   | "filaments.priceSearch.error"
   | "filaments.priceHistory.saveError"
   | "filaments.reorder"
+  | "filaments.favorite.toggled"
   | "settings.logo.optimizeError"
   | "settings.confirmDialog.error"
   | "settings.customTheme.exportFailed"
@@ -187,6 +188,7 @@ const englishMessages: Record<ConsoleMessageKey, string> = {
   "filaments.priceSearch.error": "[Filaments] Failed to open price search via shell plugin",
   "filaments.priceHistory.saveError": "[Filaments] Failed to save price history",
   "filaments.reorder": "🔄 Filaments reordered",
+  "filaments.favorite.toggled": "⭐ Favorite status changed: {brand} {type} ({favorite})",
   "settings.logo.optimizeError": "❌ Logo optimization error",
   "settings.confirmDialog.error": "[Settings] Confirm dialog action failed",
   "settings.customTheme.exportFailed": "[Settings] Custom theme export failed",
@@ -307,6 +309,7 @@ const hungarianMessages: Partial<Record<ConsoleMessageKey, string>> = {
   "filaments.priceSearch.error": "[Filaments] Nem sikerült megnyitni az árkeresést a shell pluginnal",
   "filaments.priceHistory.saveError": "[Filaments] Az ár előzmény mentése sikertelen",
   "filaments.reorder": "🔄 Filamentek átrendezve",
+  "filaments.favorite.toggled": "⭐ Kedvenc állapot változtatva: {brand} {type} ({favorite})",
   "settings.logo.optimizeError": "❌ Logo optimalizálási hiba",
   "settings.confirmDialog.error": "[Settings] Megerősítő párbeszéd művelete sikertelen",
   "settings.customTheme.exportFailed": "[Settings] Egyedi téma export sikertelen",

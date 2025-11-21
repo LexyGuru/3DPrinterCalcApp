@@ -44,6 +44,7 @@ import type { ColorMode } from "../types";
 import { translateText } from "../utils/translator";
 import { logWithLanguage } from "../utils/languages/global_console";
 import { sendNativeNotification, setDockBadge, getPlatform, requestNotificationPermission, checkNotificationPermission } from "../utils/platformFeatures";
+import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 
 interface Props {
   settings: Settings;
@@ -152,6 +153,41 @@ export const SettingsPage: React.FC<Props> = ({
   const openConfirmDialog = (config: ConfirmDialogConfig) => {
     setConfirmDialogConfig(config);
   };
+
+  // Help shortcut regisztrálása (figyelembe véve a custom shortcuts-ot)
+  const helpShortcutConfig = useMemo(() => {
+    const getShortcutId = (key: string, ctrl: boolean, shift: boolean, alt: boolean, meta: boolean): string => {
+      return `${key.toLowerCase()}-${ctrl}-${shift}-${alt}-${meta}`;
+    };
+
+    // Alapértelmezett help shortcut (Ctrl/Cmd + ?)
+    const isMac = typeof navigator !== 'undefined' && navigator.platform.includes("Mac");
+    const defaultHelpShortcutId = getShortcutId("?", !isMac, false, false, isMac);
+    const customHelpShortcut = settings.customShortcuts?.[defaultHelpShortcutId];
+    
+    // Használjuk a custom shortcut-ot, ha van, különben az alapértelmezettet
+    return {
+      key: customHelpShortcut?.key || "?",
+      ctrl: customHelpShortcut?.ctrl ?? (!isMac),
+      meta: customHelpShortcut?.meta ?? isMac,
+      shift: customHelpShortcut?.shift ?? false,
+      alt: customHelpShortcut?.alt ?? false,
+    };
+  }, [settings.customShortcuts]);
+
+  useKeyboardShortcut(
+    helpShortcutConfig.key,
+    () => {
+      setShowShortcutHelp(true);
+    },
+    {
+      ctrl: helpShortcutConfig.ctrl,
+      meta: helpShortcutConfig.meta,
+      shift: helpShortcutConfig.shift,
+      alt: helpShortcutConfig.alt,
+      enabled: !showShortcutHelp, // Csak akkor engedélyezett, ha nincs megnyitva
+    }
+  );
 
   const handleConfirmDialogCancel = () => {
     setConfirmDialogConfig(null);
@@ -3736,6 +3772,9 @@ export const SettingsPage: React.FC<Props> = ({
             theme={theme}
             themeStyles={themeStyles}
             onClose={() => setShowShortcutHelp(false)}
+            onSettingsChange={(newSettings) => {
+              onChange(newSettings);
+            }}
           />
         )}
       </AnimatePresence>

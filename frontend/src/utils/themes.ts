@@ -805,10 +805,21 @@ export const getThemeStyles = (theme: Theme) => {
     outline: "none",
     position: "relative" as const,
     overflow: "hidden" as const,
+    // Alapértelmezett háttérszín - ha nincs specifikus button variáns használva
+    backgroundColor: isGradientBackground
+      ? "rgba(255, 255, 255, 0.9)"
+      : theme.colors.surface,
+    color: isGradientBackground ? "#1a1a1a" : theme.colors.text,
+    boxShadow: isNeon
+      ? `0 0 15px ${theme.colors.shadow}, 0 2px 4px ${theme.colors.shadow}`
+      : `0 2px 4px ${theme.colors.shadow}`,
   },
   buttonPrimary: {
     background: hasGradient && theme.colors.primary?.includes('gradient')
       ? theme.colors.primary
+      : theme.colors.primary,
+    backgroundColor: hasGradient && theme.colors.primary?.includes('gradient')
+      ? undefined
       : theme.colors.primary,
     color: "#fff",
     boxShadow: isNeon
@@ -818,17 +829,23 @@ export const getThemeStyles = (theme: Theme) => {
   buttonSuccess: {
     backgroundColor: theme.colors.success,
     color: "#fff",
-    boxShadow: `0 2px 4px ${theme.colors.shadow}`,
+    boxShadow: isNeon
+      ? `0 0 15px ${theme.colors.success}40, 0 2px 4px ${theme.colors.shadow}`
+      : `0 2px 4px ${theme.colors.shadow}`,
   },
   buttonDanger: {
     backgroundColor: theme.colors.danger,
     color: "#fff",
-    boxShadow: `0 2px 4px ${theme.colors.shadow}`,
+    boxShadow: isNeon
+      ? `0 0 15px ${theme.colors.danger}40, 0 2px 4px ${theme.colors.shadow}`
+      : `0 2px 4px ${theme.colors.shadow}`,
   },
   buttonSecondary: {
     backgroundColor: theme.colors.secondary,
     color: "#fff",
-    boxShadow: `0 2px 4px ${theme.colors.shadow}`,
+    boxShadow: isNeon
+      ? `0 0 15px ${theme.colors.secondary}40, 0 2px 4px ${theme.colors.shadow}`
+      : `0 2px 4px ${theme.colors.shadow}`,
   },
   buttonHover: {
     transform: "translateY(-2px) scale(1.05)",

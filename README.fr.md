@@ -41,7 +41,63 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
-### v0.6.0 (Dernière)
+### v1.0.0 (2025) - 🎉 Première version stable
+
+- 🎨 **Composants UI modernes** - Refonte complète de l'UI avec des composants modernes:
+  - Composant Empty State pour une meilleure expérience utilisateur
+  - Composant Card avec effets de survol
+  - Composant Progress Bar pour les opérations d'export/import PDF
+  - Composant Tooltip avec intégration de thème
+  - Navigation Breadcrumb pour une hiérarchie de pages claire
+- ⚡ **Actions rapides** - Boutons d'action rapide dans l'en-tête pour un workflow plus rapide:
+  - Boutons d'ajout rapide pour Filaments, Imprimantes et Clients
+  - Boutons dynamiques basés sur la page active
+  - Intégration des raccourcis clavier
+- 🔍 **Recherche globale (Command Palette)** - Fonctionnalité de recherche puissante:
+  - `Ctrl/Cmd+K` pour ouvrir la recherche globale
+  - Recherche de pages et d'actions rapides
+  - Navigation au clavier (↑↓, Enter, Esc)
+  - Style adapté au thème
+- ⏪ **Fonctionnalité Annuler/Rétablir** - Gestion de l'historique pour Filaments:
+  - `Ctrl/Cmd+Z` pour annuler
+  - `Ctrl/Cmd+Shift+Z` pour rétablir
+  - Boutons visuels annuler/rétablir dans l'UI
+  - Support d'historique de 50 étapes
+- ⭐ **Filaments favoris** - Marquer et filtrer les filaments favoris:
+  - Icône étoile pour basculer le statut favori
+  - Filtre pour afficher uniquement les favoris
+  - État favori persistant
+- 📦 **Opérations en masse** - Gestion efficace en masse:
+  - Sélection par case à cocher pour plusieurs filaments
+  - Fonctionnalité Tout sélectionner / Tout désélectionner
+  - Suppression en masse avec dialogue de confirmation
+  - Indicateurs de sélection visuels
+- 🎨 **Dialogues modaux** - Expérience modale moderne:
+  - Modals avec arrière-plan flou pour les formulaires d'ajout/édition
+  - Champs de saisie de taille fixe
+  - Touche Échap pour fermer
+  - Animations fluides avec framer-motion
+- ⌨️ **Raccourcis clavier** - Système de raccourcis amélioré:
+  - Raccourcis clavier personnalisables
+  - Dialogue d'aide des raccourcis (`Ctrl/Cmd+?`)
+  - Édition des raccourcis avec capture de touches
+  - Stockage persistant des raccourcis
+- 📝 **Système de journalisation** - Journalisation complète:
+  - Fichiers de journal séparés pour le frontend et le backend
+  - Résolution de répertoire de journal indépendante de la plateforme
+  - Rotation automatique des journaux
+  - Intégration console
+- 🔔 **Améliorations des notifications** - Meilleur système de notifications:
+  - Nom du client dans les notifications de suppression d'offre
+  - Support de notifications multiplateforme
+  - Gestion d'erreurs améliorée
+- 🎯 **Améliorations UI/UX**:
+  - Tailles de champs de saisie fixes
+  - Meilleures mises en page de formulaires
+  - Intégration de thème améliorée
+  - Accessibilité améliorée
+
+### v0.6.0 (2025)
 
 #### 🐛 Corrections de bugs
 - **Optimisation de la journalisation**: Réduction de la journalisation excessive et dupliquée
@@ -546,7 +602,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 0.6.0
+**Version**: 1.0.0
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

@@ -41,7 +41,63 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 
 ## 📋 Registro de cambios (Changelog)
 
-### v0.6.0 (Más reciente)
+### v1.0.0 (2025) - 🎉 Primera versión estable
+
+- 🎨 **Componentes UI modernos** - Renovación completa de la UI con componentes modernos:
+  - Componente Empty State para mejor experiencia de usuario
+  - Componente Card con efectos hover
+  - Componente Progress Bar para operaciones de exportación/importación PDF
+  - Componente Tooltip con integración de tema
+  - Navegación Breadcrumb para jerarquía de páginas clara
+- ⚡ **Acciones rápidas** - Botones de acción rápida en el encabezado para flujo de trabajo más rápido:
+  - Botones de adición rápida para Filamentos, Impresoras y Clientes
+  - Botones dinámicos basados en la página activa
+  - Integración de atajos de teclado
+- 🔍 **Búsqueda global (Command Palette)** - Funcionalidad de búsqueda potente:
+  - `Ctrl/Cmd+K` para abrir la búsqueda global
+  - Búsqueda de páginas y acciones rápidas
+  - Navegación por teclado (↑↓, Enter, Esc)
+  - Estilo adaptado al tema
+- ⏪ **Funcionalidad Deshacer/Rehacer** - Gestión de historial para Filamentos:
+  - `Ctrl/Cmd+Z` para deshacer
+  - `Ctrl/Cmd+Shift+Z` para rehacer
+  - Botones visuales deshacer/rehacer en la UI
+  - Soporte de historial de 50 pasos
+- ⭐ **Filamentos favoritos** - Marcar y filtrar filamentos favoritos:
+  - Icono de estrella para alternar estado favorito
+  - Filtro para mostrar solo favoritos
+  - Estado favorito persistente
+- 📦 **Operaciones en masa** - Gestión eficiente en masa:
+  - Selección por casilla para múltiples filamentos
+  - Funcionalidad Seleccionar todo / Deseleccionar todo
+  - Eliminación en masa con diálogo de confirmación
+  - Indicadores de selección visuales
+- 🎨 **Diálogos modales** - Experiencia modal moderna:
+  - Modales con fondo difuminado para formularios de agregar/editar
+  - Campos de entrada de tamaño fijo
+  - Tecla Escape para cerrar
+  - Animaciones suaves con framer-motion
+- ⌨️ **Atajos de teclado** - Sistema de atajos mejorado:
+  - Atajos de teclado personalizables
+  - Diálogo de ayuda de atajos (`Ctrl/Cmd+?`)
+  - Editar atajos con captura de teclas
+  - Almacenamiento persistente de atajos
+- 📝 **Sistema de registro** - Registro completo:
+  - Archivos de registro separados para frontend y backend
+  - Resolución de directorio de registro independiente de plataforma
+  - Rotación automática de registros
+  - Integración de consola
+- 🔔 **Mejoras de notificaciones** - Mejor sistema de notificaciones:
+  - Nombre del cliente en notificaciones de eliminación de oferta
+  - Soporte de notificaciones multiplataforma
+  - Manejo de errores mejorado
+- 🎯 **Mejoras UI/UX**:
+  - Tamaños de campos de entrada fijos
+  - Mejores diseños de formularios
+  - Integración de tema mejorada
+  - Accesibilidad mejorada
+
+### v0.6.0 (2025)
 
 #### 🐛 Correcciones de errores
 - **Optimización de registro**: Reducción de registros excesivos y duplicados
@@ -546,7 +602,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ---
 
-**Versión**: 0.6.0
+**Versión**: 1.0.0
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 

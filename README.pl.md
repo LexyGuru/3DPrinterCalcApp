@@ -40,7 +40,63 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
-### v0.6.0 (Najnowsza)
+### v1.0.0 (2025) - 🎉 Pierwsza stabilna wersja
+
+- 🎨 **Nowoczesne komponenty UI** - Kompletna przebudowa UI z nowoczesnymi komponentami:
+  - Komponent Empty State dla lepszego doświadczenia użytkownika
+  - Komponent Card z efektami hover
+  - Komponent Progress Bar dla operacji eksportu/importu PDF
+  - Komponent Tooltip z integracją motywu
+  - Nawigacja Breadcrumb dla wyraźnej hierarchii stron
+- ⚡ **Szybkie akcje** - Przyciski szybkich akcji w nagłówku dla szybszego przepływu pracy:
+  - Przyciski szybkiego dodawania dla Filamentów, Drukarek i Klientów
+  - Dynamiczne przyciski na podstawie aktywnej strony
+  - Integracja skrótów klawiszowych
+- 🔍 **Wyszukiwanie globalne (Command Palette)** - Potężna funkcja wyszukiwania:
+  - `Ctrl/Cmd+K` aby otworzyć wyszukiwanie globalne
+  - Wyszukiwanie stron i szybkich akcji
+  - Nawigacja klawiaturowa (↑↓, Enter, Esc)
+  - Styl dostosowany do motywu
+- ⏪ **Funkcja Cofnij/Ponów** - Zarządzanie historią dla Filamentów:
+  - `Ctrl/Cmd+Z` aby cofnąć
+  - `Ctrl/Cmd+Shift+Z` aby ponów
+  - Wizualne przyciski cofnij/ponów w UI
+  - Wsparcie historii 50 kroków
+- ⭐ **Ulubione Filamenty** - Oznaczaj i filtruj ulubione filamenty:
+  - Ikona gwiazdy aby przełączyć status ulubionego
+  - Filtr aby pokazać tylko ulubione
+  - Trwały status ulubionego
+- 📦 **Operacje masowe** - Wydajne zarządzanie masowe:
+  - Zaznaczenie checkbox dla wielu filamentów
+  - Funkcjonalność Zaznacz wszystkie / Odznacz wszystkie
+  - Masowe usuwanie z dialogiem potwierdzenia
+  - Wizualne wskaźniki zaznaczenia
+- 🎨 **Dialogi modalne** - Nowoczesne doświadczenie modalne:
+  - Modale z rozmytym tłem dla formularzy dodawania/edycji
+  - Pola wprowadzania o stałym rozmiarze
+  - Klawisz Escape aby zamknąć
+  - Płynne animacje z framer-motion
+- ⌨️ **Skróty klawiszowe** - Ulepszony system skrótów:
+  - Niestandardowe skróty klawiszowe
+  - Dialog pomocy skrótów (`Ctrl/Cmd+?`)
+  - Edycja skrótów z przechwytywaniem klawiszy
+  - Trwałe przechowywanie skrótów
+- 📝 **System logowania** - Kompleksowe logowanie:
+  - Oddzielne pliki logów dla frontendu i backendu
+  - Rozdzielczość katalogu logów niezależna od platformy
+  - Automatyczna rotacja logów
+  - Integracja konsoli
+- 🔔 **Ulepszenia powiadomień** - Lepszy system powiadomień:
+  - Nazwa klienta w powiadomieniach o usunięciu oferty
+  - Wsparcie powiadomień wieloplatformowych
+  - Ulepszona obsługa błędów
+- 🎯 **Ulepszenia UI/UX**:
+  - Stałe rozmiary pól wprowadzania
+  - Lepsze układy formularzy
+  - Ulepszona integracja motywu
+  - Zwiększona dostępność
+
+### v0.6.0 (2025)
 
 #### 🐛 Naprawy błędów
 - **Optymalizacja logowania**: Zmniejszenie nadmiernego i zduplikowanego logowania
@@ -545,7 +601,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 0.6.0
+**Wersja**: 1.0.0
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

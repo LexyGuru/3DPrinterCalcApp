@@ -27,8 +27,10 @@ import { defaultAnimationSettings } from "./types";
 import { debounce } from "./utils/debounce";
 import { useKeyboardShortcut } from "./utils/keyboardShortcuts";
 import { ShortcutHelp } from "./components/ShortcutHelp";
+import { GlobalSearch } from "./components/GlobalSearch";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
+import { initFrontendLog } from "./utils/fileLogger"; // Initialize file logger
 import { logWithLanguage } from "./utils/languages/global_console";
 import { useTranslation } from "./utils/translations";
 
@@ -43,6 +45,20 @@ export default function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [lastSaved, setLastSaved] = useState<Date | null>(new Date()); // Kezdeti érték, hogy azonnal látható legyen
+  const [quickActionTrigger, setQuickActionTrigger] = useState<string | null>(null);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
+
+  // 🔹 Frontend log inicializálása
+  useEffect(() => {
+    initFrontendLog().then((path) => {
+      if (path) {
+        console.log("✅ Frontend log fájl inicializálva:", path);
+      }
+    }).catch((error) => {
+      console.error("⚠️ Frontend log inicializálási hiba:", error);
+    });
+  }, []);
 
   // 🔹 Betöltés indításkor
   useEffect(() => {
@@ -94,6 +110,8 @@ export default function App() {
         setSettings(defaultSettings);
       }
       setIsInitialized(true);
+      // Beállítjuk a lastSaved-et a betöltés után
+      setLastSaved(new Date());
     };
     loadData();
   }, []);
@@ -102,34 +120,63 @@ export default function App() {
   const autosaveEnabled = settings.autosave !== false; // Alapértelmezetten true
   const autosaveInterval = (settings.autosaveInterval || 30) * 1000; // Másodperc -> milliszekundum
 
+  // Helper function to update last saved timestamp
+  const updateLastSaved = () => {
+    const now = new Date();
+    setLastSaved(now);
+    if (import.meta.env.DEV) {
+      console.log("💾 Last saved timestamp frissítve:", now.toLocaleTimeString());
+    }
+  };
+
   // Debounced save functions
   const debouncedSavePrinters = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      savePrinters(printers);
+      savePrinters(printers).then(() => {
+        updateLastSaved();
+      }).catch((error) => {
+        console.error("Hiba a nyomtatók mentésekor:", error);
+      });
     }
   }, autosaveInterval);
 
   const debouncedSaveFilaments = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      saveFilaments(filaments);
+      saveFilaments(filaments).then(() => {
+        updateLastSaved();
+      }).catch((error) => {
+        console.error("Hiba a filamentek mentésekor:", error);
+      });
     }
   }, autosaveInterval);
 
   const debouncedSaveSettings = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      saveSettings(settings);
+      saveSettings(settings).then(() => {
+        updateLastSaved();
+      }).catch((error) => {
+        console.error("Hiba a beállítások mentésekor:", error);
+      });
     }
   }, autosaveInterval);
 
   const debouncedSaveOffers = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      saveOffers(offers);
+      saveOffers(offers).then(() => {
+        updateLastSaved();
+      }).catch((error) => {
+        console.error("Hiba az árajánlatok mentésekor:", error);
+      });
     }
   }, autosaveInterval);
 
   const debouncedSaveCustomers = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      saveCustomers(customers);
+      saveCustomers(customers).then(() => {
+        updateLastSaved();
+      }).catch((error) => {
+        console.error("Hiba az ügyfelek mentésekor:", error);
+      });
     }
   }, autosaveInterval);
 
@@ -138,7 +185,7 @@ export default function App() {
       debouncedSavePrinters();
     } else if (isInitialized && !autosaveEnabled) {
       // Ha az autosave ki van kapcsolva, azonnal mentjük
-      savePrinters(printers);
+      savePrinters(printers).then(() => updateLastSaved());
     }
   }, [printers, isInitialized, autosaveEnabled]);
 
@@ -146,7 +193,7 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       debouncedSaveFilaments();
     } else if (isInitialized && !autosaveEnabled) {
-      saveFilaments(filaments);
+      saveFilaments(filaments).then(() => updateLastSaved());
     }
   }, [filaments, isInitialized, autosaveEnabled]);
 
@@ -154,7 +201,7 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       debouncedSaveSettings();
     } else if (isInitialized && !autosaveEnabled) {
-      saveSettings(settings);
+      saveSettings(settings).then(() => updateLastSaved());
     }
   }, [settings, isInitialized, autosaveEnabled]);
 
@@ -162,7 +209,7 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       debouncedSaveOffers();
     } else if (isInitialized && !autosaveEnabled) {
-      saveOffers(offers);
+      saveOffers(offers).then(() => updateLastSaved());
     }
   }, [offers, isInitialized, autosaveEnabled]);
 
@@ -170,7 +217,7 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       debouncedSaveCustomers();
     } else if (isInitialized && !autosaveEnabled) {
-      saveCustomers(customers);
+      saveCustomers(customers).then(() => updateLastSaved());
     }
   }, [customers, isInitialized, autosaveEnabled]);
 
@@ -261,13 +308,44 @@ export default function App() {
     setShowShortcutHelp(true);
   }, { meta: true });
 
+  // Global search (Ctrl/Cmd + K)
+  useKeyboardShortcut("k", () => {
+    if (!showGlobalSearch) {
+      setShowGlobalSearch(true);
+    }
+  }, { ctrl: true });
+
+  useKeyboardShortcut("k", () => {
+    if (!showGlobalSearch) {
+      setShowGlobalSearch(true);
+    }
+  }, { meta: true });
+
+  // Reset quickActionTrigger when page changes or after form opens
+  useEffect(() => {
+    if (quickActionTrigger) {
+      // If we just navigated to a page, trigger the form after a short delay
+      const timer = setTimeout(() => {
+        if (quickActionTrigger && (
+          (quickActionTrigger === 'add-filament' && activePage === 'filaments') ||
+          (quickActionTrigger === 'add-printer' && activePage === 'printers') ||
+          (quickActionTrigger === 'add-customer' && activePage === 'customers')
+        )) {
+          // Form will be opened by the component's useEffect
+          setTimeout(() => setQuickActionTrigger(null), 200);
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [activePage, quickActionTrigger]);
+
   // Page component (memoized)
   const PageComponent = useMemo(() => {
     switch (activePage) {
       case "filaments": 
-        return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} />; 
+        return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-filament'} />; 
       case "printers":
-        return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
+        return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-printer'} />;
       case "calculator": 
         return <Calculator printers={printers} filaments={filaments} customers={customers} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
       case "offers":
@@ -291,6 +369,7 @@ export default function App() {
             theme={currentTheme}
             themeStyles={themeStyles}
             offers={offers}
+            triggerAddForm={quickActionTrigger === 'add-customer'}
           />
         );
       case "priceTrends":
@@ -329,7 +408,7 @@ export default function App() {
       default: 
         return <Home settings={settings} offers={offers} theme={currentTheme} />;
     }
-  }, [activePage, filaments, printers, offers, customers, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers]);
+  }, [activePage, filaments, printers, offers, customers, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers, quickActionTrigger]);
 
   // Determine if this is a beta build from environment variable (set at build time)
   const isBeta = import.meta.env.VITE_IS_BETA === 'true';
@@ -372,11 +451,34 @@ export default function App() {
             theme={currentTheme}
             isOpen={isSidebarOpen}
           />
-          <Header 
+          <Header
+            lastSaved={lastSaved} 
             settings={settings} 
             theme={currentTheme}
             onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
             isSidebarOpen={isSidebarOpen}
+            autosaveInterval={settings.autosaveInterval || 30}
+            activePage={activePage}
+            onPageChange={setActivePage}
+            themeStyles={themeStyles}
+            onQuickAction={(action) => {
+              // Navigate to the appropriate page if needed
+              if (action === 'add-filament' && activePage !== 'filaments') {
+                setActivePage('filaments');
+                setQuickActionTrigger(action);
+              } else if (action === 'add-printer' && activePage !== 'printers') {
+                setActivePage('printers');
+                setQuickActionTrigger(action);
+              } else if (action === 'add-customer' && activePage !== 'customers') {
+                setActivePage('customers');
+                setQuickActionTrigger(action);
+              } else if (action === 'add-filament' || action === 'add-printer' || action === 'add-customer') {
+                // If already on the page, just trigger the form
+                setQuickActionTrigger(action);
+                // Reset after a short delay
+                setTimeout(() => setQuickActionTrigger(null), 100);
+              }
+            }}
           />
           <main style={{ 
             padding: "20px", 
@@ -428,6 +530,23 @@ export default function App() {
               />
             )}
           </AnimatePresence>
+          <GlobalSearch
+            isOpen={showGlobalSearch}
+            onClose={() => setShowGlobalSearch(false)}
+            onNavigate={(page) => {
+              setActivePage(page);
+              // If navigating to a page with quick action, trigger it
+              if (page === 'filaments' || page === 'printers' || page === 'customers') {
+                setQuickActionTrigger(`add-${page}`);
+              } else if (page === 'calculator') {
+                // For calculator, we might want to trigger new offer
+                setQuickActionTrigger('new-offer');
+              }
+            }}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+            settings={settings}
+          />
         </div>
       </ToastProvider>
     </ErrorBoundary>

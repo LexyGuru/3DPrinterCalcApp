@@ -31,6 +31,7 @@ export interface Filament {
   imageBase64?: string; // Kép base64 stringként (opcionális)
   colorMode?: ColorMode;
   multiColorHint?: string;
+  favorite?: boolean; // Kedvenc jelölés (opcionális)
 }
 
 export type Printer = {
@@ -154,6 +155,15 @@ export const createEmptyCustomThemeDefinition = (): CustomThemeDefinition => ({
 
 export type CalendarProvider = "google" | "ios" | "outlook";
 
+export interface CustomShortcut {
+  key: string;
+  ctrl?: boolean;
+  shift?: boolean;
+  alt?: boolean;
+  meta?: boolean;
+  description?: string;
+}
+
 export interface Settings {
   currency: "EUR" | "HUF" | "USD";
   electricityPrice: number; // Ft/kWh
@@ -170,6 +180,7 @@ export interface Settings {
   animationSettings?: AnimationSettings;
   themeSettings?: ThemeSettings;
   calendarProvider?: CalendarProvider; // Naptár szolgáltató (Google Calendar, iOS Calendar, Outlook)
+  customShortcuts?: Record<string, CustomShortcut>; // Egyedi gyorsbillentyűk (kulcs: egyedi azonosító)
 }
 
 export const defaultSettings: Settings = {
