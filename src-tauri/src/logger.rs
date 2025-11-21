@@ -10,6 +10,11 @@ lazy_static! {
 }
 
 /// Inicializálja a log fájlt
+/// 
+/// Log fájl helye platformonként:
+/// - macOS: ~/Library/Application Support/3DPrinterCalcApp/logs/
+/// - Windows: %LOCALAPPDATA%\3DPrinterCalcApp\logs\ (pl. C:\Users\<username>\AppData\Local\3DPrinterCalcApp\logs\)
+/// - Linux: ~/.local/share/3DPrinterCalcApp/logs/
 pub fn init_log_file() -> Result<PathBuf, String> {
     use dirs;
     

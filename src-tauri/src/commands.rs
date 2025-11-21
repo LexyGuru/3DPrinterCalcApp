@@ -102,6 +102,11 @@ pub async fn open_file(path: String) -> Result<(), String> {
 }
 
 /// Frontend log fájl inicializálása
+/// 
+/// Log fájl helye platformonként:
+/// - macOS: ~/Library/Application Support/3DPrinterCalcApp/logs/
+/// - Windows: %LOCALAPPDATA%\3DPrinterCalcApp\logs\ (pl. C:\Users\<username>\AppData\Local\3DPrinterCalcApp\logs\)
+/// - Linux: ~/.local/share/3DPrinterCalcApp/logs/
 #[tauri::command]
 pub fn init_frontend_log() -> Result<String, String> {
     use dirs;
