@@ -4,7 +4,6 @@ import type { Theme } from '../utils/themes';
 interface ProgressBarProps {
   progress: number; // 0-100
   theme: Theme;
-  themeStyles: ReturnType<typeof import('../utils/themes').getThemeStyles>;
   label?: string;
   showPercentage?: boolean;
   size?: 'small' | 'medium' | 'large';
@@ -17,7 +16,6 @@ interface ProgressBarProps {
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   progress,
   theme,
-  themeStyles,
   label,
   showPercentage = true,
   size = 'medium',
@@ -54,7 +52,8 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
       case 'success':
         return theme.colors.success || '#10b981';
       case 'warning':
-        return theme.colors.warning || '#f59e0b';
+        // Warning nincs a Theme-ben, fix fallback színt használunk
+        return '#f59e0b';
       case 'danger':
         return theme.colors.danger || '#ef4444';
       case 'primary':
