@@ -9,6 +9,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { Tooltip } from "./Tooltip";
+import { EmptyState } from "./EmptyState";
 import { validateFilamentWeight, validateFilamentPrice } from "../utils/validation";
 import type { FilamentFinish, FilamentColorOption } from "../utils/filamentColors";
 import {
@@ -2141,14 +2142,15 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
           </p>
         </div>
       ) : (
-        <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🧵</div>
-          <p style={{ 
-            margin: 0, 
-            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
-            fontSize: "16px" 
-          }}>{t("filaments.empty")}</p>
-        </div>
+        <EmptyState
+          icon="🧵"
+          title={t("filaments.empty")}
+          actionLabel={t("filaments.add")}
+          onAction={() => setShowAddForm(true)}
+          theme={theme}
+          themeStyles={themeStyles}
+          settings={settings}
+        />
       )}
       
       <ConfirmDialog

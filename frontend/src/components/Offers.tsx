@@ -15,6 +15,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 import { convertCurrencyFromTo } from "../utils/currency";
 import { Tooltip } from "./Tooltip";
+import { EmptyState } from "./EmptyState";
 import { calculateOfferCosts } from "../utils/offerCalc";
 import { logWithLanguage } from "../utils/languages/global_console";
 import { validateUsedGrams, validateDryingTime, validateDryingPower } from "../utils/validation";
@@ -1019,14 +1020,13 @@ export const Offers: React.FC<Props> = ({
       )}
       
       {offers.length === 0 ? (
-        <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-          <p style={{ 
-            margin: 0, 
-            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
-            fontSize: "16px" 
-          }}>{t("offers.empty")}</p>
-        </div>
+        <EmptyState
+          icon="📄"
+          title={t("offers.empty")}
+          theme={theme}
+          themeStyles={themeStyles}
+          settings={settings}
+        />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           <div

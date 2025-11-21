@@ -7,6 +7,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { Tooltip } from "./Tooltip";
+import { EmptyState } from "./EmptyState";
 import { validatePrinterPower, validateUsageCost, validateAMSCount } from "../utils/validation";
 
 interface Props {
@@ -993,14 +994,15 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
           </p>
         </div>
       ) : (
-        <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🖨️</div>
-          <p style={{ 
-            margin: 0, 
-            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
-            fontSize: "16px" 
-          }}>{t("printers.empty")}</p>
-        </div>
+        <EmptyState
+          icon="🖨️"
+          title={t("printers.empty")}
+          actionLabel={t("printers.add")}
+          onAction={() => setShowAddForm(true)}
+          theme={theme}
+          themeStyles={themeStyles}
+          settings={settings}
+        />
       )}
       
       <ConfirmDialog

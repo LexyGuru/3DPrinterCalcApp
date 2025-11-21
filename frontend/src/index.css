@@ -57,40 +57,42 @@ button:focus-visible {
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
-    background-color: #ffffff;
+    /* Háttér szín a témarendszer kezeli, ne kényszerítsük */
   }
   a:hover {
     color: #747bff;
   }
   button {
-    background-color: #f9f9f9;
+    /* Gomb háttér a témarendszer kezeli */
   }
 }
 
-/* Fix macOS select és option elemek láthatósága */
+/* Fix macOS select és option elemek láthatósága - csak szöveg szín, háttér a témától függ */
 select {
-  color: #212529 !important;
-  background-color: #fff !important;
+  /* Szöveg szín csak akkor, ha nincs beállítva a témában */
+  color: inherit;
 }
 
 select option {
-  color: #212529 !important;
-  background-color: #fff !important;
+  /* Szöveg szín csak akkor, ha nincs beállítva a témában */
+  color: inherit;
 }
 
-/* Világos háttér minden szöveghez */
+/* Body háttér - a témarendszer kezeli */
+/* A háttérszínt az App.tsx komponens állítja be a témarendszerrel */
 body {
-  color: #212529 !important;
-  background-color: #ffffff !important;
+  margin: 0;
+  padding: 0;
+  /* Háttér és szöveg szín az App komponensben van beállítva */
 }
 
-/* Input mezők láthatósága */
+/* Input mezők láthatósága - a témarendszer kezeli */
+/* A háttérszínt a getThemeStyles függvény állítja be */
 input[type="text"],
 input[type="number"],
 input[type="email"],
 input[type="password"] {
-  color: #212529 !important;
-  background-color: #fff !important;
+  /* Szöveg és háttér szín a témarendszerrel van beállítva */
 }
 
 /* Modern animációk */
