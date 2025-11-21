@@ -97,6 +97,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [showAddForm, setShowAddForm] = useState(false);
   const [draggedFilamentIndex, setDraggedFilamentIndex] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ index: number; x: number; y: number } | null>(null);
+  const [selectedFilamentIds, setSelectedFilamentIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const [selectedFinish, setSelectedFinish] = useState<string>("all");
   const [useCustomBrand, setUseCustomBrand] = useState(false);
   const [useCustomType, setUseCustomType] = useState(false);
@@ -901,6 +903,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setDeleteConfirmIndex(null);
   };
 
+
   const handleOpenPriceSearch = async (filament: Filament) => {
     const queryParts = [filament.brand, filament.type, filament.color]
       .filter(Boolean)
@@ -952,6 +955,72 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       (f.colorHex && f.colorHex.toLowerCase().includes(term))
     );
   });
+
+  // Bulk műveletek
+  const getFilamentId = (_f: Filament, index: number): string => {
+    return `filament-${index}`;
+  };
+
+  const toggleSelection = (filamentId: string) => {
+    setSelectedFilamentIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(filamentId)) {
+        newSet.delete(filamentId);
+      } else {
+        newSet.add(filamentId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAll = () => {
+    const allIds = new Set(filteredFilaments.map((f) => {
+      const originalIndex = filamentsWithHistory.findIndex(orig => orig === f);
+      return getFilamentId(f, originalIndex);
+    }));
+    setSelectedFilamentIds(allIds);
+  };
+
+  const deselectAll = () => {
+    setSelectedFilamentIds(new Set());
+  };
+
+  const handleBulkDelete = () => {
+    setBulkDeleteConfirm(true);
+  };
+
+  const confirmBulkDelete = () => {
+    if (selectedFilamentIds.size === 0) return;
+    
+    const idsToDelete = Array.from(selectedFilamentIds);
+    const filamentsToDelete = filamentsWithHistory.filter((f, index) => 
+      idsToDelete.includes(getFilamentId(f, index))
+    );
+    
+    logWithLanguage(settings.language, "log", "filaments.delete.start", {
+      count: idsToDelete.length,
+      brands: filamentsToDelete.map(f => f.brand).join(", "),
+    });
+    
+    const updatedFilaments = filamentsWithHistory.filter((f, index) => 
+      !idsToDelete.includes(getFilamentId(f, index))
+    );
+    
+    setFilamentsWithHistory(updatedFilaments);
+    setSelectedFilamentIds(new Set());
+    setBulkDeleteConfirm(false);
+    
+    logWithLanguage(settings.language, "log", "filaments.delete.success", { count: idsToDelete.length });
+    const successMessage = t("filaments.bulk.delete.success").replace("{{count}}", idsToDelete.length.toString());
+    showToast(successMessage, "success");
+  };
+
+  const isAllSelected = filteredFilaments.length > 0 && 
+    filteredFilaments.every((f) => {
+      const originalIndex = filamentsWithHistory.findIndex(orig => orig === f);
+      return selectedFilamentIds.has(getFilamentId(f, originalIndex));
+    });
+  const isSomeSelected = selectedFilamentIds.size > 0 && !isAllSelected;
 
   // Undo/Redo billentyűk
   useKeyboardShortcut('z', () => {
@@ -2196,9 +2265,71 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
 
       {filteredFilaments.length > 0 ? (
         <div style={{ ...themeStyles.card, overflow: "hidden", padding: 0 }}>
+          {/* Bulk műveletek toolbar */}
+          {selectedFilamentIds.size > 0 && (
+            <div style={{
+              padding: "12px 16px",
+              backgroundColor: theme.colors.surfaceHover,
+              borderBottom: `1px solid ${theme.colors.border}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+            }}>
+              <span style={{ color: theme.colors.text, fontSize: "14px", fontWeight: "600" }}>
+                {t("filaments.bulk.selected").replace("{{count}}", selectedFilamentIds.size.toString())}
+              </span>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={deselectAll}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    padding: "6px 12px",
+                    fontSize: "12px",
+                  }}
+                >
+                  {t("filaments.bulk.deselectAll")}
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonDanger,
+                    padding: "6px 12px",
+                    fontSize: "12px",
+                  }}
+                >
+                  {t("filaments.bulk.delete").replace("{{count}}", selectedFilamentIds.size.toString())}
+                </button>
+              </div>
+            </div>
+          )}
           <table style={themeStyles.table}>
             <thead>
               <tr>
+                <th style={{ ...themeStyles.tableHeader, width: "50px", textAlign: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = isSomeSelected;
+                    }}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        selectAll();
+                      } else {
+                        deselectAll();
+                      }
+                    }}
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      cursor: "pointer",
+                    }}
+                    aria-label={t("filaments.bulk.selectAll")}
+                  />
+                </th>
                 <th style={themeStyles.tableHeader}>{t("common.image")}</th>
                 <th style={themeStyles.tableHeader}>{t("filaments.brand")}</th>
                 <th style={themeStyles.tableHeader}>{t("filaments.type")}</th>
@@ -2246,6 +2377,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     `);
                   }
                 };
+                const filamentId = getFilamentId(f, originalIndex);
+                const isSelected = selectedFilamentIds.has(filamentId);
+                
                 return (
                   <tr 
                     key={i} 
@@ -2258,19 +2392,38 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     style={{ 
                       transition: "background-color 0.2s",
                       cursor: draggedFilamentIndex === originalIndex ? "grabbing" : "grab",
-                      opacity: draggedFilamentIndex === originalIndex ? 0.5 : 1
+                      opacity: draggedFilamentIndex === originalIndex ? 0.5 : 1,
+                      backgroundColor: isSelected ? theme.colors.primary + "15" : undefined,
                     }}
                     onMouseEnter={(e) => {
                       if (draggedFilamentIndex !== originalIndex) {
-                        e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                        e.currentTarget.style.backgroundColor = isSelected 
+                          ? theme.colors.primary + "20" 
+                          : theme.colors.surfaceHover;
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (draggedFilamentIndex !== originalIndex) {
-                        e.currentTarget.style.backgroundColor = theme.colors.surface;
+                        e.currentTarget.style.backgroundColor = isSelected 
+                          ? theme.colors.primary + "15" 
+                          : theme.colors.surface;
                       }
                     }}
                   >
+                    <td style={{ ...themeStyles.tableCell, padding: "8px", textAlign: "center" }}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelection(filamentId)}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          cursor: "pointer",
+                        }}
+                        aria-label={t("filaments.bulk.select").replace("{{brand}}", f.brand).replace("{{type}}", f.type)}
+                      />
+                    </td>
                     <td style={{ ...themeStyles.tableCell, padding: "8px", textAlign: "center" }}>
                       <img
                         src={previewSrc}
@@ -2457,6 +2610,17 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         theme={theme}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteConfirmIndex(null)}
+        confirmText={t("common.yes")}
+        cancelText={t("common.cancel")}
+        type="danger"
+      />
+      <ConfirmDialog
+        isOpen={bulkDeleteConfirm}
+        title={t("filaments.bulk.deleteConfirm.title")}
+        message={t("filaments.bulk.deleteConfirm.message").replace("{{count}}", selectedFilamentIds.size.toString())}
+        theme={theme}
+        onConfirm={confirmBulkDelete}
+        onCancel={() => setBulkDeleteConfirm(false)}
         confirmText={t("common.yes")}
         cancelText={t("common.cancel")}
         type="danger"
