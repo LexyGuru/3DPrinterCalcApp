@@ -17,7 +17,7 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 - 🗂️ **Dashboard stavu** - Karty stavu, rychlé filtry a časová osa nedávných změn stavu
 - 📝 **Poznámky ke stavu** - Každá změna stavu s volitelnými poznámkami a protokolováním historie
 - 👁️ **Náhled PDF a šablony** - Vestavěný náhled PDF, volitelné šablony a bloky firemního brandingu
-- 🎨 **Knihovna barev filamentu** - Více než 2000 továrních barev s volitelnými panely založenými na značce a typu
+- 🎨 **Knihovna barev filamentu** - Více než 12,000 továrních barev s volitelnými panely založenými na značce a typu
 - 💾 **Editor knihovny filamentů** - Přidávání/úprava založená na modalu, varování před duplikáty a trvalé ukládání do `filamentLibrary.json`
 - 🖼️ **Obrázky filamentů v PDF** - Zobrazení log filamentů a vzorků barev v generovaných PDF
 - 🧾 **Import G-code a vytváření konceptu** - Načítání exportů G-code/JSON (Prusa, Cura, Orca, Qidi) z modalu v kalkulačce, s podrobným shrnutím a automatickým generováním konceptu nabídky
@@ -504,7 +504,7 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 - 🎨 **Rozšíření dílny motivů** – Čtyři nové vestavěné motivy (Forest, Pastel, Charcoal, Midnight), okamžité duplikování aktivního motivu pro vlastní úpravu, vylepšené zpracování gradientu/kontrastu a zjednodušený proces sdílení.
 
 ### v0.4.0 (2025)
-- 🧵 **Integrace databáze filamentů** – Více než 2 000 továrních barev z vestavěné JSON knihovny (snímek filamentcolors.xyz), uspořádaných podle značky a materiálu
+- 🧵 **Integrace databáze filamentů** – Více než 12 000 továrních barev z vestavěné JSON knihovny (snímek filamentcolors.xyz), uspořádaných podle značky a materiálu
 - 🪟 **Panely výběru pevné velikosti** – Seznamy značek a typů otevírané tlačítkem, prohledávatelné, posouvatelné, které se vzájemně vylučují, čímž je formulář transparentnější
 - 🎯 **Vylepšení výběru barev** – Když jsou rozpoznány prvky knihovny, povrchová úprava a hex kód jsou automaticky nastaveny, samostatná pole dostupná při přepnutí na vlastní režim
 - 💾 **Editor knihovny filamentů** – Nová záložka nastavení s popup formulářem, zpracování duplikátů a trvalé ukládání `filamentLibrary.json` založené na Tauri FS

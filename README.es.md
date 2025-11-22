@@ -17,7 +17,7 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 - 🗂️ **Panel de estado** - Tarjetas de estado, filtros rápidos y línea de tiempo de cambios de estado recientes
 - 📝 **Notas de estado** - Cada cambio de estado con notas opcionales y registro de historial
 - 👁️ **Vista previa PDF y plantillas** - Vista previa PDF integrada, plantillas seleccionables y bloques de marca de empresa
-- 🎨 **Biblioteca de colores de filamento** - Más de 2000 colores de fábrica con paneles seleccionables basados en marca y tipo
+- 🎨 **Biblioteca de colores de filamento** - Más de 12,000 colores de fábrica con paneles seleccionables basados en marca y tipo
 - 💾 **Editor de biblioteca de filamentos** - Agregar/editar basado en modal, advertencias de duplicados y guardado persistente en `filamentLibrary.json`
 - 🖼️ **Imágenes de filamento en PDF** - Mostrar logotipos de filamento y muestras de color en PDFs generados
 - 🧾 **Importación G-code y creación de borrador** - Cargar exportaciones G-code/JSON (Prusa, Cura, Orca, Qidi) desde modal en calculadora, con resumen detallado y generación automática de borrador de cotización
@@ -507,7 +507,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 - 🎨 **Extensiones del taller de temas** – Cuatro nuevos temas integrados (Forest, Pastel, Charcoal, Midnight), duplicación instantánea del tema activo para edición personalizada, manejo mejorado de gradiente/contraste y proceso de compartir simplificado.
 
 ### v0.4.0 (2025)
-- 🧵 **Integración de base de datos de filamentos** – Más de 2,000 colores de fábrica de biblioteca JSON integrada (instantánea de filamentcolors.xyz), organizados por marca y material
+- 🧵 **Integración de base de datos de filamentos** – Más de 12,000 colores de fábrica de biblioteca JSON integrada (instantánea de filamentcolors.xyz), organizados por marca y material
 - 🪟 **Paneles de selector de tamaño fijo** – Listas de marca y tipo abiertas con botón, buscables, desplazables que se excluyen mutuamente, haciendo el formulario más transparente
 - 🎯 **Mejoras del selector de color** – Cuando se reconocen elementos de la biblioteca, el acabado y el código hexadecimal se establecen automáticamente, campos separados disponibles al cambiar al modo personalizado
 - 💾 **Editor de biblioteca de filamentos** – Nueva pestaña de configuración con formulario emergente, manejo de duplicados y guardado persistente `filamentLibrary.json` basado en Tauri FS

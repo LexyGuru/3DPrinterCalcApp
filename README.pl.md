@@ -17,7 +17,7 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 - 🗂️ **Panel statusu** - Karty statusu, szybkie filtry i oś czasu ostatnich zmian statusu
 - 📝 **Notatki statusu** - Każda zmiana statusu z opcjonalnymi notatkami i rejestrowaniem historii
 - 👁️ **Podgląd PDF i szablony** - Wbudowany podgląd PDF, wybieralne szablony i bloki brandingowe firmy
-- 🎨 **Biblioteka kolorów filamentu** - Ponad 2000 kolorów fabrycznych z panelami wyboru opartymi na marce i typie
+- 🎨 **Biblioteka kolorów filamentu** - Ponad 12,000 kolorów fabrycznych z panelami wyboru opartymi na marce i typie
 - 💾 **Edytor biblioteki filamentów** - Dodawanie/edytowanie oparte na modalu, ostrzeżenia o duplikatach i trwałe zapisywanie w `filamentLibrary.json`
 - 🖼️ **Obrazy filamentów w PDF** - Wyświetlanie logo filamentów i próbek kolorów w generowanych plikach PDF
 - 🧾 **Import G-code i tworzenie szkicu** - Ładowanie eksportów G-code/JSON (Prusa, Cura, Orca, Qidi) z modala w kalkulatorze, ze szczegółowym podsumowaniem i automatycznym generowaniem szkicu oferty
@@ -506,7 +506,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 - 🎨 **Rozszerzenia warsztatu motywów** – Cztery nowe wbudowane motywy (Forest, Pastel, Charcoal, Midnight), natychmiastowa duplikacja aktywnego motywu do edycji niestandardowej, ulepszona obsługa gradientu/kontrastu i uproszczony proces udostępniania.
 
 ### v0.4.0 (2025)
-- 🧵 **Integracja bazy danych filamentów** – Ponad 2 000 kolorów fabrycznych z wbudowanej biblioteki JSON (migawka filamentcolors.xyz), zorganizowane według marki i materiału
+- 🧵 **Integracja bazy danych filamentów** – Ponad 12 000 kolorów fabrycznych z wbudowanej biblioteki JSON (migawka filamentcolors.xyz), zorganizowane według marki i materiału
 - 🪟 **Panele selektora o stałym rozmiarze** – Listy marek i typów otwierane przyciskiem, przeszukiwalne, przewijalne, które wykluczają się wzajemnie, czyniąc formularz bardziej przejrzystym
 - 🎯 **Ulepszenia selektora kolorów** – Gdy elementy biblioteki są rozpoznawane, wykończenie i kod hex są automatycznie ustawiane, osobne pola dostępne przy przełączaniu na tryb niestandardowy
 - 💾 **Edytor biblioteki filamentów** – Nowa zakładka ustawień z formularzem popup, obsługa duplikatów i trwałe zapisywanie `filamentLibrary.json` oparte na Tauri FS

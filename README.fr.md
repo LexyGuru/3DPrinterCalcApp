@@ -17,7 +17,7 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 - 🗂️ **Tableau de bord d'état** - Cartes d'état, filtres rapides et chronologie des changements d'état récents
 - 📝 **Notes d'état** - Chaque changement d'état avec notes optionnelles et enregistrement de l'historique
 - 👁️ **Aperçu PDF et modèles** - Aperçu PDF intégré, modèles sélectionnables et blocs de marque d'entreprise
-- 🎨 **Bibliothèque de couleurs de filament** - Plus de 2000 couleurs d'usine avec panneaux sélectionnables basés sur marque et type
+- 🎨 **Bibliothèque de couleurs de filament** - Plus de 12 000 couleurs d'usine avec panneaux sélectionnables basés sur marque et type
 - 💾 **Éditeur de bibliothèque de filaments** - Ajout/modification basé sur modal, avertissements de doublons et sauvegarde persistante dans `filamentLibrary.json`
 - 🖼️ **Images de filament dans PDF** - Afficher les logos de filament et échantillons de couleur dans les PDF générés
 - 🧾 **Importation G-code et création de brouillon** - Charger les exportations G-code/JSON (Prusa, Cura, Orca, Qidi) depuis modal dans la calculatrice, avec résumé détaillé et génération automatique de brouillon de devis
@@ -507,7 +507,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 - 🎨 **Extensions de l'atelier de thèmes** – Quatre nouveaux thèmes intégrés (Forest, Pastel, Charcoal, Midnight), duplication instantanée du thème actif pour édition personnalisée, gestion améliorée du gradient/contraste et processus de partage simplifié.
 
 ### v0.4.0 (2025)
-- 🧵 **Intégration de base de données de filaments** – Plus de 2 000 couleurs d'usine de la bibliothèque JSON intégrée (instantané filamentcolors.xyz), organisées par marque et matériau
+- 🧵 **Intégration de base de données de filaments** – Plus de 12 000 couleurs d'usine de la bibliothèque JSON intégrée (instantané filamentcolors.xyz), organisées par marque et matériau
 - 🪟 **Panneaux de sélection de taille fixe** – Listes de marque et type ouvertes par bouton, recherchables, défilables qui s'excluent mutuellement, rendant le formulaire plus transparent
 - 🎯 **Améliorations du sélecteur de couleurs** – Lorsque les éléments de la bibliothèque sont reconnus, la finition et le code hex sont définis automatiquement, champs séparés disponibles lors du passage en mode personnalisé
 - 💾 **Éditeur de bibliothèque de filaments** – Nouvel onglet de paramètres avec formulaire popup, gestion des doublons et sauvegarde persistante `filamentLibrary.json` basée sur Tauri FS

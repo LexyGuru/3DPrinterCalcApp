@@ -18,7 +18,7 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 🗂️ **Status-Dashboard** - Statuskarten, schnelle Filter und Zeitachse der letzten Statusänderungen
 - 📝 **Statusnotizen** - Jede Statusänderung mit optionalen Notizen und Verlaufprotokollierung
 - 👁️ **PDF-Vorschau & Vorlagen** - Integrierte PDF-Vorschau, wählbare Vorlagen und Firmen-Branding-Blöcke
-- 🎨 **Filament-Farbbibliothek** - Über 2000 Fabrikfarben mit marken- und typspezifischen wählbaren Panels
+- 🎨 **Filament-Farbbibliothek** - Über 12.000 Fabrikfarben mit marken- und typspezifischen wählbaren Panels
 - 💾 **Filament-Bibliothekseditor** - Modalbasierte Hinzufügung/Bearbeitung, Duplikatswarnungen und persistente Speicherung in `filamentLibrary.json`
 - 🖼️ **Filamentbilder in PDF** - Anzeige von Filament-Logos und Farbmustern in generierten PDFs
 - 🧾 **G-Code-Import & Entwurfserstellung** - G-Code/JSON-Exporte (Prusa, Cura, Orca, Qidi) aus Modal im Rechner laden, mit detaillierter Zusammenfassung und automatischer Angebotsentwurfsgenerierung

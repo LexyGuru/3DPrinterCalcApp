@@ -18,7 +18,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🗂️ **Státusz dashboard** - Státusz kártyák, gyors szűrők és idővonal a legutóbbi státuszváltozásokról
 - 📝 **Státusz megjegyzések** - Minden státuszváltás opcionális jegyzettel és előzmény naplózással
 - 👁️ **PDF előnézet és sablonok** - Beépített PDF előnézet, választható sablonok és céges branding blokkok
-- 🎨 **Filament színkönyvtár** - Több mint 2000 gyári szín, márka és típus szerinti rögzíthető választópanellel
+- 🎨 **Filament színkönyvtár** - Több mint 12,000 gyári szín, márka és típus szerinti rögzíthető választópanellel
 - 💾 **Filament könyvtár szerkesztő** - Modal alapú hozzáadás/szerkesztés, duplikátum-figyelmeztetés és tartós mentés `filamentLibrary.json` fájlba
 - 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
 - 🧾 **G-code import és piszkozat készítés** - A kalkulátorban modális ablakból tölthető be G-code/JSON export (Prusa, Cura, Orca, Qidi), részletes összefoglalóval és automatikus árajánlat piszkozat generálással
@@ -490,7 +490,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 - 🎨 **Téma műhely bővítések** – Négy új beépített téma (Forest, Pastel, Charcoal, Midnight), aktív téma azonnali duplikálása egyedi szerkesztéshez, továbbfejlesztett gradient/kontraszt kezelés és egyszerűsített megosztási folyamat.
 
 ### v0.4.0 (2025)
-- 🧵 **Filament adatbázis integráció** – 2 000+ gyári szín beépített JSON könyvtárból (filamentcolors.xyz snapshot), márkánként és anyagonként rendezve
+- 🧵 **Filament adatbázis integráció** – 12,000+ gyári szín beépített JSON könyvtárból (filamentcolors.xyz snapshot), márkánként és anyagonként rendezve
 - 🪟 **Fix méretű választó panelek** – Gombbal nyíló, kereshető, görgethető márka- és típuslisták, amelyek kizárják egymást, így átláthatóbb az űrlap
 - 🎯 **Színválasztó fejlesztések** – Könyvtári elemek felismerésekor automatikusan beáll a finish és a hex kód, egyedi módra váltáskor külön mezők állnak rendelkezésre
 - 💾 **Filament könyvtár szerkesztő** – Új beállítási fül popup űrlappal, duplikációkezeléssel és Tauri FS alapú tartós `filamentLibrary.json` mentéssel

@@ -17,7 +17,7 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 - 🗂️ **Dashboard stavu** - Karty stavu, rýchle filtre a časová osa nedávnych zmien stavu
 - 📝 **Poznámky k stavu** - Každá zmena stavu s voliteľnými poznámkami a protokolovaním histórie
 - 👁️ **Náhľad PDF a šablóny** - Vstavaný náhľad PDF, voliteľné šablóny a bloky firemného brandingu
-- 🎨 **Knižnica farieb filamentu** - Viac ako 2000 továrenských farieb s voliteľnými panelmi založenými na značke a type
+- 🎨 **Knižnica farieb filamentu** - Viac ako 12,000 továrenských farieb s voliteľnými panelmi založenými na značke a type
 - 💾 **Editor knižnice filamentov** - Pridávanie/úprava založená na modale, varovania pred duplikátmi a trvalé ukladanie do `filamentLibrary.json`
 - 🖼️ **Obrázky filamentov v PDF** - Zobrazenie log filamentov a vzoriek farieb v generovaných PDF
 - 🧾 **Import G-code a vytváranie konceptu** - Načítanie exportov G-code/JSON (Prusa, Cura, Orca, Qidi) z modalu v kalkulačke, s podrobným zhrnutím a automatickým generovaním konceptu ponuky
@@ -506,7 +506,7 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 - 🎨 **Rozšírenia dielne motívov** – Štyri nové vstavané motívy (Forest, Pastel, Charcoal, Midnight), okamžité duplikovanie aktívneho motívu pre vlastnú úpravu, vylepšené spracovanie gradientu/kontrastu a zjednodušený proces zdieľania.
 
 ### v0.4.0 (2025)
-- 🧵 **Integrácia databázy filamentov** – Viac ako 2 000 továrenských farieb z vstavanej JSON knižnice (snímok filamentcolors.xyz), usporiadaných podľa značky a materiálu
+- 🧵 **Integrácia databázy filamentov** – Viac ako 12 000 továrenských farieb z vstavanej JSON knižnice (snímok filamentcolors.xyz), usporiadaných podľa značky a materiálu
 - 🪟 **Panely výberu pevnej veľkosti** – Zoznamy značiek a typov otvárané tlačidlom, prehľadateľné, posúvateľné, ktoré sa navzájom vylučujú, čím je formulár transparentnejší
 - 🎯 **Vylepšenia výberu farieb** – Keď sú rozpoznané prvky knižnice, povrchová úprava a hex kód sú automaticky nastavené, samostatné polia dostupné pri prepnutí na vlastný režim
 - 💾 **Editor knižnice filamentov** – Nová záložka nastavení s popup formulárom, spracovanie duplikátov a trvalé ukladanie `filamentLibrary.json` založené na Tauri FS

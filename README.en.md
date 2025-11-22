@@ -18,7 +18,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 🗂️ **Status Dashboard** - Status cards, quick filters, and timeline of recent status changes
 - 📝 **Status Notes** - Every status change with optional notes and history logging
 - 👁️ **PDF Preview & Templates** - Built-in PDF preview, selectable templates, and company branding blocks
-- 🎨 **Filament Color Library** - Over 2000 factory colors with brand and type-based selectable panels
+- 🎨 **Filament Color Library** - Over 12,000 factory colors with brand and type-based selectable panels
 - 💾 **Filament Library Editor** - Modal-based add/edit, duplicate warnings, and persistent save to `filamentLibrary.json`
 - 🖼️ **Filament Images in PDF** - Display filament logos and color swatches in generated PDFs
 - 🧾 **G-code Import & Draft Creation** - Load G-code/JSON exports (Prusa, Cura, Orca, Qidi) from modal in calculator, with detailed summary and automatic quote draft generation
@@ -508,7 +508,7 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 - 🎨 **Theme Workshop Extensions** – Four new built-in themes (Forest, Pastel, Charcoal, Midnight), instant duplication of active theme for custom editing, improved gradient/contrast handling and simplified sharing process.
 
 ### v0.4.0 (2025)
-- 🧵 **Filament Database Integration** – 2,000+ factory colors from built-in JSON library (filamentcolors.xyz snapshot), organized by brand and material
+- 🧵 **Filament Database Integration** – 12,000+ factory colors from built-in JSON library (filamentcolors.xyz snapshot), organized by brand and material
 - 🪟 **Fixed Size Selector Panels** – Button-opened, searchable, scrollable brand and type lists that exclude each other, making the form more transparent
 - 🎯 **Color Selector Improvements** – When library items are recognized, finish and hex code are automatically set, separate fields available when switching to custom mode
 - 💾 **Filament Library Editor** – New settings tab with popup form, duplicate handling and Tauri FS-based persistent `filamentLibrary.json` saving

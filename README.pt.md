@@ -17,7 +17,7 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 - 🗂️ **Painel de status** - Cartões de status, filtros rápidos e linha do tempo de mudanças de status recentes
 - 📝 **Notas de status** - Cada mudança de status com notas opcionais e registro de histórico
 - 👁️ **Visualização PDF e modelos** - Visualização PDF integrada, modelos selecionáveis e blocos de branding da empresa
-- 🎨 **Biblioteca de cores de filamento** - Mais de 2000 cores de fábrica com painéis selecionáveis baseados em marca e tipo
+- 🎨 **Biblioteca de cores de filamento** - Mais de 12,000 cores de fábrica com painéis selecionáveis baseados em marca e tipo
 - 💾 **Editor de biblioteca de filamentos** - Adicionar/editar baseado em modal, avisos de duplicatas e salvamento persistente em `filamentLibrary.json`
 - 🖼️ **Imagens de filamento em PDF** - Exibir logotipos de filamento e amostras de cor em PDFs gerados
 - 🧾 **Importação G-code e criação de rascunho** - Carregar exportações G-code/JSON (Prusa, Cura, Orca, Qidi) do modal na calculadora, com resumo detalhado e geração automática de rascunho de cotação
