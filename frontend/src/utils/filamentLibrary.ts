@@ -41,14 +41,24 @@ const loadDefaultLibrary = async (): Promise<RawLibraryEntry[]> => {
   
   try {
     // Try dynamic import (works on all platforms)
-    const module = await import("../data/filamentLibrarySample.json");
+    // Use the larger CSV-based library file which contains ~12,000 entries
+    const module = await import("../data/filamentLibraryFromCsv.json");
     rawLibraryCache = module.default as RawLibraryEntry[];
     console.log("[FilamentLibrary] Loaded default library via dynamic import", { count: rawLibraryCache.length });
     return rawLibraryCache;
   } catch (error) {
     console.warn("[FilamentLibrary] Failed to load default library via dynamic import, trying fallback", error);
-    // Fallback: return empty array, the library will be loaded from disk or created
-    return [];
+    // Fallback: try the smaller sample file
+    try {
+      const fallbackModule = await import("../data/filamentLibrarySample.json");
+      rawLibraryCache = fallbackModule.default as RawLibraryEntry[];
+      console.log("[FilamentLibrary] Loaded fallback library (filamentLibrarySample.json)", { count: rawLibraryCache.length });
+      return rawLibraryCache;
+    } catch (fallbackError) {
+      console.warn("[FilamentLibrary] Failed to load fallback library", fallbackError);
+      // Final fallback: return empty array, the library will be loaded from disk or created
+      return [];
+    }
   }
 };
 
@@ -283,7 +293,7 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
     }
   }
   
-  // Always check if update_filamentLibrary.json exists, if not, create it from default library (filamentLibrarySample.json)
+  // Always check if update_filamentLibrary.json exists, if not, create it from default library (filamentLibraryFromCsv.json)
   // This ensures the update file is always available for merging
   try {
     // Check if update file already exists
@@ -292,11 +302,11 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
     });
     console.log("[FilamentLibrary] Update file already exists");
   } catch {
-    // File doesn't exist, create it from default library (filamentLibrarySample.json)
+    // File doesn't exist, create it from default library (filamentLibraryFromCsv.json)
     try {
       const defaultLibrary = await loadDefaultLibrary();
       if (defaultLibrary.length > 0) {
-        console.log("[FilamentLibrary] Creating update_filamentLibrary.json from filamentLibrarySample.json", {
+        console.log("[FilamentLibrary] Creating update_filamentLibrary.json from default library (filamentLibraryFromCsv.json)", {
           count: defaultLibrary.length,
         });
         await writeTextFile(
@@ -306,7 +316,7 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
             baseDir: BaseDirectory.AppConfig,
           }
         );
-        console.log("[FilamentLibrary] Update file created successfully from filamentLibrarySample.json");
+        console.log("[FilamentLibrary] Update file created successfully from default library");
       } else {
         console.warn("[FilamentLibrary] Default library is empty, cannot create update file");
       }
