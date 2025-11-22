@@ -42,6 +42,25 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 
 ## 📋 Changelog
 
+### v1.1.0 (2025) - 🚀 Feature Update
+
+- 🔍 **Global Search Extended** - Enhanced search functionality:
+  - Search offers by customer name, ID, status, and date
+  - Search filaments from database (filamentLibrary) by brand, type, and color
+  - Add filaments to saved list with one click from search results
+  - Improved search results with type indicators
+- 💀 **Skeleton Loading System** - Spectacular loading experience:
+  - Animated skeleton components with shimmer effects
+  - Progress tracking with visual indicators
+  - Loading steps with checkmarks for completed steps
+  - Smooth fade-in transitions
+  - Theme-aware skeleton colors
+  - Page-specific skeleton loaders
+- 🎨 **UI/UX Improvements**:
+  - Better loading states
+  - Improved user feedback during data loading
+  - Enhanced visual experience
+
 ### v1.0.0 (2025) - 🎉 First Stable Release
 
 - 🎨 **Modern UI Components** - Complete UI overhaul with modern components:
@@ -320,6 +339,25 @@ Lekszikov Miklós (LexyGuru)
 When pushing to the `beta` branch, the GitHub Actions workflow automatically runs, building the beta version.
 
 ## 📋 Version History
+
+### v1.1.0 (2025) - 🚀 Feature Update
+
+- 🔍 **Global Search Extended** - Enhanced search functionality
+- 💀 **Skeleton Loading System** - Spectacular loading experience
+- 🎨 **UI/UX Improvements** - Better loading states and visual experience
+
+### v1.0.0 (2025) - 🎉 First Stable Release
+
+- 🎨 **Modern UI Components** - Complete UI overhaul with modern components
+- ⚡ **Quick Actions** - Header quick action buttons
+- 🔍 **Global Search** - Powerful search functionality
+- ⏪ **Undo/Redo Functionality** - History management
+- ⭐ **Favorite Filaments** - Mark and filter favorite filaments
+- 📦 **Bulk Operations** - Efficient bulk management
+- 🎨 **Modal Dialogs** - Modern modal experience
+- ⌨️ **Keyboard Shortcuts** - Enhanced shortcut system
+- 📝 **Logging System** - Comprehensive logging
+- 🔔 **Notification Improvements** - Better notification system
 
 ### v0.6.0 (2025)
 

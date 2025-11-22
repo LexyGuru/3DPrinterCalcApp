@@ -40,6 +40,25 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.1.0 (2025) - 🚀 Atualização de funcionalidades
+
+- 🔍 **Busca global estendida** - Funcionalidade de busca aprimorada:
+  - Buscar ofertas por nome do cliente, ID, status e data
+  - Buscar filamentos do banco de dados (filamentLibrary) por marca, tipo e cor
+  - Adicionar filamentos à lista salva com um clique nos resultados da busca
+  - Resultados de busca aprimorados com indicadores de tipo
+- 💀 **Sistema de carregamento Skeleton** - Experiência de carregamento espetacular:
+  - Componentes skeleton animados com efeitos shimmer
+  - Rastreamento de progresso com indicadores visuais
+  - Etapas de carregamento com marcas de verificação para etapas concluídas
+  - Transições suaves de fade-in
+  - Cores skeleton adaptadas ao tema
+  - Carregadores skeleton específicos da página
+- 🎨 **Melhorias de UI/UX**:
+  - Melhores estados de carregamento
+  - Feedback do usuário aprimorado durante o carregamento de dados
+  - Experiência visual aprimorada
+
 ### v1.0.0 (2025) - 🎉 Primeira versão estável
 
 - 🎨 **Componentes UI modernos** - Reforma completa da UI com componentes modernos:
@@ -318,6 +337,25 @@ Lekszikov Miklós (LexyGuru)
 Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado automaticamente, compilando a versão beta.
 
 ## 📋 Histórico de versões
+
+### v1.1.0 (2025) - 🚀 Atualização de funcionalidades
+
+- 🔍 **Busca global estendida** - Funcionalidade de busca aprimorada
+- 💀 **Sistema de carregamento Skeleton** - Experiência de carregamento espetacular
+- 🎨 **Melhorias de UI/UX** - Melhores estados de carregamento e experiência visual
+
+### v1.0.0 (2025) - 🎉 Primeira versão estável
+
+- 🎨 **Componentes UI modernos** - Renovação completa da UI com componentes modernos
+- ⚡ **Ações rápidas** - Botões de ação rápida no cabeçalho
+- 🔍 **Busca global** - Funcionalidade de busca poderosa
+- ⏪ **Funcionalidade Desfazer/Refazer** - Gerenciamento de histórico
+- ⭐ **Filamentos favoritos** - Marcar e filtrar filamentos favoritos
+- 📦 **Operações em massa** - Gerenciamento em massa eficiente
+- 🎨 **Diálogos modais** - Experiência modal moderna
+- ⌨️ **Atalhos de teclado** - Sistema de atalhos aprimorado
+- 📝 **Sistema de registro** - Registro abrangente
+- 🔔 **Melhorias de notificações** - Melhor sistema de notificações
 
 ### v0.6.0 (2025)
 

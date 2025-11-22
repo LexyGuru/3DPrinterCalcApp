@@ -41,6 +41,25 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.1.0 (2025) - 🚀 Aggiornamento funzionalità
+
+- 🔍 **Ricerca globale estesa** - Funzionalità di ricerca migliorata:
+  - Cerca offerte per nome cliente, ID, stato e data
+  - Cerca filamenti dal database (filamentLibrary) per marca, tipo e colore
+  - Aggiungi filamenti all'elenco salvato con un clic dai risultati di ricerca
+  - Risultati di ricerca migliorati con indicatori di tipo
+- 💀 **Sistema di caricamento Skeleton** - Esperienza di caricamento spettacolare:
+  - Componenti skeleton animati con effetti shimmer
+  - Tracciamento del progresso con indicatori visivi
+  - Passaggi di caricamento con segni di spunta per i passaggi completati
+  - Transizioni fade-in fluide
+  - Colori skeleton adattati al tema
+  - Caricatori skeleton specifici per pagina
+- 🎨 **Miglioramenti UI/UX**:
+  - Stati di caricamento migliori
+  - Feedback utente migliorato durante il caricamento dei dati
+  - Esperienza visiva migliorata
+
 ### v1.0.0 (2025) - 🎉 Prima versione stabile
 
 - 🎨 **Componenti UI moderni** - Rinnovamento completo dell'UI con componenti moderni:
@@ -319,6 +338,25 @@ Lekszikov Miklós (LexyGuru)
 Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito automaticamente, compilando la versione beta.
 
 ## 📋 Cronologia versioni
+
+### v1.1.0 (2025) - 🚀 Aggiornamento funzionalità
+
+- 🔍 **Ricerca globale estesa** - Funzionalità di ricerca migliorata
+- 💀 **Sistema di caricamento Skeleton** - Esperienza di caricamento spettacolare
+- 🎨 **Miglioramenti UI/UX** - Stati di caricamento migliori e esperienza visiva
+
+### v1.0.0 (2025) - 🎉 Prima versione stabile
+
+- 🎨 **Componenti UI moderni** - Rinnovamento completo dell'UI con componenti moderni
+- ⚡ **Azioni rapide** - Pulsanti di azione rapida nell'intestazione
+- 🔍 **Ricerca globale** - Funzionalità di ricerca potente
+- ⏪ **Funzionalità Annulla/Ripeti** - Gestione cronologia
+- ⭐ **Filamenti preferiti** - Segna e filtra filamenti preferiti
+- 📦 **Operazioni in blocco** - Gestione in blocco efficiente
+- 🎨 **Dialoghi modali** - Esperienza modale moderna
+- ⌨️ **Scorciatoie da tastiera** - Sistema di scorciatoie migliorato
+- 📝 **Sistema di registrazione** - Registrazione completa
+- 🔔 **Miglioramenti notifiche** - Miglior sistema di notifiche
 
 ### v0.6.0 (2025)
 

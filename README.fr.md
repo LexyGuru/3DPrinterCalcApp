@@ -41,6 +41,25 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
+### v1.1.0 (2025) - 🚀 Mise à jour des fonctionnalités
+
+- 🔍 **Recherche globale étendue** - Fonctionnalité de recherche améliorée:
+  - Rechercher des offres par nom de client, ID, statut et date
+  - Rechercher des filaments dans la base de données (filamentLibrary) par marque, type et couleur
+  - Ajouter des filaments à la liste sauvegardée en un clic depuis les résultats de recherche
+  - Résultats de recherche améliorés avec indicateurs de type
+- 💀 **Système de chargement Skeleton** - Expérience de chargement spectaculaire:
+  - Composants skeleton animés avec effets shimmer
+  - Suivi de progression avec indicateurs visuels
+  - Étapes de chargement avec coches pour les étapes complétées
+  - Transitions fade-in fluides
+  - Couleurs skeleton adaptées au thème
+  - Chargeurs skeleton spécifiques à la page
+- 🎨 **Améliorations UI/UX**:
+  - Meilleurs états de chargement
+  - Retour utilisateur amélioré pendant le chargement des données
+  - Expérience visuelle améliorée
+
 ### v1.0.0 (2025) - 🎉 Première version stable
 
 - 🎨 **Composants UI modernes** - Refonte complète de l'UI avec des composants modernes:
@@ -319,6 +338,25 @@ Lekszikov Miklós (LexyGuru)
 Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute automatiquement, compilant la version bêta.
 
 ## 📋 Historique des versions
+
+### v1.1.0 (2025) - 🚀 Mise à jour des fonctionnalités
+
+- 🔍 **Recherche globale étendue** - Fonctionnalité de recherche améliorée
+- 💀 **Système de chargement Skeleton** - Expérience de chargement spectaculaire
+- 🎨 **Améliorations UI/UX** - Meilleurs états de chargement et expérience visuelle
+
+### v1.0.0 (2025) - 🎉 Première version stable
+
+- 🎨 **Composants UI modernes** - Refonte complète de l'UI avec des composants modernes
+- ⚡ **Actions rapides** - Boutons d'action rapide dans l'en-tête
+- 🔍 **Recherche globale** - Fonctionnalité de recherche puissante
+- ⏪ **Fonctionnalité Annuler/Rétablir** - Gestion de l'historique
+- ⭐ **Filaments favoris** - Marquer et filtrer les filaments favoris
+- 📦 **Opérations en masse** - Gestion en masse efficace
+- 🎨 **Dialogues modaux** - Expérience modale moderne
+- ⌨️ **Raccourcis clavier** - Système de raccourcis amélioré
+- 📝 **Système de journalisation** - Journalisation complète
+- 🔔 **Améliorations des notifications** - Meilleur système de notifications
 
 ### v0.6.0 (2025)
 
