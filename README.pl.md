@@ -338,6 +338,24 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ## 📋 Historia wersji
 
+### v1.1.1 (2025) - 🎨 Ulepszenia układu nagłówka
+
+- 🎨 **Przebudowa nagłówka** - Kompletna przebudowa układu nagłówka:
+  - Struktura trzech sekcji (lewa: logo/menu, środek: breadcrumb, prawa: akcje/status)
+  - Karta informacji o statusie zawsze pozycjonowana po prawej stronie
+  - Nowoczesny design typu karty dla informacji o statusie
+  - Lepsze odstępy i wyrównanie w całym nagłówku
+- 📱 **Projekt responsywny** - Lepsze doświadczenie na urządzeniach mobilnych i małych ekranach:
+  - Dynamiczne punkty przerwania dla widoczności elementów
+  - Poprawki przycinania breadcrumb
+  - Szybkie akcje dostosowują się do rozmiaru ekranu
+  - Responsywne rozmiarowanie karty informacji o statusie
+- 🔧 **Poprawki układu**:
+  - Naprawione problemy z przepełnieniem i przycinaniem breadcrumb
+  - Ulepszenia pozycjonowania karty informacji o statusie
+  - Lepsze zarządzanie układem flexbox
+  - Ulepszone odstępy i przerwy między elementami
+
 ### v1.1.0 (2025) - 🚀 Aktualizacja funkcji
 
 - 🔍 **Rozszerzone wyszukiwanie globalne** - Ulepszona funkcjonalność wyszukiwania
@@ -639,7 +657,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 1.0.0
+**Wersja**: 1.1.1
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

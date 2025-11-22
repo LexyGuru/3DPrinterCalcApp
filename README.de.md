@@ -340,6 +340,24 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ## 📋 Versionsgeschichte
 
+### v1.1.1 (2025) - 🎨 Header-Layout-Verbesserungen
+
+- 🎨 **Header-Neuentwurf** - Komplette Header-Layout-Überarbeitung:
+  - Drei-Sektionen-Struktur (links: Logo/Menü, Mitte: Breadcrumb, rechts: Aktionen/Status)
+  - Status-Info-Karte immer ganz rechts positioniert
+  - Modernes Karten-Design für Statusinformationen
+  - Verbesserte Abstände und Ausrichtung im Header
+- 📱 **Responsive Design** - Bessere mobile und kleine Bildschirm-Erfahrung:
+  - Dynamische Breakpoints für Element-Sichtbarkeit
+  - Breadcrumb-Truncation-Fixes
+  - Schnellaktionen passen sich der Bildschirmgröße an
+  - Status-Info-Karte responsive Größenanpassung
+- 🔧 **Layout-Fixes**:
+  - Breadcrumb-Overflow- und Truncation-Probleme behoben
+  - Status-Info-Karte Positionierungsverbesserungen
+  - Besseres Flexbox-Layout-Management
+  - Verbesserte Elementabstände und Lücken
+
 ### v1.1.0 (2025) - 🚀 Feature-Update
 
 - 🔍 **Globale Suche erweitert** - Erweiterte Suchfunktionen
@@ -641,7 +659,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 1.0.0
+**Version**: 1.1.1
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

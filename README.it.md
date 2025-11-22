@@ -339,6 +339,24 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ## 📋 Cronologia versioni
 
+### v1.1.1 (2025) - 🎨 Miglioramenti al layout dell'intestazione
+
+- 🎨 **Ridisegno dell'intestazione** - Revisione completa del layout dell'intestazione:
+  - Struttura a tre sezioni (sinistra: logo/menu, centro: breadcrumb, destra: azioni/stato)
+  - Scheda informazioni stato sempre posizionata all'estrema destra
+  - Design moderno tipo scheda per informazioni stato
+  - Migliori spaziature e allineamento in tutta l'intestazione
+- 📱 **Design responsivo** - Migliore esperienza su mobile e schermi piccoli:
+  - Breakpoint dinamici per la visibilità degli elementi
+  - Correzioni del troncamento del breadcrumb
+  - Azioni rapide si adattano alle dimensioni dello schermo
+  - Dimensionamento responsivo della scheda informazioni stato
+- 🔧 **Correzioni layout**:
+  - Problemi di overflow e troncamento del breadcrumb risolti
+  - Miglioramenti al posizionamento della scheda informazioni stato
+  - Migliore gestione del layout flexbox
+  - Spaziatura e gap migliorati tra gli elementi
+
 ### v1.1.0 (2025) - 🚀 Aggiornamento funzionalità
 
 - 🔍 **Ricerca globale estesa** - Funzionalità di ricerca migliorata
@@ -640,7 +658,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 1.0.0
+**Versione**: 1.1.1
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

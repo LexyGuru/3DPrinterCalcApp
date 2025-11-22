@@ -339,6 +339,24 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ## 📋 Historique des versions
 
+### v1.1.1 (2025) - 🎨 Améliorations du layout de l'en-tête
+
+- 🎨 **Refonte de l'en-tête** - Révision complète du layout de l'en-tête:
+  - Structure en trois sections (gauche: logo/menu, centre: breadcrumb, droite: actions/statut)
+  - Carte d'informations de statut toujours positionnée à l'extrême droite
+  - Design moderne type carte pour les informations de statut
+  - Meilleur espacement et alignement dans tout l'en-tête
+- 📱 **Design responsive** - Meilleure expérience sur mobile et petits écrans:
+  - Points de rupture dynamiques pour la visibilité des éléments
+  - Corrections de troncature du breadcrumb
+  - Actions rapides s'adaptent à la taille de l'écran
+  - Dimensionnement responsive de la carte d'informations de statut
+- 🔧 **Corrections de layout**:
+  - Problèmes de débordement et de troncature du breadcrumb corrigés
+  - Améliorations du positionnement de la carte d'informations de statut
+  - Meilleure gestion du layout flexbox
+  - Espacement et gaps améliorés entre les éléments
+
 ### v1.1.0 (2025) - 🚀 Mise à jour des fonctionnalités
 
 - 🔍 **Recherche globale étendue** - Fonctionnalité de recherche améliorée
@@ -640,7 +658,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 1.0.0
+**Version**: 1.1.1
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

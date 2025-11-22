@@ -338,6 +338,24 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ## 📋 História verzií
 
+### v1.1.1 (2025) - 🎨 Vylepšenia rozloženia hlavičky
+
+- 🎨 **Prepracovanie hlavičky** - Kompletná revízia rozloženia hlavičky:
+  - Štruktúra troch sekcií (vľavo: logo/menu, stred: breadcrumb, vpravo: akcie/status)
+  - Karta informácií o stave vždy umiestnená úplne vpravo
+  - Moderný dizajn typu karty pre informácie o stave
+  - Lepšie medzery a zarovnanie v celej hlavičke
+- 📱 **Responzívny dizajn** - Lepší zážitok na mobilných zariadeniach a malých obrazovkách:
+  - Dynamické body prerušenia pre viditeľnosť prvkov
+  - Opravy skrátenia breadcrumb
+  - Rýchle akcie sa prispôsobujú veľkosti obrazovky
+  - Responzívna veľkosť karty informácií o stave
+- 🔧 **Opravy rozloženia**:
+  - Opravené problémy s pretečením a skrátením breadcrumb
+  - Vylepšenia umiestnenia karty informácií o stave
+  - Lepšia správa flexbox rozloženia
+  - Vylepšené medzery a medzery medzi prvkami
+
 ### v1.1.0 (2025) - 🚀 Aktualizácia funkcií
 
 - 🔍 **Rozšírené globálne vyhľadávanie** - Vylepšená funkcia vyhľadávania
@@ -639,7 +657,7 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ---
 
-**Verzia**: 1.0.0
+**Verzia**: 1.1.1
 
 Ak máte nejaké otázky alebo nájdete chybu, prosím otvorte issue v repozitári GitHub!
 

@@ -338,6 +338,24 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ## 📋 Histórico de versões
 
+### v1.1.1 (2025) - 🎨 Melhorias no layout do cabeçalho
+
+- 🎨 **Redesign do cabeçalho** - Revisão completa do layout do cabeçalho:
+  - Estrutura de três seções (esquerda: logo/menu, centro: breadcrumb, direita: ações/status)
+  - Cartão de informações de status sempre posicionado à extrema direita
+  - Design moderno tipo cartão para informações de status
+  - Melhor espaçamento e alinhamento em todo o cabeçalho
+- 📱 **Design responsivo** - Melhor experiência em dispositivos móveis e telas pequenas:
+  - Pontos de quebra dinâmicos para visibilidade dos elementos
+  - Correções de truncamento do breadcrumb
+  - Ações rápidas se adaptam ao tamanho da tela
+  - Dimensionamento responsivo do cartão de informações de status
+- 🔧 **Correções de layout**:
+  - Problemas de overflow e truncamento do breadcrumb corrigidos
+  - Melhorias no posicionamento do cartão de informações de status
+  - Melhor gerenciamento do layout flexbox
+  - Espaçamento e gaps melhorados entre elementos
+
 ### v1.1.0 (2025) - 🚀 Atualização de funcionalidades
 
 - 🔍 **Busca global estendida** - Funcionalidade de busca aprimorada
@@ -639,7 +657,7 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ---
 
-**Versão**: 1.0.0
+**Versão**: 1.1.1
 
 Se você tiver alguma dúvida ou encontrar um bug, por favor abra uma issue no repositório GitHub!
 
