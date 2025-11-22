@@ -241,6 +241,8 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
     file: CUSTOM_LIBRARY_FILE,
   });
   let baseEntries: RawLibraryEntry[] | null = null;
+  let isFirstLaunch = false;
+  
   try {
     const content = await readTextFile(CUSTOM_LIBRARY_FILE, {
       baseDir: BaseDirectory.AppConfig,
@@ -252,6 +254,7 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
     }
   } catch (error) {
     console.error("[FilamentLibrary] Failed to read base library file", error);
+    isFirstLaunch = true; // This is likely the first launch
     try {
       // Load default library dynamically (works on all platforms)
       const defaults = await loadDefaultLibrary();
@@ -279,6 +282,39 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
     if (baseEntries.length === 0) {
       console.error("[FilamentLibrary] No library entries available, using empty array");
       baseEntries = [];
+    }
+  }
+  
+  // Always check if update_filamentLibrary.json exists, if not, create it from default library (filamentLibrarySample.json)
+  // This ensures the update file is always available for merging
+  try {
+    // Check if update file already exists
+    await readTextFile("update_filamentLibrary.json", {
+      baseDir: BaseDirectory.AppConfig,
+    });
+    console.log("[FilamentLibrary] Update file already exists");
+  } catch {
+    // File doesn't exist, create it from default library (filamentLibrarySample.json)
+    try {
+      const defaultLibrary = await loadDefaultLibrary();
+      if (defaultLibrary.length > 0) {
+        console.log("[FilamentLibrary] Creating update_filamentLibrary.json from filamentLibrarySample.json", {
+          count: defaultLibrary.length,
+        });
+        await writeTextFile(
+          "update_filamentLibrary.json",
+          JSON.stringify(defaultLibrary, null, 2),
+          {
+            baseDir: BaseDirectory.AppConfig,
+          }
+        );
+        console.log("[FilamentLibrary] Update file created successfully from filamentLibrarySample.json");
+      } else {
+        console.warn("[FilamentLibrary] Default library is empty, cannot create update file");
+      }
+    } catch (updateError) {
+      console.warn("[FilamentLibrary] Failed to create update file", updateError);
+      // Don't fail the whole initialization if update file creation fails
     }
   }
 
