@@ -1,4 +1,3 @@
-import rawLibrary from "../data/filamentLibrarySample.json";
 import type { FilamentColorOption, FilamentFinish } from "./filamentColors";
 import type { ColorMode } from "../types";
 import { normalizeHex, resolveColorHexFromName } from "./filamentColors";
@@ -31,6 +30,27 @@ export interface LibraryColorOption extends FilamentColorOption {
 }
 
 type LibraryListener = () => void;
+
+// Lazy load the default library to avoid issues on Windows with large static imports
+let rawLibraryCache: RawLibraryEntry[] | null = null;
+
+const loadDefaultLibrary = async (): Promise<RawLibraryEntry[]> => {
+  if (rawLibraryCache) {
+    return rawLibraryCache;
+  }
+  
+  try {
+    // Try dynamic import (works on all platforms)
+    const module = await import("../data/filamentLibrarySample.json");
+    rawLibraryCache = module.default as RawLibraryEntry[];
+    console.log("[FilamentLibrary] Loaded default library via dynamic import", { count: rawLibraryCache.length });
+    return rawLibraryCache;
+  } catch (error) {
+    console.warn("[FilamentLibrary] Failed to load default library via dynamic import, trying fallback", error);
+    // Fallback: return empty array, the library will be loaded from disk or created
+    return [];
+  }
+};
 
 const CUSTOM_LIBRARY_FILE = "filamentLibrary.json";
 const FALLBACK_HEX = "#9CA3AF";
@@ -91,7 +111,8 @@ const listeners = new Set<LibraryListener>();
 let initializePromise: Promise<void> | null = null;
 let libraryLoaded = false;
 
-let currentEntries: RawLibraryEntry[] = (rawLibrary as RawLibraryEntry[]).map(entry => ({ ...entry }));
+// Initialize with empty array, will be populated during initialization
+let currentEntries: RawLibraryEntry[] = [];
 let rawEntries: RawLibraryEntry[] = [];
 let libraryEntries: LibraryColorOption[] = [];
 let allBrands: string[] = [];
@@ -232,23 +253,33 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
   } catch (error) {
     console.error("[FilamentLibrary] Failed to read base library file", error);
     try {
-      const defaults = rawLibrary as RawLibraryEntry[];
-      console.warn("[FilamentLibrary] Recreating library file from bundled defaults", { count: defaults.length });
-      await writeTextFile(
-        CUSTOM_LIBRARY_FILE,
-        JSON.stringify(defaults, null, 2),
-        {
-          baseDir: BaseDirectory.AppConfig,
-        }
-      );
-      baseEntries = defaults;
+      // Load default library dynamically (works on all platforms)
+      const defaults = await loadDefaultLibrary();
+      if (defaults.length > 0) {
+        console.warn("[FilamentLibrary] Recreating library file from bundled defaults", { count: defaults.length });
+        await writeTextFile(
+          CUSTOM_LIBRARY_FILE,
+          JSON.stringify(defaults, null, 2),
+          {
+            baseDir: BaseDirectory.AppConfig,
+          }
+        );
+        baseEntries = defaults;
+      } else {
+        console.error("[FilamentLibrary] Default library is empty, cannot recreate file");
+      }
     } catch (writeError) {
       console.error("[FilamentLibrary] Failed to recreate library file", writeError);
     }
   }
 
-  if (!baseEntries) {
-    baseEntries = rawLibrary as RawLibraryEntry[];
+  if (!baseEntries || baseEntries.length === 0) {
+    // Final fallback: try to load default library
+    baseEntries = await loadDefaultLibrary();
+    if (baseEntries.length === 0) {
+      console.error("[FilamentLibrary] No library entries available, using empty array");
+      baseEntries = [];
+    }
   }
 
   let updateEntries: RawLibraryEntry[] = [];
@@ -262,7 +293,17 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
       console.log("[FilamentLibrary] Loaded update library entries", { count: updateEntries.length });
     }
   } catch (error) {
-    if ((error as { code?: string }).code !== "ENOENT") {
+    // Check if the error is a "file not found" error (ENOENT or Windows equivalent)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorCode = (error as { code?: string }).code;
+    const isFileNotFound = 
+      errorCode === "ENOENT" || 
+      errorMessage.includes("not found") ||
+      errorMessage.includes("nem találja") ||
+      errorMessage.includes("os error 2") ||
+      errorMessage.includes("No such file");
+    
+    if (!isFileNotFound) {
       console.warn("[FilamentLibrary] Update filament library not applied", error);
     } else {
       console.log("[FilamentLibrary] No update filament library found");
@@ -537,7 +578,7 @@ export const persistLibraryEntries = async (entries: RawLibraryEntry[]) => {
 
 export const resetLibraryToDefaults = async () => {
   await initializeLibrary();
-  const defaults = (rawLibrary as RawLibraryEntry[]).map(entry => ({ ...entry }));
+  const defaults = await loadDefaultLibrary();
   await writeLibraryToDisk(defaults);
   rebuildIndex(defaults);
 };
@@ -638,9 +679,23 @@ export const ensureLibraryEntry = async (options: EnsureLibraryEntryOptions) => 
   rebuildIndex(updated);
 };
 
-// Seed with bundled data synchronously for initial render.
-rebuildIndex(currentEntries, false);
-void initializeLibrary();
+// Initialize library asynchronously (will load default library and then disk version)
+void (async () => {
+  try {
+    // Load default library first to seed the initial state
+    const defaults = await loadDefaultLibrary();
+    if (defaults.length > 0) {
+      currentEntries = defaults.map(entry => ({ ...entry }));
+      rebuildIndex(currentEntries, false);
+    }
+    // Then initialize from disk (which will merge with defaults if needed)
+    await initializeLibrary();
+  } catch (error) {
+    console.error("[FilamentLibrary] Failed to initialize library", error);
+    // Continue with empty library if initialization fails
+    rebuildIndex([], false);
+  }
+})();
 
 
 
