@@ -244,6 +244,24 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.1.1 (2025) - 🎨 Header Layout Improvements
+
+- 🎨 **Header Redesign** - Complete header layout overhaul:
+  - Three-section structure (left: logo/menu, center: breadcrumb, right: actions/status)
+  - Status info card always positioned on the far right
+  - Modern card-style design for status information
+  - Improved spacing and alignment throughout header
+- 📱 **Responsive Design** - Better mobile and small screen experience:
+  - Dynamic breakpoints for element visibility
+  - Breadcrumb truncation fixes
+  - Quick actions adapt to screen size
+  - Status info card responsive sizing
+- 🔧 **Layout Fixes**:
+  - Fixed breadcrumb overflow and truncation issues
+  - Status info card positioning improvements
+  - Better flexbox layout management
+  - Improved element spacing and gaps
+
 ### v1.1.0 (2025) - 🚀 Feature Update
 
 - 🔍 **Global Search Extended** - Enhanced search functionality:
@@ -602,6 +620,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.0.0
+**Version**: 1.1.1
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
