@@ -241,7 +241,6 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
     file: CUSTOM_LIBRARY_FILE,
   });
   let baseEntries: RawLibraryEntry[] | null = null;
-  let isFirstLaunch = false;
   
   try {
     const content = await readTextFile(CUSTOM_LIBRARY_FILE, {
@@ -254,7 +253,6 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
     }
   } catch (error) {
     console.error("[FilamentLibrary] Failed to read base library file", error);
-    isFirstLaunch = true; // This is likely the first launch
     try {
       // Load default library dynamically (works on all platforms)
       const defaults = await loadDefaultLibrary();
