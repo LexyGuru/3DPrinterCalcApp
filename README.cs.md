@@ -38,6 +38,40 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
+### v1.1.2 (2025) - 🌍 Výběr jazyka a vylepšení
+
+- 🌍 **Výběr jazyka při prvním spuštění** - Moderní, animované dialogové okno pro výběr jazyka při prvním spuštění:
+  - Podpora 13 jazyků s ikonami vlajek
+  - Design respektující motiv
+  - Plynulé animace
+  - Tutoriál běží ve vybraném jazyce
+- 🔄 **Obnovení továrního nastavení** - Funkce pro úplné smazání dat:
+  - Smaže všechna uložená data (tiskárny, filamenty, nabídky, zákazníci, nastavení)
+  - Potvrzovací dialog pro nebezpečné operace
+  - Aplikace se restartuje jako při prvním spuštění
+- 🎨 **Vylepšení UI**:
+  - Oprava kontrastu textu v patičce (dynamický výběr barvy)
+  - Okamžité uložení při změně jazyka
+  - Vylepšené umístění tooltipů
+- 📚 **Překlady tutoriálu** - Úplný překlad tutoriálu ve všech podporovaných jazycích (přidána ruština, ukrajinština, čínština)
+
+### v1.1.1 (2025) - 🎨 Vylepšení rozvržení hlavičky
+
+- 📐 **Reorganizace hlavičky** - Struktura hlavičky se třemi částmi:
+  - Vlevo: Menu + Logo + Nadpis
+  - Uprostřed: Breadcrumb (dynamicky se zmenšuje)
+  - Vpravo: Rychlé akce + Karta informací o stavu
+- 📊 **Karta informací o stavu** - Kompaktní, moderní styl:
+  - "Další uložení" (štítek a hodnota)
+  - Datum a čas (naskládané)
+  - Vždy umístěno vpravo
+- 📱 **Responzivní design** - Vylepšené body přerušení:
+  - Skrýt breadcrumb <1000px
+  - Skrýt datum <900px
+  - Skrýt "Další uložení" <800px
+  - Kompaktní rychlé akce <700px
+- 🔢 **Oprava formátování čísel** - Zaokrouhlování procent pokroku načítání
+
 ### v1.1.0 (2025) - 🚀 Aktualizace funkcí
 
 - 🔍 **Rozšířené globální vyhledávání** - Vylepšená funkce vyhledávání:
