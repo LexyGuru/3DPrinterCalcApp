@@ -975,6 +975,8 @@ export const languageCs: TranslationMap = {
   "globalSearch.startTyping": "Začněte psát pro vyhledávání...",
   "globalSearch.type.page": "Stránka",
   "globalSearch.type.action": "Akce",
+  "globalSearch.type.offer": "Offer",
+  "globalSearch.type.filament": "Filament",
   "globalSearch.page.home": "Domovská stránka",
   "globalSearch.page.calculator": "Kalkulačka",
   "globalSearch.page.printers": "Tiskárny",

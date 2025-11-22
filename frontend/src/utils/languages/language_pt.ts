@@ -975,6 +975,8 @@ export const languagePt: TranslationMap = {
   "globalSearch.startTyping": "Comece a digitar para pesquisar...",
   "globalSearch.type.page": "Página",
   "globalSearch.type.action": "Ação",
+  "globalSearch.type.offer": "Offer",
+  "globalSearch.type.filament": "Filament",
   "globalSearch.page.home": "Início",
   "globalSearch.page.calculator": "Calculadora",
   "globalSearch.page.printers": "Impressoras",

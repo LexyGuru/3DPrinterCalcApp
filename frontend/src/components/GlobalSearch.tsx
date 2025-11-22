@@ -1,16 +1,23 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Theme } from '../utils/themes';
-import type { Settings } from '../types';
+import type { Settings, Offer } from '../types';
 import { useTranslation } from '../utils/translations';
+import type { LibraryColorOption } from '../utils/filamentLibrary';
+import { getAllLibraryEntries } from '../utils/filamentLibrary';
 
 interface SearchResult {
   id: string;
-  type: 'page' | 'action';
+  type: 'page' | 'action' | 'offer' | 'filament';
   label: string;
   icon: string;
   description?: string;
   action: () => void;
+  metadata?: {
+    offerId?: string;
+    filamentIndex?: number;
+    libraryEntryId?: string;
+  };
 }
 
 interface GlobalSearchProps {
@@ -20,6 +27,8 @@ interface GlobalSearchProps {
   theme: Theme;
   themeStyles: ReturnType<typeof import('../utils/themes').getThemeStyles>;
   settings: Settings;
+  offers?: Offer[];
+  onAddFilamentFromLibrary?: (libraryEntry: LibraryColorOption) => void;
 }
 
 export const GlobalSearch: React.FC<GlobalSearchProps> = ({
@@ -29,6 +38,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   theme,
   themeStyles,
   settings,
+  offers = [],
+  onAddFilamentFromLibrary,
 }) => {
   const t = useTranslation(settings.language);
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,6 +47,11 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const isGradientBg = typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient');
   const isNeon = theme.name === 'neon' || theme.name === 'cyberpunk';
+
+  // Filament library betöltése
+  const libraryEntries = useMemo(() => {
+    return getAllLibraryEntries();
+  }, []);
 
   // Fókusz az input mezőre amikor megnyílik
   useEffect(() => {
@@ -117,8 +133,84 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
       }
     });
 
-    return results.slice(0, 10); // Maximum 10 eredmény
-  }, [searchTerm, t, onNavigate, onClose]);
+    // Ajánlatok keresése
+    if (offers.length > 0) {
+      offers.forEach((offer, index) => {
+        const searchableText = [
+          offer.customerName || '',
+          offer.id?.toString() || '',
+          offer.status || '',
+          offer.date || '',
+        ].join(' ').toLowerCase();
+
+        if (searchableText.includes(term)) {
+          results.push({
+            id: `offer-${offer.id || index}`,
+            type: 'offer',
+            label: offer.customerName || t('offers.customerName') || 'Ügyfél',
+            icon: '📋',
+            description: `${t('offers.title') || 'Árajánlat'} #${offer.id || index} - ${offer.status || ''}`,
+            action: () => {
+              onNavigate('offers');
+              onClose();
+              // TODO: Később lehet scrollozni az ajánlathoz vagy kiemelni
+            },
+            metadata: {
+              offerId: offer.id?.toString(),
+            },
+          });
+        }
+      });
+    }
+
+    // Filamentek keresése az adatbázisból (nem a mentett filamentekből)
+    if (libraryEntries.length > 0) {
+      libraryEntries.forEach((entry: LibraryColorOption) => {
+        const searchableText = [
+          entry.manufacturer || '',
+          entry.material || '',
+          entry.rawColor || '',
+          entry.labels.hu || '',
+          entry.labels.en || '',
+          entry.labels.de || '',
+        ].join(' ').toLowerCase();
+
+        if (searchableText.includes(term)) {
+          const filamentLabel = `${entry.manufacturer || ''} ${entry.material || ''} ${entry.rawColor || entry.labels.hu || entry.labels.en || ''}`.trim();
+          results.push({
+            id: `library-filament-${entry.id}`,
+            type: 'filament',
+            label: filamentLabel || t('filaments.title') || 'Filament',
+            icon: '🧵',
+            description: `${entry.manufacturer || ''} ${entry.material || ''} - ${entry.rawColor || entry.labels.hu || entry.labels.en || ''} (${entry.finish || 'standard'})`,
+            action: () => {
+              if (onAddFilamentFromLibrary) {
+                onAddFilamentFromLibrary(entry);
+              }
+              onNavigate('filaments');
+              onClose();
+            },
+            metadata: {
+              libraryEntryId: entry.id,
+            },
+          });
+        }
+      });
+    }
+
+    // Rendezés: először oldalak és műveletek, aztán ajánlatok, végül filamentek
+    const sortedResults = results.sort((a, b) => {
+      const typeOrder: Record<string, number> = {
+        'page': 0,
+        'action': 1,
+        'offer': 2,
+        'filament': 3,
+      };
+      return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+    });
+
+    return sortedResults.slice(0, 15); // Maximum 15 eredmény (növelve, mert több típus van)
+  }, [searchTerm, t, onNavigate, onClose, offers, libraryEntries, settings.currency, onAddFilamentFromLibrary]);
 
   // Billentyű kezelés
   useEffect(() => {

@@ -884,6 +884,8 @@ export type TranslationKey =
   | "globalSearch.startTyping"
   | "globalSearch.type.page"
   | "globalSearch.type.action"
+  | "globalSearch.type.offer"
+  | "globalSearch.type.filament"
   | "globalSearch.page.home"
   | "globalSearch.page.calculator"
   | "globalSearch.page.printers"

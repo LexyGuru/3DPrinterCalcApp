@@ -975,6 +975,8 @@ export const languageHu: TranslationMap = {
   "globalSearch.startTyping": "Kezdj el gépelni a kereséshez...",
   "globalSearch.type.page": "Oldal",
   "globalSearch.type.action": "Művelet",
+  "globalSearch.type.offer": "Árajánlat",
+  "globalSearch.type.filament": "Filament",
   "globalSearch.page.home": "Főoldal",
   "globalSearch.page.calculator": "Kalkulátor",
   "globalSearch.page.printers": "Nyomtatók",

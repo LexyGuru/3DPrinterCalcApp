@@ -570,6 +570,8 @@ export const languageRu: TranslationMap = {
   "globalSearch.startTyping": "Начните вводить для поиска...",
   "globalSearch.type.page": "Страница",
   "globalSearch.type.action": "Действие",
+  "globalSearch.type.offer": "Offer",
+  "globalSearch.type.filament": "Filament",
   "globalSearch.page.home": "Главная",
   "globalSearch.page.calculator": "Калькулятор",
   "globalSearch.page.printers": "Принтеры",

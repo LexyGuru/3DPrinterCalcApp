@@ -570,6 +570,8 @@ export const languageUk: TranslationMap = {
   "globalSearch.startTyping": "Почніть вводити для пошуку...",
   "globalSearch.type.page": "Сторінка",
   "globalSearch.type.action": "Дія",
+  "globalSearch.type.offer": "Offer",
+  "globalSearch.type.filament": "Filament",
   "globalSearch.page.home": "Головна",
   "globalSearch.page.calculator": "Калькулятор",
   "globalSearch.page.printers": "Принтери",

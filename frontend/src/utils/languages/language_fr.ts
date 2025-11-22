@@ -1018,6 +1018,8 @@ export const languageFr: TranslationMap = {
   "globalSearch.startTyping": "Commencez à taper pour rechercher...",
   "globalSearch.type.page": "Page",
   "globalSearch.type.action": "Action",
+  "globalSearch.type.offer": "Offer",
+  "globalSearch.type.filament": "Filament",
   "globalSearch.page.home": "Accueil",
   "globalSearch.page.calculator": "Calculateur",
   "globalSearch.page.printers": "Imprimantes",

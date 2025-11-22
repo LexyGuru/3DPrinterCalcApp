@@ -923,6 +923,8 @@ export const languageZh: TranslationMap = {
   "globalSearch.startTyping": "开始输入以搜索...",
   "globalSearch.type.page": "页面",
   "globalSearch.type.action": "操作",
+  "globalSearch.type.offer": "Offer",
+  "globalSearch.type.filament": "Filament",
   "globalSearch.page.home": "首页",
   "globalSearch.page.calculator": "计算器",
   "globalSearch.page.printers": "打印机",
