@@ -244,6 +244,18 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.1.6 (2025) - 🌍 Complete Translation Coverage
+
+- 🌍 **Tutorial Translations** - Added missing tutorial translation keys to all language files:
+  - 8 new tutorial steps fully translated (Status Dashboard, PDF Preview, Drag & Drop, Context Menu, Price History, Online Price, Export/Import, Backup/Restore)
+  - All tutorial content now available in all 14 supported languages
+  - Complete tutorial experience in Czech, Spanish, French, Italian, Polish, Portuguese, Russian, Slovak, Ukrainian, and Chinese
+- 🎨 **Theme Names Translation** - Theme names now fully translated in all languages:
+  - 15 theme names added to all language files (Light, Dark, Blue, Green, Forest, Purple, Orange, Pastel, Charcoal, Midnight, Gradient, Neon, Cyberpunk, Sunset, Ocean)
+  - Theme names dynamically loaded from translation system instead of hardcoded values
+  - Fallback mechanism: translation key → displayName → theme name
+  - All themes now display in user's selected language in Settings
+
 ### v1.1.5 (2025) - 🎨 UI Improvements and Log Management
 
 - 🎨 **Filament Add Dialog Redesign** - Improved two-column layout for better organization:
@@ -680,6 +692,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.1.5
+**Version**: 1.1.6
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!

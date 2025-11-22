@@ -42,6 +42,18 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
+### v1.1.6 (2025) - 🌍 Teljes fordítási lefedettség
+
+- 🌍 **Tutorial fordítások** - Hiányzó tutorial fordítási kulcsok hozzáadva minden nyelvi fájlhoz:
+  - 8 új tutorial lépés teljes fordítása (Státusz dashboard, PDF előnézet, Húzd és ejtsd, Jobb klikk menü, Ár előzmények, Online ár összehasonlítás, Export/Import, Biztonsági mentés)
+  - Minden tutorial tartalom most elérhető mind a 14 támogatott nyelven
+  - Teljes tutorial élmény cseh, spanyol, francia, olasz, lengyel, portugál, orosz, szlovák, ukrán és kínai nyelven
+- 🎨 **Témák neveinek fordítása** - A témák nevei most teljes mértékben le vannak fordítva minden nyelvre:
+  - 15 téma név hozzáadva minden nyelvi fájlhoz (Világos, Sötét, Kék, Zöld, Őserdő, Lila, Narancs, Pasztell, Szénfekete, Éjfél, Gradiens, Neon, Cyberpunk, Naplemente, Óceán)
+  - A témák nevei dinamikusan töltődnek a fordítási rendszerből, nem hardcode-olt értékekből
+  - Fallback mechanizmus: fordítási kulcs → displayName → téma név
+  - Minden téma most a felhasználó által választott nyelven jelenik meg a Beállításokban
+
 ### v1.1.5 (2025) - 🎨 UI fejlesztések és log kezelés
 
 - 🎨 **Filament hozzáadása dialógus átdolgozása** - Jobb kétoszlopos elrendezés:
@@ -718,7 +730,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 1.1.5
+**Verzió**: 1.1.6
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

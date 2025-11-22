@@ -1221,6 +1221,7 @@ export const Offers: React.FC<Props> = ({
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           <div
+            data-tutorial="status-dashboard"
             style={{
               ...themeStyles.card,
               marginBottom: "24px",
@@ -1507,7 +1508,7 @@ export const Offers: React.FC<Props> = ({
                 </div>
               )}
               
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div data-tutorial="offers-list" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {filteredOffers.map(offer => {
                   const date = new Date(offer.date);
                   const statusEntry =
@@ -1816,6 +1817,7 @@ export const Offers: React.FC<Props> = ({
                           <Tooltip content={t("offers.previewPDF")}
                             >
                             <button
+                              data-tutorial="pdf-preview-button"
                               onClick={() => openPDFPreview(selectedOffer)}
                               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
                               onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSecondary.boxShadow; }}

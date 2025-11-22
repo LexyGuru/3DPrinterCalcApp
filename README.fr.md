@@ -41,6 +41,18 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
+### v1.1.6 (2025) - 🌍 Couverture de traduction complète
+
+- 🌍 **Traductions du tutoriel** - Ajout des clés de traduction du tutoriel manquantes à tous les fichiers de langue:
+  - 8 nouvelles étapes du tutoriel entièrement traduites (Tableau de bord des statuts, Aperçu PDF, Glisser-déposer, Menu contextuel, Historique des prix, Comparaison de prix en ligne, Exporter/Importer, Sauvegarde/Restauration)
+  - Tout le contenu du tutoriel est maintenant disponible dans les 14 langues prises en charge
+  - Expérience complète du tutoriel en tchèque, espagnol, français, italien, polonais, portugais, russe, slovaque, ukrainien et chinois
+- 🎨 **Traduction des noms de thèmes** - Les noms des thèmes sont maintenant entièrement traduits dans toutes les langues:
+  - 15 noms de thèmes ajoutés à tous les fichiers de langue (Clair, Sombre, Bleu, Vert, Forêt, Violet, Orange, Pastel, Charbon, Minuit, Dégradé, Néon, Cyberpunk, Coucher de soleil, Océan)
+  - Les noms des thèmes sont chargés dynamiquement depuis le système de traduction au lieu de valeurs codées en dur
+  - Mécanisme de repli: clé de traduction → displayName → nom du thème
+  - Tous les thèmes s'affichent maintenant dans la langue sélectionnée par l'utilisateur dans les Paramètres
+
 ### v1.1.5 (2025) - 🎨 Améliorations de l'interface et gestion des journaux
 
 - 🎨 **Refonte de la boîte de dialogue d'ajout de filament** - Mise en page à deux colonnes améliorée pour une meilleure organisation:
@@ -735,7 +747,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 1.1.5
+**Version**: 1.1.6
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

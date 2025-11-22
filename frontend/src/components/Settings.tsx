@@ -15,6 +15,7 @@ import type {
 } from "../types";
 import { defaultAnimationSettings, createEmptyCustomThemeDefinition, defaultSettings } from "../types";
 import { useTranslation, availableLanguages } from "../utils/translations";
+import type { TranslationKey } from "../utils/languages/types";
 import { useToast } from "./Toast";
 import {
   type ThemeName,
@@ -126,8 +127,22 @@ export const SettingsPage: React.FC<Props> = ({
   const [libraryImporting, setLibraryImporting] = useState(false);
   const FINISH_OPTIONS: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
   const MAX_LIBRARY_DISPLAY = 400;
-  const resolveBaseLanguage = (language: Settings["language"]): "hu" | "en" | "de" =>
-    language === "hu" || language === "de" ? language : "en";
+  const resolveBaseLanguage = (language: Settings["language"]): "hu" | "en" | "de" => {
+    // Csak a három alap nyelvet támogatjuk a témákhoz, a többi nyelv esetén angol lesz a fallback
+    return language === "hu" || language === "de" ? language : "en";
+  };
+  
+  const getThemeDisplayName = (theme: Theme, language: Settings["language"]): string => {
+    // Használjuk a fordítási kulcsokat a témák neveihez
+    const translationKey = `theme.${theme.name}` as TranslationKey;
+    const translated = t(translationKey);
+    // Ha a kulcs nem található, visszaesünk a régi displayName-re
+    if (translated === translationKey) {
+      const lang = resolveBaseLanguage(language);
+      return theme.displayName[lang] ?? theme.displayName.en ?? theme.name;
+    }
+    return translated;
+  };
   const themeSettingsState = useMemo<ThemeSettings>(() => ({
     customThemes: settings.themeSettings?.customThemes ?? [],
     activeCustomThemeId: settings.themeSettings?.activeCustomThemeId,
@@ -1814,7 +1829,7 @@ export const SettingsPage: React.FC<Props> = ({
                     color: isGradientTheme ? "#ffffff" : undefined,
                   }}
                 >
-                  {themeOption.displayName[resolveBaseLanguage(settings.language)] ?? themeOption.displayName.en}
+                  {getThemeDisplayName(themeOption, settings.language)}
                 </span>
                 {customDefinition?.description && (
                   <span
@@ -3373,7 +3388,7 @@ export const SettingsPage: React.FC<Props> = ({
         {activeTab === "data" && (
           <div>
         {/* Backup */}
-        <div style={{ marginBottom: "24px" }}>
+        <div data-tutorial="backup-restore-section" style={{ marginBottom: "24px" }}>
           <label style={{ 
             display: "block", 
             marginBottom: "12px", 
@@ -3615,7 +3630,7 @@ export const SettingsPage: React.FC<Props> = ({
         </div>
 
         {/* Export/Import Data Section - 2 oszlop */}
-        <div style={{ 
+        <div data-tutorial="export-import-section" style={{ 
           display: "flex", 
           flexDirection: "row",
           gap: "24px", 

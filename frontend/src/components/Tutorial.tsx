@@ -14,6 +14,8 @@ interface Props {
   onSkip?: () => void; // Opcionális skip callback, ami nem állítja be a completed-et
   currentPage?: string;
   onNavigate?: (page: string) => void;
+  onOpenGlobalSearch?: () => void; // Callback a GlobalSearch megnyitásához
+  onCloseGlobalSearch?: () => void; // Callback a GlobalSearch bezárásához
 }
 
 interface TutorialStep {
@@ -21,7 +23,7 @@ interface TutorialStep {
   target?: string; // CSS selector vagy 'center' ha középre kell
   title: string;
   description: string;
-  position?: "top" | "bottom" | "left" | "right" | "center";
+  position?: "top" | "bottom" | "left" | "right" | "center" | "bottom-right";
   page?: string; // Melyik oldalon kell megjelennie
   action?: () => void; // Opcionális akció (pl. navigáció)
 }
@@ -35,6 +37,8 @@ export const Tutorial: React.FC<Props> = ({
   onSkip,
   currentPage = "home",
   onNavigate,
+  onOpenGlobalSearch,
+  onCloseGlobalSearch,
 }) => {
   const t = useTranslation(settings.language);
   const [currentStep, setCurrentStep] = useState(0);
@@ -43,6 +47,10 @@ export const Tutorial: React.FC<Props> = ({
   const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({ display: "none" });
   const overlayRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const updatePositionTimeoutRef = useRef<number | null>(null);
+  const retryCountRef = useRef<number>(0);
+  const lastPositionRef = useRef<{ top: number; left: number } | null>(null);
+  const positionUpdateInProgressRef = useRef<boolean>(false);
 
   const steps: TutorialStep[] = [
     {
@@ -76,52 +84,208 @@ export const Tutorial: React.FC<Props> = ({
       page: "home",
     },
     {
+      id: "quick-actions",
+      target: "[data-tutorial='quick-actions'], [data-quick-actions]",
+      title: t("tutorial.quickActions.title") || "Gyors műveletek",
+      description:
+        t("tutorial.quickActions.description") ||
+        "A header-ben található gyors művelet gombok lehetővé teszik, hogy gyorsan hozzáadj új filamenteket, nyomtatókat vagy ügyfeleket. A gombok az aktuális oldal alapján változnak.",
+      position: "bottom",
+      page: "home",
+    },
+    {
+      id: "global-search",
+      target: "[data-tutorial='global-search-modal']",
+      title: t("tutorial.globalSearch.title") || "Globális keresés",
+      description:
+        t("tutorial.globalSearch.description") ||
+        "Nyomd meg a Ctrl+K (vagy Cmd+K Mac-en) billentyűkombinációt a globális keresés megnyitásához. Itt kereshetsz oldalak, filamentek, árajánlatok és ügyfelek között, és gyorsan navigálhatsz.",
+      position: "top",
+      page: "home",
+      action: () => onOpenGlobalSearch?.(),
+    },
+    {
+      id: "global-search",
+      target: "[data-tutorial='global-search-modal']",
+      title: t("tutorial.globalSearch.title") || "Globális keresés",
+      description:
+        t("tutorial.globalSearch.description") ||
+        "Nyomd meg a Ctrl+K (vagy Cmd+K Mac-en) billentyűkombinációt a globális keresés megnyitásához. Itt kereshetsz oldalak, filamentek, árajánlatok és ügyfelek között, és gyorsan navigálhatsz.",
+      position: "top",
+      page: "home",
+      action: () => onOpenGlobalSearch?.(),
+    },
+    {
       id: "printers",
+      target: "[data-page='printers']",
       title: t("tutorial.printers.title") || "Nyomtatók kezelése",
       description:
         t("tutorial.printers.description") ||
         "A Nyomtatók oldalon kezelheted a nyomtatóidat. Itt adhatsz hozzá, szerkeszthetsz vagy törölhetsz nyomtatókat.",
-      position: "center",
+      position: "bottom-right",
       page: "printers",
       action: () => onNavigate?.("printers"),
     },
     {
       id: "filaments",
+      target: "[data-page='filaments']",
       title: t("tutorial.filaments.title") || "Filamentek kezelése",
       description:
         t("tutorial.filaments.description") ||
         "A Filamentek oldalon kezelheted a filament kollekciódat. Itt adhatsz hozzá filamenteket árral és egyéb információkkal.",
-      position: "center",
+      position: "bottom-right",
       page: "filaments",
       action: () => onNavigate?.("filaments"),
     },
     {
+      id: "filament-library",
+      target: "[data-page='filaments']",
+      title: t("tutorial.filamentLibrary.title") || "Filament színkönyvtár",
+      description:
+        t("tutorial.filamentLibrary.description") ||
+        "Az alkalmazás több mint 12,000 gyári filament színt tartalmaz! A filament hozzáadása során használhatod a beépített könyvtárat, ahol márka és típus alapján kereshetsz és választhatsz színeket.",
+      position: "bottom-right",
+      page: "filaments",
+    },
+    {
+      id: "customers",
+      target: "[data-page='customers']",
+      title: t("tutorial.customers.title") || "Ügyfelek kezelése",
+      description:
+        t("tutorial.customers.description") ||
+        "Az Ügyfelek oldalon kezelheted az ügyfeleidet. Itt adhatsz hozzá ügyfeleket kapcsolattartási adatokkal, és követheted az árajánlat statisztikáikat.",
+      position: "bottom-right",
+      page: "customers",
+      action: () => onNavigate?.("customers"),
+    },
+    {
       id: "calculator",
+      target: "[data-page='calculator']",
       title: t("tutorial.calculator.title") || "Kalkulátor",
       description:
         t("tutorial.calculator.description") ||
         "A Kalkulátorban számíthatod ki a nyomtatási költségeket. Válassz egy nyomtatót és filamenteket, majd add meg a nyomtatási időt.",
-      position: "center",
+      position: "bottom-right",
       page: "calculator",
       action: () => onNavigate?.("calculator"),
     },
     {
+      id: "gcode-import",
+      target: "[data-page='calculator']",
+      title: t("tutorial.gcodeImport.title") || "G-code import",
+      description:
+        t("tutorial.gcodeImport.description") ||
+        "A kalkulátorban importálhatod a G-code vagy JSON fájlokat (Prusa, Cura, Orca, Qidi). Az alkalmazás automatikusan betölti a nyomtatási időt, filament mennyiséget, és létrehoz egy árajánlat draft-ot.",
+      position: "bottom-right",
+      page: "calculator",
+    },
+    {
       id: "offers",
+      target: "[data-page='offers']",
       title: t("tutorial.offers.title") || "Árajánlatok",
       description:
         t("tutorial.offers.description") ||
         "Az Árajánlatok oldalon láthatod az összes mentett árajánlatodat. Itt kezelheted, szerkesztheted vagy exportálhatod őket PDF formátumban.",
-      position: "center",
+      position: "bottom-right",
       page: "offers",
       action: () => onNavigate?.("offers"),
     },
     {
+      id: "status-dashboard",
+      target: "[data-tutorial='status-dashboard']",
+      title: t("tutorial.statusDashboard.title") || "Státusz dashboard",
+      description:
+        t("tutorial.statusDashboard.description") ||
+        "A státusz dashboard segít követni az árajánlatok státuszát. Itt láthatod a státusz kártyákat, gyors szűrőket, és a legutóbbi státusz változások idővonalát.",
+      position: "bottom-right",
+      page: "offers",
+      action: () => onNavigate?.("offers"),
+    },
+    {
+      id: "pdf-preview",
+      target: "[data-tutorial='pdf-preview-button']",
+      title: t("tutorial.pdfPreview.title") || "PDF előnézet és sablonok",
+      description:
+        t("tutorial.pdfPreview.description") ||
+        "Az árajánlatok exportálása előtt megtekintheted őket PDF formátumban. Választhatsz különböző sablonokat (Modern, Minimalist, Professional) és testreszabhatod a cég branding információit.",
+      position: "bottom-right",
+      page: "offers",
+      action: () => onNavigate?.("offers"),
+    },
+    {
+      id: "drag-drop",
+      target: "[data-tutorial='offers-list']",
+      title: t("tutorial.dragDrop.title") || "Húzd és ejtsd",
+      description:
+        t("tutorial.dragDrop.description") ||
+        "Az árajánlatokat húzással átrendezheted. Fogd meg egy árajánlatot és húzd át egy másik elé vagy mögé a kívánt sorrend eléréséhez. Az árajánlatok bal oldalán láthatod a drag handle-t.",
+      position: "bottom-right",
+      page: "offers",
+      action: () => onNavigate?.("offers"),
+    },
+    {
+      id: "context-menu",
+      target: "[data-tutorial='offers-list']",
+      title: t("tutorial.contextMenu.title") || "Jobb klikk menü",
+      description:
+        t("tutorial.contextMenu.description") ||
+        "Jobb klikkel egy árajánlatra gyors műveleteket érhetsz el: szerkesztés, duplikálás, törlés vagy PDF export. Ez gyorsabb, mint a gombok használata.",
+      position: "bottom-right",
+      page: "offers",
+      action: () => onNavigate?.("offers"),
+    },
+    {
+      id: "price-history",
+      target: "[data-tutorial='price-history-button']",
+      title: t("tutorial.priceHistory.title") || "Ár előzmények és trendek",
+      description:
+        t("tutorial.priceHistory.description") ||
+        "A filamentek ár változásait követheted az ár előzmények funkcióval. Láthatod a trend diagramokat, statisztikákat (átlag, min, max), és figyelmeztetést kapsz jelentős ár változásokról.",
+      position: "bottom-right",
+      page: "filaments",
+      action: () => onNavigate?.("filaments"),
+    },
+    {
+      id: "online-price",
+      target: "[data-tutorial='online-price-button']",
+      title: t("tutorial.onlinePrice.title") || "Online ár összehasonlítás",
+      description:
+        t("tutorial.onlinePrice.description") ||
+        "Egy kattintással kereshetsz a filamentekhez online árakat Google vagy Bing-en. Ha találsz jobb árat, frissítheted a filament árát azonnal.",
+      position: "bottom-right",
+      page: "filaments",
+      action: () => onNavigate?.("filaments"),
+    },
+    {
+      id: "export-import",
+      target: "[data-tutorial='export-import-section']",
+      title: t("tutorial.exportImport.title") || "Adatok exportálása és importálása",
+      description:
+        t("tutorial.exportImport.description") ||
+        "Exportálhatod az adataidat CSV vagy JSON formátumban, és később vissza is importálhatod őket. Ez hasznos biztonsági mentéshez vagy adatok átviteléhez.",
+      position: "bottom-right",
+      page: "settings",
+      action: () => onNavigate?.("settings"),
+    },
+    {
+      id: "backup-restore",
+      target: "[data-tutorial='backup-restore-section']",
+      title: t("tutorial.backupRestore.title") || "Biztonsági mentés és visszaállítás",
+      description:
+        t("tutorial.backupRestore.description") ||
+        "Készíthetsz teljes biztonsági mentést az összes adatodról (nyomtatók, filamentek, árajánlatok, beállítások), és később visszaállíthatod őket egy korábbi állapotból.",
+      position: "bottom-right",
+      page: "settings",
+      action: () => onNavigate?.("settings"),
+    },
+    {
       id: "settings",
+      target: "[data-page='settings']",
       title: t("tutorial.settings.title") || "Beállítások",
       description:
         t("tutorial.settings.description") ||
         "A Beállításokban módosíthatod a nyelvet, témát, és egyéb alkalmazás beállításokat. Itt is elindíthatod újra a tutorialt.",
-      position: "center",
+      position: "bottom-right",
       page: "settings",
       action: () => onNavigate?.("settings"),
     },
@@ -143,185 +307,267 @@ export const Tutorial: React.FC<Props> = ({
     const step = steps[currentStep];
     if (!step) return;
     
+    // Reset retry count új lépésnél
+    retryCountRef.current = 0;
+    // Reset pozíció referencia új lépésnél, hogy biztosan frissüljön
+    lastPositionRef.current = null;
+    positionUpdateInProgressRef.current = false;
+    
+    // Töröljük az előző timeout-ot, ha van
+    if (updatePositionTimeoutRef.current) {
+      clearTimeout(updatePositionTimeoutRef.current);
+      updatePositionTimeoutRef.current = null;
+    }
+    
+    // Ha a global-search lépésnél vagyunk, megnyitjuk a GlobalSearch-et
+    if (step.id === "global-search" && onOpenGlobalSearch) {
+      // Kis késleltetés, hogy a tutorial overlay megjelenjen
+      setTimeout(() => {
+        onOpenGlobalSearch();
+        // További késleltetés, hogy a GlobalSearch megjelenjen, majd frissítsük a pozíciót
+        updatePositionTimeoutRef.current = window.setTimeout(() => {
+          updateTargetPosition();
+        }, 600);
+      }, 300);
+    } else if (onCloseGlobalSearch) {
+      // Ha nem a global-search lépésnél vagyunk, bezárjuk a GlobalSearch-et
+      onCloseGlobalSearch();
+    }
+    
     // Ha van action és másik oldalon van, navigáljunk
     if (step.action && step.page && currentPage !== step.page && onNavigate) {
       // Kis késleltetés, hogy az overlay megjelenjen
       setTimeout(() => {
         step.action?.();
         // További késleltetés, hogy az oldal betöltődjön
-        setTimeout(() => {
+        updatePositionTimeoutRef.current = window.setTimeout(() => {
           updateTargetPosition();
-        }, 800);
+        }, 1000);
       }, 100);
     } else if (step.page && step.page !== currentPage && onNavigate) {
       // Ha nincs action, de másik oldalon van, navigáljunk manuálisan
       setTimeout(() => {
         if (step.page) {
           onNavigate(step.page);
-          setTimeout(() => {
+          updatePositionTimeoutRef.current = window.setTimeout(() => {
             updateTargetPosition();
-          }, 600);
+          }, 800);
         }
       }, 100);
     } else {
       // Ha ugyanazon az oldalon vagyunk, csak frissítsük a pozíciót
-      setTimeout(() => {
+      // Várunk egy kicsit, hogy az oldal stabilizálódjon
+      updatePositionTimeoutRef.current = window.setTimeout(() => {
         updateTargetPosition();
-      }, 200);
+      }, 300);
     }
+    
+    // Cleanup
+    return () => {
+      if (updatePositionTimeoutRef.current) {
+        clearTimeout(updatePositionTimeoutRef.current);
+        updatePositionTimeoutRef.current = null;
+      }
+    };
   }, [currentStep, isOpen, currentPage]);
 
   // Cél elem pozíciójának frissítése
   const updateTargetPosition = () => {
-    const step = steps[currentStep];
-    if (!step) return;
+    // Ha már folyamatban van egy pozíció frissítés, ne indítsunk újat
+    if (positionUpdateInProgressRef.current) return;
+    
+    const currentStepData = steps[currentStep];
+    if (!currentStepData) return;
 
-    if (step.target === "center") {
+    if (currentStepData.target === "center") {
       // Középre helyezés
-      setTargetElement(null);
-      setTooltipPosition({
+      const centerPos = {
         top: window.innerHeight / 2,
         left: window.innerWidth / 2,
-      });
+      };
+      // Csak akkor frissítjük, ha változott
+      if (!lastPositionRef.current || 
+          lastPositionRef.current.top !== centerPos.top || 
+          lastPositionRef.current.left !== centerPos.left) {
+        setTargetElement(null);
+        setTooltipPosition(centerPos);
+        lastPositionRef.current = centerPos;
+      }
       return;
     }
 
-    if (step.target) {
+    if (currentStepData.target) {
       // Element keresése
       let element: HTMLElement | null = null;
       
       // Próbáljuk meg a selectorral
       try {
-        element = document.querySelector<HTMLElement>(step.target);
+        element = document.querySelector<HTMLElement>(currentStepData.target);
       } catch (e) {
-        console.warn("Invalid selector:", step.target);
+        console.warn("Invalid selector:", currentStepData.target);
       }
 
       // Ha nem található, próbáljuk meg a page alapján
-      if (!element && step.page) {
-        const pageElement = document.querySelector(`[data-page="${step.page}"]`);
+      if (!element && currentStepData.page) {
+        const pageElement = document.querySelector(`[data-page="${currentStepData.page}"]`);
         if (pageElement) {
           element = pageElement as HTMLElement;
         }
       }
 
       if (element) {
-        setTargetElement(element);
-        // Kettős requestAnimationFrame, hogy biztosan renderelődjön a tooltip
-        // Plusz egy kis késleltetés, hogy az oldal betöltődjön
-        setTimeout(() => {
-          requestAnimationFrame(() => {
+        // Csak akkor állítjuk be, ha az elem valóban látható (nem rejtett)
+        const rect = element.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          // Reset retry count, ha megtaláltuk az elemet
+          retryCountRef.current = 0;
+          setTargetElement(element);
+          
+          positionUpdateInProgressRef.current = true;
+          
+          // Kettős requestAnimationFrame, hogy biztosan renderelődjön a tooltip
+          // Plusz egy kis késleltetés, hogy az oldal betöltődjön
+          setTimeout(() => {
             requestAnimationFrame(() => {
-            const rect = element.getBoundingClientRect();
-            // Valós tooltip méretek, ha elérhető, különben becsült
-            const tooltipRect = tooltipRef.current?.getBoundingClientRect();
-            const estimatedTooltipWidth = tooltipRect?.width || 400;
-            const estimatedTooltipHeight = tooltipRect?.height || 280;
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            const padding = 20;
-            const gap = 20;
-            
-            let top = 0;
-            let left = 0;
-            let preferredPosition = step.position || "bottom";
+              requestAnimationFrame(() => {
+                // Stabil tooltip méretek - fix értékek használata, hogy ne változzon
+                const estimatedTooltipWidth = 400;
+                const estimatedTooltipHeight = 280;
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const padding = 20;
+                const gap = 20;
+                
+                // Újra lekérjük a rect-et, mert változhatott scroll/resize miatt
+                const currentRect = element.getBoundingClientRect();
+                let top = 0;
+                let left = 0;
+                let preferredPosition = currentStepData.position || "bottom";
 
-            // Intelligens pozícionálás - automatikusan választja a legjobb pozíciót
-            const checkFits = (pos: { top: number; left: number }) => {
-              const fitsTop = pos.top >= padding;
-              const fitsBottom = pos.top + estimatedTooltipHeight <= viewportHeight - padding;
-              const fitsLeft = pos.left >= padding;
-              const fitsRight = pos.left + estimatedTooltipWidth <= viewportWidth - padding;
-              return fitsTop && fitsBottom && fitsLeft && fitsRight;
-            };
-
-            // Számított pozíciók a preferált irányban
-            const calculatePosition = (posName: string) => {
-              switch (posName) {
-                case "bottom":
-                  return {
-                    top: rect.bottom + gap,
-                    left: rect.left + rect.width / 2 - estimatedTooltipWidth / 2,
-                  };
-                case "top":
-                  return {
-                    top: rect.top - estimatedTooltipHeight - gap,
-                    left: rect.left + rect.width / 2 - estimatedTooltipWidth / 2,
-                  };
-                case "right":
-                  return {
-                    top: rect.top + rect.height / 2 - estimatedTooltipHeight / 2,
-                    left: rect.right + gap,
-                  };
-                case "left":
-                  return {
-                    top: rect.top + rect.height / 2 - estimatedTooltipHeight / 2,
-                    left: rect.left - estimatedTooltipWidth - gap,
-                  };
-                default:
-                  return {
-                    top: rect.bottom + gap,
-                    left: rect.left + rect.width / 2 - estimatedTooltipWidth / 2,
-                  };
-              }
-            };
-
-            const positions = ["bottom", "top", "right", "left", "center"] as const;
-            let selectedPosition = calculatePosition(preferredPosition);
-
-            // Ellenőrizzük, hogy a preferált pozícióban fér-e el
-            if (!checkFits(selectedPosition)) {
-              // Ha nem fér el, keressük meg a legjobb alternatívát
-              for (const posName of positions) {
-                if (posName === preferredPosition) continue;
-                const pos = calculatePosition(posName);
-                if (checkFits(pos)) {
-                  selectedPosition = pos;
-                  break;
+                // Speciális pozíció: bottom-right - fixen jobb alul
+                if (preferredPosition === "bottom-right") {
+                  top = viewportHeight - estimatedTooltipHeight - padding;
+                  left = viewportWidth - estimatedTooltipWidth - padding;
+                  
+                  const newPosition = { top, left };
+                  if (!lastPositionRef.current || 
+                      Math.abs(lastPositionRef.current.top - newPosition.top) > 5 || 
+                      Math.abs(lastPositionRef.current.left - newPosition.left) > 5) {
+                    setTooltipPosition(newPosition);
+                    lastPositionRef.current = newPosition;
+                  }
+                  positionUpdateInProgressRef.current = false;
+                  return;
                 }
-              }
-            }
 
-            top = selectedPosition.top;
-            left = selectedPosition.left;
+                // Intelligens pozícionálás - automatikusan választja a legjobb pozíciót
+                const checkFits = (pos: { top: number; left: number }) => {
+                  const fitsTop = pos.top >= padding;
+                  const fitsBottom = pos.top + estimatedTooltipHeight <= viewportHeight - padding;
+                  const fitsLeft = pos.left >= padding;
+                  const fitsRight = pos.left + estimatedTooltipWidth <= viewportWidth - padding;
+                  return fitsTop && fitsBottom && fitsLeft && fitsRight;
+                };
 
-            // Végleges ellenőrzés és korrekció - biztosítjuk, hogy a viewport-on belül legyen
-            // Ha kilóg jobbról, balra toljuk
-            if (left + estimatedTooltipWidth > viewportWidth - padding) {
-              left = viewportWidth - estimatedTooltipWidth - padding;
-            }
-            // Ha kilóg balról, jobbra toljuk
-            if (left < padding) {
-              left = padding;
-            }
-            // Ha kilóg alulról, feljebb toljuk
-            if (top + estimatedTooltipHeight > viewportHeight - padding) {
-              top = viewportHeight - estimatedTooltipHeight - padding;
-            }
-            // Ha kilóg felülről, lejjebb toljuk
-            if (top < padding) {
-              top = padding;
-            }
+                // Számított pozíciók a preferált irányban
+                const calculatePosition = (posName: string) => {
+                  switch (posName) {
+                    case "bottom":
+                      return {
+                        top: currentRect.bottom + gap,
+                        left: currentRect.left + currentRect.width / 2 - estimatedTooltipWidth / 2,
+                      };
+                    case "top":
+                      return {
+                        top: currentRect.top - estimatedTooltipHeight - gap,
+                        left: currentRect.left + currentRect.width / 2 - estimatedTooltipWidth / 2,
+                      };
+                    case "right":
+                      return {
+                        top: currentRect.top + currentRect.height / 2 - estimatedTooltipHeight / 2,
+                        left: currentRect.right + gap,
+                      };
+                    case "left":
+                      return {
+                        top: currentRect.top + currentRect.height / 2 - estimatedTooltipHeight / 2,
+                        left: currentRect.left - estimatedTooltipWidth - gap,
+                      };
+                    default:
+                      return {
+                        top: currentRect.bottom + gap,
+                        left: currentRect.left + currentRect.width / 2 - estimatedTooltipWidth / 2,
+                      };
+                  }
+                };
 
-            // Ha még mindig nem fér el (nagyon kicsi viewport), középre helyezzük
-            if (top + estimatedTooltipHeight > viewportHeight - padding || 
-                left + estimatedTooltipWidth > viewportWidth - padding ||
-                top < padding || left < padding) {
-              top = Math.max(padding, Math.min((viewportHeight - estimatedTooltipHeight) / 2, viewportHeight - estimatedTooltipHeight - padding));
-              left = Math.max(padding, Math.min((viewportWidth - estimatedTooltipWidth) / 2, viewportWidth - estimatedTooltipWidth - padding));
-            }
+                const positions = ["bottom", "top", "right", "left"] as const;
+                let selectedPosition = calculatePosition(preferredPosition);
 
-            setTooltipPosition({ top, left });
+                // Ellenőrizzük, hogy a preferált pozícióban fér-e el
+                if (!checkFits(selectedPosition)) {
+                  // Ha nem fér el, keressük meg a legjobb alternatívát
+                  for (const posName of positions) {
+                    if (posName === preferredPosition) continue;
+                    const pos = calculatePosition(posName);
+                    if (checkFits(pos)) {
+                      selectedPosition = pos;
+                      break;
+                    }
+                  }
+                }
+
+                top = selectedPosition.top;
+                left = selectedPosition.left;
+
+                // Végleges ellenőrzés és korrekció - biztosítjuk, hogy a viewport-on belül legyen
+                // De NE helyezzük középre, csak korrigáljuk a pozíciót
+                // Ha kilóg jobbról, balra toljuk
+                if (left + estimatedTooltipWidth > viewportWidth - padding) {
+                  left = Math.max(padding, viewportWidth - estimatedTooltipWidth - padding);
+                }
+                // Ha kilóg balról, jobbra toljuk
+                if (left < padding) {
+                  left = padding;
+                }
+                // Ha kilóg alulról, feljebb toljuk
+                if (top + estimatedTooltipHeight > viewportHeight - padding) {
+                  top = Math.max(padding, viewportHeight - estimatedTooltipHeight - padding);
+                }
+                // Ha kilóg felülről, lejjebb toljuk
+                if (top < padding) {
+                  top = padding;
+                }
+
+                // Csak akkor frissítjük a pozíciót, ha valóban változott (ugrálás elkerülése)
+                const newPosition = { top, left };
+                if (!lastPositionRef.current || 
+                    Math.abs(lastPositionRef.current.top - newPosition.top) > 5 || 
+                    Math.abs(lastPositionRef.current.left - newPosition.left) > 5) {
+                  setTooltipPosition(newPosition);
+                  lastPositionRef.current = newPosition;
+                }
+                
+                positionUpdateInProgressRef.current = false;
+              });
             });
-          });
-        }, 100);
+          }, 100);
+        } else {
+          positionUpdateInProgressRef.current = false;
+        }
       } else {
         // Ha nem található elem, középre helyezzük
-        setTargetElement(null);
-        setTooltipPosition({
+        const centerPos = {
           top: window.innerHeight / 2,
           left: window.innerWidth / 2,
-        });
+        };
+        // Csak akkor frissítjük, ha változott
+        if (!lastPositionRef.current || 
+            lastPositionRef.current.top !== centerPos.top || 
+            lastPositionRef.current.left !== centerPos.left) {
+          setTargetElement(null);
+          setTooltipPosition(centerPos);
+          lastPositionRef.current = centerPos;
+        }
       }
     }
   };
@@ -331,34 +577,54 @@ export const Tutorial: React.FC<Props> = ({
     if (!isOpen) return;
     
     // Kis késleltetés, hogy a tooltip renderelődjön
-    const timeoutId = setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       updateTargetPosition();
-    }, 200);
+    }, 500); // Növelt késleltetés, hogy az oldal betöltődjön
 
+    let resizeTimeoutId: number | null = null;
+    let scrollTimeoutId: number | null = null;
+    
     const handleResize = () => {
-      requestAnimationFrame(() => {
-        updateTargetPosition();
-      });
+      // Debounce a resize eseményt, hogy ne ugráljon
+      if (resizeTimeoutId !== null) {
+        clearTimeout(resizeTimeoutId);
+      }
+      resizeTimeoutId = window.setTimeout(() => {
+        requestAnimationFrame(() => {
+          if (!positionUpdateInProgressRef.current) {
+            updateTargetPosition();
+          }
+        });
+      }, 300); // Növelt debounce idő 200ms-ről 300ms-re
     };
+    
     const handleScroll = () => {
-      requestAnimationFrame(() => {
-        updateTargetPosition();
+      // Debounce a scroll eseményt, hogy ne ugráljon
+      if (scrollTimeoutId !== null) {
+        cancelAnimationFrame(scrollTimeoutId);
+      }
+      scrollTimeoutId = requestAnimationFrame(() => {
+        if (targetElement && document.contains(targetElement)) {
+          if (!positionUpdateInProgressRef.current) {
+            updateTargetPosition();
+          }
+        }
       });
     };
 
     window.addEventListener("resize", handleResize);
     window.addEventListener("scroll", handleScroll, true);
     
-    // Frissítés időszakonként is (ha az elem mozog)
-    const intervalId = setInterval(() => {
-      if (targetElement) {
-        updateTargetPosition();
-      }
-    }, 100);
+    // NEM használunk intervalt, hogy ne ugráljon a tutorial ablak
 
     return () => {
       clearTimeout(timeoutId);
-      clearInterval(intervalId);
+      if (resizeTimeoutId !== null) {
+        clearTimeout(resizeTimeoutId);
+      }
+      if (scrollTimeoutId !== null) {
+        cancelAnimationFrame(scrollTimeoutId);
+      }
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("scroll", handleScroll, true);
     };
@@ -374,6 +640,8 @@ export const Tutorial: React.FC<Props> = ({
   const handleNext = () => {
     if (isLast) {
       // Utolsó lépésnél befejezzük és mentjük
+      // Bezárjuk a GlobalSearch-et, ha nyitva van
+      onCloseGlobalSearch?.();
       onComplete();
     } else {
       setCurrentStep(currentStep + 1);
@@ -412,6 +680,8 @@ export const Tutorial: React.FC<Props> = ({
 
   const handleSkip = () => {
     // Kihagyáskor csak bezárjuk, de NEM állítjuk be a completed-et
+    // Bezárjuk a GlobalSearch-et, ha nyitva van
+    onCloseGlobalSearch?.();
     if (onSkip) {
       onSkip();
     } else {
@@ -422,13 +692,37 @@ export const Tutorial: React.FC<Props> = ({
 
   // Cél elem kiemelése (highlight) - frissítjük, amikor változik a targetElement vagy scroll
   useEffect(() => {
-    if (!targetElement) {
+    const step = steps[currentStep];
+    // Ha a global-search lépésnél vagyunk (center pozíció), ne jelenítsük meg a highlight-ot
+    if (!targetElement || (step && step.target === "center")) {
       setHighlightStyle({ display: "none" });
       return;
     }
 
+    let lastHighlightRect: DOMRect | null = null;
+    let highlightUpdateTimeout: number | null = null;
+
     const updateHighlight = () => {
+      // Ellenőrizzük, hogy az elem még létezik-e a DOM-ban
+      if (!targetElement || !document.contains(targetElement)) {
+        setHighlightStyle({ display: "none" });
+        lastHighlightRect = null;
+        return;
+      }
+      
       const rect = targetElement.getBoundingClientRect();
+      
+      // Csak akkor frissítjük, ha valóban változott a pozíció vagy méret (ugrálás elkerülése)
+      if (lastHighlightRect && 
+          Math.abs(lastHighlightRect.top - rect.top) < 1 &&
+          Math.abs(lastHighlightRect.left - rect.left) < 1 &&
+          Math.abs(lastHighlightRect.width - rect.width) < 1 &&
+          Math.abs(lastHighlightRect.height - rect.height) < 1) {
+        return; // Nem változott jelentősen, ne frissítsük
+      }
+      
+      lastHighlightRect = rect;
+      
       setHighlightStyle({
         position: "fixed",
         top: rect.top,
@@ -439,29 +733,48 @@ export const Tutorial: React.FC<Props> = ({
         border: `3px solid ${theme.colors.primary}`,
         boxShadow: `0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 20px ${theme.colors.primary}`,
         pointerEvents: "none",
-        zIndex: 10000,
+        zIndex: 99997, // Magasabb mint a GlobalSearch (9998), de alacsonyabb mint a tooltip (99999)
         transition: "all 0.3s ease",
       });
     };
 
     updateHighlight();
 
-    // Frissítés scroll és resize esetén
+    // Frissítés scroll és resize esetén - debounce-olva
     const handleScroll = () => {
-      requestAnimationFrame(updateHighlight);
+      if (highlightUpdateTimeout !== null) {
+        cancelAnimationFrame(highlightUpdateTimeout);
+      }
+      highlightUpdateTimeout = requestAnimationFrame(updateHighlight);
     };
+    
     const handleResize = () => {
-      requestAnimationFrame(updateHighlight);
+      if (highlightUpdateTimeout !== null) {
+        cancelAnimationFrame(highlightUpdateTimeout);
+      }
+      highlightUpdateTimeout = requestAnimationFrame(updateHighlight);
     };
+
+    // Időszakos frissítés is (pl. amikor a GlobalSearch megnyílik és a DOM változik)
+    // De csak ritkábban, hogy ne okozzon ugrálást
+    const intervalId = setInterval(() => {
+      if (targetElement && document.contains(targetElement)) {
+        updateHighlight();
+      }
+    }, 300); // Növelt intervallum 100ms-ről 300ms-re
 
     window.addEventListener("scroll", handleScroll, true);
     window.addEventListener("resize", handleResize);
 
     return () => {
+      clearInterval(intervalId);
+      if (highlightUpdateTimeout !== null) {
+        cancelAnimationFrame(highlightUpdateTimeout);
+      }
       window.removeEventListener("scroll", handleScroll, true);
       window.removeEventListener("resize", handleResize);
     };
-  }, [targetElement, theme.colors.primary]);
+  }, [targetElement, theme.colors.primary, currentStep]);
 
   return (
     <AnimatePresence>
@@ -480,8 +793,9 @@ export const Tutorial: React.FC<Props> = ({
               right: 0,
               bottom: 0,
               backgroundColor: "rgba(0, 0, 0, 0.5)",
-              zIndex: 9999,
+              zIndex: 99998, // Magas zIndex, de alacsonyabb mint a tooltip
               cursor: "pointer",
+              opacity: 1, // Fix opacity, hogy ne halványodjon el
             }}
             onClick={(e) => {
               // Csak akkor zárjuk be, ha az overlay-re kattintunk (nem a tooltip-re)
@@ -512,7 +826,7 @@ export const Tutorial: React.FC<Props> = ({
               minWidth: "320px",
               maxHeight: "80vh",
               overflowY: "auto",
-              zIndex: 10001,
+              zIndex: 99999, // Nagyon magas zIndex, hogy mindig előtérben legyen
               backgroundColor: theme.colors.surface,
               color: theme.colors.text,
               boxShadow: `0 10px 40px ${theme.colors.shadow}`,

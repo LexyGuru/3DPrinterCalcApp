@@ -42,6 +42,18 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.1.6 (2025) - 🌍 Vollständige Übersetzungsabdeckung
+
+- 🌍 **Tutorial-Übersetzungen** - Fehlende Tutorial-Übersetzungsschlüssel zu allen Sprachdateien hinzugefügt:
+  - 8 neue Tutorial-Schritte vollständig übersetzt (Status-Dashboard, PDF-Vorschau, Drag & Drop, Kontextmenü, Preishistorie, Online-Preisvergleich, Export/Import, Backup/Wiederherstellung)
+  - Alle Tutorial-Inhalte sind jetzt in allen 14 unterstützten Sprachen verfügbar
+  - Vollständige Tutorial-Erfahrung in Tschechisch, Spanisch, Französisch, Italienisch, Polnisch, Portugiesisch, Russisch, Slowakisch, Ukrainisch und Chinesisch
+- 🎨 **Themennamen-Übersetzung** - Themennamen sind jetzt vollständig in allen Sprachen übersetzt:
+  - 15 Themennamen zu allen Sprachdateien hinzugefügt (Hell, Dunkel, Blau, Grün, Wald, Lila, Orange, Pastell, Anthrazit, Mitternacht, Gradient, Neon, Cyberpunk, Sonnenuntergang, Ozean)
+  - Themennamen werden dynamisch aus dem Übersetzungssystem geladen, anstatt hartcodierter Werte
+  - Fallback-Mechanismus: Übersetzungsschlüssel → displayName → Themenname
+  - Alle Themen werden jetzt in der vom Benutzer ausgewählten Sprache in den Einstellungen angezeigt
+
 ### v1.1.5 (2025) - 🎨 UI-Verbesserungen und Log-Verwaltung
 
 - 🎨 **Filament-Hinzufügen-Dialog überarbeitet** - Verbessertes zweispaltiges Layout für bessere Organisation:
@@ -736,7 +748,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 1.1.5
+**Version**: 1.1.6
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

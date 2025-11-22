@@ -38,6 +38,18 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
+### v1.1.6 (2025) - 🌍 Úplné pokrytí překladů
+
+- 🌍 **Překlady tutoriálu** - Přidány chybějící překladové klíče tutoriálu do všech jazykových souborů:
+  - 8 nových kroků tutoriálu plně přeloženo (Stavový dashboard, PDF náhled, Přetahování, Kontextové menu, Historie cen, Online porovnání cen, Export/Import, Zálohování/Obnovení)
+  - Veškerý obsah tutoriálu je nyní dostupný ve všech 14 podporovaných jazycích
+  - Kompletní zážitek z tutoriálu v češtině, španělštině, francouzštině, italštině, polštině, portugalštině, ruštině, slovenštině, ukrajinštině a čínštině
+- 🎨 **Překlad názvů témat** - Názvy témat jsou nyní plně přeloženy ve všech jazycích:
+  - 15 názvů témat přidáno do všech jazykových souborů (Světlý, Tmavý, Modrý, Zelený, Les, Fialový, Oranžový, Pastelový, Antracit, Půlnoc, Přechod, Neon, Cyberpunk, Západ slunce, Oceán)
+  - Názvy témat se dynamicky načítají z překladového systému místo pevně zakódovaných hodnot
+  - Fallback mechanismus: překladový klíč → displayName → název tématu
+  - Všechna témata se nyní zobrazují v jazyce vybraném uživatelem v Nastavení
+
 ### v1.1.5 (2025) - 🎨 Vylepšení UI a správa logů
 
 - 🎨 **Přepracování dialogu pro přidání filamentu** - Vylepšené dvousloupcové rozvržení pro lepší organizaci:
@@ -733,6 +745,8 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 ---
 
 **Verze**: 1.1.1
+
+**Verze**: 1.1.6
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 

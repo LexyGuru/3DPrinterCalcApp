@@ -109,6 +109,16 @@ export interface Theme {
     hu: string;
     en: string;
     de: string;
+    cs?: string;
+    es?: string;
+    fr?: string;
+    it?: string;
+    pl?: string;
+    pt?: string;
+    ru?: string;
+    sk?: string;
+    uk?: string;
+    zh?: string;
   };
   colors: {
     // Háttérszínek

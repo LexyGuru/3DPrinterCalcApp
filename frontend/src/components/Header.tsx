@@ -428,7 +428,10 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
       }}>
         {/* Quick Actions - balra a status info kártyától */}
         {quickActions.length > 0 && themeStyles && (
-          <div style={{ 
+          <div 
+            data-tutorial="quick-actions"
+            data-quick-actions="true"
+            style={{ 
             display: "flex", 
             alignItems: "center", 
             gap: compactQuickActions ? "4px" : "8px", 

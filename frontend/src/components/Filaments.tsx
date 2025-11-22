@@ -1892,6 +1892,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             {editingIndex !== null && priceHistory.length > 0 && (
               <div style={{ marginTop: "8px" }}>
                 <button
+                  data-tutorial="price-history-button"
                   type="button"
                   onClick={() => setShowPriceHistory(!showPriceHistory)}
                   style={{
@@ -2667,6 +2668,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                       <Tooltip content={t("filaments.priceSearch")}>
                         <button
+                          data-tutorial="online-price-button"
                           onClick={() => void handleOpenPriceSearch(f)}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.transform = "translateY(-1px)";

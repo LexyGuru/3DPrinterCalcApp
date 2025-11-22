@@ -40,6 +40,18 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.1.6 (2025) - 🌍 Cobertura de tradução completa
+
+- 🌍 **Traduções do tutorial** - Adicionadas chaves de tradução do tutorial faltantes a todos os arquivos de idioma:
+  - 8 novos passos do tutorial totalmente traduzidos (Painel de status, Visualização PDF, Arrastar e soltar, Menu contextual, Histórico de preços, Comparação de preços online, Exportar/Importar, Backup/Restauração)
+  - Todo o conteúdo do tutorial agora está disponível em todos os 14 idiomas suportados
+  - Experiência completa do tutorial em tcheco, espanhol, francês, italiano, polonês, português, russo, eslovaco, ucraniano e chinês
+- 🎨 **Tradução de nomes de temas** - Os nomes dos temas agora estão totalmente traduzidos em todos os idiomas:
+  - 15 nomes de temas adicionados a todos os arquivos de idioma (Claro, Escuro, Azul, Verde, Floresta, Roxo, Laranja, Pastel, Carvão, Meia-noite, Gradiente, Neon, Cyberpunk, Pôr do sol, Oceano)
+  - Os nomes dos temas são carregados dinamicamente do sistema de tradução em vez de valores codificados
+  - Mecanismo de fallback: chave de tradução → displayName → nome do tema
+  - Todos os temas agora são exibidos no idioma selecionado pelo usuário em Configurações
+
 ### v1.1.5 (2025) - 🎨 Melhorias de UI e gerenciamento de logs
 
 - 🎨 **Redesign do diálogo de adicionar filamento** - Layout de duas colunas melhorado para melhor organização:
@@ -734,7 +746,7 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ---
 
-**Versão**: 1.1.1
+**Versão**: 1.1.6
 
 Se você tiver alguma dúvida ou encontrar um bug, por favor abra uma issue no repositório GitHub!
 

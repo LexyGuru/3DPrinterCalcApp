@@ -40,6 +40,18 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.1.6 (2025) - 🌍 Pełne pokrycie tłumaczeń
+
+- 🌍 **Tłumaczenia samouczka** - Dodano brakujące klucze tłumaczeń samouczka do wszystkich plików językowych:
+  - 8 nowych kroków samouczka w pełni przetłumaczonych (Panel statusu, Podgląd PDF, Przeciągnij i upuść, Menu kontekstowe, Historia cen, Porównanie cen online, Eksport/Import, Kopia zapasowa/Przywracanie)
+  - Cała zawartość samouczka jest teraz dostępna we wszystkich 14 obsługiwanych językach
+  - Pełne doświadczenie samouczka w języku czeskim, hiszpańskim, francuskim, włoskim, polskim, portugalskim, rosyjskim, słowackim, ukraińskim i chińskim
+- 🎨 **Tłumaczenie nazw motywów** - Nazwy motywów są teraz w pełni przetłumaczone we wszystkich językach:
+  - 15 nazw motywów dodanych do wszystkich plików językowych (Jasny, Ciemny, Niebieski, Zielony, Las, Fioletowy, Pomarańczowy, Pastelowy, Węgiel, Północ, Gradient, Neon, Cyberpunk, Zachód słońca, Ocean)
+  - Nazwy motywów są dynamicznie ładowane z systemu tłumaczeń zamiast zakodowanych wartości
+  - Mechanizm zapasowy: klucz tłumaczenia → displayName → nazwa motywu
+  - Wszystkie motywy są teraz wyświetlane w języku wybranym przez użytkownika w Ustawieniach
+
 ### v1.1.5 (2025) - 🎨 Ulepszenia interfejsu i zarządzanie logami
 
 - 🎨 **Przeprojektowanie okna dialogowego dodawania filamentu** - Ulepszony układ dwukolumnowy dla lepszej organizacji:
@@ -734,7 +746,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 1.1.1
+**Wersja**: 1.1.6
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 
