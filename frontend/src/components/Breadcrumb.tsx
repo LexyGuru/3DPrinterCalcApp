@@ -2,6 +2,7 @@ import React from 'react';
 import type { Theme } from '../utils/themes';
 import type { Settings } from '../types';
 import { useTranslation } from '../utils/translations';
+import { Tooltip } from './Tooltip';
 
 interface BreadcrumbItem {
   key: string;
@@ -41,6 +42,10 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
         gap: '8px',
         fontSize: '14px',
         color: isGradientBg ? '#1a202c' : theme.colors.textMuted || theme.colors.text,
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
       }}
       aria-label={t('breadcrumb.label') || 'Breadcrumb navigation'}
     >
@@ -63,30 +68,36 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
               </span>
             )}
             {isClickable ? (
-              <button
-                onClick={item.onClick}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = theme.colors.primary;
-                  e.currentTarget.style.textDecoration = 'underline';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = isGradientBg ? '#1a202c' : theme.colors.textMuted || theme.colors.text;
-                  e.currentTarget.style.textDecoration = 'none';
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '0',
-                  cursor: 'pointer',
-                  color: isGradientBg ? '#1a202c' : theme.colors.textMuted || theme.colors.text,
-                  fontSize: '14px',
-                  transition: 'all 0.2s',
-                  textDecoration: 'none',
-                }}
-                aria-label={`${t('breadcrumb.navigateTo') || 'Navigate to'} ${item.label}`}
+              <Tooltip 
+                content={`${t('breadcrumb.navigateTo') || 'Navigate to'} ${item.label}`}
+                position="bottom"
+                theme={theme}
               >
-                {item.label}
-              </button>
+                <button
+                  onClick={item.onClick}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = theme.colors.primary;
+                    e.currentTarget.style.textDecoration = 'underline';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = isGradientBg ? '#1a202c' : theme.colors.textMuted || theme.colors.text;
+                    e.currentTarget.style.textDecoration = 'none';
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '0',
+                    cursor: 'pointer',
+                    color: isGradientBg ? '#1a202c' : theme.colors.textMuted || theme.colors.text,
+                    fontSize: '14px',
+                    transition: 'all 0.2s',
+                    textDecoration: 'none',
+                  }}
+                  aria-label={`${t('breadcrumb.navigateTo') || 'Navigate to'} ${item.label}`}
+                >
+                  {item.label}
+                </button>
+              </Tooltip>
             ) : (
               <span
                 style={{

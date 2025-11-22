@@ -45,6 +45,7 @@ import { translateText } from "../utils/translator";
 import { logWithLanguage } from "../utils/languages/global_console";
 import { sendNativeNotification, setDockBadge, getPlatform, requestNotificationPermission, checkNotificationPermission } from "../utils/platformFeatures";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
+import { saveSettings } from "../utils/store";
 
 interface Props {
   settings: Settings;
@@ -2879,6 +2880,95 @@ export const SettingsPage: React.FC<Props> = ({
               </p>
             </div>
           )}
+        </div>
+
+        {/* Tutorial beállítások */}
+        <div style={{ marginBottom: "24px" }}>
+          <Tooltip content={t("settings.showTutorialOnStartupDescription") || "Ha be van pipálva, az első indításkor megjelenik a kezdő tutorial, amely végigvezeti az alkalmazáson."}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer" 
+            }}>
+              <input
+                type="checkbox"
+                checked={settings.showTutorialOnStartup !== false}
+                onChange={async (e) => {
+                  const checked = e.target.checked;
+                  // Ha újra bepipáljuk a tutorialt, akkor reseteljük a completed státuszt
+                  // hogy újra megjelenjen a következő indításkor
+                  const newSettings = { 
+                    ...settings, 
+                    showTutorialOnStartup: checked,
+                    // Ha true-ra változtatjuk, akkor reseteljük a completed-et
+                    ...(checked && settings.tutorialCompleted ? { tutorialCompleted: false } : {})
+                  };
+                  onChange(newSettings);
+                  // Azonnal mentjük, hogy ne veszítse el
+                  try {
+                    await saveSettings(newSettings);
+                    if (import.meta.env.DEV) {
+                      console.log("✅ Tutorial beállítás azonnal mentve:", checked, "tutorialCompleted reset:", checked && settings.tutorialCompleted);
+                    }
+                  } catch (error) {
+                    console.error("❌ Hiba a tutorial beállítás mentésekor:", error);
+                  }
+                }}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>📚 {t("settings.showTutorialOnStartup") || "Kezdő tutorial megjelenítése indításkor:"}</span>
+            </label>
+          </Tooltip>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.showTutorialOnStartupDescription") || "Ha be van pipálva, az első indításkor megjelenik a kezdő tutorial, amely végigvezeti az alkalmazáson."}
+          </p>
+          
+          {/* Tutorial újranézése gomb */}
+          <div style={{ marginTop: "16px", marginLeft: "32px" }}>
+            <button
+              onClick={async () => {
+                // Reset tutorial completed status és indítsd újra
+                const newSettings = { ...settings, tutorialCompleted: false };
+                onChange(newSettings);
+                // Azonnal mentjük
+                try {
+                  await saveSettings(newSettings);
+                  if (import.meta.env.DEV) {
+                    console.log("✅ Tutorial reset mentve, tutorialCompleted:", false);
+                  }
+                } catch (error) {
+                  console.error("❌ Hiba a tutorial reset mentésekor:", error);
+                }
+                // A tutorial elindítása az App.tsx-ben történik
+                // Kis késleltetés, hogy a mentés befejeződjön
+                setTimeout(() => {
+                  if (window.dispatchEvent) {
+                    window.dispatchEvent(new CustomEvent('start-tutorial'));
+                  }
+                }, 100);
+              }}
+              style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonPrimary,
+                padding: "10px 20px",
+                fontSize: "14px",
+              }}
+            >
+              🔄 {t("settings.tutorial.restart") || "Tutorial újranézése"}
+            </button>
+            <p style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.textMuted }}>
+              {t("settings.tutorial.restartDescription") || "Kattints ide, hogy újra lefusson a kezdő tutorial."}
+            </p>
+            {settings.tutorialCompleted && (
+              <p style={{ marginTop: "8px", fontSize: "12px", color: theme.colors.success }}>
+                ✓ {t("settings.tutorial.completed") || "Tutorial megtekintve"}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Értesítések */}

@@ -132,7 +132,9 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
   const sidebarWidth = isOpen ? 260 : 0;
 
   return (
-    <div
+    <aside
+      data-sidebar="true"
+      role="navigation"
       style={{
         position: "fixed",
         left: 0,
@@ -450,12 +452,12 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                       display: "inline-block",
                       padding: "4px 10px",
                       borderRadius: "6px",
-                      background: "#ffc107",
-                      color: "#000",
+                      background: theme.colors.danger || "#ffc107", // Danger/Warning szín a témából
+                      color: theme.name === 'light' || theme.name === 'pastel' ? "#000" : "#fff", // Kontrasztos szín
                       fontWeight: "700",
                       fontSize: getFontSize(10),
                       letterSpacing: "0.5px",
-                      boxShadow: isNeon ? `0 0 10px #ffc107` : "0 2px 4px rgba(0,0,0,0.1)",
+                      boxShadow: isNeon ? `0 0 10px ${theme.colors.danger || "#ffc107"}` : "0 2px 4px rgba(0,0,0,0.1)",
                     }}
                   >
                     BETA
@@ -469,7 +471,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                       background: typeof theme.colors.success === 'string' && theme.colors.success.includes('gradient')
                         ? theme.colors.success
                         : theme.colors.success,
-                      color: "#fff",
+                      color: "#fff", // Fehér szöveg mindig jól olvasható a success háttéren
                       fontWeight: "700",
                       fontSize: getFontSize(10),
                       letterSpacing: "0.5px",
@@ -484,6 +486,6 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
           </FadeIn>
         </>
       )}
-    </div>
+    </aside>
   );
 };

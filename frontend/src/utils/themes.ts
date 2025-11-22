@@ -57,9 +57,41 @@ const getRelativeLuminance = (hex: string) => {
   return clamp(lum, 0, 1);
 };
 
+// Kontraszt arány számítása két szín között (WCAG spec szerint)
+const getContrastRatio = (color1: string, color2: string): number => {
+  const lum1 = getRelativeLuminance(color1);
+  const lum2 = getRelativeLuminance(color2);
+  const lighter = Math.max(lum1, lum2);
+  const darker = Math.min(lum1, lum2);
+  return (lighter + 0.05) / (darker + 0.05);
+};
+
 const chooseContrastingText = (background: string) => {
   const luminance = getRelativeLuminance(background);
-  return luminance > 0.55 ? "#141920" : "#F9FAFB";
+  // Dinamikus kontrasztos szín választás a háttér luminance alapján
+  // Világos háttér -> sötét szöveg, sötét háttér -> világos szöveg
+  // WCAG AA követelmény: minimum 4.5:1 kontraszt normál szöveghez
+  if (luminance > 0.55) {
+    // Világos háttérhez sötét szöveg (WCAG AA kompatibilis)
+    // Fokozatosan sötétítjük, amíg elérjük a minimális kontrasztot
+    let textColor = adjustColor(background, -0.85);
+    let contrast = getContrastRatio(textColor, background);
+    // Ha nincs elég kontraszt, még sötétebbé tesszük
+    if (contrast < 4.5) {
+      textColor = "#000000"; // Fekete garantálja a jó kontrasztot világos háttéren
+    }
+    return textColor;
+  } else {
+    // Sötét háttérhez világos szöveg (WCAG AA kompatibilis)
+    // Fokozatosan világosítjuk, amíg elérjük a minimális kontrasztot
+    let textColor = adjustColor(background, 0.85);
+    let contrast = getContrastRatio(textColor, background);
+    // Ha nincs elég kontraszt, még világosabbá tesszük
+    if (contrast < 4.5) {
+      textColor = "#FFFFFF"; // Fehér garantálja a jó kontrasztot sötét háttéren
+    }
+    return textColor;
+  }
 };
 
 const deriveMutedText = (textColor: string, isLight: boolean) =>

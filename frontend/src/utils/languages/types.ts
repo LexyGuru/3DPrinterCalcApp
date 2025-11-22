@@ -457,6 +457,11 @@ export type TranslationKey =
   | "settings.notificationEnabledDescription"
   | "settings.notificationDuration"
   | "settings.notificationDurationDescription"
+  | "settings.showTutorialOnStartup"
+  | "settings.showTutorialOnStartupDescription"
+  | "settings.tutorial.restart"
+  | "settings.tutorial.restartDescription"
+  | "settings.tutorial.completed"
   | "settings.backup"
   | "settings.backupCreate"
   | "settings.backupRestore"
@@ -997,7 +1002,30 @@ export type TranslationKey =
   | "sidebar.printers"
   | "sidebar.calculator"
   | "sidebar.settings"
-  | "sidebar.console";
+  | "sidebar.console"
+  // Tutorial
+  | "tutorial.welcome.title"
+  | "tutorial.welcome.description"
+  | "tutorial.sidebar.title"
+  | "tutorial.sidebar.description"
+  | "tutorial.home.title"
+  | "tutorial.home.description"
+  | "tutorial.printers.title"
+  | "tutorial.printers.description"
+  | "tutorial.filaments.title"
+  | "tutorial.filaments.description"
+  | "tutorial.calculator.title"
+  | "tutorial.calculator.description"
+  | "tutorial.offers.title"
+  | "tutorial.offers.description"
+  | "tutorial.settings.title"
+  | "tutorial.settings.description"
+  | "tutorial.complete.title"
+  | "tutorial.complete.description"
+  | "tutorial.next"
+  | "tutorial.previous"
+  | "tutorial.skip"
+  | "tutorial.finish";
 
 export type TranslationMap = Record<TranslationKey, string>;
 

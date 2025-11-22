@@ -4,8 +4,9 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Színek a témarendszer kezeli - nem fix értékek */
+  color: inherit;
+  background-color: transparent;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,11 +16,14 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  /* Link szín a témarendszer kezeli */
+  color: inherit;
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  /* Link hover szín a témarendszer kezeli */
+  color: inherit;
+  opacity: 0.8;
 }
 
 body {
@@ -50,11 +54,13 @@ button {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    /* Háttér szín a témarendszer kezeli, ne kényszerítsük */
+    /* Színek a témarendszer kezeli */
+    color: inherit;
   }
   a:hover {
-    color: #747bff;
+    /* Link hover a témarendszer kezeli */
+    color: inherit;
+    opacity: 0.8;
   }
   /* Gomb háttér a témarendszer kezeli */
 }
@@ -186,24 +192,38 @@ textarea {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - témarendszer alapján */
+/* A scrollbar színeit a témarendszer CSS változóival lehet beállítani */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  /* Alapértelmezett track - átlátszó, hogy a háttér látszódjon */
+  background: transparent;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.3);
+  /* Alapértelmezett thumb - sötét témához */
+  background: rgba(128, 128, 128, 0.3);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.5);
+  /* Hover állapot */
+  background: rgba(128, 128, 128, 0.5);
+}
+
+/* Világos témákhoz könnyebb scrollbar */
+@media (prefers-color-scheme: light) {
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
+  }
 }
 
 /* Glassmorphism effect */
@@ -219,9 +239,10 @@ textarea {
   text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
 }
 
-/* Gradient text */
+/* Gradient text - a témarendszer gradienseit használja */
+/* Ez osztály csak akkor használandó, ha a téma rendelkezik gradiensekkel */
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Gradient a témarendszerből jön */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
