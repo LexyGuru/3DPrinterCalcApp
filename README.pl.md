@@ -40,6 +40,40 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.1.2 (2025) - 🌍 Selektor języka i ulepszenia
+
+- 🌍 **Selektor języka przy pierwszym uruchomieniu** - Nowoczesne, animowane okno dialogowe wyboru języka przy pierwszym uruchomieniu:
+  - Obsługa 13 języków z ikonami flag
+  - Design świadomy motywu
+  - Płynne animacje
+  - Samouczek działa w wybranym języku
+- 🔄 **Przywracanie ustawień fabrycznych** - Funkcja całkowitego usuwania danych:
+  - Usuwa wszystkie zapisane dane (drukarki, filamenty, oferty, klienci, ustawienia)
+  - Okno dialogowe potwierdzenia dla niebezpiecznych operacji
+  - Aplikacja uruchamia się ponownie jak przy pierwszym uruchomieniu
+- 🎨 **Ulepszenia UI**:
+  - Poprawka kontrastu tekstu stopki (dynamiczny wybór koloru)
+  - Natychmiastowe zapisywanie przy zmianie języka
+  - Ulepszone pozycjonowanie tooltipów
+- 📚 **Tłumaczenia samouczka** - Pełne tłumaczenie samouczka we wszystkich obsługiwanych językach (dodano rosyjski, ukraiński, chiński)
+
+### v1.1.1 (2025) - 🎨 Ulepszenia układu nagłówka
+
+- 📐 **Reorganizacja nagłówka** - Struktura nagłówka z trzema częściami:
+  - Lewa: Menu + Logo + Tytuł
+  - Środek: Breadcrumb (dynamicznie się zmniejsza)
+  - Prawa: Szybkie akcje + Karta informacji o stanie
+- 📊 **Karta informacji o stanie** - Kompaktowy, nowoczesny styl:
+  - "Następne zapisanie" (etykieta i wartość)
+  - Data i godzina (ułożone jeden pod drugim)
+  - Zawsze pozycjonowane po prawej stronie
+- 📱 **Design responsywny** - Ulepszone punkty przerwania:
+  - Ukryj breadcrumb <1000px
+  - Ukryj datę <900px
+  - Ukryj "Następne zapisanie" <800px
+  - Kompaktowe szybkie akcje <700px
+- 🔢 **Poprawka formatowania liczb** - Zaokrąglanie procentów postępu ładowania
+
 ### v1.1.0 (2025) - 🚀 Aktualizacja funkcji
 
 - 🔍 **Rozszerzone wyszukiwanie globalne** - Ulepszona funkcjonalność wyszukiwania:

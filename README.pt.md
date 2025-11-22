@@ -40,6 +40,40 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.1.2 (2025) - 🌍 Seletor de idioma e melhorias
+
+- 🌍 **Seletor de idioma no primeiro início** - Diálogo moderno e animado de seleção de idioma no primeiro início:
+  - Suporte para 13 idiomas com ícones de bandeiras
+  - Design consciente do tema
+  - Animações suaves
+  - O tutorial é executado no idioma selecionado
+- 🔄 **Restauração de fábrica** - Função de exclusão completa de dados:
+  - Exclui todos os dados armazenados (impressoras, filamentos, ofertas, clientes, configurações)
+  - Diálogo de confirmação para operações perigosas
+  - O aplicativo reinicia como no primeiro início
+- 🎨 **Melhorias de UI**:
+  - Correção de contraste do texto do rodapé (seleção de cor dinâmica)
+  - Salvamento imediato ao alterar o idioma
+  - Posicionamento melhorado de tooltips
+- 📚 **Traduções do tutorial** - Tradução completa do tutorial em todos os idiomas suportados (russo, ucraniano, chinês adicionados)
+
+### v1.1.1 (2025) - 🎨 Melhorias de layout do cabeçalho
+
+- 📐 **Reorganização do cabeçalho** - Estrutura de cabeçalho de três partes:
+  - Esquerda: Menu + Logo + Título
+  - Centro: Breadcrumb (reduz dinamicamente)
+  - Direita: Ações rápidas + Cartão de informações de status
+- 📊 **Cartão de informações de status** - Estilo compacto e moderno:
+  - "Próximo salvamento" (rótulo e valor)
+  - Data e hora (empilhadas)
+  - Sempre posicionado à direita
+- 📱 **Design responsivo** - Pontos de quebra melhorados:
+  - Ocultar breadcrumb <1000px
+  - Ocultar data <900px
+  - Ocultar "Próximo salvamento" <800px
+  - Ações rápidas compactas <700px
+- 🔢 **Correção de formatação de números** - Arredondamento de percentuais de progresso de carregamento
+
 ### v1.1.0 (2025) - 🚀 Atualização de funcionalidades
 
 - 🔍 **Busca global estendida** - Funcionalidade de busca aprimorada:

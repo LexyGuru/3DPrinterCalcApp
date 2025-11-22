@@ -41,6 +41,40 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
+### v1.1.2 (2025) - 🌍 Sélecteur de langue et améliorations
+
+- 🌍 **Sélecteur de langue au premier lancement** - Dialogue moderne et animé de sélection de langue au premier lancement:
+  - Support de 13 langues avec icônes de drapeaux
+  - Design conscient du thème
+  - Animations fluides
+  - Le tutoriel s'exécute dans la langue sélectionnée
+- 🔄 **Réinitialisation d'usine** - Fonction de suppression complète des données:
+  - Supprime toutes les données stockées (imprimantes, filaments, offres, clients, paramètres)
+  - Dialogue de confirmation pour les opérations dangereuses
+  - L'application redémarre comme au premier lancement
+- 🎨 **Améliorations UI**:
+  - Correction du contraste du texte du pied de page (sélection de couleur dynamique)
+  - Enregistrement immédiat lors du changement de langue
+  - Positionnement amélioré des tooltips
+- 📚 **Traductions du tutoriel** - Traduction complète du tutoriel dans toutes les langues supportées (russe, ukrainien, chinois ajoutés)
+
+### v1.1.1 (2025) - 🎨 Améliorations de la mise en page de l'en-tête
+
+- 📐 **Réorganisation de l'en-tête** - Structure d'en-tête en trois parties:
+  - Gauche: Menu + Logo + Titre
+  - Centre: Fil d'Ariane (se réduit dynamiquement)
+  - Droite: Actions rapides + Carte d'information d'état
+- 📊 **Carte d'information d'état** - Style compact et moderne:
+  - "Prochaine sauvegarde" (étiquette et valeur)
+  - Date et heure (empilées)
+  - Toujours positionnée à droite
+- 📱 **Design responsive** - Points de rupture améliorés:
+  - Masquer le fil d'Ariane <1000px
+  - Masquer la date <900px
+  - Masquer "Prochaine sauvegarde" <800px
+  - Actions rapides compactes <700px
+- 🔢 **Correction du formatage des nombres** - Arrondi des pourcentages de progression de chargement
+
 ### v1.1.0 (2025) - 🚀 Mise à jour des fonctionnalités
 
 - 🔍 **Recherche globale étendue** - Fonctionnalité de recherche améliorée:

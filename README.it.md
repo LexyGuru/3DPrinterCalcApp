@@ -41,6 +41,40 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.1.2 (2025) - 🌍 Selettore lingua e miglioramenti
+
+- 🌍 **Selettore lingua al primo avvio** - Dialogo moderno e animato per la selezione della lingua al primo avvio:
+  - Supporto per 13 lingue con icone bandiera
+  - Design consapevole del tema
+  - Animazioni fluide
+  - Il tutorial viene eseguito nella lingua selezionata
+- 🔄 **Ripristino alle impostazioni di fabbrica** - Funzione di eliminazione completa dei dati:
+  - Elimina tutti i dati memorizzati (stampanti, filamenti, offerte, clienti, impostazioni)
+  - Dialogo di conferma per operazioni pericolose
+  - L'applicazione si riavvia come al primo avvio
+- 🎨 **Miglioramenti UI**:
+  - Correzione del contrasto del testo del piè di pagina (selezione colore dinamica)
+  - Salvataggio immediato al cambio lingua
+  - Posizionamento migliorato dei tooltip
+- 📚 **Traduzioni tutorial** - Traduzione completa del tutorial in tutte le lingue supportate (aggiunto russo, ucraino, cinese)
+
+### v1.1.1 (2025) - 🎨 Miglioramenti layout header
+
+- 📐 **Riorganizzazione header** - Struttura header a tre parti:
+  - Sinistra: Menu + Logo + Titolo
+  - Centro: Breadcrumb (si riduce dinamicamente)
+  - Destra: Azioni rapide + Card informazioni stato
+- 📊 **Card informazioni stato** - Stile compatto e moderno:
+  - "Prossimo salvataggio" (etichetta e valore)
+  - Data e ora (impilate)
+  - Sempre posizionata a destra
+- 📱 **Design responsive** - Breakpoint migliorati:
+  - Nascondi breadcrumb <1000px
+  - Nascondi data <900px
+  - Nascondi "Prossimo salvataggio" <800px
+  - Azioni rapide compatte <700px
+- 🔢 **Correzione formattazione numeri** - Arrotondamento percentuali progresso caricamento
+
 ### v1.1.0 (2025) - 🚀 Aggiornamento funzionalità
 
 - 🔍 **Ricerca globale estesa** - Funzionalità di ricerca migliorata:

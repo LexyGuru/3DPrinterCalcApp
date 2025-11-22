@@ -40,6 +40,40 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.1.2 (2025) - 🌍 Výber jazyka a vylepšenia
+
+- 🌍 **Výber jazyka pri prvom spustení** - Moderné, animované dialógové okno pre výber jazyka pri prvom spustení:
+  - Podpora 13 jazykov s ikonami vlajok
+  - Dizajn respektujúci motív
+  - Plynulé animácie
+  - Tutoriál beží vo vybranom jazyku
+- 🔄 **Obnovenie továrenského nastavenia** - Funkcia pre úplné vymazanie dát:
+  - Vymaže všetky uložené dáta (tlačiarne, filamenty, ponuky, zákazníci, nastavenia)
+  - Potvrdzovací dialóg pre nebezpečné operácie
+  - Aplikácia sa reštartuje ako pri prvom spustení
+- 🎨 **Vylepšenia UI**:
+  - Oprava kontrastu textu v pätičke (dynamický výber farby)
+  - Okamžité uloženie pri zmene jazyka
+  - Vylepšené umiestnenie tooltipov
+- 📚 **Preklady tutoriálu** - Úplný preklad tutoriálu vo všetkých podporovaných jazykoch (pridaná ruština, ukrajinčina, čínština)
+
+### v1.1.1 (2025) - 🎨 Vylepšenia rozvrhnutia hlavičky
+
+- 📐 **Reorganizácia hlavičky** - Štruktúra hlavičky s tromi časťami:
+  - Vľavo: Menu + Logo + Nadpis
+  - Uprostred: Breadcrumb (dynamicky sa zmenšuje)
+  - Vpravo: Rýchle akcie + Karta informácií o stave
+- 📊 **Karta informácií o stave** - Kompaktný, moderný štýl:
+  - "Ďalšie uloženie" (štítok a hodnota)
+  - Dátum a čas (naskladané)
+  - Vždy umiestnené vpravo
+- 📱 **Responzívny dizajn** - Vylepšené body prerušenia:
+  - Skryť breadcrumb <1000px
+  - Skryť dátum <900px
+  - Skryť "Ďalšie uloženie" <800px
+  - Kompaktné rýchle akcie <700px
+- 🔢 **Oprava formátovania čísel** - Zaokrúhľovanie percent pokroku načítania
+
 ### v1.1.0 (2025) - 🚀 Aktualizácia funkcií
 
 - 🔍 **Rozšírené globálne vyhľadávanie** - Vylepšená funkcia vyhľadávania:
