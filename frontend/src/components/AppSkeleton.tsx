@@ -106,7 +106,9 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
             color: themeStyles.textMuted, 
             fontSize: "14px" 
           }}>
-            {loadingSteps.reduce((acc, step) => acc + step.progress, 0) / loadingSteps.length}%
+            {loadingSteps.length > 0 
+              ? Math.round(loadingSteps.reduce((acc, step) => acc + step.progress, 0) / loadingSteps.length)
+              : 0}%
           </span>
         </div>
         <div style={{
@@ -120,7 +122,9 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
           <motion.div
             initial={{ width: 0 }}
             animate={{ 
-              width: `${loadingSteps.reduce((acc, step) => acc + step.progress, 0) / loadingSteps.length}%` 
+              width: `${loadingSteps.length > 0 
+                ? Math.round(loadingSteps.reduce((acc, step) => acc + step.progress, 0) / loadingSteps.length)
+                : 0}%` 
             }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             style={{
@@ -218,7 +222,7 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
                       }}>
                         <motion.div
                           initial={{ width: 0 }}
-                          animate={{ width: `${step.progress}%` }}
+                          animate={{ width: `${Math.round(step.progress)}%` }}
                           transition={{ duration: 0.5, ease: "easeOut" }}
                           style={{
                             height: "100%",
