@@ -42,6 +42,40 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
+### v1.1.2 (2025) - 🌍 Nyelvválasztó és fejlesztések
+
+- 🌍 **Nyelvválasztó az első indításkor** - Modern, animált nyelvválasztó dialógus az első indításkor:
+  - 13 nyelv támogatása zászló ikonokkal
+  - Téma-érzékeny design
+  - Smooth animációk
+  - A tutorial a kiválasztott nyelven fut
+- 🔄 **Visszaállítás alaphelyzetbe (Factory Reset)** - Teljes adattörlés funkció:
+  - Törli az összes tárolt adatot (nyomtatók, filamentek, árajánlatok, ügyfelek, beállítások)
+  - Megerősítő dialógus veszélyes műveletekhez
+  - Az alkalmazás újraindul, mintha először indítanád
+- 🎨 **UI fejlesztések**:
+  - Footer szöveg kontraszt javítás (dinamikus színválasztás)
+  - Nyelv változtatás azonnali mentés
+  - Továbbfejlesztett tooltip pozicionálás
+- 📚 **Tutorial fordítások** - Teljes tutorial fordítás minden támogatott nyelven (orosz, ukrán, kínai hozzáadva)
+
+### v1.1.1 (2025) - 🎨 Header Layout fejlesztések
+
+- 📐 **Header újrarendezés** - Három részes header struktúra:
+  - Bal: Menü + Logo + Cím
+  - Közép: Breadcrumb (dinamikusan csökken)
+  - Jobb: Gyors műveletek + Státusz info kártya
+- 📊 **Státusz info kártya** - Kompakt, modern stílus:
+  - "Következő mentés" (címke és érték)
+  - Dátum és idő (egymás alatt)
+  - Mindig jobb oldalt pozicionálva
+- 📱 **Reszponzív design** - Továbbfejlesztett breakpoint-ok:
+  - Breadcrumb elrejtése <1000px-nél
+  - Dátum elrejtése <900px-nél
+  - "Következő mentés" elrejtése <800px-nél
+  - Kompakt gyors műveletek <700px-nél
+- 🔢 **Számformázás javítás** - Betöltési progress százalékok kerekítése
+
 ### v1.1.0 (2025) - 🚀 Funkció frissítés
 
 - 🔍 **Globális keresés kiterjesztése** - Továbbfejlesztett keresési funkciók:

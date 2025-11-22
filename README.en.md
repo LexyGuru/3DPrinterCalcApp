@@ -42,6 +42,40 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 
 ## 📋 Changelog
 
+### v1.1.2 (2025) - 🌍 Language Selector and Improvements
+
+- 🌍 **Language Selector on First Launch** - Modern, animated language selector dialog on first launch:
+  - Support for 13 languages with flag icons
+  - Theme-aware design
+  - Smooth animations
+  - Tutorial runs in selected language
+- 🔄 **Factory Reset** - Complete data deletion feature:
+  - Deletes all stored data (printers, filaments, offers, customers, settings)
+  - Confirmation dialog for dangerous operations
+  - Application restarts as if first launch
+- 🎨 **UI Improvements**:
+  - Footer text contrast fix (dynamic color selection)
+  - Immediate save on language change
+  - Improved tooltip positioning
+- 📚 **Tutorial Translations** - Complete tutorial translation in all supported languages (Russian, Ukrainian, Chinese added)
+
+### v1.1.1 (2025) - 🎨 Header Layout Improvements
+
+- 📐 **Header Rearrangement** - Three-part header structure:
+  - Left: Menu + Logo + Title
+  - Center: Breadcrumb (dynamically shrinks)
+  - Right: Quick Actions + Status Info Card
+- 📊 **Status Info Card** - Compact, modern style:
+  - "Next save" (label and value)
+  - Date and time (stacked)
+  - Always positioned on the right
+- 📱 **Responsive Design** - Improved breakpoints:
+  - Hide breadcrumb <1000px
+  - Hide date <900px
+  - Hide "Next save" <800px
+  - Compact quick actions <700px
+- 🔢 **Number Formatting Fix** - Rounding loading progress percentages
+
 ### v1.1.0 (2025) - 🚀 Feature Update
 
 - 🔍 **Global Search Extended** - Enhanced search functionality:

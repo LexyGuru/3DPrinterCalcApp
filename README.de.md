@@ -42,6 +42,40 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.1.2 (2025) - 🌍 Sprachauswahl und Verbesserungen
+
+- 🌍 **Sprachauswahl beim ersten Start** - Moderner, animierter Sprachauswahl-Dialog beim ersten Start:
+  - Unterstützung für 13 Sprachen mit Flaggen-Icons
+  - Theme-bewusstes Design
+  - Sanfte Animationen
+  - Tutorial läuft in ausgewählter Sprache
+- 🔄 **Werkseinstellungen zurücksetzen** - Funktion zum vollständigen Löschen von Daten:
+  - Löscht alle gespeicherten Daten (Drucker, Filamente, Angebote, Kunden, Einstellungen)
+  - Bestätigungsdialog für gefährliche Operationen
+  - Anwendung startet neu wie beim ersten Start
+- 🎨 **UI-Verbesserungen**:
+  - Footer-Text-Kontrast-Fix (dynamische Farbauswahl)
+  - Sofortiges Speichern bei Sprachänderung
+  - Verbesserte Tooltip-Positionierung
+- 📚 **Tutorial-Übersetzungen** - Vollständige Tutorial-Übersetzung in allen unterstützten Sprachen (Russisch, Ukrainisch, Chinesisch hinzugefügt)
+
+### v1.1.1 (2025) - 🎨 Header-Layout-Verbesserungen
+
+- 📐 **Header-Neuordnung** - Drei-teilige Header-Struktur:
+  - Links: Menü + Logo + Titel
+  - Mitte: Breadcrumb (dynamisch schrumpft)
+  - Rechts: Schnellaktionen + Status-Info-Karte
+- 📊 **Status-Info-Karte** - Kompakter, moderner Stil:
+  - "Nächster Speichervorgang" (Label und Wert)
+  - Datum und Uhrzeit (gestapelt)
+  - Immer rechts positioniert
+- 📱 **Responsives Design** - Verbesserte Breakpoints:
+  - Breadcrumb ausblenden <1000px
+  - Datum ausblenden <900px
+  - "Nächster Speichervorgang" ausblenden <800px
+  - Kompakte Schnellaktionen <700px
+- 🔢 **Zahlenformatierungs-Fix** - Rundung der Lade-Fortschrittsprozentsätze
+
 ### v1.1.0 (2025) - 🚀 Feature-Update
 
 - 🔍 **Globale Suche erweitert** - Erweiterte Suchfunktionen:

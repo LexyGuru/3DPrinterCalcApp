@@ -13,7 +13,7 @@ import type {
   ThemeSettings,
   CustomThemeDefinition,
 } from "../types";
-import { defaultAnimationSettings, createEmptyCustomThemeDefinition } from "../types";
+import { defaultAnimationSettings, createEmptyCustomThemeDefinition, defaultSettings } from "../types";
 import { useTranslation, availableLanguages } from "../utils/translations";
 import { useToast } from "./Toast";
 import {
@@ -45,7 +45,7 @@ import { translateText } from "../utils/translator";
 import { logWithLanguage } from "../utils/languages/global_console";
 import { sendNativeNotification, setDockBadge, getPlatform, requestNotificationPermission, checkNotificationPermission } from "../utils/platformFeatures";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
-import { saveSettings } from "../utils/store";
+import { saveSettings, clearAllData } from "../utils/store";
 
 interface Props {
   settings: Settings;
@@ -1214,8 +1214,19 @@ export const SettingsPage: React.FC<Props> = ({
     onChange({ ...settings, currency: newCurrency });
   };
 
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange({ ...settings, language: e.target.value as Settings["language"] });
+  const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLanguage = e.target.value as Settings["language"];
+    const newSettings = { ...settings, language: newLanguage };
+    onChange(newSettings);
+    // Azonnal mentjük a nyelv változást, hogy azonnal érvénybe lépjen
+    try {
+      await saveSettings(newSettings);
+      if (import.meta.env.DEV) {
+        console.log("✅ Nyelv változtatva és mentve:", newLanguage);
+      }
+    } catch (error) {
+      console.error("❌ Hiba a nyelv mentésekor:", error);
+    }
   };
 
   const handleElectricityPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1606,6 +1617,42 @@ export const SettingsPage: React.FC<Props> = ({
           }
         } catch (error) {
           showToast(t("backup.restoreError"), "error");
+        }
+      },
+    });
+  };
+
+  const handleFactoryReset = () => {
+    openConfirmDialog({
+      title: settings.language === "hu" ? "Visszaállítás alaphelyzetbe" : settings.language === "de" ? "Auf Werkseinstellungen zurücksetzen" : "Factory Reset",
+      message: settings.language === "hu" 
+        ? "⚠️ FIGYELEM! Ez a művelet törli az ÖSSZES tárolt adatot:\n\n• Nyomtatók\n• Filamentek\n• Árajánlatok\n• Ügyfelek\n• Beállítások\n• Template-ek\n• Ár előzmények\n\nEz a művelet VISSZAVONHATATLAN! Biztosan folytatja?"
+        : settings.language === "de"
+        ? "⚠️ WARNUNG! Diese Aktion löscht ALLE gespeicherten Daten:\n\n• Drucker\n• Filamente\n• Angebote\n• Kunden\n• Einstellungen\n• Vorlagen\n• Preisverlauf\n\nDiese Aktion ist UNWIDERRUFLICH! Möchten Sie wirklich fortfahren?"
+        : "⚠️ WARNING! This action will delete ALL stored data:\n\n• Printers\n• Filaments\n• Offers\n• Customers\n• Settings\n• Templates\n• Price History\n\nThis action is IRREVERSIBLE! Are you sure you want to continue?",
+      confirmText: settings.language === "hu" ? "Igen, törölj mindent" : settings.language === "de" ? "Ja, alles löschen" : "Yes, delete everything",
+      cancelText: t("common.cancel"),
+      type: "danger",
+      onConfirm: async () => {
+        try {
+          await clearAllData();
+          // Töröljük az összes state-et
+          setPrinters([]);
+          setFilaments([]);
+          setOffers([]);
+          onChange(defaultSettings);
+          // Újraindítjuk az oldalt, hogy az app újra betöltődjön (mint első indítás)
+          window.location.reload();
+        } catch (error) {
+          console.error("Hiba a factory reset során:", error);
+          showToast(
+            settings.language === "hu" 
+              ? "Hiba történt a visszaállítás során" 
+              : settings.language === "de"
+              ? "Fehler beim Zurücksetzen"
+              : "Error during factory reset",
+            "error"
+          );
         }
       },
     });
@@ -3313,6 +3360,61 @@ export const SettingsPage: React.FC<Props> = ({
               </button>
             </Tooltip>
           </div>
+        </div>
+
+        {/* Factory Reset */}
+        <div style={{ 
+          ...themeStyles.card, 
+          marginTop: "32px",
+          border: `2px solid ${theme.colors.danger || "#e74c3c"}`,
+          backgroundColor: theme.colors.background?.includes('gradient') 
+            ? "rgba(231, 76, 60, 0.1)" 
+            : theme.colors.surface,
+        }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "12px", 
+            fontWeight: "600", 
+            fontSize: "18px", 
+            color: theme.colors.danger || "#e74c3c"
+          }}>
+            ⚠️ {settings.language === "hu" ? "Visszaállítás alaphelyzetbe" : settings.language === "de" ? "Auf Werkseinstellungen zurücksetzen" : "Factory Reset"}
+          </label>
+          <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
+            {settings.language === "hu" 
+              ? "Ez a művelet törli az ÖSSZES tárolt adatot és visszaállítja az alkalmazást az alapértelmezett beállításokra. Az alkalmazás újraindul, mintha most indítanád először."
+              : settings.language === "de"
+              ? "Diese Aktion löscht ALLE gespeicherten Daten und setzt die Anwendung auf die Standardeinstellungen zurück. Die Anwendung startet neu, als ob Sie sie zum ersten Mal starten würden."
+              : "This action will delete ALL stored data and reset the application to default settings. The application will restart as if you were starting it for the first time."}
+          </p>
+          <Tooltip content={settings.language === "hu" 
+            ? "Visszaállítás alaphelyzetbe - törli az összes adatot" 
+            : settings.language === "de"
+            ? "Auf Werkseinstellungen zurücksetzen - löscht alle Daten"
+            : "Factory reset - deletes all data"}>
+            <button
+              onClick={handleFactoryReset}
+              style={{
+                ...themeStyles.button,
+                backgroundColor: theme.colors.danger || "#e74c3c",
+                color: "#ffffff",
+                border: `1px solid ${theme.colors.danger || "#e74c3c"}`,
+                padding: "12px 24px",
+                fontSize: "15px",
+                fontWeight: "600",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.dangerHover || "#c0392b";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.danger || "#e74c3c";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              🔄 {settings.language === "hu" ? "Visszaállítás alaphelyzetbe" : settings.language === "de" ? "Auf Werkseinstellungen zurücksetzen" : "Factory Reset"}
+            </button>
+          </Tooltip>
         </div>
 
         {/* Export/Import Data Section - 2 oszlop */}

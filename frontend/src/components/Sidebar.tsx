@@ -5,6 +5,45 @@ import { useTranslation } from "../utils/translations";
 import { CURRENT_VERSION } from "../utils/version";
 import { FadeIn } from "../utils/animations";
 
+// Helper function to get contrasting text color for footer
+const getContrastingTextColor = (backgroundColor: string): string => {
+  // Simple luminance calculation
+  const hexToRgb = (hex: string) => {
+    const normalized = hex.trim().replace("#", "");
+    const value = parseInt(normalized.length === 3 ? normalized.split("").map(c => c + c).join("") : normalized, 16);
+    return {
+      r: (value >> 16) & 255,
+      g: (value >> 8) & 255,
+      b: value & 255,
+    };
+  };
+
+  const getLuminance = (hex: string) => {
+    const { r, g, b } = hexToRgb(hex);
+    const normalize = (channel: number) => {
+      const c = channel / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * normalize(r) + 0.7152 * normalize(g) + 0.0722 * normalize(b);
+  };
+
+  // Extract hex color from rgba or hex string
+  let bgHex = backgroundColor;
+  if (backgroundColor.startsWith("rgba") || backgroundColor.startsWith("rgb")) {
+    // For rgba/rgb, we need to approximate - use a light gray for light backgrounds
+    // This is a simplified approach - for rgba we'd need to blend with actual background
+    if (backgroundColor.includes("255, 255, 255") || backgroundColor.includes("249, 250, 251")) {
+      bgHex = "#f9fafb"; // Light gray
+    } else {
+      bgHex = "#2d2d2d"; // Dark gray
+    }
+  }
+
+  const luminance = getLuminance(bgHex);
+  // If background is light (luminance > 0.5), use dark text, otherwise light text
+  return luminance > 0.5 ? "#1a202c" : "#ffffff";
+};
+
 interface Props {
   activePage: string;
   setActivePage: (page: string) => void;
@@ -128,6 +167,33 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
     return theme.colors.surface || sidebarBg;
   };
   const footerBg = getFooterBg();
+  
+  // Footer text color - dynamically calculated for good contrast
+  const footerTextColor = useMemo(() => {
+    // For transparent or gradient backgrounds, use sidebar text
+    if (footerBg === "transparent" || isGradientBg) {
+      return sidebarText;
+    }
+    // For glassmorphism, use light text
+    if (isGlassmorphism) {
+      return "#ffffff";
+    }
+    // Calculate contrasting color based on footer background
+    return getContrastingTextColor(footerBg);
+  }, [footerBg, isGradientBg, isGlassmorphism, sidebarText]);
+  
+  // Footer muted text color - slightly less contrast
+  const footerMutedTextColor = useMemo(() => {
+    if (footerBg === "transparent" || isGradientBg) {
+      return sectionTitleColor;
+    }
+    if (isGlassmorphism) {
+      return "rgba(255, 255, 255, 0.7)";
+    }
+    // For light backgrounds, use darker muted, for dark backgrounds use lighter muted
+    const isLight = footerTextColor === "#1a202c";
+    return isLight ? "#6b7280" : "rgba(255, 255, 255, 0.6)";
+  }, [footerBg, footerTextColor, isGradientBg, sectionTitleColor]);
 
   const sidebarWidth = isOpen ? 260 : 0;
 
@@ -413,7 +479,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                 ),
                 backdropFilter: isGlassmorphism ? "blur(10px)" : "none",
                 fontSize: getFontSize(11),
-                color: sidebarText,
+                color: footerTextColor,
                 textAlign: "center",
                 flexShrink: 0,
               }}
@@ -422,12 +488,12 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                 style={{
                   marginBottom: "8px",
                   fontWeight: "600",
-                  color: sidebarText,
+                  color: footerTextColor,
                   fontSize: getFontSize(11),
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                  textShadow: isNeon ? `0 0 4px ${sidebarText}` : "none",
+                  textShadow: isNeon ? `0 0 4px ${footerTextColor}` : "none",
                 }}
               >
                 {t("sidebar.footer.author") || "Készítő: LexyGuru"}
@@ -435,7 +501,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
               <div
                 style={{
                   marginBottom: "4px",
-                  color: sectionTitleColor,
+                  color: footerMutedTextColor,
                   fontSize: getFontSize(10),
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -443,7 +509,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                 }}
               >
                 {t("sidebar.footer.version") || "Verzió"}:{" "}
-                <strong style={{ color: sidebarText }}>{CURRENT_VERSION}</strong>
+                <strong style={{ color: footerTextColor }}>{CURRENT_VERSION}</strong>
               </div>
               <div>
                 {isBeta ? (

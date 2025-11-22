@@ -29,6 +29,7 @@ import { ShortcutHelp } from "./components/ShortcutHelp";
 import { GlobalSearch } from "./components/GlobalSearch";
 import { Tutorial } from "./components/Tutorial";
 import { LoadingSpinner } from "./components/LoadingSpinner";
+import { LanguageSelector } from "./components/LanguageSelector";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
 import { initFrontendLog } from "./utils/fileLogger"; // Initialize file logger
@@ -50,6 +51,8 @@ export default function App() {
   const [quickActionTrigger, setQuickActionTrigger] = useState<string | null>(null);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+  const [languageSelected, setLanguageSelected] = useState(false);
 
   // 🔹 Frontend log inicializálása
   useEffect(() => {
@@ -62,8 +65,43 @@ export default function App() {
     });
   }, []);
 
-  // 🔹 Betöltés indításkor - Progress tracking-gel
+  // 🔹 Első indítás ellenőrzése - nyelvválasztó megjelenítése
   useEffect(() => {
+    const checkFirstLaunch = async () => {
+      try {
+        const loadedSettings = await loadSettings();
+        // Ha nincs mentett beállítás, vagy nincs nyelv beállítva, akkor első indítás
+        if (!loadedSettings || !loadedSettings.language) {
+          setShowLanguageSelector(true);
+          return; // Ne folytassa a betöltést, várjuk meg a nyelvválasztást
+        }
+        // Ha van beállítás, folytassa normálisan
+        setLanguageSelected(true);
+      } catch (error) {
+        console.error("Hiba a beállítások ellenőrzésekor:", error);
+        // Hiba esetén is mutassuk a nyelvválasztót
+        setShowLanguageSelector(true);
+      }
+    };
+    checkFirstLaunch();
+  }, []);
+
+  // 🔹 Nyelvválasztó callback - nyelv kiválasztása után
+  const handleLanguageSelect = async (language: import("./types").LanguageCode) => {
+    const newSettings = {
+      ...defaultSettings,
+      language,
+    };
+    setSettings(newSettings);
+    await saveSettings(newSettings);
+    setLanguageSelected(true);
+    setShowLanguageSelector(false);
+  };
+
+  // 🔹 Betöltés indításkor - Progress tracking-gel (csak ha a nyelv kiválasztva)
+  useEffect(() => {
+    if (!languageSelected) return; // Várjuk meg a nyelvválasztást
+    
     const loadData = async () => {
       // Minimális késleltetés, hogy látható legyen a skeleton
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -154,12 +192,15 @@ export default function App() {
         // Csak akkor mutassuk, ha:
         // 1. showTutorialOnStartup explicit true (vagy undefined, ami alapértelmezett true)
         // 2. ÉS tutorialCompleted NEM true (vagyis false vagy undefined)
+        // 3. ÉS a nyelv már kiválasztva (nem első indítás)
         const shouldShowTutorial = 
+          languageSelected &&
           (loadedSettings?.showTutorialOnStartup !== false) && 
           (loadedSettings?.tutorialCompleted !== true);
         
         if (import.meta.env.DEV) {
           console.log("🔍 Tutorial ellenőrzés:", {
+            languageSelected,
             showTutorialOnStartup: loadedSettings?.showTutorialOnStartup,
             tutorialCompleted: loadedSettings?.tutorialCompleted,
             shouldShowTutorial,
@@ -181,7 +222,7 @@ export default function App() {
       }
     };
     loadData();
-  }, []);
+  }, [languageSelected, settings.language]);
 
   // 🔹 Automatikus mentés debounce-szal (csak inicializálás után)
   const autosaveEnabled = settings.autosave !== false; // Alapértelmezetten true
@@ -296,6 +337,12 @@ export default function App() {
   const currentTheme = useMemo(
     () => resolveTheme((settings.theme as ThemeName | undefined) ?? "light", settings.themeSettings),
     [settings.theme, settings.themeSettings]
+  );
+
+  // Alapértelmezett téma a nyelvválasztóhoz (ha még nincs beállítás)
+  const defaultTheme = useMemo(
+    () => resolveTheme("light", undefined),
+    []
   );
 
   const themeStyles = useMemo(() => getThemeStyles(currentTheme), [currentTheme]);
@@ -688,6 +735,14 @@ export default function App() {
             }}
           />
           
+          {/* Language Selector - első indításkor */}
+          {showLanguageSelector && (
+            <LanguageSelector
+              onLanguageSelect={handleLanguageSelect}
+              theme={currentTheme || defaultTheme}
+            />
+          )}
+
           {/* Tutorial */}
           <Tutorial
             settings={settings}
