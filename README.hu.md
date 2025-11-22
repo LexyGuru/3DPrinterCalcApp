@@ -18,7 +18,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🗂️ **Státusz dashboard** - Státusz kártyák, gyors szűrők és idővonal a legutóbbi státuszváltozásokról
 - 📝 **Státusz megjegyzések** - Minden státuszváltás opcionális jegyzettel és előzmény naplózással
 - 👁️ **PDF előnézet és sablonok** - Beépített PDF előnézet, választható sablonok és céges branding blokkok
-- 🎨 **Filament színkönyvtár** - Több mint 2000 gyári szín, márka és típus szerinti rögzíthető választópanellel
+- 🎨 **Filament színkönyvtár** - Több mint 12,000 gyári szín, márka és típus szerinti rögzíthető választópanellel
 - 💾 **Filament könyvtár szerkesztő** - Modal alapú hozzáadás/szerkesztés, duplikátum-figyelmeztetés és tartós mentés `filamentLibrary.json` fájlba
 - 🖼️ **Filament képek PDF-ben** - Filament logók és színminták megjelenítése a generált PDF-ben
 - 🧾 **G-code import és piszkozat készítés** - A kalkulátorban modális ablakból tölthető be G-code/JSON export (Prusa, Cura, Orca, Qidi), részletes összefoglalóval és automatikus árajánlat piszkozat generálással
@@ -41,6 +41,59 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🍎 **Platform-specifikus funkciók** - macOS Dock badge, natív értesítések, system tray integráció
 
 ## 📋 Változások (Changelog)
+
+### v1.1.4 (2025) - 🐛 Filament könyvtár update fájl automatikus létrehozás
+
+- 🐛 **Update fájl automatikus létrehozás** - Javított hiba, ahol az `update_filamentLibrary.json` fájl nem jött létre automatikusan:
+  - A fájl most automatikusan létrejön a `filamentLibrarySample.json` fájlból első indításkor
+  - Biztosítja, hogy az update fájl mindig elérhető legyen az összevonáshoz
+  - Csak akkor hozza létre, ha nem létezik (nem írja felül a meglévőt)
+  - Továbbfejlesztett hibakezelés és logolás az update fájl műveletekhez
+
+### v1.1.3 (2025) - 🪟 Windows kompatibilitás javítások
+
+- 🪟 **Windows kompatibilitás javítás** - Filament könyvtár betöltés javítása:
+  - Dinamikus import használata a nagy JSON fájlokhoz (statikus import helyett)
+  - Cache mechanizmus a többszöri betöltés elkerülésére
+  - Javított hibakezelés Windows-on fájl nem található esetekhez
+  - Platformfüggetlen működés (Windows, macOS, Linux)
+- 🔧 **Hibakezelés fejlesztések** - Továbbfejlesztett hibaüzenetek:
+  - Windows-specifikus hibaüzenetek helyes kezelése
+  - Fájl nem található esetek csendes kezelése (nem warning-ként)
+
+### v1.1.2 (2025) - 🌍 Nyelvválasztó és fejlesztések
+
+- 🌍 **Nyelvválasztó az első indításkor** - Modern, animált nyelvválasztó dialógus az első indításkor:
+  - 13 nyelv támogatása zászló ikonokkal
+  - Téma-érzékeny design
+  - Smooth animációk
+  - A tutorial a kiválasztott nyelven fut
+- 🔄 **Visszaállítás alaphelyzetbe (Factory Reset)** - Teljes adattörlés funkció:
+  - Törli az összes tárolt adatot (nyomtatók, filamentek, árajánlatok, ügyfelek, beállítások)
+  - Megerősítő dialógus veszélyes műveletekhez
+  - Az alkalmazás újraindul, mintha először indítanád
+- 🎨 **UI fejlesztések**:
+  - Footer szöveg kontraszt javítás (dinamikus színválasztás)
+  - Nyelv változtatás azonnali mentés
+  - Továbbfejlesztett tooltip pozicionálás
+- 📚 **Tutorial fordítások** - Teljes tutorial fordítás minden támogatott nyelven (orosz, ukrán, kínai hozzáadva)
+
+### v1.1.1 (2025) - 🎨 Header Layout fejlesztések
+
+- 📐 **Header újrarendezés** - Három részes header struktúra:
+  - Bal: Menü + Logo + Cím
+  - Közép: Breadcrumb (dinamikusan csökken)
+  - Jobb: Gyors műveletek + Státusz info kártya
+- 📊 **Státusz info kártya** - Kompakt, modern stílus:
+  - "Következő mentés" (címke és érték)
+  - Dátum és idő (egymás alatt)
+  - Mindig jobb oldalt pozicionálva
+- 📱 **Reszponzív design** - Továbbfejlesztett breakpoint-ok:
+  - Breadcrumb elrejtése <1000px-nél
+  - Dátum elrejtése <900px-nél
+  - "Következő mentés" elrejtése <800px-nél
+  - Kompakt gyors műveletek <700px-nél
+- 🔢 **Számformázás javítás** - Betöltési progress százalékok kerekítése
 
 ### v1.1.0 (2025) - 🚀 Funkció frissítés
 
@@ -437,7 +490,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 - 🎨 **Téma műhely bővítések** – Négy új beépített téma (Forest, Pastel, Charcoal, Midnight), aktív téma azonnali duplikálása egyedi szerkesztéshez, továbbfejlesztett gradient/kontraszt kezelés és egyszerűsített megosztási folyamat.
 
 ### v0.4.0 (2025)
-- 🧵 **Filament adatbázis integráció** – 2 000+ gyári szín beépített JSON könyvtárból (filamentcolors.xyz snapshot), márkánként és anyagonként rendezve
+- 🧵 **Filament adatbázis integráció** – 12,000+ gyári szín beépített JSON könyvtárból (filamentcolors.xyz snapshot), márkánként és anyagonként rendezve
 - 🪟 **Fix méretű választó panelek** – Gombbal nyíló, kereshető, görgethető márka- és típuslisták, amelyek kizárják egymást, így átláthatóbb az űrlap
 - 🎯 **Színválasztó fejlesztések** – Könyvtári elemek felismerésekor automatikusan beáll a finish és a hex kód, egyedi módra váltáskor külön mezők állnak rendelkezésre
 - 💾 **Filament könyvtár szerkesztő** – Új beállítási fül popup űrlappal, duplikációkezeléssel és Tauri FS alapú tartós `filamentLibrary.json` mentéssel
@@ -641,7 +694,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 1.0.0
+**Verzió**: 1.1.1
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

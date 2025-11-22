@@ -17,7 +17,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 🗂️ **Status Dashboard** - Status cards, quick filters, and timeline of recent status changes
 - 📝 **Status Notes** - Every status change with optional notes and history logging
 - 👁️ **PDF Preview & Templates** - Built-in PDF preview, selectable templates, and company branding blocks
-- 🎨 **Filament Color Library** - Over 2000 factory colors with brand and type-based selectable panels
+- 🎨 **Filament Color Library** - Over 12,000 factory colors with brand and type-based selectable panels
 - 💾 **Filament Library Editor** - Modal-based add/edit, duplicate warnings, and persistent save to `filamentLibrary.json`
 - 🖼️ **Filament Images in PDF** - Display filament logos and color swatches in generated PDFs
 - 🧾 **G-code Import & Draft Creation** - Load G-code/JSON exports (Prusa, Cura, Orca, Qidi) from modal in calculator, with detailed summary and automatic quote draft generation
@@ -244,6 +244,60 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.1.4 (2025) - 🐛 Filament Library Update File Auto-Creation
+
+- 🐛 **Auto-Create Update File** - Fixed issue where `update_filamentLibrary.json` was not automatically created:
+  - File is now automatically created from `filamentLibrarySample.json` on first launch
+  - Ensures update file is always available for merging
+  - Only creates if file doesn't exist (doesn't overwrite existing)
+  - Improved error handling and logging for update file operations
+
+### v1.1.3 (2025) - 🪟 Windows Compatibility Fixes
+
+- 🪟 **Windows Compatibility Fix** - Filament library loading improvements:
+  - Dynamic import for large JSON files (instead of static import)
+  - Caching mechanism to avoid multiple loads
+  - Improved error handling for file not found cases on Windows
+  - Cross-platform compatibility (Windows, macOS, Linux)
+- 🔧 **Error Handling Improvements** - Enhanced error messages:
+  - Proper handling of Windows-specific error messages
+  - Silent handling of file not found cases (not as warnings)
+
+### v1.1.2 (2025) - 🌍 Language Selector and Improvements
+
+- 🌍 **Language Selector on First Launch** - Modern, animated language selector dialog on first launch:
+  - Support for 13 languages with flag icons
+  - Theme-aware design
+  - Smooth animations
+  - Tutorial runs in selected language
+- 🔄 **Factory Reset** - Complete data deletion feature:
+  - Deletes all stored data (printers, filaments, offers, customers, settings)
+  - Confirmation dialog for dangerous operations
+  - Application restarts as if first launch
+- 🎨 **UI Improvements**:
+  - Footer text contrast fix (dynamic color selection)
+  - Immediate save on language change
+  - Improved tooltip positioning
+- 📚 **Tutorial Translations** - Complete tutorial translation in all supported languages (Russian, Ukrainian, Chinese added)
+
+### v1.1.1 (2025) - 🎨 Header Layout Improvements
+
+- 🎨 **Header Redesign** - Complete header layout overhaul:
+  - Three-section structure (left: logo/menu, center: breadcrumb, right: actions/status)
+  - Status info card always positioned on the far right
+  - Modern card-style design for status information
+  - Improved spacing and alignment throughout header
+- 📱 **Responsive Design** - Better mobile and small screen experience:
+  - Dynamic breakpoints for element visibility
+  - Breadcrumb truncation fixes
+  - Quick actions adapt to screen size
+  - Status info card responsive sizing
+- 🔧 **Layout Fixes**:
+  - Fixed breadcrumb overflow and truncation issues
+  - Status info card positioning improvements
+  - Better flexbox layout management
+  - Improved element spacing and gaps
+
 ### v1.1.0 (2025) - 🚀 Feature Update
 
 - 🔍 **Global Search Extended** - Enhanced search functionality:
@@ -398,7 +452,7 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 - 🎨 **Theme Workshop Extensions** – Four new built-in themes (Forest, Pastel, Charcoal, Midnight), instant duplication of active theme for custom editing, improved gradient/contrast handling and simplified sharing process.
 
 ### v0.4.0 (2025)
-- 🧵 **Filament Database Integration** – 2,000+ factory colors from built-in JSON library (filamentcolors.xyz snapshot), organized by brand and material
+- 🧵 **Filament Database Integration** – 12,000+ factory colors from built-in JSON library (filamentcolors.xyz snapshot), organized by brand and material
 - 🪟 **Fixed Size Selector Panels** – Button-opened, searchable, scrollable brand and type lists that exclude each other, making the form more transparent
 - 🎯 **Color Selector Improvements** – When library items are recognized, finish and hex code are automatically set, separate fields available when switching to custom mode
 - 💾 **Filament Library Editor** – New settings tab with popup form, duplicate handling and Tauri FS-based persistent `filamentLibrary.json` saving
@@ -602,6 +656,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.0.0
+**Version**: 1.1.1
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!

@@ -18,7 +18,7 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 🗂️ **Status-Dashboard** - Statuskarten, schnelle Filter und Zeitachse der letzten Statusänderungen
 - 📝 **Statusnotizen** - Jede Statusänderung mit optionalen Notizen und Verlaufprotokollierung
 - 👁️ **PDF-Vorschau & Vorlagen** - Integrierte PDF-Vorschau, wählbare Vorlagen und Firmen-Branding-Blöcke
-- 🎨 **Filament-Farbbibliothek** - Über 2000 Fabrikfarben mit marken- und typspezifischen wählbaren Panels
+- 🎨 **Filament-Farbbibliothek** - Über 12.000 Fabrikfarben mit marken- und typspezifischen wählbaren Panels
 - 💾 **Filament-Bibliothekseditor** - Modalbasierte Hinzufügung/Bearbeitung, Duplikatswarnungen und persistente Speicherung in `filamentLibrary.json`
 - 🖼️ **Filamentbilder in PDF** - Anzeige von Filament-Logos und Farbmustern in generierten PDFs
 - 🧾 **G-Code-Import & Entwurfserstellung** - G-Code/JSON-Exporte (Prusa, Cura, Orca, Qidi) aus Modal im Rechner laden, mit detaillierter Zusammenfassung und automatischer Angebotsentwurfsgenerierung
@@ -41,6 +41,59 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 🍎 **Plattformspezifische Funktionen** - macOS Dock-Badge, native Benachrichtigungen, System-Tray-Integration
 
 ## 📋 Änderungsprotokoll (Changelog)
+
+### v1.1.4 (2025) - 🐛 Automatische Erstellung der Filament-Bibliothek-Update-Datei
+
+- 🐛 **Automatische Update-Datei-Erstellung** - Behobenes Problem, bei dem `update_filamentLibrary.json` nicht automatisch erstellt wurde:
+  - Datei wird jetzt automatisch aus `filamentLibrarySample.json` beim ersten Start erstellt
+  - Stellt sicher, dass die Update-Datei immer für die Zusammenführung verfügbar ist
+  - Erstellt nur, wenn die Datei nicht existiert (überschreibt vorhandene nicht)
+  - Verbesserte Fehlerbehandlung und Protokollierung für Update-Datei-Operationen
+
+### v1.1.3 (2025) - 🪟 Windows-Kompatibilitätsverbesserungen
+
+- 🪟 **Windows-Kompatibilitätsverbesserung** - Filament-Bibliothek-Ladeverbesserungen:
+  - Dynamischer Import für große JSON-Dateien (anstatt statischer Import)
+  - Caching-Mechanismus zur Vermeidung mehrfacher Ladevorgänge
+  - Verbesserte Fehlerbehandlung für Datei-nicht-gefunden-Fälle unter Windows
+  - Plattformübergreifende Kompatibilität (Windows, macOS, Linux)
+- 🔧 **Fehlerbehandlungsverbesserungen** - Erweiterte Fehlermeldungen:
+  - Korrekte Behandlung von Windows-spezifischen Fehlermeldungen
+  - Stille Behandlung von Datei-nicht-gefunden-Fällen (nicht als Warnungen)
+
+### v1.1.2 (2025) - 🌍 Sprachauswahl und Verbesserungen
+
+- 🌍 **Sprachauswahl beim ersten Start** - Moderner, animierter Sprachauswahl-Dialog beim ersten Start:
+  - Unterstützung für 13 Sprachen mit Flaggen-Icons
+  - Theme-bewusstes Design
+  - Sanfte Animationen
+  - Tutorial läuft in ausgewählter Sprache
+- 🔄 **Werkseinstellungen zurücksetzen** - Funktion zum vollständigen Löschen von Daten:
+  - Löscht alle gespeicherten Daten (Drucker, Filamente, Angebote, Kunden, Einstellungen)
+  - Bestätigungsdialog für gefährliche Operationen
+  - Anwendung startet neu wie beim ersten Start
+- 🎨 **UI-Verbesserungen**:
+  - Footer-Text-Kontrast-Fix (dynamische Farbauswahl)
+  - Sofortiges Speichern bei Sprachänderung
+  - Verbesserte Tooltip-Positionierung
+- 📚 **Tutorial-Übersetzungen** - Vollständige Tutorial-Übersetzung in allen unterstützten Sprachen (Russisch, Ukrainisch, Chinesisch hinzugefügt)
+
+### v1.1.1 (2025) - 🎨 Header-Layout-Verbesserungen
+
+- 📐 **Header-Neuordnung** - Drei-teilige Header-Struktur:
+  - Links: Menü + Logo + Titel
+  - Mitte: Breadcrumb (dynamisch schrumpft)
+  - Rechts: Schnellaktionen + Status-Info-Karte
+- 📊 **Status-Info-Karte** - Kompakter, moderner Stil:
+  - "Nächster Speichervorgang" (Label und Wert)
+  - Datum und Uhrzeit (gestapelt)
+  - Immer rechts positioniert
+- 📱 **Responsives Design** - Verbesserte Breakpoints:
+  - Breadcrumb ausblenden <1000px
+  - Datum ausblenden <900px
+  - "Nächster Speichervorgang" ausblenden <800px
+  - Kompakte Schnellaktionen <700px
+- 🔢 **Zahlenformatierungs-Fix** - Rundung der Lade-Fortschrittsprozentsätze
 
 ### v1.1.0 (2025) - 🚀 Feature-Update
 
@@ -339,6 +392,24 @@ Lekszikov Miklós (LexyGuru)
 Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, der die Beta-Version erstellt.
 
 ## 📋 Versionsgeschichte
+
+### v1.1.1 (2025) - 🎨 Header-Layout-Verbesserungen
+
+- 🎨 **Header-Neuentwurf** - Komplette Header-Layout-Überarbeitung:
+  - Drei-Sektionen-Struktur (links: Logo/Menü, Mitte: Breadcrumb, rechts: Aktionen/Status)
+  - Status-Info-Karte immer ganz rechts positioniert
+  - Modernes Karten-Design für Statusinformationen
+  - Verbesserte Abstände und Ausrichtung im Header
+- 📱 **Responsive Design** - Bessere mobile und kleine Bildschirm-Erfahrung:
+  - Dynamische Breakpoints für Element-Sichtbarkeit
+  - Breadcrumb-Truncation-Fixes
+  - Schnellaktionen passen sich der Bildschirmgröße an
+  - Status-Info-Karte responsive Größenanpassung
+- 🔧 **Layout-Fixes**:
+  - Breadcrumb-Overflow- und Truncation-Probleme behoben
+  - Status-Info-Karte Positionierungsverbesserungen
+  - Besseres Flexbox-Layout-Management
+  - Verbesserte Elementabstände und Lücken
 
 ### v1.1.0 (2025) - 🚀 Feature-Update
 
@@ -641,7 +712,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 1.0.0
+**Version**: 1.1.1
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

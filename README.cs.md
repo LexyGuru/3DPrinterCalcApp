@@ -17,7 +17,7 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 - 🗂️ **Dashboard stavu** - Karty stavu, rychlé filtry a časová osa nedávných změn stavu
 - 📝 **Poznámky ke stavu** - Každá změna stavu s volitelnými poznámkami a protokolováním historie
 - 👁️ **Náhled PDF a šablony** - Vestavěný náhled PDF, volitelné šablony a bloky firemního brandingu
-- 🎨 **Knihovna barev filamentu** - Více než 2000 továrních barev s volitelnými panely založenými na značce a typu
+- 🎨 **Knihovna barev filamentu** - Více než 12,000 továrních barev s volitelnými panely založenými na značce a typu
 - 💾 **Editor knihovny filamentů** - Přidávání/úprava založená na modalu, varování před duplikáty a trvalé ukládání do `filamentLibrary.json`
 - 🖼️ **Obrázky filamentů v PDF** - Zobrazení log filamentů a vzorků barev v generovaných PDF
 - 🧾 **Import G-code a vytváření konceptu** - Načítání exportů G-code/JSON (Prusa, Cura, Orca, Qidi) z modalu v kalkulačce, s podrobným shrnutím a automatickým generováním konceptu nabídky
@@ -37,6 +37,59 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 - 📱 **Kontextová menu** - Menu pravého tlačítka pro rychlé akce (upravit, smazat, duplikovat, exportovat)
 
 ## 📋 Seznam změn (Changelog)
+
+### v1.1.4 (2025) - 🐛 Automatické vytvoření souboru aktualizace knihovny filamentů
+
+- 🐛 **Automatické vytvoření souboru aktualizace** - Opraven problém, kde `update_filamentLibrary.json` nebyl automaticky vytvořen:
+  - Soubor je nyní automaticky vytvořen z `filamentLibrarySample.json` při prvním spuštění
+  - Zajišťuje, že soubor aktualizace je vždy k dispozici pro sloučení
+  - Vytváří pouze, pokud soubor neexistuje (nepřepisuje existující)
+  - Vylepšené zpracování chyb a protokolování pro operace se souborem aktualizace
+
+### v1.1.3 (2025) - 🪟 Opravy kompatibility s Windows
+
+- 🪟 **Oprava kompatibility s Windows** - Vylepšení načítání knihovny filamentů:
+  - Dynamický import pro velké JSON soubory (místo statického importu)
+  - Mechanismus cache pro zabránění vícečetného načítání
+  - Vylepšené zpracování chyb pro případy nenalezeného souboru ve Windows
+  - Meziplatformní kompatibilita (Windows, macOS, Linux)
+- 🔧 **Vylepšení zpracování chyb** - Vylepšené chybové zprávy:
+  - Správné zpracování chybových zpráv specifických pro Windows
+  - Tiché zpracování případů nenalezeného souboru (ne jako varování)
+
+### v1.1.2 (2025) - 🌍 Výběr jazyka a vylepšení
+
+- 🌍 **Výběr jazyka při prvním spuštění** - Moderní, animované dialogové okno pro výběr jazyka při prvním spuštění:
+  - Podpora 13 jazyků s ikonami vlajek
+  - Design respektující motiv
+  - Plynulé animace
+  - Tutoriál běží ve vybraném jazyce
+- 🔄 **Obnovení továrního nastavení** - Funkce pro úplné smazání dat:
+  - Smaže všechna uložená data (tiskárny, filamenty, nabídky, zákazníci, nastavení)
+  - Potvrzovací dialog pro nebezpečné operace
+  - Aplikace se restartuje jako při prvním spuštění
+- 🎨 **Vylepšení UI**:
+  - Oprava kontrastu textu v patičce (dynamický výběr barvy)
+  - Okamžité uložení při změně jazyka
+  - Vylepšené umístění tooltipů
+- 📚 **Překlady tutoriálu** - Úplný překlad tutoriálu ve všech podporovaných jazycích (přidána ruština, ukrajinština, čínština)
+
+### v1.1.1 (2025) - 🎨 Vylepšení rozvržení hlavičky
+
+- 📐 **Reorganizace hlavičky** - Struktura hlavičky se třemi částmi:
+  - Vlevo: Menu + Logo + Nadpis
+  - Uprostřed: Breadcrumb (dynamicky se zmenšuje)
+  - Vpravo: Rychlé akce + Karta informací o stavu
+- 📊 **Karta informací o stavu** - Kompaktní, moderní styl:
+  - "Další uložení" (štítek a hodnota)
+  - Datum a čas (naskládané)
+  - Vždy umístěno vpravo
+- 📱 **Responzivní design** - Vylepšené body přerušení:
+  - Skrýt breadcrumb <1000px
+  - Skrýt datum <900px
+  - Skrýt "Další uložení" <800px
+  - Kompaktní rychlé akce <700px
+- 🔢 **Oprava formátování čísel** - Zaokrouhlování procent pokroku načítání
 
 ### v1.1.0 (2025) - 🚀 Aktualizace funkcí
 
@@ -336,6 +389,24 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 
 ## 📋 Historie verzí
 
+### v1.1.1 (2025) - 🎨 Vylepšení rozvržení hlavičky
+
+- 🎨 **Přepracování hlavičky** - Kompletní revize rozvržení hlavičky:
+  - Struktura tří sekcí (vlevo: logo/menu, střed: breadcrumb, vpravo: akce/status)
+  - Karta informací o stavu vždy umístěna úplně vpravo
+  - Moderní design typu karty pro informace o stavu
+  - Lepší mezery a zarovnání v celé hlavičce
+- 📱 **Responzivní design** - Lepší zážitek na mobilních zařízeních a malých obrazovkách:
+  - Dynamické body přerušení pro viditelnost prvků
+  - Opravy zkrácení breadcrumb
+  - Rychlé akce se přizpůsobují velikosti obrazovky
+  - Responzivní velikost karty informací o stavu
+- 🔧 **Opravy rozvržení**:
+  - Opraveny problémy s přetečením a zkrácením breadcrumb
+  - Vylepšení umístění karty informací o stavu
+  - Lepší správa flexbox rozvržení
+  - Vylepšené mezery a mezery mezi prvky
+
 ### v1.1.0 (2025) - 🚀 Aktualizace funkcí
 
 - 🔍 **Rozšířené globální vyhledávání** - Vylepšená funkce vyhledávání
@@ -433,7 +504,7 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 - 🎨 **Rozšíření dílny motivů** – Čtyři nové vestavěné motivy (Forest, Pastel, Charcoal, Midnight), okamžité duplikování aktivního motivu pro vlastní úpravu, vylepšené zpracování gradientu/kontrastu a zjednodušený proces sdílení.
 
 ### v0.4.0 (2025)
-- 🧵 **Integrace databáze filamentů** – Více než 2 000 továrních barev z vestavěné JSON knihovny (snímek filamentcolors.xyz), uspořádaných podle značky a materiálu
+- 🧵 **Integrace databáze filamentů** – Více než 12 000 továrních barev z vestavěné JSON knihovny (snímek filamentcolors.xyz), uspořádaných podle značky a materiálu
 - 🪟 **Panely výběru pevné velikosti** – Seznamy značek a typů otevírané tlačítkem, prohledávatelné, posouvatelné, které se vzájemně vylučují, čímž je formulář transparentnější
 - 🎯 **Vylepšení výběru barev** – Když jsou rozpoznány prvky knihovny, povrchová úprava a hex kód jsou automaticky nastaveny, samostatná pole dostupná při přepnutí na vlastní režim
 - 💾 **Editor knihovny filamentů** – Nová záložka nastavení s popup formulářem, zpracování duplikátů a trvalé ukládání `filamentLibrary.json` založené na Tauri FS
@@ -637,7 +708,7 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 
 ---
 
-**Verze**: 1.0.0
+**Verze**: 1.1.1
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 

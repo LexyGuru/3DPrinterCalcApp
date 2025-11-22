@@ -12,6 +12,7 @@
     "store:allow-set",
     "store:allow-save",
     "store:allow-load",
+    "store:allow-delete",
     "dialog:allow-save",
     "dialog:allow-open",
     {

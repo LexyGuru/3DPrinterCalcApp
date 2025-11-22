@@ -17,7 +17,7 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 - 🗂️ **Panel de estado** - Tarjetas de estado, filtros rápidos y línea de tiempo de cambios de estado recientes
 - 📝 **Notas de estado** - Cada cambio de estado con notas opcionales y registro de historial
 - 👁️ **Vista previa PDF y plantillas** - Vista previa PDF integrada, plantillas seleccionables y bloques de marca de empresa
-- 🎨 **Biblioteca de colores de filamento** - Más de 2000 colores de fábrica con paneles seleccionables basados en marca y tipo
+- 🎨 **Biblioteca de colores de filamento** - Más de 12,000 colores de fábrica con paneles seleccionables basados en marca y tipo
 - 💾 **Editor de biblioteca de filamentos** - Agregar/editar basado en modal, advertencias de duplicados y guardado persistente en `filamentLibrary.json`
 - 🖼️ **Imágenes de filamento en PDF** - Mostrar logotipos de filamento y muestras de color en PDFs generados
 - 🧾 **Importación G-code y creación de borrador** - Cargar exportaciones G-code/JSON (Prusa, Cura, Orca, Qidi) desde modal en calculadora, con resumen detallado y generación automática de borrador de cotización
@@ -40,6 +40,59 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 - 🍎 **Funciones específicas de plataforma** - Badge de Dock de macOS, notificaciones nativas, integración de bandeja del sistema
 
 ## 📋 Registro de cambios (Changelog)
+
+### v1.1.4 (2025) - 🐛 Creación automática del archivo de actualización de la biblioteca de filamentos
+
+- 🐛 **Creación automática del archivo de actualización** - Corregido problema donde `update_filamentLibrary.json` no se creaba automáticamente:
+  - El archivo ahora se crea automáticamente desde `filamentLibrarySample.json` en el primer inicio
+  - Asegura que el archivo de actualización esté siempre disponible para la fusión
+  - Solo crea si el archivo no existe (no sobrescribe el existente)
+  - Manejo de errores y registro mejorados para operaciones de archivo de actualización
+
+### v1.1.3 (2025) - 🪟 Correcciones de compatibilidad con Windows
+
+- 🪟 **Corrección de compatibilidad con Windows** - Mejoras en la carga de la biblioteca de filamentos:
+  - Importación dinámica para archivos JSON grandes (en lugar de importación estática)
+  - Mecanismo de caché para evitar múltiples cargas
+  - Manejo mejorado de errores para casos de archivo no encontrado en Windows
+  - Compatibilidad multiplataforma (Windows, macOS, Linux)
+- 🔧 **Mejoras en el manejo de errores** - Mensajes de error mejorados:
+  - Manejo adecuado de mensajes de error específicos de Windows
+  - Manejo silencioso de casos de archivo no encontrado (no como advertencias)
+
+### v1.1.2 (2025) - 🌍 Selector de idioma y mejoras
+
+- 🌍 **Selector de idioma en el primer inicio** - Diálogo moderno y animado de selección de idioma en el primer inicio:
+  - Soporte para 13 idiomas con iconos de banderas
+  - Diseño consciente del tema
+  - Animaciones suaves
+  - El tutorial se ejecuta en el idioma seleccionado
+- 🔄 **Restablecimiento de fábrica** - Función de eliminación completa de datos:
+  - Elimina todos los datos almacenados (impresoras, filamentos, ofertas, clientes, configuraciones)
+  - Diálogo de confirmación para operaciones peligrosas
+  - La aplicación se reinicia como en el primer inicio
+- 🎨 **Mejoras de UI**:
+  - Corrección de contraste del texto del pie de página (selección de color dinámica)
+  - Guardado inmediato al cambiar el idioma
+  - Posicionamiento mejorado de tooltips
+- 📚 **Traducciones del tutorial** - Traducción completa del tutorial en todos los idiomas admitidos (ruso, ucraniano, chino agregados)
+
+### v1.1.1 (2025) - 🎨 Mejoras de diseño del encabezado
+
+- 📐 **Reorganización del encabezado** - Estructura de encabezado de tres partes:
+  - Izquierda: Menú + Logo + Título
+  - Centro: Breadcrumb (se reduce dinámicamente)
+  - Derecha: Acciones rápidas + Tarjeta de información de estado
+- 📊 **Tarjeta de información de estado** - Estilo compacto y moderno:
+  - "Próximo guardado" (etiqueta y valor)
+  - Fecha y hora (apiladas)
+  - Siempre posicionada a la derecha
+- 📱 **Diseño responsivo** - Puntos de quiebre mejorados:
+  - Ocultar breadcrumb <1000px
+  - Ocultar fecha <900px
+  - Ocultar "Próximo guardado" <800px
+  - Acciones rápidas compactas <700px
+- 🔢 **Corrección de formato de números** - Redondeo de porcentajes de progreso de carga
 
 ### v1.1.0 (2025) - 🚀 Actualización de funciones
 
@@ -339,6 +392,24 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ## 📋 Historial de versiones
 
+### v1.1.1 (2025) - 🎨 Mejoras de diseño del encabezado
+
+- 🎨 **Rediseño del encabezado** - Revisión completa del diseño del encabezado:
+  - Estructura de tres secciones (izquierda: logo/menú, centro: breadcrumb, derecha: acciones/estado)
+  - Tarjeta de información de estado siempre posicionada en el extremo derecho
+  - Diseño moderno tipo tarjeta para información de estado
+  - Mejores espaciados y alineación en todo el encabezado
+- 📱 **Diseño responsivo** - Mejor experiencia en móviles y pantallas pequeñas:
+  - Puntos de quiebre dinámicos para visibilidad de elementos
+  - Correcciones de truncamiento de breadcrumb
+  - Acciones rápidas se adaptan al tamaño de pantalla
+  - Tamaño responsivo de la tarjeta de información de estado
+- 🔧 **Correcciones de diseño**:
+  - Problemas de desbordamiento y truncamiento de breadcrumb corregidos
+  - Mejoras en el posicionamiento de la tarjeta de información de estado
+  - Mejor gestión del diseño flexbox
+  - Espaciado y espacios mejorados entre elementos
+
 ### v1.1.0 (2025) - 🚀 Actualización de funciones
 
 - 🔍 **Búsqueda global extendida** - Funcionalidad de búsqueda mejorada
@@ -436,7 +507,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 - 🎨 **Extensiones del taller de temas** – Cuatro nuevos temas integrados (Forest, Pastel, Charcoal, Midnight), duplicación instantánea del tema activo para edición personalizada, manejo mejorado de gradiente/contraste y proceso de compartir simplificado.
 
 ### v0.4.0 (2025)
-- 🧵 **Integración de base de datos de filamentos** – Más de 2,000 colores de fábrica de biblioteca JSON integrada (instantánea de filamentcolors.xyz), organizados por marca y material
+- 🧵 **Integración de base de datos de filamentos** – Más de 12,000 colores de fábrica de biblioteca JSON integrada (instantánea de filamentcolors.xyz), organizados por marca y material
 - 🪟 **Paneles de selector de tamaño fijo** – Listas de marca y tipo abiertas con botón, buscables, desplazables que se excluyen mutuamente, haciendo el formulario más transparente
 - 🎯 **Mejoras del selector de color** – Cuando se reconocen elementos de la biblioteca, el acabado y el código hexadecimal se establecen automáticamente, campos separados disponibles al cambiar al modo personalizado
 - 💾 **Editor de biblioteca de filamentos** – Nueva pestaña de configuración con formulario emergente, manejo de duplicados y guardado persistente `filamentLibrary.json` basado en Tauri FS
@@ -640,7 +711,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ---
 
-**Versión**: 1.0.0
+**Versión**: 1.1.1
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 

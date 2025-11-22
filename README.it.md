@@ -17,7 +17,7 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 - 🗂️ **Dashboard stato** - Carte di stato, filtri rapidi e timeline delle modifiche di stato recenti
 - 📝 **Note di stato** - Ogni modifica di stato con note opzionali e registrazione cronologia
 - 👁️ **Anteprima PDF e modelli** - Anteprima PDF integrata, modelli selezionabili e blocchi di branding aziendale
-- 🎨 **Libreria colori filamento** - Oltre 2000 colori di fabbrica con pannelli selezionabili basati su marca e tipo
+- 🎨 **Libreria colori filamento** - Oltre 12,000 colori di fabbrica con pannelli selezionabili basati su marca e tipo
 - 💾 **Editor libreria filamenti** - Aggiungi/modifica basato su modale, avvisi duplicati e salvataggio persistente in `filamentLibrary.json`
 - 🖼️ **Immagini filamento in PDF** - Mostra loghi filamento e campioni di colore nei PDF generati
 - 🧾 **Importazione G-code e creazione bozza** - Carica esportazioni G-code/JSON (Prusa, Cura, Orca, Qidi) da modale nella calcolatrice, con riepilogo dettagliato e generazione automatica bozza preventivo
@@ -40,6 +40,59 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 - 🍎 **Funzionalità specifiche della piattaforma** - Badge Dock macOS, notifiche native, integrazione system tray
 
 ## 📋 Registro delle modifiche (Changelog)
+
+### v1.1.4 (2025) - 🐛 Creazione automatica del file di aggiornamento della libreria filamenti
+
+- 🐛 **Creazione automatica del file di aggiornamento** - Risolto problema dove `update_filamentLibrary.json` non veniva creato automaticamente:
+  - Il file ora viene creato automaticamente da `filamentLibrarySample.json` al primo avvio
+  - Garantisce che il file di aggiornamento sia sempre disponibile per la fusione
+  - Crea solo se il file non esiste (non sovrascrive quello esistente)
+  - Gestione degli errori e registrazione migliorate per le operazioni sul file di aggiornamento
+
+### v1.1.3 (2025) - 🪟 Correzioni di compatibilità Windows
+
+- 🪟 **Correzione di compatibilità Windows** - Miglioramenti al caricamento della libreria filamenti:
+  - Import dinamico per file JSON grandi (invece di import statico)
+  - Meccanismo di cache per evitare caricamenti multipli
+  - Gestione errori migliorata per casi di file non trovato su Windows
+  - Compatibilità multipiattaforma (Windows, macOS, Linux)
+- 🔧 **Miglioramenti alla gestione degli errori** - Messaggi di errore migliorati:
+  - Gestione corretta dei messaggi di errore specifici di Windows
+  - Gestione silenziosa dei casi di file non trovato (non come avvisi)
+
+### v1.1.2 (2025) - 🌍 Selettore lingua e miglioramenti
+
+- 🌍 **Selettore lingua al primo avvio** - Dialogo moderno e animato per la selezione della lingua al primo avvio:
+  - Supporto per 13 lingue con icone bandiera
+  - Design consapevole del tema
+  - Animazioni fluide
+  - Il tutorial viene eseguito nella lingua selezionata
+- 🔄 **Ripristino alle impostazioni di fabbrica** - Funzione di eliminazione completa dei dati:
+  - Elimina tutti i dati memorizzati (stampanti, filamenti, offerte, clienti, impostazioni)
+  - Dialogo di conferma per operazioni pericolose
+  - L'applicazione si riavvia come al primo avvio
+- 🎨 **Miglioramenti UI**:
+  - Correzione del contrasto del testo del piè di pagina (selezione colore dinamica)
+  - Salvataggio immediato al cambio lingua
+  - Posizionamento migliorato dei tooltip
+- 📚 **Traduzioni tutorial** - Traduzione completa del tutorial in tutte le lingue supportate (aggiunto russo, ucraino, cinese)
+
+### v1.1.1 (2025) - 🎨 Miglioramenti layout header
+
+- 📐 **Riorganizzazione header** - Struttura header a tre parti:
+  - Sinistra: Menu + Logo + Titolo
+  - Centro: Breadcrumb (si riduce dinamicamente)
+  - Destra: Azioni rapide + Card informazioni stato
+- 📊 **Card informazioni stato** - Stile compatto e moderno:
+  - "Prossimo salvataggio" (etichetta e valore)
+  - Data e ora (impilate)
+  - Sempre posizionata a destra
+- 📱 **Design responsive** - Breakpoint migliorati:
+  - Nascondi breadcrumb <1000px
+  - Nascondi data <900px
+  - Nascondi "Prossimo salvataggio" <800px
+  - Azioni rapide compatte <700px
+- 🔢 **Correzione formattazione numeri** - Arrotondamento percentuali progresso caricamento
 
 ### v1.1.0 (2025) - 🚀 Aggiornamento funzionalità
 
@@ -338,6 +391,24 @@ Lekszikov Miklós (LexyGuru)
 Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito automaticamente, compilando la versione beta.
 
 ## 📋 Cronologia versioni
+
+### v1.1.1 (2025) - 🎨 Miglioramenti al layout dell'intestazione
+
+- 🎨 **Ridisegno dell'intestazione** - Revisione completa del layout dell'intestazione:
+  - Struttura a tre sezioni (sinistra: logo/menu, centro: breadcrumb, destra: azioni/stato)
+  - Scheda informazioni stato sempre posizionata all'estrema destra
+  - Design moderno tipo scheda per informazioni stato
+  - Migliori spaziature e allineamento in tutta l'intestazione
+- 📱 **Design responsivo** - Migliore esperienza su mobile e schermi piccoli:
+  - Breakpoint dinamici per la visibilità degli elementi
+  - Correzioni del troncamento del breadcrumb
+  - Azioni rapide si adattano alle dimensioni dello schermo
+  - Dimensionamento responsivo della scheda informazioni stato
+- 🔧 **Correzioni layout**:
+  - Problemi di overflow e troncamento del breadcrumb risolti
+  - Miglioramenti al posizionamento della scheda informazioni stato
+  - Migliore gestione del layout flexbox
+  - Spaziatura e gap migliorati tra gli elementi
 
 ### v1.1.0 (2025) - 🚀 Aggiornamento funzionalità
 
@@ -640,7 +711,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 1.0.0
+**Versione**: 1.1.1
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

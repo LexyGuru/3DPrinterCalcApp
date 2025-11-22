@@ -21,6 +21,7 @@ interface Props {
 export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSidebarOpen, lastSaved, autosaveInterval = 30, activePage, onPageChange, themeStyles, onQuickAction }) => {
   const t = useTranslation(settings.language);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -30,6 +31,15 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
     }, 1000);
     return () => clearInterval(timer);
   }, [lastSaved]);
+
+  // Viewport szélesség követése responsive layout-hoz
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", {
@@ -67,7 +77,7 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
     
     // Visszafelé számolás: hátralévő idő a következő mentésig
     if (timeUntilNextSave < 60) {
-      // Másodpercek
+      // Másodpercek - ne használjunk padStart-ot, hogy ne legyen mindig 2 jegyű
       return settings.language === "hu" 
         ? `${timeUntilNextSave} mp múlva mentés` 
         : settings.language === "de" 
@@ -84,11 +94,13 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
           ? `Speichern in ${minutes} min` 
           : `Save in ${minutes}m`;
       } else {
+        // Csak akkor használjunk padStart-ot, ha a másodpercek 2 jegyűek (10-59)
+        const secondsStr = seconds < 10 ? seconds.toString() : seconds.toString().padStart(2, '0');
         return settings.language === "hu" 
-          ? `${minutes}:${seconds.toString().padStart(2, '0')} múlva mentés` 
+          ? `${minutes}:${secondsStr} múlva mentés` 
           : settings.language === "de" 
-          ? `Speichern in ${minutes}:${seconds.toString().padStart(2, '0')}` 
-          : `Save in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+          ? `Speichern in ${minutes}:${secondsStr}` 
+          : `Save in ${minutes}:${secondsStr}`;
       }
     }
   };
@@ -138,7 +150,14 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
   const borderColor = theme.colors.border;
   const hoverBg = theme.colors.surfaceHover || (isLight ? "rgba(0, 0, 0, 0.05)" : "rgba(255, 255, 255, 0.1)");
 
-  // Breadcrumb items generálása
+  // Responsive breakpoints - dinamikus elrejtés kisebb méreteknél
+  // A breakpoint-ok úgy vannak beállítva, hogy mielőtt levágásra kerülnének az elemek, elrejtődjön a kevésbé fontos
+  const showBreadcrumb = windowWidth > 1000; // Breadcrumb csak 1000px felett
+  const showDate = windowWidth > 900; // Dátum csak 900px felett
+  const showLastSaved = windowWidth > 800; // Következő mentés csak 800px felett
+  const compactQuickActions = windowWidth < 700; // Kompakt gombok 700px alatt
+
+  // Breadcrumb items generálása - stabil referencia az onClick-hez
   const breadcrumbItems = useMemo(() => {
     if (!activePage || !onPageChange) {
       return [];
@@ -148,7 +167,11 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
       {
         key: 'home',
         label: t('sidebar.home') || 'Home',
-        onClick: () => onPageChange('home'),
+        onClick: () => {
+          if (onPageChange) {
+            onPageChange('home');
+          }
+        },
       },
     ];
 
@@ -169,6 +192,7 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
       items.push({
         key: activePage,
         label: pageLabels[activePage],
+        // Az utolsó elemnek nincs onClick-je (nem kattintható)
       });
     }
 
@@ -274,8 +298,9 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
         borderBottom: `1px solid ${borderColor}`,
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
+        gap: "16px",
         padding: "0 24px",
+        overflow: "hidden", // Prevenálja a túlcsordulást
         zIndex: 999,
         transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         boxShadow: isNeon
@@ -285,36 +310,59 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
       }}
     >
       {/* Left: Logo and Menu Toggle */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        <button
-          onClick={onMenuToggle}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: "8px",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: headerText,
-            transition: "background-color 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = hoverBg;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "transparent";
-          }}
-          aria-label="Toggle menu"
+      <div style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        gap: "16px",
+        flexShrink: 0, // Ne zsugorodjon
+      }}>
+        <Tooltip 
+          content={isSidebarOpen 
+            ? (settings.language === "hu" ? "Menü elrejtése" : settings.language === "de" ? "Menü ausblenden" : "Hide menu")
+            : (settings.language === "hu" ? "Menü megjelenítése" : settings.language === "de" ? "Menü anzeigen" : "Show menu")
+          }
+          position="bottom"
+          theme={theme}
         >
+          <button
+            onClick={onMenuToggle}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: headerText,
+              transition: "background-color 0.2s",
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = hoverBg;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+            aria-label={isSidebarOpen 
+              ? (settings.language === "hu" ? "Menü elrejtése" : settings.language === "de" ? "Menü ausblenden" : "Hide menu")
+              : (settings.language === "hu" ? "Menü megjelenítése" : settings.language === "de" ? "Menü anzeigen" : "Show menu")
+            }
+          >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="3" y1="6" x2="21" y2="6" />
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        </Tooltip>
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: "12px",
+          flexShrink: 0,
+        }}>
           <div
             style={{
               width: "40px",
@@ -330,40 +378,62 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
               fontWeight: "bold",
               fontSize: "18px",
               boxShadow: isNeon ? `0 0 10px ${theme.colors.primary}` : "none",
+              flexShrink: 0,
             }}
           >
             3D
           </div>
-          <span
-            style={{
-              fontSize: "20px",
-              fontWeight: "700",
-              color: headerText,
-              textShadow: isNeon ? `0 0 8px ${headerText}` : "none",
-            }}
-          >
-            3DPrinterCalcApp
-          </span>
+          {windowWidth > 400 && (
+            <span
+              style={{
+                fontSize: "20px",
+                fontWeight: "700",
+                color: headerText,
+                textShadow: isNeon ? `0 0 8px ${headerText}` : "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              3DPrinterCalcApp
+            </span>
+          )}
         </div>
-        
-        {/* Breadcrumb */}
-        {breadcrumbItems.length > 1 && themeStyles && (
-          <div style={{ marginLeft: '24px' }}>
-            <Breadcrumb
-              items={breadcrumbItems}
-              theme={theme}
-              themeStyles={themeStyles}
-              settings={settings}
-            />
-          </div>
-        )}
       </div>
 
-      {/* Right: Quick Actions, Date, Time, and Last Saved */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        {/* Quick Actions */}
+      {/* Center: Breadcrumb */}
+      {showBreadcrumb && breadcrumbItems.length > 1 && themeStyles && (
+        <div style={{ 
+          flex: "1 1 auto",
+          minWidth: 0, // Lehetővé teszi a zsugorodást
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+        }}>
+          <Breadcrumb
+            items={breadcrumbItems}
+            theme={theme}
+            themeStyles={themeStyles}
+            settings={settings}
+          />
+        </div>
+      )}
+
+      {/* Right: Quick Actions and Status Info */}
+      <div style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        gap: "12px",
+        flexShrink: 0,
+        justifyContent: "flex-end",
+        marginLeft: "auto", // Mindig jobbra tolja az egész konténert
+      }}>
+        {/* Quick Actions - balra a status info kártyától */}
         {quickActions.length > 0 && themeStyles && (
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginRight: "8px" }}>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: compactQuickActions ? "4px" : "8px", 
+            flexShrink: 0,
+          }}>
             {quickActions.map((action) => (
               <Tooltip key={action.key} content={action.tooltip}>
                 <button
@@ -380,81 +450,110 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
                   style={{
                     ...themeStyles.button,
                     ...themeStyles.buttonPrimary,
-                    padding: "8px 12px",
-                    fontSize: "13px",
+                    padding: compactQuickActions ? "6px 8px" : "8px 12px",
+                    fontSize: compactQuickActions ? "12px" : "13px",
                     display: "flex",
                     alignItems: "center",
-                    gap: "6px",
+                    gap: compactQuickActions ? "4px" : "6px",
                     whiteSpace: "nowrap",
+                    flexShrink: 0,
                   }}
                   aria-label={action.tooltip}
                 >
                   <span>{action.icon}</span>
-                  <span>{action.label}</span>
+                  {!compactQuickActions && <span>{action.label}</span>}
                 </button>
               </Tooltip>
             ))}
           </div>
         )}
         
-        {/* Last Saved */}
-        {lastSaved && (
+        {/* Status Info - mindig a legjobbra, kompakt, modern kártya stílusban */}
+        {(showLastSaved || showDate) && (
           <div
             style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "flex-end",
-              gap: "2px",
+              justifyContent: "center",
+              gap: "3px",
+              padding: "6px 12px",
+              borderRadius: "8px",
+              backgroundColor: isLight 
+                ? "rgba(0, 0, 0, 0.03)" 
+                : "rgba(255, 255, 255, 0.05)",
+              border: `1px solid ${isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.1)"}`,
+              flexShrink: 0,
+              minWidth: "160px",
+              lineHeight: "1.4",
+              marginLeft: "auto", // Mindig jobbra tolja
             }}
           >
-            <span style={{ 
-              fontSize: "10px", 
-              color: mutedText, 
-              fontWeight: "400",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              textShadow: isNeon ? `0 0 4px ${mutedText}` : "none",
-            }}>
-              {settings.language === "hu" ? "Következő mentés" : settings.language === "de" ? "Nächste Speicherung" : "Next save"}
-            </span>
-            <span style={{ 
-              fontSize: "12px", 
-              color: "#4ade80", // Halványzöld
-              fontWeight: "500",
-              opacity: 0.8,
-              textShadow: isNeon ? `0 0 4px #4ade80` : "none",
-            }}>
-              {formatLastSaved(lastSaved)}
-            </span>
+            {/* Last Saved */}
+            {showLastSaved && lastSaved && (
+              <div style={{ 
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: "1px",
+              }}>
+                <span style={{ 
+                  fontSize: "9px", 
+                  color: mutedText, 
+                  fontWeight: "500",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.8px",
+                  textShadow: isNeon ? `0 0 4px ${mutedText}` : "none",
+                  whiteSpace: "nowrap",
+                  opacity: 0.8,
+                }}>
+                  {settings.language === "hu" ? "Következő mentés" : settings.language === "de" ? "Nächste Speicherung" : "Next save"}
+                </span>
+                <span style={{ 
+                  fontSize: "11px", 
+                  color: theme.colors.success || "#4ade80",
+                  fontWeight: "600",
+                  textShadow: isNeon ? `0 0 4px ${theme.colors.success || "#4ade80"}` : "none",
+                  whiteSpace: "nowrap",
+                }}>
+                  {formatLastSaved(lastSaved)}
+                </span>
+              </div>
+            )}
+            
+            {/* Date and Time - egy sorban vagy egymás alatt */}
+            {showDate && (
+              <div style={{ 
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                flexWrap: "wrap",
+                justifyContent: "flex-end",
+              }}>
+                <span style={{ 
+                  fontSize: "11px", 
+                  color: mutedText, 
+                  fontWeight: "500",
+                  textShadow: isNeon ? `0 0 4px ${mutedText}` : "none",
+                  whiteSpace: "nowrap",
+                  opacity: 0.9,
+                }}>
+                  {formatDate(currentDate)}
+                </span>
+                <span style={{ 
+                  fontSize: "16px", 
+                  color: headerText, 
+                  fontWeight: "700",
+                  textShadow: isNeon ? `0 0 8px ${headerText}` : (isGradientBg && !isGlassmorphism ? "0 1px 3px rgba(0,0,0,0.3)" : "none"),
+                  whiteSpace: "nowrap",
+                  fontVariantNumeric: "tabular-nums",
+                }}>
+                  {formatTime(currentDate)}
+                </span>
+              </div>
+            )}
           </div>
         )}
-        
-        {/* Date and Time */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: "2px",
-          }}
-        >
-          <span style={{ 
-            fontSize: "12px", 
-            color: mutedText, 
-            fontWeight: "500",
-            textShadow: isNeon ? `0 0 4px ${mutedText}` : "none",
-          }}>
-            {formatDate(currentDate)}
-          </span>
-          <span style={{ 
-            fontSize: "18px", 
-            color: headerText, 
-            fontWeight: "600",
-            textShadow: isNeon ? `0 0 8px ${headerText}` : (isGradientBg && !isGlassmorphism ? "0 1px 3px rgba(0,0,0,0.3)" : "none"),
-          }}>
-            {formatTime(currentDate)}
-          </span>
-        </div>
       </div>
     </header>
   );

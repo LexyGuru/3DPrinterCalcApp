@@ -219,7 +219,7 @@ export const Console: React.FC<Props> = ({ settings, theme, themeStyles }) => {
             <div style={{ 
               textAlign: "center", 
               padding: "40px", 
-              color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
+              color: theme.colors.textMuted || (theme.colors.background?.includes('gradient') ? theme.colors.textSecondary : theme.colors.textMuted)
             }}>
               {t("console.empty")}
             </div>

@@ -17,7 +17,7 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 - 🗂️ **Panel statusu** - Karty statusu, szybkie filtry i oś czasu ostatnich zmian statusu
 - 📝 **Notatki statusu** - Każda zmiana statusu z opcjonalnymi notatkami i rejestrowaniem historii
 - 👁️ **Podgląd PDF i szablony** - Wbudowany podgląd PDF, wybieralne szablony i bloki brandingowe firmy
-- 🎨 **Biblioteka kolorów filamentu** - Ponad 2000 kolorów fabrycznych z panelami wyboru opartymi na marce i typie
+- 🎨 **Biblioteka kolorów filamentu** - Ponad 12,000 kolorów fabrycznych z panelami wyboru opartymi na marce i typie
 - 💾 **Edytor biblioteki filamentów** - Dodawanie/edytowanie oparte na modalu, ostrzeżenia o duplikatach i trwałe zapisywanie w `filamentLibrary.json`
 - 🖼️ **Obrazy filamentów w PDF** - Wyświetlanie logo filamentów i próbek kolorów w generowanych plikach PDF
 - 🧾 **Import G-code i tworzenie szkicu** - Ładowanie eksportów G-code/JSON (Prusa, Cura, Orca, Qidi) z modala w kalkulatorze, ze szczegółowym podsumowaniem i automatycznym generowaniem szkicu oferty
@@ -39,6 +39,59 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 - 📱 **Menu kontekstowe** - Menu prawego przycisku myszy do szybkich akcji (edytuj, usuń, duplikuj, eksportuj)
 
 ## 📋 Dziennik zmian (Changelog)
+
+### v1.1.4 (2025) - 🐛 Automatyczne tworzenie pliku aktualizacji biblioteki filamentów
+
+- 🐛 **Automatyczne tworzenie pliku aktualizacji** - Naprawiono problem, gdzie `update_filamentLibrary.json` nie był automatycznie tworzony:
+  - Plik jest teraz automatycznie tworzony z `filamentLibrarySample.json` przy pierwszym uruchomieniu
+  - Zapewnia, że plik aktualizacji jest zawsze dostępny do scalenia
+  - Tworzy tylko, jeśli plik nie istnieje (nie nadpisuje istniejącego)
+  - Ulepszona obsługa błędów i rejestrowanie dla operacji na pliku aktualizacji
+
+### v1.1.3 (2025) - 🪟 Poprawki zgodności z Windows
+
+- 🪟 **Poprawka zgodności z Windows** - Ulepszenia ładowania biblioteki filamentów:
+  - Dynamiczny import dla dużych plików JSON (zamiast statycznego importu)
+  - Mechanizm cache, aby uniknąć wielokrotnych ładowań
+  - Ulepszona obsługa błędów dla przypadków nieznalezionego pliku w Windows
+  - Kompatybilność międzyplatformowa (Windows, macOS, Linux)
+- 🔧 **Ulepszenia obsługi błędów** - Ulepszone komunikaty o błędach:
+  - Prawidłowa obsługa komunikatów o błędach specyficznych dla Windows
+  - Cicha obsługa przypadków nieznalezionego pliku (nie jako ostrzeżenia)
+
+### v1.1.2 (2025) - 🌍 Selektor języka i ulepszenia
+
+- 🌍 **Selektor języka przy pierwszym uruchomieniu** - Nowoczesne, animowane okno dialogowe wyboru języka przy pierwszym uruchomieniu:
+  - Obsługa 13 języków z ikonami flag
+  - Design świadomy motywu
+  - Płynne animacje
+  - Samouczek działa w wybranym języku
+- 🔄 **Przywracanie ustawień fabrycznych** - Funkcja całkowitego usuwania danych:
+  - Usuwa wszystkie zapisane dane (drukarki, filamenty, oferty, klienci, ustawienia)
+  - Okno dialogowe potwierdzenia dla niebezpiecznych operacji
+  - Aplikacja uruchamia się ponownie jak przy pierwszym uruchomieniu
+- 🎨 **Ulepszenia UI**:
+  - Poprawka kontrastu tekstu stopki (dynamiczny wybór koloru)
+  - Natychmiastowe zapisywanie przy zmianie języka
+  - Ulepszone pozycjonowanie tooltipów
+- 📚 **Tłumaczenia samouczka** - Pełne tłumaczenie samouczka we wszystkich obsługiwanych językach (dodano rosyjski, ukraiński, chiński)
+
+### v1.1.1 (2025) - 🎨 Ulepszenia układu nagłówka
+
+- 📐 **Reorganizacja nagłówka** - Struktura nagłówka z trzema częściami:
+  - Lewa: Menu + Logo + Tytuł
+  - Środek: Breadcrumb (dynamicznie się zmniejsza)
+  - Prawa: Szybkie akcje + Karta informacji o stanie
+- 📊 **Karta informacji o stanie** - Kompaktowy, nowoczesny styl:
+  - "Następne zapisanie" (etykieta i wartość)
+  - Data i godzina (ułożone jeden pod drugim)
+  - Zawsze pozycjonowane po prawej stronie
+- 📱 **Design responsywny** - Ulepszone punkty przerwania:
+  - Ukryj breadcrumb <1000px
+  - Ukryj datę <900px
+  - Ukryj "Następne zapisanie" <800px
+  - Kompaktowe szybkie akcje <700px
+- 🔢 **Poprawka formatowania liczb** - Zaokrąglanie procentów postępu ładowania
 
 ### v1.1.0 (2025) - 🚀 Aktualizacja funkcji
 
@@ -338,6 +391,24 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ## 📋 Historia wersji
 
+### v1.1.1 (2025) - 🎨 Ulepszenia układu nagłówka
+
+- 🎨 **Przebudowa nagłówka** - Kompletna przebudowa układu nagłówka:
+  - Struktura trzech sekcji (lewa: logo/menu, środek: breadcrumb, prawa: akcje/status)
+  - Karta informacji o statusie zawsze pozycjonowana po prawej stronie
+  - Nowoczesny design typu karty dla informacji o statusie
+  - Lepsze odstępy i wyrównanie w całym nagłówku
+- 📱 **Projekt responsywny** - Lepsze doświadczenie na urządzeniach mobilnych i małych ekranach:
+  - Dynamiczne punkty przerwania dla widoczności elementów
+  - Poprawki przycinania breadcrumb
+  - Szybkie akcje dostosowują się do rozmiaru ekranu
+  - Responsywne rozmiarowanie karty informacji o statusie
+- 🔧 **Poprawki układu**:
+  - Naprawione problemy z przepełnieniem i przycinaniem breadcrumb
+  - Ulepszenia pozycjonowania karty informacji o statusie
+  - Lepsze zarządzanie układem flexbox
+  - Ulepszone odstępy i przerwy między elementami
+
 ### v1.1.0 (2025) - 🚀 Aktualizacja funkcji
 
 - 🔍 **Rozszerzone wyszukiwanie globalne** - Ulepszona funkcjonalność wyszukiwania
@@ -435,7 +506,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 - 🎨 **Rozszerzenia warsztatu motywów** – Cztery nowe wbudowane motywy (Forest, Pastel, Charcoal, Midnight), natychmiastowa duplikacja aktywnego motywu do edycji niestandardowej, ulepszona obsługa gradientu/kontrastu i uproszczony proces udostępniania.
 
 ### v0.4.0 (2025)
-- 🧵 **Integracja bazy danych filamentów** – Ponad 2 000 kolorów fabrycznych z wbudowanej biblioteki JSON (migawka filamentcolors.xyz), zorganizowane według marki i materiału
+- 🧵 **Integracja bazy danych filamentów** – Ponad 12 000 kolorów fabrycznych z wbudowanej biblioteki JSON (migawka filamentcolors.xyz), zorganizowane według marki i materiału
 - 🪟 **Panele selektora o stałym rozmiarze** – Listy marek i typów otwierane przyciskiem, przeszukiwalne, przewijalne, które wykluczają się wzajemnie, czyniąc formularz bardziej przejrzystym
 - 🎯 **Ulepszenia selektora kolorów** – Gdy elementy biblioteki są rozpoznawane, wykończenie i kod hex są automatycznie ustawiane, osobne pola dostępne przy przełączaniu na tryb niestandardowy
 - 💾 **Edytor biblioteki filamentów** – Nowa zakładka ustawień z formularzem popup, obsługa duplikatów i trwałe zapisywanie `filamentLibrary.json` oparte na Tauri FS
@@ -639,7 +710,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 1.0.0
+**Wersja**: 1.1.1
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

@@ -189,6 +189,8 @@ export interface Settings {
     ams: boolean;
     action: boolean;
   }; // Nyomtatók oszlopok láthatósága
+  showTutorialOnStartup?: boolean; // Kezdő tutorial megjelenítése indításkor
+  tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
 }
 
 export const defaultSettings: Settings = {
@@ -210,6 +212,8 @@ export const defaultSettings: Settings = {
     autoApplyGradientText: true,
   },
   calendarProvider: "google", // Alapértelmezett naptár szolgáltató
+  showTutorialOnStartup: true, // Alapértelmezetten mutassa a tutorialt
+  tutorialCompleted: false, // Alapértelmezetten nem tekintették meg
 };
 
 export interface OfferFilament {

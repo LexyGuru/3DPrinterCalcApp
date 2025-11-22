@@ -17,7 +17,7 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 - 🗂️ **Tableau de bord d'état** - Cartes d'état, filtres rapides et chronologie des changements d'état récents
 - 📝 **Notes d'état** - Chaque changement d'état avec notes optionnelles et enregistrement de l'historique
 - 👁️ **Aperçu PDF et modèles** - Aperçu PDF intégré, modèles sélectionnables et blocs de marque d'entreprise
-- 🎨 **Bibliothèque de couleurs de filament** - Plus de 2000 couleurs d'usine avec panneaux sélectionnables basés sur marque et type
+- 🎨 **Bibliothèque de couleurs de filament** - Plus de 12 000 couleurs d'usine avec panneaux sélectionnables basés sur marque et type
 - 💾 **Éditeur de bibliothèque de filaments** - Ajout/modification basé sur modal, avertissements de doublons et sauvegarde persistante dans `filamentLibrary.json`
 - 🖼️ **Images de filament dans PDF** - Afficher les logos de filament et échantillons de couleur dans les PDF générés
 - 🧾 **Importation G-code et création de brouillon** - Charger les exportations G-code/JSON (Prusa, Cura, Orca, Qidi) depuis modal dans la calculatrice, avec résumé détaillé et génération automatique de brouillon de devis
@@ -40,6 +40,59 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 - 🍎 **Fonctionnalités spécifiques à la plateforme** - Badge Dock macOS, notifications natives, intégration de la barre d'état système
 
 ## 📋 Journal des modifications (Changelog)
+
+### v1.1.4 (2025) - 🐛 Création automatique du fichier de mise à jour de la bibliothèque de filaments
+
+- 🐛 **Création automatique du fichier de mise à jour** - Problème corrigé où `update_filamentLibrary.json` n'était pas créé automatiquement:
+  - Le fichier est maintenant créé automatiquement à partir de `filamentLibrarySample.json` au premier lancement
+  - Garantit que le fichier de mise à jour est toujours disponible pour la fusion
+  - Ne crée que si le fichier n'existe pas (ne remplace pas l'existant)
+  - Gestion des erreurs et journalisation améliorées pour les opérations sur le fichier de mise à jour
+
+### v1.1.3 (2025) - 🪟 Corrections de compatibilité Windows
+
+- 🪟 **Correction de compatibilité Windows** - Améliorations du chargement de la bibliothèque de filaments:
+  - Import dynamique pour les gros fichiers JSON (au lieu d'import statique)
+  - Mécanisme de cache pour éviter les chargements multiples
+  - Gestion d'erreurs améliorée pour les cas de fichier introuvable sur Windows
+  - Compatibilité multiplateforme (Windows, macOS, Linux)
+- 🔧 **Améliorations de la gestion des erreurs** - Messages d'erreur améliorés:
+  - Gestion correcte des messages d'erreur spécifiques à Windows
+  - Gestion silencieuse des cas de fichier introuvable (pas comme avertissements)
+
+### v1.1.2 (2025) - 🌍 Sélecteur de langue et améliorations
+
+- 🌍 **Sélecteur de langue au premier lancement** - Dialogue moderne et animé de sélection de langue au premier lancement:
+  - Support de 13 langues avec icônes de drapeaux
+  - Design conscient du thème
+  - Animations fluides
+  - Le tutoriel s'exécute dans la langue sélectionnée
+- 🔄 **Réinitialisation d'usine** - Fonction de suppression complète des données:
+  - Supprime toutes les données stockées (imprimantes, filaments, offres, clients, paramètres)
+  - Dialogue de confirmation pour les opérations dangereuses
+  - L'application redémarre comme au premier lancement
+- 🎨 **Améliorations UI**:
+  - Correction du contraste du texte du pied de page (sélection de couleur dynamique)
+  - Enregistrement immédiat lors du changement de langue
+  - Positionnement amélioré des tooltips
+- 📚 **Traductions du tutoriel** - Traduction complète du tutoriel dans toutes les langues supportées (russe, ukrainien, chinois ajoutés)
+
+### v1.1.1 (2025) - 🎨 Améliorations de la mise en page de l'en-tête
+
+- 📐 **Réorganisation de l'en-tête** - Structure d'en-tête en trois parties:
+  - Gauche: Menu + Logo + Titre
+  - Centre: Fil d'Ariane (se réduit dynamiquement)
+  - Droite: Actions rapides + Carte d'information d'état
+- 📊 **Carte d'information d'état** - Style compact et moderne:
+  - "Prochaine sauvegarde" (étiquette et valeur)
+  - Date et heure (empilées)
+  - Toujours positionnée à droite
+- 📱 **Design responsive** - Points de rupture améliorés:
+  - Masquer le fil d'Ariane <1000px
+  - Masquer la date <900px
+  - Masquer "Prochaine sauvegarde" <800px
+  - Actions rapides compactes <700px
+- 🔢 **Correction du formatage des nombres** - Arrondi des pourcentages de progression de chargement
 
 ### v1.1.0 (2025) - 🚀 Mise à jour des fonctionnalités
 
@@ -339,6 +392,24 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ## 📋 Historique des versions
 
+### v1.1.1 (2025) - 🎨 Améliorations du layout de l'en-tête
+
+- 🎨 **Refonte de l'en-tête** - Révision complète du layout de l'en-tête:
+  - Structure en trois sections (gauche: logo/menu, centre: breadcrumb, droite: actions/statut)
+  - Carte d'informations de statut toujours positionnée à l'extrême droite
+  - Design moderne type carte pour les informations de statut
+  - Meilleur espacement et alignement dans tout l'en-tête
+- 📱 **Design responsive** - Meilleure expérience sur mobile et petits écrans:
+  - Points de rupture dynamiques pour la visibilité des éléments
+  - Corrections de troncature du breadcrumb
+  - Actions rapides s'adaptent à la taille de l'écran
+  - Dimensionnement responsive de la carte d'informations de statut
+- 🔧 **Corrections de layout**:
+  - Problèmes de débordement et de troncature du breadcrumb corrigés
+  - Améliorations du positionnement de la carte d'informations de statut
+  - Meilleure gestion du layout flexbox
+  - Espacement et gaps améliorés entre les éléments
+
 ### v1.1.0 (2025) - 🚀 Mise à jour des fonctionnalités
 
 - 🔍 **Recherche globale étendue** - Fonctionnalité de recherche améliorée
@@ -436,7 +507,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 - 🎨 **Extensions de l'atelier de thèmes** – Quatre nouveaux thèmes intégrés (Forest, Pastel, Charcoal, Midnight), duplication instantanée du thème actif pour édition personnalisée, gestion améliorée du gradient/contraste et processus de partage simplifié.
 
 ### v0.4.0 (2025)
-- 🧵 **Intégration de base de données de filaments** – Plus de 2 000 couleurs d'usine de la bibliothèque JSON intégrée (instantané filamentcolors.xyz), organisées par marque et matériau
+- 🧵 **Intégration de base de données de filaments** – Plus de 12 000 couleurs d'usine de la bibliothèque JSON intégrée (instantané filamentcolors.xyz), organisées par marque et matériau
 - 🪟 **Panneaux de sélection de taille fixe** – Listes de marque et type ouvertes par bouton, recherchables, défilables qui s'excluent mutuellement, rendant le formulaire plus transparent
 - 🎯 **Améliorations du sélecteur de couleurs** – Lorsque les éléments de la bibliothèque sont reconnus, la finition et le code hex sont définis automatiquement, champs séparés disponibles lors du passage en mode personnalisé
 - 💾 **Éditeur de bibliothèque de filaments** – Nouvel onglet de paramètres avec formulaire popup, gestion des doublons et sauvegarde persistante `filamentLibrary.json` basée sur Tauri FS
@@ -640,7 +711,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 1.0.0
+**Version**: 1.1.1
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

@@ -267,3 +267,32 @@ export async function loadPriceHistory(): Promise<PriceHistory[]> {
     return [];
   }
 }
+
+// Clear all data - Factory reset
+export async function clearAllData(): Promise<void> {
+  try {
+    if (import.meta.env.DEV) {
+      console.log("🗑️ Összes adat törlése (Factory reset)...");
+    }
+    const store = await getStore();
+    
+    // Töröljük az összes kulcsot
+    await store.delete("printers");
+    await store.delete("filaments");
+    await store.delete("offers");
+    await store.delete("customers");
+    await store.delete("settings");
+    await store.delete("templates");
+    await store.delete("priceHistory");
+    
+    // Mentjük az üres store-t
+    await store.save();
+    
+    if (import.meta.env.DEV) {
+      console.log("✅ Összes adat törölve (Factory reset kész)");
+    }
+  } catch (error) {
+    console.error("❌ Hiba az adatok törlésekor:", error);
+    throw error;
+  }
+}

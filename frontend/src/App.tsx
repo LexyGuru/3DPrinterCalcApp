@@ -27,6 +27,9 @@ import { debounce } from "./utils/debounce";
 import { useKeyboardShortcut } from "./utils/keyboardShortcuts";
 import { ShortcutHelp } from "./components/ShortcutHelp";
 import { GlobalSearch } from "./components/GlobalSearch";
+import { Tutorial } from "./components/Tutorial";
+import { LoadingSpinner } from "./components/LoadingSpinner";
+import { LanguageSelector } from "./components/LanguageSelector";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
 import { initFrontendLog } from "./utils/fileLogger"; // Initialize file logger
@@ -47,6 +50,9 @@ export default function App() {
   const [lastSaved, setLastSaved] = useState<Date | null>(new Date()); // Kezdeti érték, hogy azonnal látható legyen
   const [quickActionTrigger, setQuickActionTrigger] = useState<string | null>(null);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+  const [languageSelected, setLanguageSelected] = useState(false);
 
   // 🔹 Frontend log inicializálása
   useEffect(() => {
@@ -59,8 +65,43 @@ export default function App() {
     });
   }, []);
 
-  // 🔹 Betöltés indításkor - Progress tracking-gel
+  // 🔹 Első indítás ellenőrzése - nyelvválasztó megjelenítése
   useEffect(() => {
+    const checkFirstLaunch = async () => {
+      try {
+        const loadedSettings = await loadSettings();
+        // Ha nincs mentett beállítás, vagy nincs nyelv beállítva, akkor első indítás
+        if (!loadedSettings || !loadedSettings.language) {
+          setShowLanguageSelector(true);
+          return; // Ne folytassa a betöltést, várjuk meg a nyelvválasztást
+        }
+        // Ha van beállítás, folytassa normálisan
+        setLanguageSelected(true);
+      } catch (error) {
+        console.error("Hiba a beállítások ellenőrzésekor:", error);
+        // Hiba esetén is mutassuk a nyelvválasztót
+        setShowLanguageSelector(true);
+      }
+    };
+    checkFirstLaunch();
+  }, []);
+
+  // 🔹 Nyelvválasztó callback - nyelv kiválasztása után
+  const handleLanguageSelect = async (language: import("./types").LanguageCode) => {
+    const newSettings = {
+      ...defaultSettings,
+      language,
+    };
+    setSettings(newSettings);
+    await saveSettings(newSettings);
+    setLanguageSelected(true);
+    setShowLanguageSelector(false);
+  };
+
+  // 🔹 Betöltés indításkor - Progress tracking-gel (csak ha a nyelv kiválasztva)
+  useEffect(() => {
+    if (!languageSelected) return; // Várjuk meg a nyelvválasztást
+    
     const loadData = async () => {
       // Minimális késleltetés, hogy látható legyen a skeleton
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -146,13 +187,42 @@ export default function App() {
         
         setIsInitialized(true);
         setLastSaved(new Date());
+        
+        // Tutorial indítás, ha be van állítva és még nem nézték meg
+        // Csak akkor mutassuk, ha:
+        // 1. showTutorialOnStartup explicit true (vagy undefined, ami alapértelmezett true)
+        // 2. ÉS tutorialCompleted NEM true (vagyis false vagy undefined)
+        // 3. ÉS a nyelv már kiválasztva (nem első indítás)
+        const shouldShowTutorial = 
+          languageSelected &&
+          (loadedSettings?.showTutorialOnStartup !== false) && 
+          (loadedSettings?.tutorialCompleted !== true);
+        
+        if (import.meta.env.DEV) {
+          console.log("🔍 Tutorial ellenőrzés:", {
+            languageSelected,
+            showTutorialOnStartup: loadedSettings?.showTutorialOnStartup,
+            tutorialCompleted: loadedSettings?.tutorialCompleted,
+            shouldShowTutorial,
+          });
+        }
+        
+        if (shouldShowTutorial) {
+          // Kis késleltetés, hogy az app betöltődjön
+          setTimeout(() => {
+            setShowTutorial(true);
+            if (import.meta.env.DEV) {
+              console.log("✅ Tutorial elindítva");
+            }
+          }, 800);
+        }
       } catch (error) {
         console.error("Hiba az adatok betöltésekor:", error);
         setIsInitialized(true); // Mégis inicializáljuk, hogy ne ragadjon be
       }
     };
     loadData();
-  }, []);
+  }, [languageSelected, settings.language]);
 
   // 🔹 Automatikus mentés debounce-szal (csak inicializálás után)
   const autosaveEnabled = settings.autosave !== false; // Alapértelmezetten true
@@ -269,6 +339,12 @@ export default function App() {
     [settings.theme, settings.themeSettings]
   );
 
+  // Alapértelmezett téma a nyelvválasztóhoz (ha még nincs beállítás)
+  const defaultTheme = useMemo(
+    () => resolveTheme("light", undefined),
+    []
+  );
+
   const themeStyles = useMemo(() => getThemeStyles(currentTheme), [currentTheme]);
 
   const animationSettings = useMemo(
@@ -358,6 +434,26 @@ export default function App() {
       setShowGlobalSearch(true);
     }
   }, { meta: true });
+
+  // Tutorial event listener (Settings-ből való újraindításhoz)
+  useEffect(() => {
+    const handleStartTutorial = () => {
+      // Reset tutorial completed status és indítsd újra
+      const newSettings = { ...settings, tutorialCompleted: false };
+      setSettings(newSettings);
+      setShowTutorial(true);
+      // Azonnal mentjük
+      saveSettings(newSettings).catch((error) => {
+        console.error("❌ Hiba a tutorial reset mentésekor:", error);
+      });
+    };
+    
+    window.addEventListener('start-tutorial', handleStartTutorial);
+    
+    return () => {
+      window.removeEventListener('start-tutorial', handleStartTutorial);
+    };
+  }, [settings]);
 
   // Reset quickActionTrigger when page changes or after form opens
   useEffect(() => {
@@ -562,11 +658,18 @@ export default function App() {
               />
             ) : (
               <Suspense fallback={
-                <AppSkeleton 
-                  theme={currentTheme} 
-                  loadingSteps={loadingSteps}
-                  currentStep={loadingStep}
-                />
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "100%",
+                  width: "100%",
+                  backgroundColor: currentTheme.colors.background?.includes('gradient') 
+                    ? 'transparent' 
+                    : currentTheme.colors.background,
+                }}>
+                  <LoadingSpinner size="large" message={settings.language === "hu" ? "Betöltés..." : settings.language === "de" ? "Laden..." : "Loading..."} />
+                </div>
               }>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
@@ -629,6 +732,47 @@ export default function App() {
               setFilaments([...filaments, newFilament]);
               // Navigálás a filamentek oldalra
               setActivePage('filaments');
+            }}
+          />
+          
+          {/* Language Selector - első indításkor */}
+          {showLanguageSelector && (
+            <LanguageSelector
+              onLanguageSelect={handleLanguageSelect}
+              theme={currentTheme || defaultTheme}
+            />
+          )}
+
+          {/* Tutorial */}
+          <Tutorial
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+            isOpen={showTutorial}
+            onComplete={async () => {
+              setShowTutorial(false);
+              const updatedSettings = { ...settings, tutorialCompleted: true };
+              setSettings(updatedSettings);
+              // Azonnal mentjük, hogy biztosan elmentődjön
+              try {
+                await saveSettings(updatedSettings);
+                if (import.meta.env.DEV) {
+                  console.log("✅ Tutorial completed státusz mentve");
+                }
+              } catch (error) {
+                console.error("❌ Hiba a tutorial completed státusz mentésekor:", error);
+              }
+            }}
+            onSkip={() => {
+              // Skip esetén csak bezárjuk, de NEM állítjuk be a completed-et
+              setShowTutorial(false);
+              if (import.meta.env.DEV) {
+                console.log("⏭️ Tutorial kihagyva (nincs completed beállítva)");
+              }
+            }}
+            currentPage={activePage}
+            onNavigate={(page) => {
+              setActivePage(page);
             }}
           />
         </div>

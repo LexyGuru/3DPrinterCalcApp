@@ -1190,7 +1190,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
   };
 
   return (
-    <div>
+    <div data-tutorial="home-content">
       <FadeIn delay={0.1}>
         <div style={{ marginBottom: "30px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "20px" }}>
           <div>
