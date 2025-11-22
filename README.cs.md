@@ -38,6 +38,30 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
+### v1.1.5 (2025) - 🎨 Vylepšení UI a správa logů
+
+- 🎨 **Přepracování dialogu pro přidání filamentu** - Vylepšené dvousloupcové rozvržení pro lepší organizaci:
+  - Levý sloupec: Základní údaje (Značka, Typ, Hmotnost, Cena, Nahrání obrázku)
+  - Pravý sloupec: Výběr barvy se všemi možnostmi barev
+  - Všechna vstupní pole mají konzistentní šířku
+  - Lepší vizuální hierarchie a rozestupy
+  - Nahrání obrázku přesunuto do levého sloupce pod pole Cena
+- 📋 **Správa souborů logů** - Nová sekce správy logů v nastavení Správy dat:
+  - Konfigurovatelné automatické mazání starých souborů logů (5, 10, 15, 30, 60, 90 dní nebo nikdy)
+  - Tlačítko pro otevření složky logů ve správci souborů
+  - Automatické čištění při změně nastavení
+  - Otevírání složek specifické pro platformu (macOS, Windows, Linux)
+- 📦 **Rozvržení Export/Import** - Sekce Export a Import jsou nyní vedle sebe:
+  - Responzivní dvousloupcové rozvržení
+  - Lepší využití prostoru
+  - Vylepšená vizuální rovnováha
+- 🍎 **Varování o oznámeních macOS** - Zavíratelné dialogové okno varování:
+  - Zobrazuje se pouze na platformě macOS
+  - Dvě možnosti zavření: dočasné (tlačítko X) nebo trvalé (tlačítko Zavřít)
+  - Dočasné zavření: skryto pouze pro aktuální relaci, znovu se objeví po restartu
+  - Trvalé zavření: uloženo v nastavení, nikdy se znovu neobjeví
+  - Jasné vizuální rozlišení mezi typy zavření
+
 ### v1.1.4 (2025) - 🐛 Automatické vytvoření souboru aktualizace knihovny filamentů
 
 - 🐛 **Automatické vytvoření souboru aktualizace** - Opraven problém, kde `update_filamentLibrary.json` nebyl automaticky vytvořen:

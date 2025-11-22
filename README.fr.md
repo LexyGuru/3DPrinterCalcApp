@@ -41,6 +41,30 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
+### v1.1.5 (2025) - 🎨 Améliorations de l'interface et gestion des journaux
+
+- 🎨 **Refonte de la boîte de dialogue d'ajout de filament** - Mise en page à deux colonnes améliorée pour une meilleure organisation:
+  - Colonne gauche: Données de base (Marque, Type, Poids, Prix, Téléchargement d'image)
+  - Colonne droite: Sélection de couleur avec toutes les options de couleur
+  - Tous les champs de saisie ont une largeur cohérente
+  - Meilleure hiérarchie visuelle et espacement
+  - Téléchargement d'image déplacé dans la colonne gauche sous le champ Prix
+- 📋 **Gestion des fichiers de journal** - Nouvelle section de gestion des journaux dans les paramètres de Gestion des données:
+  - Suppression automatique configurable des anciens fichiers de journal (5, 10, 15, 30, 60, 90 jours ou jamais)
+  - Bouton pour ouvrir le dossier de journal dans le gestionnaire de fichiers
+  - Nettoyage automatique lors du changement de paramètre
+  - Ouverture de dossier spécifique à la plateforme (macOS, Windows, Linux)
+- 📦 **Mise en page Export/Import** - Les sections Export et Import sont maintenant côte à côte:
+  - Mise en page responsive à deux colonnes
+  - Meilleure utilisation de l'espace
+  - Équilibre visuel amélioré
+- 🍎 **Avertissement de notification macOS** - Dialogue d'avertissement fermable:
+  - N'apparaît que sur la plateforme macOS
+  - Deux options de fermeture: temporaire (bouton X) ou permanente (bouton Fermer)
+  - Fermeture temporaire: masqué uniquement pour la session actuelle, réapparaît après redémarrage
+  - Fermeture permanente: enregistré dans les paramètres, n'apparaît plus jamais
+  - Distinction visuelle claire entre les types de fermeture
+
 ### v1.1.4 (2025) - 🐛 Création automatique du fichier de mise à jour de la bibliothèque de filaments
 
 - 🐛 **Création automatique du fichier de mise à jour** - Problème corrigé où `update_filamentLibrary.json` n'était pas créé automatiquement:
@@ -711,7 +735,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 1.1.1
+**Version**: 1.1.5
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

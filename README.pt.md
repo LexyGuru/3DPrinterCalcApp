@@ -40,6 +40,30 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.1.5 (2025) - 🎨 Melhorias de UI e gerenciamento de logs
+
+- 🎨 **Redesign do diálogo de adicionar filamento** - Layout de duas colunas melhorado para melhor organização:
+  - Coluna esquerda: Dados básicos (Marca, Tipo, Peso, Preço, Upload de imagem)
+  - Coluna direita: Seleção de cor com todas as opções de cor
+  - Todos os campos de entrada têm largura consistente
+  - Melhor hierarquia visual e espaçamento
+  - Upload de imagem movido para a coluna esquerda abaixo do campo Preço
+- 📋 **Gerenciamento de arquivos de log** - Nova seção de gerenciamento de logs nas configurações de Gerenciamento de dados:
+  - Exclusão automática configurável de arquivos de log antigos (5, 10, 15, 30, 60, 90 dias ou nunca)
+  - Botão para abrir a pasta de logs no gerenciador de arquivos
+  - Limpeza automática quando a configuração é alterada
+  - Abertura de pastas específica da plataforma (macOS, Windows, Linux)
+- 📦 **Layout Exportar/Importar** - As seções Exportar e Importar agora estão lado a lado:
+  - Layout responsivo de duas colunas
+  - Melhor utilização do espaço
+  - Equilíbrio visual melhorado
+- 🍎 **Aviso de notificação macOS** - Diálogo de aviso descartável:
+  - Aparece apenas na plataforma macOS
+  - Duas opções de descarte: temporária (botão X) ou permanente (botão Fechar)
+  - Descarte temporário: oculto apenas para a sessão atual, reaparece após reinicialização
+  - Descarte permanente: salvo nas configurações, nunca aparece novamente
+  - Distinção visual clara entre tipos de descarte
+
 ### v1.1.4 (2025) - 🐛 Criação automática do arquivo de atualização da biblioteca de filamentos
 
 - 🐛 **Criação automática do arquivo de atualização** - Problema corrigido onde `update_filamentLibrary.json` não era criado automaticamente:

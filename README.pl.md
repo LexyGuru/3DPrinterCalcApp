@@ -40,6 +40,30 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.1.5 (2025) - 🎨 Ulepszenia interfejsu i zarządzanie logami
+
+- 🎨 **Przeprojektowanie okna dialogowego dodawania filamentu** - Ulepszony układ dwukolumnowy dla lepszej organizacji:
+  - Lewa kolumna: Dane podstawowe (Marka, Typ, Waga, Cena, Przesyłanie obrazu)
+  - Prawa kolumna: Wybór koloru ze wszystkimi opcjami kolorów
+  - Wszystkie pola wejściowe mają spójną szerokość
+  - Lepsza hierarchia wizualna i odstępy
+  - Przesyłanie obrazu przeniesione do lewej kolumny pod pole Ceny
+- 📋 **Zarządzanie plikami logów** - Nowa sekcja zarządzania logami w ustawieniach Zarządzania danymi:
+  - Konfigurowalne automatyczne usuwanie starych plików logów (5, 10, 15, 30, 60, 90 dni lub nigdy)
+  - Przycisk do otwierania folderu logów w menedżerze plików
+  - Automatyczne czyszczenie przy zmianie ustawienia
+  - Otwieranie folderu specyficzne dla platformy (macOS, Windows, Linux)
+- 📦 **Układ Eksport/Import** - Sekcje Eksport i Import są teraz obok siebie:
+  - Responsywny układ dwukolumnowy
+  - Lepsze wykorzystanie przestrzeni
+  - Ulepszona równowaga wizualna
+- 🍎 **Ostrzeżenie o powiadomieniach macOS** - Zamykane okno dialogowe ostrzeżenia:
+  - Pojawia się tylko na platformie macOS
+  - Dwie opcje zamknięcia: tymczasowe (przycisk X) lub trwałe (przycisk Zamknij)
+  - Zamknięcie tymczasowe: ukryte tylko dla bieżącej sesji, pojawia się ponownie po ponownym uruchomieniu
+  - Zamknięcie trwałe: zapisane w ustawieniach, nigdy się nie pojawia
+  - Jasne rozróżnienie wizualne między typami zamknięcia
+
 ### v1.1.4 (2025) - 🐛 Automatyczne tworzenie pliku aktualizacji biblioteki filamentów
 
 - 🐛 **Automatyczne tworzenie pliku aktualizacji** - Naprawiono problem, gdzie `update_filamentLibrary.json` nie był automatycznie tworzony:

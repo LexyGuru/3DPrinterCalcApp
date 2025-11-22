@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { save, open } from "@tauri-apps/plugin-dialog";
+import { save, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import type {
   Settings,
@@ -46,6 +46,7 @@ import { logWithLanguage } from "../utils/languages/global_console";
 import { sendNativeNotification, setDockBadge, getPlatform, requestNotificationPermission, checkNotificationPermission } from "../utils/platformFeatures";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { saveSettings, clearAllData } from "../utils/store";
+import { invoke } from "@tauri-apps/api/core";
 
 interface Props {
   settings: Settings;
@@ -85,6 +86,7 @@ export const SettingsPage: React.FC<Props> = ({
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "display" | "advanced" | "data" | "library">("general");
   const [notificationPermissionGranted, setNotificationPermissionGranted] = useState<boolean | null>(null);
+  const [hideMacOSWarningTemporarily, setHideMacOSWarningTemporarily] = useState(false); // Csak az aktuális session-re
   type LibraryDraft = {
     manufacturer: string;
     material: string;
@@ -538,7 +540,7 @@ export const SettingsPage: React.FC<Props> = ({
 
   const handleCustomThemeImport = async () => {
     try {
-      const filePath = await open({
+      const filePath = await openDialog({
         filters: [{ name: "JSON", extensions: ["json"] }],
       });
       if (!filePath || Array.isArray(filePath)) {
@@ -1145,7 +1147,7 @@ export const SettingsPage: React.FC<Props> = ({
     logWithLanguage(settings.language, "log", "settings.library.import.start");
     try {
       setLibraryImporting(true);
-      const filePath = await open({
+      const filePath = await openDialog({
         filters: [
           {
             name: "JSON",
@@ -1467,8 +1469,7 @@ export const SettingsPage: React.FC<Props> = ({
         allowedSections: ["filaments", "printers", "offers"],
       });
       
-      const selected = await open({
-        multiple: false,
+      const selected = await openDialog({
         filters: [{
           name: "JSON",
           extensions: ["json"]
@@ -3237,12 +3238,44 @@ export const SettingsPage: React.FC<Props> = ({
                 )}
               </div>
               
-              {getPlatform() === "macos" && (
-                <div style={{ marginTop: "12px", padding: "12px", borderRadius: "6px", backgroundColor: theme.colors.surface + "80", border: `1px solid ${theme.colors.border}` }}>
-                  <p style={{ fontSize: "12px", color: theme.colors.textMuted, marginBottom: "8px", fontWeight: "500" }}>
+              {getPlatform() === "macos" && !settings.hideMacOSNotificationWarning && !hideMacOSWarningTemporarily && (
+                <div style={{ marginTop: "12px", padding: "12px", borderRadius: "6px", backgroundColor: theme.colors.surface + "80", border: `1px solid ${theme.colors.border}`, position: "relative" }}>
+                  <button
+                    onClick={() => {
+                      // Csak memóriába tároljuk, nem mentjük - újraindítás után újra megjelenik
+                      setHideMacOSWarningTemporarily(true);
+                    }}
+                    style={{
+                      position: "absolute",
+                      top: "8px",
+                      right: "8px",
+                      background: "none",
+                      border: "none",
+                      color: theme.colors.textMuted,
+                      cursor: "pointer",
+                      fontSize: "20px",
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      transition: "all 0.2s",
+                      fontWeight: "bold",
+                      lineHeight: "1",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.danger || "#e74c3c";
+                      e.currentTarget.style.color = "#ffffff";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                      e.currentTarget.style.color = theme.colors.textMuted;
+                    }}
+                    title={settings.language === "hu" ? "Bezárás (újraindítás után újra megjelenik)" : settings.language === "de" ? "Schließen (erscheint nach Neustart wieder)" : "Close (will reappear after restart)"}
+                  >
+                    ✕
+                  </button>
+                  <p style={{ fontSize: "12px", color: theme.colors.textMuted, marginBottom: "8px", fontWeight: "500", paddingRight: "35px" }}>
                     ⚠️ {settings.language === "hu" ? "macOS értesítések korlátozásai:" : "macOS notifications limitations:"}
                   </p>
-                  <ul style={{ fontSize: "11px", color: theme.colors.textMuted, marginLeft: "16px", lineHeight: "1.6" }}>
+                  <ul style={{ fontSize: "11px", color: theme.colors.textMuted, marginLeft: "16px", lineHeight: "1.6", marginBottom: "12px" }}>
                     <li>{settings.language === "hu" 
                       ? "Dev módban az értesítések nem mindig jelennek meg natív módon (code signing hiánya miatt)."
                       : "In dev mode, notifications may not always appear natively (due to missing code signing)."}</li>
@@ -3256,6 +3289,36 @@ export const SettingsPage: React.FC<Props> = ({
                       ? "Az alkalmazás megjelenik a Rendszerbeállítások > Értesítések és fókusz menüben production build után."
                       : "The app will appear in System Settings > Notifications & Focus after production build."}</li>
                   </ul>
+                  <button
+                    onClick={async () => {
+                      // Csak macOS-en mentjük el ezt a beállítást
+                      const newSettings = getPlatform() === "macos" 
+                        ? { ...settings, hideMacOSNotificationWarning: true }
+                        : settings;
+                      onChange(newSettings);
+                      if (getPlatform() === "macos") {
+                        await saveSettings(newSettings);
+                      }
+                      showToast(
+                        settings.language === "hu" 
+                          ? "Figyelmeztetés elrejtve"
+                          : settings.language === "de"
+                          ? "Warnung ausgeblendet"
+                          : "Warning hidden",
+                        "success"
+                      );
+                    }}
+                    style={{
+                      ...themeStyles.button,
+                      ...themeStyles.buttonSecondary,
+                      padding: "6px 12px",
+                      fontSize: "12px",
+                      width: "100%",
+                      marginTop: "8px",
+                    }}
+                  >
+                    {settings.language === "hu" ? "Bezárás és ne mutasd többet" : settings.language === "de" ? "Schließen und nicht mehr anzeigen" : "Close and don't show again"}
+                  </button>
                 </div>
               )}
             </div>
@@ -3417,10 +3480,151 @@ export const SettingsPage: React.FC<Props> = ({
           </Tooltip>
         </div>
 
+        {/* Log Management */}
+        <div style={{ 
+          ...themeStyles.card, 
+          marginTop: "32px",
+        }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "12px", 
+            fontWeight: "600", 
+            fontSize: "18px", 
+            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          }}>
+            📋 {settings.language === "hu" ? "Log fájlok kezelése" : settings.language === "de" ? "Log-Dateien verwalten" : "Log Files Management"}
+          </label>
+          <p style={{ marginBottom: "20px", fontSize: "14px", color: theme.colors.textMuted }}>
+            {settings.language === "hu" 
+              ? "Beállíthatod, hogy hány napnál régebbi log fájlokat töröljön automatikusan az alkalmazás."
+              : settings.language === "de"
+              ? "Sie können festlegen, wie viele Tage alte Log-Dateien die Anwendung automatisch löschen soll."
+              : "You can set how many days old log files the application should automatically delete."}
+          </p>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* Log törlési beállítás */}
+            <div>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontWeight: "500", 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              }}>
+                {settings.language === "hu" ? "Törlés régebbi log fájlok" : settings.language === "de" ? "Löschen alter Log-Dateien" : "Delete old log files"}
+              </label>
+              <select
+                value={settings.logRetentionDays ?? 0}
+                onChange={async (e) => {
+                  const days = parseInt(e.target.value) || 0;
+                  const newSettings = { ...settings, logRetentionDays: days };
+                  onChange(newSettings);
+                  await saveSettings(newSettings);
+                  
+                  // Ha nem 0, akkor azonnal töröljük a régi logokat
+                  if (days > 0) {
+                    try {
+                      const deletedCount = await invoke<number>("delete_old_logs", { days });
+                      if (deletedCount > 0) {
+                        showToast(
+                          settings.language === "hu" 
+                            ? `${deletedCount} régi log fájl törölve`
+                            : settings.language === "de"
+                            ? `${deletedCount} alte Log-Dateien gelöscht`
+                            : `${deletedCount} old log files deleted`,
+                          "success"
+                        );
+                      }
+                    } catch (error) {
+                      console.error("Log törlési hiba:", error);
+                      showToast(
+                        settings.language === "hu" 
+                          ? "Hiba a log fájlok törlésekor"
+                          : settings.language === "de"
+                          ? "Fehler beim Löschen der Log-Dateien"
+                          : "Error deleting log files",
+                        "error"
+                      );
+                    }
+                  }
+                }}
+                style={{
+                  ...themeStyles.input,
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                  width: "100%",
+                  maxWidth: "300px",
+                }}
+              >
+                <option value="0">{settings.language === "hu" ? "Soha ne törölje" : settings.language === "de" ? "Niemals löschen" : "Never delete"}</option>
+                <option value="5">5 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
+                <option value="10">10 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
+                <option value="15">15 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
+                <option value="30">30 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
+                <option value="60">60 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
+                <option value="90">90 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
+              </select>
+            </div>
+            
+            {/* Log mappa megnyitása */}
+            <div>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontWeight: "500", 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              }}>
+                {settings.language === "hu" ? "Log fájlok helye" : settings.language === "de" ? "Log-Dateien Speicherort" : "Log files location"}
+              </label>
+              <Tooltip content={settings.language === "hu" 
+                ? "Log mappa megnyitása a fájlkezelőben" 
+                : settings.language === "de"
+                ? "Log-Ordner im Datei-Explorer öffnen"
+                : "Open log folder in file manager"}>
+                <button
+                  onClick={async () => {
+                    try {
+                      const logDirPath = await invoke<string>("get_log_directory_path");
+                      await invoke("open_directory", { path: logDirPath });
+                    } catch (error) {
+                      console.error("Log mappa megnyitási hiba:", error);
+                      showToast(
+                        settings.language === "hu" 
+                          ? "Hiba a log mappa megnyitásakor"
+                          : settings.language === "de"
+                          ? "Fehler beim Öffnen des Log-Ordners"
+                          : "Error opening log folder",
+                        "error"
+                      );
+                    }
+                  }}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    padding: "10px 20px",
+                    fontSize: "14px",
+                  }}
+                >
+                  📁 {settings.language === "hu" ? "Log mappa megnyitása" : settings.language === "de" ? "Log-Ordner öffnen" : "Open Log Folder"}
+                </button>
+              </Tooltip>
+            </div>
+          </div>
+        </div>
+
         {/* Export/Import Data Section - 2 oszlop */}
-        <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+        <div style={{ 
+          display: "flex", 
+          flexDirection: "row",
+          gap: "24px", 
+          marginTop: "32px",
+          flexWrap: "wrap"
+        }}>
           {/* Export Data Section */}
-          <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
+          <div style={{ flex: "1 1 400px", minWidth: "300px" }}>
+          <div style={{ ...themeStyles.card }}>
           <h3 style={{ 
             marginTop: 0, 
             marginBottom: "20px", 
@@ -3507,9 +3711,11 @@ export const SettingsPage: React.FC<Props> = ({
             </button>
           </Tooltip>
           </div>
+          </div>
 
           {/* Import Data Section */}
-          <div style={{ ...themeStyles.card, flex: "1", minWidth: "400px" }}>
+          <div style={{ flex: "1 1 400px", minWidth: "300px" }}>
+          <div style={{ ...themeStyles.card }}>
           <h3 style={{ 
             marginTop: 0, 
             marginBottom: "20px", 
@@ -3598,6 +3804,7 @@ export const SettingsPage: React.FC<Props> = ({
               {t("settings.importButton")}
             </button>
           </Tooltip>
+          </div>
           </div>
         </div>
           </div>

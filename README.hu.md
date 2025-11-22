@@ -42,6 +42,30 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
+### v1.1.5 (2025) - 🎨 UI fejlesztések és log kezelés
+
+- 🎨 **Filament hozzáadása dialógus átdolgozása** - Jobb kétoszlopos elrendezés:
+  - Bal oszlop: Alapadatok (Márka, Típus, Súly, Ár, Kép feltöltés)
+  - Jobb oszlop: Szín választás az összes szín opcióval
+  - Minden beviteli mező egyenlő szélességű
+  - Jobb vizuális hierarchia és térköz
+  - Kép feltöltés a bal oszlopba, az Ár mező alá helyezve
+- 📋 **Log fájlok kezelése** - Új log kezelési szekció az Adatkezelés beállításokban:
+  - Beállítható automatikus régi log fájlok törlése (5, 10, 15, 30, 60, 90 nap vagy soha)
+  - Gomb a log mappa megnyitásához a fájlkezelőben
+  - Automatikus takarítás beállítás változásakor
+  - Platform-specifikus mappa megnyitás (macOS, Windows, Linux)
+- 📦 **Exportálás/Importálás elrendezés** - Exportálás és Importálás szekciók most egymás mellett:
+  - Kétoszlopos responsive elrendezés
+  - Jobb térhasználat
+  - Javított vizuális egyensúly
+- 🍎 **macOS értesítési figyelmeztetés** - Elrejthető figyelmeztetés dialógus:
+  - Csak macOS platformon jelenik meg
+  - Két bezárási lehetőség: ideiglenes (X gomb) vagy végleges (Bezárás gomb)
+  - Ideiglenes bezárás: csak az aktuális session-re rejtve el, újraindítás után újra megjelenik
+  - Végleges bezárás: beállításokba mentve, soha nem jelenik meg újra
+  - Világos vizuális megkülönböztetés a bezárási típusok között
+
 ### v1.1.4 (2025) - 🐛 Filament könyvtár update fájl automatikus létrehozás
 
 - 🐛 **Update fájl automatikus létrehozás** - Javított hiba, ahol az `update_filamentLibrary.json` fájl nem jött létre automatikusan:
@@ -694,7 +718,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 1.1.1
+**Verzió**: 1.1.5
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

@@ -42,6 +42,30 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.1.5 (2025) - 🎨 UI-Verbesserungen und Log-Verwaltung
+
+- 🎨 **Filament-Hinzufügen-Dialog überarbeitet** - Verbessertes zweispaltiges Layout für bessere Organisation:
+  - Linke Spalte: Grunddaten (Marke, Typ, Gewicht, Preis, Bild-Upload)
+  - Rechte Spalte: Farbauswahl mit allen Farboptionen
+  - Alle Eingabefelder haben konsistente Breite
+  - Bessere visuelle Hierarchie und Abstände
+  - Bild-Upload in die linke Spalte unter das Preis-Feld verschoben
+- 📋 **Log-Dateien-Verwaltung** - Neuer Log-Verwaltungsbereich in den Datenverwaltungs-Einstellungen:
+  - Konfigurierbare automatische Löschung alter Log-Dateien (5, 10, 15, 30, 60, 90 Tage oder nie)
+  - Schaltfläche zum Öffnen des Log-Ordners im Dateimanager
+  - Automatische Bereinigung bei Änderung der Einstellung
+  - Plattformspezifisches Öffnen von Ordnern (macOS, Windows, Linux)
+- 📦 **Export/Import-Layout** - Export- und Import-Bereiche jetzt nebeneinander:
+  - Zweispaltiges responsives Layout
+  - Bessere Raumnutzung
+  - Verbesserte visuelle Balance
+- 🍎 **macOS-Benachrichtigungswarnung** - Ausblendbare Warnung:
+  - Erscheint nur auf macOS-Plattform
+  - Zwei Ausblendoptionen: temporär (X-Schaltfläche) oder permanent (Schließen-Schaltfläche)
+  - Temporäres Ausblenden: nur für die aktuelle Sitzung verborgen, erscheint nach Neustart wieder
+  - Permanentes Ausblenden: in Einstellungen gespeichert, erscheint nie wieder
+  - Klare visuelle Unterscheidung zwischen Ausblendtypen
+
 ### v1.1.4 (2025) - 🐛 Automatische Erstellung der Filament-Bibliothek-Update-Datei
 
 - 🐛 **Automatische Update-Datei-Erstellung** - Behobenes Problem, bei dem `update_filamentLibrary.json` nicht automatisch erstellt wurde:
@@ -712,7 +736,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 1.1.1
+**Version**: 1.1.5
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

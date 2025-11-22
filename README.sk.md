@@ -40,6 +40,30 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.1.5 (2025) - 🎨 Vylepšenia UI a správa logov
+
+- 🎨 **Prepracovanie dialógu na pridanie filamentu** - Vylepšené dvojstĺpcové rozloženie pre lepšiu organizáciu:
+  - Ľavý stĺpec: Základné údaje (Značka, Typ, Hmotnosť, Cena, Nahratie obrázka)
+  - Pravý stĺpec: Výber farby so všetkými možnosťami farieb
+  - Všetky vstupné polia majú konzistentnú šírku
+  - Lepšia vizuálna hierarchia a rozostupy
+  - Nahratie obrázka presunuté do ľavého stĺpca pod pole Cena
+- 📋 **Správa súborov logov** - Nová sekcia správy logov v nastavení Správy dát:
+  - Konfigurovateľné automatické mazanie starých súborov logov (5, 10, 15, 30, 60, 90 dní alebo nikdy)
+  - Tlačidlo na otvorenie priečinka logov v správcovi súborov
+  - Automatické čistenie pri zmene nastavenia
+  - Otváranie priečinkov špecifické pre platformu (macOS, Windows, Linux)
+- 📦 **Rozloženie Export/Import** - Sekcie Export a Import sú teraz vedľa seba:
+  - Responzívne dvojstĺpcové rozloženie
+  - Lepšie využitie priestoru
+  - Vylepšená vizuálna rovnováha
+- 🍎 **Varovanie o oznámeniach macOS** - Zatvárateľné dialógové okno varovania:
+  - Zobrazuje sa len na platforme macOS
+  - Dve možnosti zatvorenia: dočasné (tlačidlo X) alebo trvalé (tlačidlo Zatvoriť)
+  - Dočasné zatvorenie: skryté len pre aktuálnu reláciu, znovu sa objaví po reštarte
+  - Trvalé zatvorenie: uložené v nastavení, nikdy sa znovu neobjaví
+  - Jasné vizuálne rozlíšenie medzi typmi zatvorenia
+
 ### v1.1.4 (2025) - 🐛 Automatické vytvorenie súboru aktualizácie knižnice filamentov
 
 - 🐛 **Automatické vytvorenie súboru aktualizácie** - Opravený problém, kde `update_filamentLibrary.json` nebol automaticky vytvorený:

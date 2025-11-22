@@ -191,6 +191,8 @@ export interface Settings {
   }; // Nyomtatók oszlopok láthatósága
   showTutorialOnStartup?: boolean; // Kezdő tutorial megjelenítése indításkor
   tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
+  logRetentionDays?: number; // Log fájlok megtartása napokban (0 = soha ne törölje)
+  hideMacOSNotificationWarning?: boolean; // macOS értesítési figyelmeztetés elrejtése
 }
 
 export const defaultSettings: Settings = {

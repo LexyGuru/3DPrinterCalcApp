@@ -41,6 +41,30 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.1.5 (2025) - 🎨 Miglioramenti UI e gestione log
+
+- 🎨 **Ridisegno del dialogo di aggiunta filamento** - Layout a due colonne migliorato per una migliore organizzazione:
+  - Colonna sinistra: Dati di base (Marca, Tipo, Peso, Prezzo, Caricamento immagine)
+  - Colonna destra: Selezione colore con tutte le opzioni di colore
+  - Tutti i campi di input hanno larghezza consistente
+  - Migliore gerarchia visiva e spaziatura
+  - Caricamento immagine spostato nella colonna sinistra sotto il campo Prezzo
+- 📋 **Gestione file di log** - Nuova sezione di gestione log nelle impostazioni di Gestione dati:
+  - Eliminazione automatica configurabile di vecchi file di log (5, 10, 15, 30, 60, 90 giorni o mai)
+  - Pulsante per aprire la cartella log nel file manager
+  - Pulizia automatica quando l'impostazione viene modificata
+  - Apertura cartelle specifica per piattaforma (macOS, Windows, Linux)
+- 📦 **Layout Esporta/Importa** - Le sezioni Esporta e Importa ora sono affiancate:
+  - Layout responsive a due colonne
+  - Migliore utilizzo dello spazio
+  - Bilanciamento visivo migliorato
+- 🍎 **Avviso notifiche macOS** - Dialogo di avviso chiudibile:
+  - Appare solo sulla piattaforma macOS
+  - Due opzioni di chiusura: temporanea (pulsante X) o permanente (pulsante Chiudi)
+  - Chiusura temporanea: nascosto solo per la sessione corrente, riappare dopo il riavvio
+  - Chiusura permanente: salvato nelle impostazioni, non appare mai più
+  - Chiara distinzione visiva tra i tipi di chiusura
+
 ### v1.1.4 (2025) - 🐛 Creazione automatica del file di aggiornamento della libreria filamenti
 
 - 🐛 **Creazione automatica del file di aggiornamento** - Risolto problema dove `update_filamentLibrary.json` non veniva creato automaticamente:
@@ -711,7 +735,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 1.1.1
+**Versione**: 1.1.5
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

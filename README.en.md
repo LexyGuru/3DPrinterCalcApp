@@ -42,6 +42,30 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 
 ## 📋 Changelog
 
+### v1.1.5 (2025) - 🎨 UI Improvements and Log Management
+
+- 🎨 **Filament Add Dialog Redesign** - Improved two-column layout for better organization:
+  - Left column: Basic data (Brand, Type, Weight, Price, Image upload)
+  - Right column: Color selection with all color options
+  - All input fields have consistent width
+  - Better visual hierarchy and spacing
+  - Image upload moved to left column below Price field
+- 📋 **Log Files Management** - New log management section in Data Management settings:
+  - Configurable automatic deletion of old log files (5, 10, 15, 30, 60, 90 days or never)
+  - Button to open log folder in file manager
+  - Automatic cleanup when setting is changed
+  - Platform-specific folder opening (macOS, Windows, Linux)
+- 📦 **Export/Import Layout** - Export and Import sections now side by side:
+  - Two-column responsive layout
+  - Better space utilization
+  - Improved visual balance
+- 🍎 **macOS Notification Warning** - Dismissible warning dialog:
+  - Only appears on macOS platform
+  - Two dismissal options: temporary (X button) or permanent (Close button)
+  - Temporary dismissal: hidden for current session only, reappears after restart
+  - Permanent dismissal: saved to settings, never appears again
+  - Clear visual distinction between dismissal types
+
 ### v1.1.4 (2025) - 🐛 Filament Library Update File Auto-Creation
 
 - 🐛 **Auto-Create Update File** - Fixed issue where `update_filamentLibrary.json` was not automatically created:
@@ -712,7 +736,7 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.1.1
+**Version**: 1.1.5
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
 
