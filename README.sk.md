@@ -40,6 +40,25 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.1.0 (2025) - 🚀 Aktualizácia funkcií
+
+- 🔍 **Rozšírené globálne vyhľadávanie** - Vylepšená funkcia vyhľadávania:
+  - Vyhľadávanie ponúk podľa mena zákazníka, ID, stavu a dátumu
+  - Vyhľadávanie filamentov z databázy (filamentLibrary) podľa značky, typu a farby
+  - Pridanie filamentov do uloženého zoznamu jedným kliknutím z výsledkov vyhľadávania
+  - Vylepšené výsledky vyhľadávania s indikátormi typu
+- 💀 **Systém načítania Skeleton** - Spektakulárny zážitok z načítania:
+  - Animované skeleton komponenty s efektmi shimmer
+  - Sledovanie priebehu s vizuálnymi indikátormi
+  - Kroky načítania so začiarknutím pre dokončené kroky
+  - Plynulé prechody fade-in
+  - Farby skeleton prispôsobené motívu
+  - Načítanie skeleton špecifické pre stránku
+- 🎨 **Vylepšenia UI/UX**:
+  - Lepšie stavy načítania
+  - Vylepšená spätná väzba používateľa počas načítania dát
+  - Vylepšený vizuálny zážitok
+
 ### v1.0.0 (2025) - 🎉 Prvá stabilná verzia
 
 - 🎨 **Moderné UI komponenty** - Kompletné prepracovanie UI s modernými komponentmi:
@@ -318,6 +337,25 @@ Lekszikov Miklós (LexyGuru)
 Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, ktorý zostaví beta verziu.
 
 ## 📋 História verzií
+
+### v1.1.0 (2025) - 🚀 Aktualizácia funkcií
+
+- 🔍 **Rozšírené globálne vyhľadávanie** - Vylepšená funkcia vyhľadávania
+- 💀 **Systém načítania Skeleton** - Spektakulárny zážitok z načítania
+- 🎨 **Vylepšenia UI/UX** - Lepšie stavy načítania a vizuálny zážitok
+
+### v1.0.0 (2025) - 🎉 Prvá stabilná verzia
+
+- 🎨 **Moderné UI komponenty** - Kompletné prepracovanie UI s modernými komponentami
+- ⚡ **Rýchle akcie** - Tlačidlá rýchlych akcií v záhlaví
+- 🔍 **Globálne vyhľadávanie** - Výkonná funkcia vyhľadávania
+- ⏪ **Funkcia Späť/Znovu** - Správa histórie
+- ⭐ **Obľúbené filamenty** - Označenie a filtrovanie obľúbených filamentov
+- 📦 **Hromadné operácie** - Efektívna hromadná správa
+- 🎨 **Modálne dialógy** - Moderný modálny zážitok
+- ⌨️ **Klávesové skratky** - Vylepšený systém skratiek
+- 📝 **Systém protokolovania** - Komplexné protokolovanie
+- 🔔 **Vylepšenia oznámení** - Lepší systém oznámení
 
 ### v0.6.0 (2025)
 

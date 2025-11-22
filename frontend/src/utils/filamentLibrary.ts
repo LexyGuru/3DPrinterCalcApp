@@ -361,6 +361,11 @@ export const getAllMaterials = () => {
   return allMaterials;
 };
 
+export const getAllLibraryEntries = (): LibraryColorOption[] => {
+  ensureLibraryOverridesLoaded();
+  return libraryEntries;
+};
+
 export const getMaterialsForBrand = (brand?: string | null): string[] => {
   ensureLibraryOverridesLoaded();
   const normalized = normalizeText(brand).toLowerCase();

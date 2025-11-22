@@ -5,8 +5,7 @@ import { Header } from "./components/Header";
 import { UpdateChecker } from "./components/UpdateChecker";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
-import { LoadingSpinner } from "./components/LoadingSpinner";
-import { LoadingSkeletonPage } from "./components/LoadingSkeleton";
+import { AppSkeleton } from "./components/AppSkeleton";
 
 // Lazy loading komponensek (code splitting)
 const Home = lazy(() => import("./components/Home").then(module => ({ default: module.Home })));
@@ -32,17 +31,17 @@ import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
 import { initFrontendLog } from "./utils/fileLogger"; // Initialize file logger
 import { logWithLanguage } from "./utils/languages/global_console";
-import { useTranslation } from "./utils/translations";
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
   const [settings, setSettings] = useState<Settings>(defaultSettings);
-  const t = useTranslation(settings.language);
   const [printers, setPrinters] = useState<Printer[]>([]);
   const [filaments, setFilaments] = useState<Filament[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(new Date()); // Kezdeti érték, hogy azonnal látható legyen
@@ -60,58 +59,97 @@ export default function App() {
     });
   }, []);
 
-  // 🔹 Betöltés indításkor
+  // 🔹 Betöltés indításkor - Progress tracking-gel
   useEffect(() => {
-      const loadData = async () => {
-      const loadedPrinters = await loadPrinters();
-      const loadedFilaments = await loadFilaments();
-      const loadedSettings = await loadSettings();
-      const loadedOffers = await loadOffers();
-      const loadedCustomers = await loadCustomers();
+    const loadData = async () => {
+      // Minimális késleltetés, hogy látható legyen a skeleton
+      await new Promise(resolve => setTimeout(resolve, 200));
       
-      if (loadedPrinters.length > 0) {
-        setPrinters(loadedPrinters);
-      }
-      if (loadedFilaments.length > 0) {
-        setFilaments(loadedFilaments);
-      }
-      if (loadedOffers.length > 0) {
-        setOffers(loadedOffers);
-      }
-      if (loadedCustomers.length > 0) {
-        setCustomers(loadedCustomers);
-      }
-      if (loadedSettings) {
-        // Ellenőrizzük hogy az electricityPrice érvényes érték-e
-        if (!loadedSettings.electricityPrice || loadedSettings.electricityPrice <= 0) {
-          if (import.meta.env.DEV) {
-            logWithLanguage(settings.language, "warn", "settings.invalidElectricityPrice");
+      try {
+        // 1. Beállítások
+        setLoadingStep(0);
+        setLoadingProgress(10);
+        await new Promise(resolve => setTimeout(resolve, 100)); // Smooth progress update
+        const loadedSettings = await loadSettings();
+        if (loadedSettings) {
+          // Ellenőrizzük hogy az electricityPrice érvényes érték-e
+          if (!loadedSettings.electricityPrice || loadedSettings.electricityPrice <= 0) {
+            if (import.meta.env.DEV) {
+              logWithLanguage(settings.language, "warn", "settings.invalidElectricityPrice");
+            }
+            loadedSettings.electricityPrice = defaultSettings.electricityPrice;
           }
-          loadedSettings.electricityPrice = defaultSettings.electricityPrice;
-        }
-        // Ha nincs téma, használjuk az alapértelmezettet
-        if (!loadedSettings.theme) {
-          loadedSettings.theme = defaultSettings.theme;
-        }
-        if (!loadedSettings.companyInfo) {
-          loadedSettings.companyInfo = { ...defaultSettings.companyInfo };
+          // Ha nincs téma, használjuk az alapértelmezettet
+          if (!loadedSettings.theme) {
+            loadedSettings.theme = defaultSettings.theme;
+          }
+          if (!loadedSettings.companyInfo) {
+            loadedSettings.companyInfo = { ...defaultSettings.companyInfo };
+          } else {
+            loadedSettings.companyInfo = {
+              ...defaultSettings.companyInfo,
+              ...loadedSettings.companyInfo,
+            };
+          }
+          if (!loadedSettings.pdfTemplate) {
+            loadedSettings.pdfTemplate = defaultSettings.pdfTemplate;
+          }
+          setSettings(loadedSettings);
         } else {
-          loadedSettings.companyInfo = {
-            ...defaultSettings.companyInfo,
-            ...loadedSettings.companyInfo,
-          };
+          setSettings(defaultSettings);
         }
-        if (!loadedSettings.pdfTemplate) {
-          loadedSettings.pdfTemplate = defaultSettings.pdfTemplate;
+        setLoadingProgress(20);
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        // 2. Nyomtatók
+        setLoadingStep(1);
+        setLoadingProgress(35);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const loadedPrinters = await loadPrinters();
+        if (loadedPrinters.length > 0) {
+          setPrinters(loadedPrinters);
         }
-        setSettings(loadedSettings);
-      } else {
-        // Ha nincs betöltött beállítás, használjuk az alapértelmezett értékeket
-        setSettings(defaultSettings);
+
+        // 3. Filamentek
+        setLoadingStep(2);
+        setLoadingProgress(50);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const loadedFilaments = await loadFilaments();
+        if (loadedFilaments.length > 0) {
+          setFilaments(loadedFilaments);
+        }
+
+        // 4. Árajánlatok
+        setLoadingStep(3);
+        setLoadingProgress(70);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const loadedOffers = await loadOffers();
+        if (loadedOffers.length > 0) {
+          setOffers(loadedOffers);
+        }
+
+        // 5. Ügyfelek
+        setLoadingStep(4);
+        setLoadingProgress(85);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const loadedCustomers = await loadCustomers();
+        if (loadedCustomers.length > 0) {
+          setCustomers(loadedCustomers);
+        }
+
+        // 6. Befejezés
+        setLoadingStep(5);
+        setLoadingProgress(100);
+        
+        // Kis késleltetés a smooth átmenethez
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setIsInitialized(true);
+        setLastSaved(new Date());
+      } catch (error) {
+        console.error("Hiba az adatok betöltésekor:", error);
+        setIsInitialized(true); // Mégis inicializáljuk, hogy ne ragadjon be
       }
-      setIsInitialized(true);
-      // Beállítjuk a lastSaved-et a betöltés után
-      setLastSaved(new Date());
     };
     loadData();
   }, []);
@@ -345,7 +383,10 @@ export default function App() {
       case "filaments": 
         return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-filament'} />; 
       case "printers":
-        return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-printer'} />;
+        return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-printer'} onSettingsChange={(newSettings) => {
+          setSettings(newSettings);
+          debouncedSaveSettings();
+        }} />;
       case "calculator": 
         return <Calculator printers={printers} filaments={filaments} customers={customers} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
       case "offers":
@@ -413,13 +454,29 @@ export default function App() {
   // Determine if this is a beta build from environment variable (set at build time)
   const isBeta = import.meta.env.VITE_IS_BETA === 'true';
 
-  const loadingMessage = t("common.loading");
+  const loadingSteps = useMemo(() => {
+    const calculateStepProgress = (stepIndex: number, totalSteps: number) => {
+      const stepStart = (stepIndex / totalSteps) * 100;
+      const stepEnd = ((stepIndex + 1) / totalSteps) * 100;
+      
+      if (loadingProgress < stepStart) return 0;
+      if (loadingProgress >= stepEnd) return 100;
+      
+      // Interpolate between step start and end
+      const progressInStep = ((loadingProgress - stepStart) / (stepEnd - stepStart)) * 100;
+      return Math.min(100, Math.max(0, progressInStep));
+    };
 
-  const loadingPlaceholder = animationSettings.loadingSkeletons ? (
-    <LoadingSkeletonPage theme={currentTheme} />
-  ) : (
-    <LoadingSpinner message={loadingMessage} />
-  );
+    const totalSteps = 6;
+    return [
+      { label: "Beállítások betöltése...", progress: calculateStepProgress(0, totalSteps) },
+      { label: "Nyomtatók betöltése...", progress: calculateStepProgress(1, totalSteps) },
+      { label: "Filamentek betöltése...", progress: calculateStepProgress(2, totalSteps) },
+      { label: "Árajánlatok betöltése...", progress: calculateStepProgress(3, totalSteps) },
+      { label: "Ügyfelek betöltése...", progress: calculateStepProgress(4, totalSteps) },
+      { label: "Inicializálás...", progress: calculateStepProgress(5, totalSteps) },
+    ];
+  }, [loadingProgress]);
 
   return (
     <ErrorBoundary>
@@ -498,9 +555,19 @@ export default function App() {
             perspective: animationSettings.pageTransition === "flip" ? "1200px" : undefined,
           }}>
             {!isInitialized ? (
-              loadingPlaceholder
+              <AppSkeleton 
+                theme={currentTheme} 
+                loadingSteps={loadingSteps}
+                currentStep={loadingStep}
+              />
             ) : (
-              <Suspense fallback={loadingPlaceholder}>
+              <Suspense fallback={
+                <AppSkeleton 
+                  theme={currentTheme} 
+                  loadingSteps={loadingSteps}
+                  currentStep={loadingStep}
+                />
+              }>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={activePage}
@@ -546,6 +613,23 @@ export default function App() {
             theme={currentTheme}
             themeStyles={themeStyles}
             settings={settings}
+            offers={offers}
+            onAddFilamentFromLibrary={(libraryEntry) => {
+              // Hozzáadás a mentett filamentekhez
+              const newFilament: Filament = {
+                brand: libraryEntry.manufacturer,
+                type: libraryEntry.material,
+                weight: 1000, // Alapértelmezett súly
+                pricePerKg: 0, // Alapértelmezett ár (felhasználó beállíthatja)
+                color: libraryEntry.rawColor || undefined,
+                colorHex: libraryEntry.hex || undefined,
+                colorMode: libraryEntry.colorMode,
+                multiColorHint: libraryEntry.multiColorHint || undefined,
+              };
+              setFilaments([...filaments, newFilament]);
+              // Navigálás a filamentek oldalra
+              setActivePage('filaments');
+            }}
           />
         </div>
       </ToastProvider>

@@ -42,6 +42,25 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
+### v1.1.0 (2025) - 🚀 Funkció frissítés
+
+- 🔍 **Globális keresés kiterjesztése** - Továbbfejlesztett keresési funkciók:
+  - Ajánlatok keresése ügyfél név, ID, státusz és dátum alapján
+  - Filamentek keresése az adatbázisból (filamentLibrary) márka, típus és szín alapján
+  - Filament hozzáadása a mentett listához egy kattintással a keresési eredményekből
+  - Továbbfejlesztett keresési eredmények típus jelzőkkel
+- 💀 **Skeleton Loading System** - Látványos betöltési élmény:
+  - Animált skeleton komponensek shimmer effekttel
+  - Progress tracking vizuális indikátorokkal
+  - Betöltési lépések pipa jelöléssel a befejezett lépésekhez
+  - Smooth fade-in átmenetek
+  - Téma-aware skeleton színek
+  - Oldal-specifikus skeleton loaderek
+- 🎨 **UI/UX fejlesztések**:
+  - Jobb betöltési állapotok
+  - Továbbfejlesztett felhasználói visszajelzés adatbetöltés közben
+  - Fokozott vizuális élmény
+
 ### v1.0.0 (2025) - 🎉 Első stabil kiadás
 
 - 🎨 **Modern UI komponensek** - Teljes UI felújítás modern komponensekkel:
@@ -320,6 +339,25 @@ Lekszikov Miklós (LexyGuru)
 A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
 ## 📋 Verziótörténet
+
+### v1.1.0 (2025) - 🚀 Funkció frissítés
+
+- 🔍 **Globális keresés kiterjesztése** - Továbbfejlesztett keresési funkciók
+- 💀 **Skeleton Loading System** - Látványos betöltési élmény
+- 🎨 **UI/UX fejlesztések** - Jobb betöltési állapotok és vizuális élmény
+
+### v1.0.0 (2025) - 🎉 Első stabil kiadás
+
+- 🎨 **Modern UI komponensek** - Teljes UI felújítás modern komponensekkel
+- ⚡ **Gyors műveletek** - Header gyors művelet gombok
+- 🔍 **Globális keresés** - Erőteljes keresési funkciók
+- ⏪ **Undo/Redo funkció** - Előzmény kezelés
+- ⭐ **Kedvenc filamentek** - Kedvenc jelölés és szűrés
+- 📦 **Bulk műveletek** - Hatékony tömeges kezelés
+- 🎨 **Modal dialógusok** - Modern modal élmény
+- ⌨️ **Billentyűparancsok** - Továbbfejlesztett shortcut rendszer
+- 📝 **Logolási rendszer** - Átfogó logolás
+- 🔔 **Értesítési fejlesztések** - Jobb értesítési rendszer
 
 ### v0.6.0 (2025)
 

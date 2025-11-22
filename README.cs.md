@@ -38,6 +38,25 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
+### v1.1.0 (2025) - 🚀 Aktualizace funkcí
+
+- 🔍 **Rozšířené globální vyhledávání** - Vylepšená funkce vyhledávání:
+  - Vyhledávání nabídek podle jména zákazníka, ID, stavu a data
+  - Vyhledávání filamentů z databáze (filamentLibrary) podle značky, typu a barvy
+  - Přidání filamentů do uloženého seznamu jedním kliknutím z výsledků vyhledávání
+  - Vylepšené výsledky vyhledávání s indikátory typu
+- 💀 **Systém načítání Skeleton** - Spektakulární zážitek z načítání:
+  - Animované skeleton komponenty s efekty shimmer
+  - Sledování průběhu s vizuálními indikátory
+  - Kroky načítání se zaškrtnutím pro dokončené kroky
+  - Plynulé přechody fade-in
+  - Barvy skeleton přizpůsobené motivu
+  - Načítání skeleton specifické pro stránku
+- 🎨 **Vylepšení UI/UX**:
+  - Lepší stavy načítání
+  - Vylepšená zpětná vazba uživatele během načítání dat
+  - Vylepšený vizuální zážitek
+
 ### v1.0.0 (2025) - 🎉 První stabilní verze
 
 - 🎨 **Moderní UI komponenty** - Kompletní přepracování UI s moderními komponentami:
@@ -316,6 +335,25 @@ Lekszikov Miklós (LexyGuru)
 Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions, který sestaví beta verzi.
 
 ## 📋 Historie verzí
+
+### v1.1.0 (2025) - 🚀 Aktualizace funkcí
+
+- 🔍 **Rozšířené globální vyhledávání** - Vylepšená funkce vyhledávání
+- 💀 **Systém načítání Skeleton** - Spektakulární zážitek z načítání
+- 🎨 **Vylepšení UI/UX** - Lepší stavy načítání a vizuální zážitek
+
+### v1.0.0 (2025) - 🎉 První stabilní verze
+
+- 🎨 **Moderní UI komponenty** - Kompletní přepracování UI s moderními komponentami
+- ⚡ **Rychlé akce** - Tlačítka rychlých akcí v záhlaví
+- 🔍 **Globální vyhledávání** - Výkonná funkce vyhledávání
+- ⏪ **Funkce Zpět/Znovu** - Správa historie
+- ⭐ **Oblíbené filamenty** - Označení a filtrování oblíbených filamentů
+- 📦 **Hromadné operace** - Efektivní hromadná správa
+- 🎨 **Modální dialogy** - Moderní modální zážitek
+- ⌨️ **Klávesové zkratky** - Vylepšený systém zkratek
+- 📝 **Systém protokolování** - Komplexní protokolování
+- 🔔 **Vylepšení oznámení** - Lepší systém oznámení
 
 ### v0.6.0 (2025)
 

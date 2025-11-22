@@ -42,6 +42,25 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.1.0 (2025) - 🚀 Feature-Update
+
+- 🔍 **Globale Suche erweitert** - Erweiterte Suchfunktionen:
+  - Angebote nach Kundennamen, ID, Status und Datum durchsuchen
+  - Filamente aus der Datenbank (filamentLibrary) nach Marke, Typ und Farbe durchsuchen
+  - Filamente mit einem Klick aus den Suchergebnissen zur gespeicherten Liste hinzufügen
+  - Verbesserte Suchergebnisse mit Typindikatoren
+- 💀 **Skeleton Loading System** - Spektakuläres Ladeerlebnis:
+  - Animierte Skeleton-Komponenten mit Shimmer-Effekten
+  - Fortschrittsverfolgung mit visuellen Indikatoren
+  - Ladeschritte mit Häkchen für abgeschlossene Schritte
+  - Sanfte Fade-in-Übergänge
+  - Themenbewusste Skeleton-Farben
+  - Seitenspezifische Skeleton-Loader
+- 🎨 **UI/UX-Verbesserungen**:
+  - Bessere Ladezustände
+  - Verbesserte Benutzerrückmeldung beim Laden von Daten
+  - Verbessertes visuelles Erlebnis
+
 ### v1.0.0 (2025) - 🎉 Erste stabile Version
 
 - 🎨 **Moderne UI-Komponenten** - Komplette UI-Überarbeitung mit modernen Komponenten:
@@ -320,6 +339,25 @@ Lekszikov Miklós (LexyGuru)
 Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, der die Beta-Version erstellt.
 
 ## 📋 Versionsgeschichte
+
+### v1.1.0 (2025) - 🚀 Feature-Update
+
+- 🔍 **Globale Suche erweitert** - Erweiterte Suchfunktionen
+- 💀 **Skeleton Loading System** - Spektakuläres Ladeerlebnis
+- 🎨 **UI/UX-Verbesserungen** - Bessere Ladezustände und visuelles Erlebnis
+
+### v1.0.0 (2025) - 🎉 Erste stabile Version
+
+- 🎨 **Moderne UI-Komponenten** - Komplette UI-Überarbeitung mit modernen Komponenten
+- ⚡ **Schnellaktionen** - Header-Schnellaktionsschaltflächen
+- 🔍 **Globale Suche** - Leistungsstarke Suchfunktionen
+- ⏪ **Rückgängig/Wiederholen** - Verlaufverwaltung
+- ⭐ **Lieblingsfilamente** - Filamente markieren und filtern
+- 📦 **Massenoperationen** - Effiziente Massenverwaltung
+- 🎨 **Modale Dialoge** - Modernes modales Erlebnis
+- ⌨️ **Tastenkürzel** - Erweiterte Shortcut-Funktionen
+- 📝 **Protokollierungssystem** - Umfassende Protokollierung
+- 🔔 **Benachrichtigungsverbesserungen** - Besseres Benachrichtigungssystem
 
 ### v0.6.0 (2025)
 

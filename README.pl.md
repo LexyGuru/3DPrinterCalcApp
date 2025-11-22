@@ -40,6 +40,25 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.1.0 (2025) - 🚀 Aktualizacja funkcji
+
+- 🔍 **Rozszerzone wyszukiwanie globalne** - Ulepszona funkcjonalność wyszukiwania:
+  - Wyszukiwanie ofert według nazwy klienta, ID, statusu i daty
+  - Wyszukiwanie filamentów z bazy danych (filamentLibrary) według marki, typu i koloru
+  - Dodawanie filamentów do zapisanej listy jednym kliknięciem z wyników wyszukiwania
+  - Ulepszone wyniki wyszukiwania ze wskaźnikami typu
+- 💀 **System ładowania Skeleton** - Spektakularne doświadczenie ładowania:
+  - Animowane komponenty skeleton z efektami shimmer
+  - Śledzenie postępu z wskaźnikami wizualnymi
+  - Kroki ładowania ze znacznikami dla ukończonych kroków
+  - Płynne przejścia fade-in
+  - Kolory skeleton dopasowane do motywu
+  - Ładowarki skeleton specyficzne dla strony
+- 🎨 **Ulepszenia UI/UX**:
+  - Lepsze stany ładowania
+  - Ulepszona informacja zwrotna użytkownika podczas ładowania danych
+  - Ulepszone doświadczenie wizualne
+
 ### v1.0.0 (2025) - 🎉 Pierwsza stabilna wersja
 
 - 🎨 **Nowoczesne komponenty UI** - Kompletna przebudowa UI z nowoczesnymi komponentami:
@@ -318,6 +337,25 @@ Lekszikov Miklós (LexyGuru)
 Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub Actions, który kompiluje wersję beta.
 
 ## 📋 Historia wersji
+
+### v1.1.0 (2025) - 🚀 Aktualizacja funkcji
+
+- 🔍 **Rozszerzone wyszukiwanie globalne** - Ulepszona funkcjonalność wyszukiwania
+- 💀 **System ładowania Skeleton** - Spektakularne doświadczenie ładowania
+- 🎨 **Ulepszenia UI/UX** - Lepsze stany ładowania i doświadczenie wizualne
+
+### v1.0.0 (2025) - 🎉 Pierwsza stabilna wersja
+
+- 🎨 **Nowoczesne komponenty UI** - Kompletna przebudowa UI z nowoczesnymi komponentami
+- ⚡ **Szybkie akcje** - Przyciski szybkich akcji w nagłówku
+- 🔍 **Wyszukiwanie globalne** - Potężna funkcjonalność wyszukiwania
+- ⏪ **Funkcjonalność Cofnij/Ponów** - Zarządzanie historią
+- ⭐ **Ulubione filamenty** - Oznaczanie i filtrowanie ulubionych filamentów
+- 📦 **Operacje masowe** - Wydajne zarządzanie masowe
+- 🎨 **Okna dialogowe modalne** - Nowoczesne doświadczenie modalne
+- ⌨️ **Skróty klawiszowe** - Ulepszony system skrótów
+- 📝 **System rejestrowania** - Kompleksowe rejestrowanie
+- 🔔 **Ulepszenia powiadomień** - Lepszy system powiadomień
 
 ### v0.6.0 (2025)
 

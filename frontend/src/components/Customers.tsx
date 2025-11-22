@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Customer, Settings, Offer } from "../types";
 import type { Theme } from "../utils/themes";
@@ -7,6 +7,8 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
 import { saveCustomers } from "../utils/store";
+import { useUndoRedo } from "../hooks/useUndoRedo";
+import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 
 const LANGUAGE_LOCALES: Record<string, string> = {
   hu: "hu-HU",
@@ -45,6 +47,54 @@ export const Customers: React.FC<Props> = ({
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
+  
+  // Undo/Redo hook
+  const {
+    state: customersWithHistory,
+    setState: setCustomersWithHistory,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset: resetHistory,
+  } = useUndoRedo<Customer[]>(customers, 50);
+
+  // Sync customers with history when external changes occur
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevCustomersRef = useRef<string>(JSON.stringify(customers));
+  useEffect(() => {
+    const currentCustomers = JSON.stringify(customers);
+    const currentHistory = JSON.stringify(customersWithHistory);
+    
+    // Ha a customers változott külsőleg (nem a history miatt), akkor reset history
+    if (prevCustomersRef.current !== currentCustomers && currentCustomers !== currentHistory) {
+      resetHistory(customers);
+      prevCustomersRef.current = currentCustomers;
+    }
+  }, [customers, customersWithHistory, resetHistory]);
+
+  // Update parent when history changes
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevHistoryRef = useRef<string>(JSON.stringify(customersWithHistory));
+  const isUpdatingRef = useRef(false);
+  
+  useEffect(() => {
+    const currentHistory = JSON.stringify(customersWithHistory);
+    const currentCustomers = JSON.stringify(customers);
+    
+    // Ha a history változott ÉS nem vagyunk éppen update közben ÉS különbözik a customers-től
+    if (prevHistoryRef.current !== currentHistory && !isUpdatingRef.current && currentHistory !== currentCustomers) {
+      isUpdatingRef.current = true;
+      prevHistoryRef.current = currentHistory;
+      
+      // setTimeout használata, hogy ne blokkolja a renderelést
+      setTimeout(() => {
+        setCustomers(customersWithHistory);
+        isUpdatingRef.current = false;
+      }, 0);
+    }
+  }, [customersWithHistory, customers, setCustomers]);
+
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [company, setCompany] = useState("");
@@ -55,6 +105,37 @@ export const Customers: React.FC<Props> = ({
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<number>>(new Set());
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+
+  // Undo/Redo keyboard shortcuts
+  useKeyboardShortcut("z", () => {
+    if (canUndo) {
+      undo();
+      showToast(t("common.undo") || "Visszavonás", "info");
+    }
+  }, { ctrl: true });
+
+  useKeyboardShortcut("z", () => {
+    if (canUndo) {
+      undo();
+      showToast(t("common.undo") || "Visszavonás", "info");
+    }
+  }, { meta: true });
+
+  useKeyboardShortcut("z", () => {
+    if (canRedo) {
+      redo();
+      showToast(t("common.redo") || "Újra", "info");
+    }
+  }, { ctrl: true, shift: true });
+
+  useKeyboardShortcut("z", () => {
+    if (canRedo) {
+      redo();
+      showToast(t("common.redo") || "Újra", "info");
+    }
+  }, { meta: true, shift: true });
 
   // Gyors művelet gomb esetén automatikusan megnyitja a formot
   useEffect(() => {
@@ -127,7 +208,7 @@ export const Customers: React.FC<Props> = ({
     };
 
     const updatedCustomers = [...customers, newCustomer];
-    setCustomers(updatedCustomers);
+    setCustomersWithHistory(updatedCustomers);
     await saveCustomers(updatedCustomers);
     
     showToast(t("customers.toast.added"), "success");
@@ -147,7 +228,7 @@ export const Customers: React.FC<Props> = ({
     if (deleteConfirmId === null) return;
     const id = deleteConfirmId;
     const updatedCustomers = customers.filter(c => c.id !== id);
-    setCustomers(updatedCustomers);
+    setCustomersWithHistory(updatedCustomers);
     await saveCustomers(updatedCustomers);
     showToast(t("customers.toast.deleted"), "success");
     setDeleteConfirmId(null);
@@ -189,11 +270,56 @@ export const Customers: React.FC<Props> = ({
         : c
     );
     
-    setCustomers(updatedCustomers);
+    setCustomersWithHistory(updatedCustomers);
     await saveCustomers(updatedCustomers);
     showToast(t("customers.toast.saved"), "success");
     cancelEdit();
   };
+
+  // Bulk műveletek
+  const toggleSelection = (customerId: number) => {
+    setSelectedCustomerIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(customerId)) {
+        newSet.delete(customerId);
+      } else {
+        newSet.add(customerId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAll = () => {
+    const allIds = new Set(filteredCustomers.map(c => c.id));
+    setSelectedCustomerIds(allIds);
+  };
+
+  const deselectAll = () => {
+    setSelectedCustomerIds(new Set());
+  };
+
+  const handleBulkDelete = () => {
+    setBulkDeleteConfirm(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    if (selectedCustomerIds.size === 0) return;
+    
+    const idsToDelete = Array.from(selectedCustomerIds);
+    const updatedCustomers = customersWithHistory.filter(c => !idsToDelete.includes(c.id));
+    
+    setCustomersWithHistory(updatedCustomers);
+    await saveCustomers(updatedCustomers);
+    setSelectedCustomerIds(new Set());
+    setBulkDeleteConfirm(false);
+    
+    const successMessage = t("customers.bulk.delete.success").replace("{{count}}", idsToDelete.length.toString());
+    showToast(successMessage, "success");
+  };
+
+  const isAllSelected = filteredCustomers.length > 0 && 
+    filteredCustomers.every(c => selectedCustomerIds.has(c.id));
+  const isSomeSelected = selectedCustomerIds.size > 0 && !isAllSelected;
 
   return (
     <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
@@ -205,8 +331,8 @@ export const Customers: React.FC<Props> = ({
         👥 {t("customers.title")}
       </h2>
 
-      {/* Keresés */}
-      <div style={{ marginBottom: "20px" }}>
+      {/* Keresés és műveletek */}
+      <div style={{ marginBottom: "20px", display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
         <input
           type="text"
           placeholder={t("customers.searchPlaceholder")}
@@ -214,14 +340,57 @@ export const Customers: React.FC<Props> = ({
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{
             ...themeStyles.input,
-            width: "100%",
+            flex: "1",
+            minWidth: "200px",
             maxWidth: "400px",
           }}
         />
-      </div>
+        
+        {/* Undo/Redo gombok */}
+        <div style={{ display: "flex", gap: "8px" }}>
+          <Tooltip content={`${t("common.undo")} (Ctrl/Cmd+Z)`}>
+            <button
+              onClick={() => {
+                if (canUndo) {
+                  undo();
+                  showToast(t("common.undo") || "Visszavonás", "info");
+                }
+              }}
+              disabled={!canUndo}
+              style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonSecondary,
+                opacity: canUndo ? 1 : 0.5,
+                cursor: canUndo ? "pointer" : "not-allowed",
+                padding: "8px 16px",
+              }}
+            >
+              ↶ {t("common.undo")}
+            </button>
+          </Tooltip>
+          <Tooltip content={`${t("common.redo")} (Ctrl/Cmd+Shift+Z)`}>
+            <button
+              onClick={() => {
+                if (canRedo) {
+                  redo();
+                  showToast(t("common.redo") || "Újra", "info");
+                }
+              }}
+              disabled={!canRedo}
+              style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonSecondary,
+                opacity: canRedo ? 1 : 0.5,
+                cursor: canRedo ? "pointer" : "not-allowed",
+                padding: "8px 16px",
+              }}
+            >
+              ↷ {t("common.redo")}
+            </button>
+          </Tooltip>
+        </div>
 
-      {/* Hozzáadás gomb */}
-      <div style={{ marginBottom: "20px" }}>
+        {/* Hozzáadás gomb */}
         <button
           onClick={() => setShowAddForm(true)}
           style={themeStyles.buttonPrimary}
@@ -479,15 +648,123 @@ export const Customers: React.FC<Props> = ({
           {searchTerm ? t("customers.noResults") : t("customers.empty")}
         </div>
       ) : (
-        <div style={{ display: "grid", gap: "16px" }}>
-          {filteredCustomers.map((customer) => (
+        <div>
+          {/* Bulk műveletek toolbar */}
+          {selectedCustomerIds.size > 0 && (
+            <div style={{
+              ...themeStyles.card,
+              padding: "12px 16px",
+              marginBottom: "16px",
+              backgroundColor: theme.colors.surfaceHover,
+              borderBottom: `1px solid ${theme.colors.border}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  ref={(input) => {
+                    if (input) input.indeterminate = isSomeSelected;
+                  }}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      selectAll();
+                    } else {
+                      deselectAll();
+                    }
+                  }}
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    cursor: "pointer",
+                  }}
+                  aria-label={t("customers.bulk.selectAll")}
+                />
+                <span style={{ color: theme.colors.text, fontSize: "14px", fontWeight: "600" }}>
+                  {t("customers.bulk.selected").replace("{{count}}", selectedCustomerIds.size.toString())}
+                </span>
+              </div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={deselectAll}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    padding: "6px 12px",
+                    fontSize: "12px",
+                  }}
+                >
+                  {t("customers.bulk.deselectAll")}
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonDanger,
+                    padding: "6px 12px",
+                    fontSize: "12px",
+                  }}
+                >
+                  {t("customers.bulk.delete").replace("{{count}}", selectedCustomerIds.size.toString())}
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Select All checkbox (ha nincs kijelölve semmi) */}
+          {selectedCustomerIds.size === 0 && filteredCustomers.length > 0 && (
+            <div style={{ marginBottom: "12px" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      selectAll();
+                    } else {
+                      deselectAll();
+                    }
+                  }}
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    cursor: "pointer",
+                  }}
+                />
+                <span style={{ color: theme.colors.text, fontSize: "14px" }}>
+                  {t("customers.bulk.selectAll")}
+                </span>
+              </label>
+            </div>
+          )}
+          
+          <div style={{ display: "grid", gap: "16px" }}>
+            {filteredCustomers.map((customer) => (
             <div
               key={customer.id}
               style={{
                 ...themeStyles.card,
                 padding: "20px",
+                position: "relative",
               }}
             >
+              {/* Checkbox a kártya bal felső sarkában */}
+              <div style={{ position: "absolute", top: "12px", left: "12px" }}>
+                <input
+                  type="checkbox"
+                  checked={selectedCustomerIds.has(customer.id)}
+                  onChange={() => toggleSelection(customer.id)}
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    cursor: "pointer",
+                  }}
+                  aria-label={t("customers.bulk.select")}
+                />
+              </div>
               {editingCustomerId === customer.id ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   <div>
@@ -648,6 +925,7 @@ export const Customers: React.FC<Props> = ({
               )}
             </div>
           ))}
+          </div>
         </div>
       )}
 
@@ -657,6 +935,15 @@ export const Customers: React.FC<Props> = ({
         onConfirm={confirmDelete}
         title={t("customers.confirmDelete.title")}
         message={t("customers.confirmDelete.message")}
+        theme={theme}
+      />
+      
+      <ConfirmDialog
+        isOpen={bulkDeleteConfirm}
+        onCancel={() => setBulkDeleteConfirm(false)}
+        onConfirm={confirmBulkDelete}
+        title={t("customers.bulk.deleteConfirm.title")}
+        message={t("customers.bulk.deleteConfirm.message").replace("{{count}}", selectedCustomerIds.size.toString())}
         theme={theme}
       />
     </div>

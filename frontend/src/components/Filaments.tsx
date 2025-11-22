@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { open } from "@tauri-apps/plugin-shell";
 import type { Filament, Settings, ColorMode } from "../types";
@@ -12,6 +12,8 @@ import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { Tooltip } from "./Tooltip";
 import { EmptyState } from "./EmptyState";
 import { useUndoRedo } from "../hooks/useUndoRedo";
+import { useOptimisticUpdate } from "../hooks/useOptimisticUpdate";
+import { saveFilaments } from "../utils/store";
 import { validateFilamentWeight, validateFilamentPrice } from "../utils/validation";
 import type { FilamentFinish, FilamentColorOption } from "../utils/filamentColors";
 import {
@@ -55,7 +57,24 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   
-  // Undo/Redo hook
+  // Optimistic UI update hook
+  const {
+    optimisticState: optimisticFilaments,
+    updateOptimistically,
+    isSaving: isOptimisticSaving,
+  } = useOptimisticUpdate<Filament[]>(
+    filaments,
+    async (newFilaments) => {
+      await saveFilaments(newFilaments);
+      setFilaments(newFilaments);
+    },
+    (error) => {
+      console.error("Filament mentési hiba:", error);
+      showToast(t("common.error") || "Hiba", "error");
+    }
+  );
+
+  // Undo/Redo hook (optimistic state-t használ)
   const {
     state: filamentsWithHistory,
     setState: setFilamentsWithHistory,
@@ -64,21 +83,46 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     canUndo,
     canRedo,
     reset: resetHistory,
-  } = useUndoRedo<Filament[]>(filaments, 50);
+  } = useUndoRedo<Filament[]>(optimisticFilaments, 50);
 
-  // Sync filaments with history when external changes occur
+  // Sync optimistic filaments with history when external changes occur
+  // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
+  const prevOptimisticRef = useRef<string>(JSON.stringify(optimisticFilaments));
   useEffect(() => {
-    if (JSON.stringify(filaments) !== JSON.stringify(filamentsWithHistory)) {
-      resetHistory(filaments);
+    const currentOptimistic = JSON.stringify(optimisticFilaments);
+    const currentHistory = JSON.stringify(filamentsWithHistory);
+    
+    // Ha az optimistic változott (külső forrásból, pl. parent update), akkor reset history
+    if (prevOptimisticRef.current !== currentOptimistic && currentOptimistic !== currentHistory) {
+      resetHistory(optimisticFilaments);
+      prevOptimisticRef.current = currentOptimistic;
     }
-  }, [filaments]);
+  }, [optimisticFilaments, filamentsWithHistory, resetHistory]);
 
-  // Update parent when history changes
+  // Update parent when history changes (optimistic update-t használ)
+  // Csak akkor hívjuk meg, ha a filamentsWithHistory változott (nem az optimisticFilaments miatt)
+  const prevHistoryRef = useRef<string>(JSON.stringify(filamentsWithHistory));
+  const isUpdatingRef = useRef(false);
+  
   useEffect(() => {
-    if (JSON.stringify(filamentsWithHistory) !== JSON.stringify(filaments)) {
-      setFilaments(filamentsWithHistory);
+    const currentHistory = JSON.stringify(filamentsWithHistory);
+    const currentOptimistic = JSON.stringify(optimisticFilaments);
+    
+    // Ha a history változott ÉS nem vagyunk éppen update közben ÉS különbözik az optimistic-től
+    if (prevHistoryRef.current !== currentHistory && !isUpdatingRef.current && currentHistory !== currentOptimistic) {
+      isUpdatingRef.current = true;
+      prevHistoryRef.current = currentHistory;
+      
+      updateOptimistically(filamentsWithHistory)
+        .then(() => {
+          isUpdatingRef.current = false;
+        })
+        .catch((error) => {
+          console.error("Optimistic update hiba:", error);
+          isUpdatingRef.current = false;
+        });
     }
-  }, [filamentsWithHistory]);
+  }, [filamentsWithHistory, optimisticFilaments, updateOptimistically]);
   
   const [brand, setBrand] = useState("");
   const [type, setType] = useState("");
@@ -1190,6 +1234,15 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             </span>
             {/* Undo/Redo és Kedvencek gombok */}
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              {isOptimisticSaving && (
+                <span style={{ 
+                  fontSize: "12px", 
+                  color: theme.colors.textMuted,
+                  fontStyle: "italic"
+                }}>
+                  💾 Mentés folyamatban...
+                </span>
+              )}
               <Tooltip content={`${t("common.undo")} (Ctrl/Cmd+Z)`}>
                 <button
                   onClick={() => {

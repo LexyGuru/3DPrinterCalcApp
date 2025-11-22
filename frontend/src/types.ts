@@ -181,6 +181,14 @@ export interface Settings {
   themeSettings?: ThemeSettings;
   calendarProvider?: CalendarProvider; // Naptár szolgáltató (Google Calendar, iOS Calendar, Outlook)
   customShortcuts?: Record<string, CustomShortcut>; // Egyedi gyorsbillentyűk (kulcs: egyedi azonosító)
+  printerColumnsVisibility?: {
+    name: boolean;
+    type: boolean;
+    power: boolean;
+    usageCost: boolean;
+    ams: boolean;
+    action: boolean;
+  }; // Nyomtatók oszlopok láthatósága
 }
 
 export const defaultSettings: Settings = {
