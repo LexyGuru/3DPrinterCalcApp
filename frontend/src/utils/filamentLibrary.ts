@@ -284,13 +284,34 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
 
   let updateEntries: RawLibraryEntry[] = [];
   try {
+    console.log("[FilamentLibrary] Attempting to read update library file", {
+      baseDir: "AppConfig",
+      file: "update_filamentLibrary.json",
+    });
+    
     const updateContent = await readTextFile("update_filamentLibrary.json", {
       baseDir: BaseDirectory.AppConfig,
     });
+    
+    if (!updateContent || updateContent.trim().length === 0) {
+      console.log("[FilamentLibrary] Update filament library file is empty");
+      return baseEntries;
+    }
+    
+    console.log("[FilamentLibrary] Update library file read successfully", {
+      contentLength: updateContent.length,
+      firstChars: updateContent.substring(0, 100),
+    });
+    
     const parsed = JSON.parse(updateContent);
     if (Array.isArray(parsed)) {
       updateEntries = parsed as RawLibraryEntry[];
       console.log("[FilamentLibrary] Loaded update library entries", { count: updateEntries.length });
+    } else {
+      console.warn("[FilamentLibrary] Update filament library file does not contain an array", { 
+        type: typeof parsed,
+        keys: parsed ? Object.keys(parsed) : null 
+      });
     }
   } catch (error) {
     // Check if the error is a "file not found" error (ENOENT or Windows equivalent)
@@ -301,12 +322,21 @@ const readLibraryFromDisk = async (): Promise<RawLibraryEntry[]> => {
       errorMessage.includes("not found") ||
       errorMessage.includes("nem találja") ||
       errorMessage.includes("os error 2") ||
-      errorMessage.includes("No such file");
+      errorMessage.includes("No such file") ||
+      errorMessage.includes("cannot find the file") ||
+      errorMessage.includes("cannot find the path");
     
     if (!isFileNotFound) {
-      console.warn("[FilamentLibrary] Update filament library not applied", error);
+      console.warn("[FilamentLibrary] Update filament library not applied", {
+        error: errorMessage,
+        code: errorCode,
+        fullError: error
+      });
     } else {
-      console.log("[FilamentLibrary] No update filament library found");
+      console.log("[FilamentLibrary] No update filament library found (file does not exist)", {
+        errorCode,
+        errorMessage,
+      });
     }
   }
 
