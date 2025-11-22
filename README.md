@@ -244,6 +244,42 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.1.4 (2025) - 🐛 Filament Library Update File Auto-Creation
+
+- 🐛 **Auto-Create Update File** - Fixed issue where `update_filamentLibrary.json` was not automatically created:
+  - File is now automatically created from `filamentLibrarySample.json` on first launch
+  - Ensures update file is always available for merging
+  - Only creates if file doesn't exist (doesn't overwrite existing)
+  - Improved error handling and logging for update file operations
+
+### v1.1.3 (2025) - 🪟 Windows Compatibility Fixes
+
+- 🪟 **Windows Compatibility Fix** - Filament library loading improvements:
+  - Dynamic import for large JSON files (instead of static import)
+  - Caching mechanism to avoid multiple loads
+  - Improved error handling for file not found cases on Windows
+  - Cross-platform compatibility (Windows, macOS, Linux)
+- 🔧 **Error Handling Improvements** - Enhanced error messages:
+  - Proper handling of Windows-specific error messages
+  - Silent handling of file not found cases (not as warnings)
+
+### v1.1.2 (2025) - 🌍 Language Selector and Improvements
+
+- 🌍 **Language Selector on First Launch** - Modern, animated language selector dialog on first launch:
+  - Support for 13 languages with flag icons
+  - Theme-aware design
+  - Smooth animations
+  - Tutorial runs in selected language
+- 🔄 **Factory Reset** - Complete data deletion feature:
+  - Deletes all stored data (printers, filaments, offers, customers, settings)
+  - Confirmation dialog for dangerous operations
+  - Application restarts as if first launch
+- 🎨 **UI Improvements**:
+  - Footer text contrast fix (dynamic color selection)
+  - Immediate save on language change
+  - Improved tooltip positioning
+- 📚 **Tutorial Translations** - Complete tutorial translation in all supported languages (Russian, Ukrainian, Chinese added)
+
 ### v1.1.1 (2025) - 🎨 Header Layout Improvements
 
 - 🎨 **Header Redesign** - Complete header layout overhaul:

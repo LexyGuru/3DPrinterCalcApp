@@ -42,6 +42,14 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
+### v1.1.4 (2025) - 🐛 Filament könyvtár update fájl automatikus létrehozás
+
+- 🐛 **Update fájl automatikus létrehozás** - Javított hiba, ahol az `update_filamentLibrary.json` fájl nem jött létre automatikusan:
+  - A fájl most automatikusan létrejön a `filamentLibrarySample.json` fájlból első indításkor
+  - Biztosítja, hogy az update fájl mindig elérhető legyen az összevonáshoz
+  - Csak akkor hozza létre, ha nem létezik (nem írja felül a meglévőt)
+  - Továbbfejlesztett hibakezelés és logolás az update fájl műveletekhez
+
 ### v1.1.3 (2025) - 🪟 Windows kompatibilitás javítások
 
 - 🪟 **Windows kompatibilitás javítás** - Filament könyvtár betöltés javítása:

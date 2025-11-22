@@ -40,6 +40,14 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.1.4 (2025) - 🐛 Automatické vytvorenie súboru aktualizácie knižnice filamentov
+
+- 🐛 **Automatické vytvorenie súboru aktualizácie** - Opravený problém, kde `update_filamentLibrary.json` nebol automaticky vytvorený:
+  - Súbor je teraz automaticky vytvorený z `filamentLibrarySample.json` pri prvom spustení
+  - Zabezpečuje, že súbor aktualizácie je vždy k dispozícii pre zlúčenie
+  - Vytvára len, ak súbor neexistuje (neprepisuje existujúci)
+  - Vylepšené spracovanie chýb a protokolovanie pre operácie so súborom aktualizácie
+
 ### v1.1.3 (2025) - 🪟 Opravy kompatibility s Windows
 
 - 🪟 **Oprava kompatibility s Windows** - Vylepšenia načítania knižnice filamentov:

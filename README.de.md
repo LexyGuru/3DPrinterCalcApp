@@ -42,6 +42,14 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.1.4 (2025) - 🐛 Automatische Erstellung der Filament-Bibliothek-Update-Datei
+
+- 🐛 **Automatische Update-Datei-Erstellung** - Behobenes Problem, bei dem `update_filamentLibrary.json` nicht automatisch erstellt wurde:
+  - Datei wird jetzt automatisch aus `filamentLibrarySample.json` beim ersten Start erstellt
+  - Stellt sicher, dass die Update-Datei immer für die Zusammenführung verfügbar ist
+  - Erstellt nur, wenn die Datei nicht existiert (überschreibt vorhandene nicht)
+  - Verbesserte Fehlerbehandlung und Protokollierung für Update-Datei-Operationen
+
 ### v1.1.3 (2025) - 🪟 Windows-Kompatibilitätsverbesserungen
 
 - 🪟 **Windows-Kompatibilitätsverbesserung** - Filament-Bibliothek-Ladeverbesserungen:

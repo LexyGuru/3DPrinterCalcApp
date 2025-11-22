@@ -42,6 +42,14 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 
 ## 📋 Changelog
 
+### v1.1.4 (2025) - 🐛 Filament Library Update File Auto-Creation
+
+- 🐛 **Auto-Create Update File** - Fixed issue where `update_filamentLibrary.json` was not automatically created:
+  - File is now automatically created from `filamentLibrarySample.json` on first launch
+  - Ensures update file is always available for merging
+  - Only creates if file doesn't exist (doesn't overwrite existing)
+  - Improved error handling and logging for update file operations
+
 ### v1.1.3 (2025) - 🪟 Windows Compatibility Fixes
 
 - 🪟 **Windows Compatibility Fix** - Filament library loading improvements:

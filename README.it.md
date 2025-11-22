@@ -41,6 +41,14 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.1.4 (2025) - 🐛 Creazione automatica del file di aggiornamento della libreria filamenti
+
+- 🐛 **Creazione automatica del file di aggiornamento** - Risolto problema dove `update_filamentLibrary.json` non veniva creato automaticamente:
+  - Il file ora viene creato automaticamente da `filamentLibrarySample.json` al primo avvio
+  - Garantisce che il file di aggiornamento sia sempre disponibile per la fusione
+  - Crea solo se il file non esiste (non sovrascrive quello esistente)
+  - Gestione degli errori e registrazione migliorate per le operazioni sul file di aggiornamento
+
 ### v1.1.3 (2025) - 🪟 Correzioni di compatibilità Windows
 
 - 🪟 **Correzione di compatibilità Windows** - Miglioramenti al caricamento della libreria filamenti:

@@ -40,6 +40,14 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.1.4 (2025) - 🐛 Automatyczne tworzenie pliku aktualizacji biblioteki filamentów
+
+- 🐛 **Automatyczne tworzenie pliku aktualizacji** - Naprawiono problem, gdzie `update_filamentLibrary.json` nie był automatycznie tworzony:
+  - Plik jest teraz automatycznie tworzony z `filamentLibrarySample.json` przy pierwszym uruchomieniu
+  - Zapewnia, że plik aktualizacji jest zawsze dostępny do scalenia
+  - Tworzy tylko, jeśli plik nie istnieje (nie nadpisuje istniejącego)
+  - Ulepszona obsługa błędów i rejestrowanie dla operacji na pliku aktualizacji
+
 ### v1.1.3 (2025) - 🪟 Poprawki zgodności z Windows
 
 - 🪟 **Poprawka zgodności z Windows** - Ulepszenia ładowania biblioteki filamentów:
