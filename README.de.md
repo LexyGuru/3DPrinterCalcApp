@@ -42,6 +42,17 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.1.3 (2025) - 🪟 Windows-Kompatibilitätsverbesserungen
+
+- 🪟 **Windows-Kompatibilitätsverbesserung** - Filament-Bibliothek-Ladeverbesserungen:
+  - Dynamischer Import für große JSON-Dateien (anstatt statischer Import)
+  - Caching-Mechanismus zur Vermeidung mehrfacher Ladevorgänge
+  - Verbesserte Fehlerbehandlung für Datei-nicht-gefunden-Fälle unter Windows
+  - Plattformübergreifende Kompatibilität (Windows, macOS, Linux)
+- 🔧 **Fehlerbehandlungsverbesserungen** - Erweiterte Fehlermeldungen:
+  - Korrekte Behandlung von Windows-spezifischen Fehlermeldungen
+  - Stille Behandlung von Datei-nicht-gefunden-Fällen (nicht als Warnungen)
+
 ### v1.1.2 (2025) - 🌍 Sprachauswahl und Verbesserungen
 
 - 🌍 **Sprachauswahl beim ersten Start** - Moderner, animierter Sprachauswahl-Dialog beim ersten Start:

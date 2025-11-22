@@ -42,6 +42,17 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 
 ## 📋 Changelog
 
+### v1.1.3 (2025) - 🪟 Windows Compatibility Fixes
+
+- 🪟 **Windows Compatibility Fix** - Filament library loading improvements:
+  - Dynamic import for large JSON files (instead of static import)
+  - Caching mechanism to avoid multiple loads
+  - Improved error handling for file not found cases on Windows
+  - Cross-platform compatibility (Windows, macOS, Linux)
+- 🔧 **Error Handling Improvements** - Enhanced error messages:
+  - Proper handling of Windows-specific error messages
+  - Silent handling of file not found cases (not as warnings)
+
 ### v1.1.2 (2025) - 🌍 Language Selector and Improvements
 
 - 🌍 **Language Selector on First Launch** - Modern, animated language selector dialog on first launch:

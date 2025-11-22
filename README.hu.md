@@ -42,6 +42,17 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
+### v1.1.3 (2025) - 🪟 Windows kompatibilitás javítások
+
+- 🪟 **Windows kompatibilitás javítás** - Filament könyvtár betöltés javítása:
+  - Dinamikus import használata a nagy JSON fájlokhoz (statikus import helyett)
+  - Cache mechanizmus a többszöri betöltés elkerülésére
+  - Javított hibakezelés Windows-on fájl nem található esetekhez
+  - Platformfüggetlen működés (Windows, macOS, Linux)
+- 🔧 **Hibakezelés fejlesztések** - Továbbfejlesztett hibaüzenetek:
+  - Windows-specifikus hibaüzenetek helyes kezelése
+  - Fájl nem található esetek csendes kezelése (nem warning-ként)
+
 ### v1.1.2 (2025) - 🌍 Nyelvválasztó és fejlesztések
 
 - 🌍 **Nyelvválasztó az első indításkor** - Modern, animált nyelvválasztó dialógus az első indításkor:

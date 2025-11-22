@@ -40,6 +40,17 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.1.3 (2025) - 🪟 Opravy kompatibility s Windows
+
+- 🪟 **Oprava kompatibility s Windows** - Vylepšenia načítania knižnice filamentov:
+  - Dynamický import pre veľké JSON súbory (namiesto statického importu)
+  - Mechanizmus cache na zabránenie viacnásobného načítania
+  - Vylepšené spracovanie chýb pre prípady nenájdeného súboru vo Windows
+  - Multiplatformná kompatibilita (Windows, macOS, Linux)
+- 🔧 **Vylepšenia spracovania chýb** - Vylepšené chybové správy:
+  - Správne spracovanie chybových správ špecifických pre Windows
+  - Tiché spracovanie prípadov nenájdeného súboru (nie ako varovania)
+
 ### v1.1.2 (2025) - 🌍 Výber jazyka a vylepšenia
 
 - 🌍 **Výber jazyka pri prvom spustení** - Moderné, animované dialógové okno pre výber jazyka pri prvom spustení:

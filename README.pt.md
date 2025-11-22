@@ -40,6 +40,17 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.1.3 (2025) - 🪟 Correções de compatibilidade Windows
+
+- 🪟 **Correção de compatibilidade Windows** - Melhorias no carregamento da biblioteca de filamentos:
+  - Importação dinâmica para arquivos JSON grandes (em vez de importação estática)
+  - Mecanismo de cache para evitar múltiplas cargas
+  - Tratamento de erros melhorado para casos de arquivo não encontrado no Windows
+  - Compatibilidade multiplataforma (Windows, macOS, Linux)
+- 🔧 **Melhorias no tratamento de erros** - Mensagens de erro aprimoradas:
+  - Tratamento adequado de mensagens de erro específicas do Windows
+  - Tratamento silencioso de casos de arquivo não encontrado (não como avisos)
+
 ### v1.1.2 (2025) - 🌍 Seletor de idioma e melhorias
 
 - 🌍 **Seletor de idioma no primeiro início** - Diálogo moderno e animado de seleção de idioma no primeiro início:

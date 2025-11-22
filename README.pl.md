@@ -40,6 +40,17 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.1.3 (2025) - 🪟 Poprawki zgodności z Windows
+
+- 🪟 **Poprawka zgodności z Windows** - Ulepszenia ładowania biblioteki filamentów:
+  - Dynamiczny import dla dużych plików JSON (zamiast statycznego importu)
+  - Mechanizm cache, aby uniknąć wielokrotnych ładowań
+  - Ulepszona obsługa błędów dla przypadków nieznalezionego pliku w Windows
+  - Kompatybilność międzyplatformowa (Windows, macOS, Linux)
+- 🔧 **Ulepszenia obsługi błędów** - Ulepszone komunikaty o błędach:
+  - Prawidłowa obsługa komunikatów o błędach specyficznych dla Windows
+  - Cicha obsługa przypadków nieznalezionego pliku (nie jako ostrzeżenia)
+
 ### v1.1.2 (2025) - 🌍 Selektor języka i ulepszenia
 
 - 🌍 **Selektor języka przy pierwszym uruchomieniu** - Nowoczesne, animowane okno dialogowe wyboru języka przy pierwszym uruchomieniu:
