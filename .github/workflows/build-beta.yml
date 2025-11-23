@@ -56,13 +56,28 @@ jobs:
         id: pnpm-store
         shell: bash
         run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      
+      - name: Get pnpm lock file hash
+        id: pnpm-lock-hash
+        shell: bash
+        run: |
+          if [ -f "frontend/pnpm-lock.yaml" ]; then
+            if command -v sha256sum > /dev/null; then
+              HASH=$(sha256sum frontend/pnpm-lock.yaml | cut -d ' ' -f1)
+            else
+              HASH=$(shasum -a 256 frontend/pnpm-lock.yaml | cut -d ' ' -f1)
+            fi
+            echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+          else
+            echo "hash=" >> "$GITHUB_OUTPUT"
+          fi
           
       - name: Setup pnpm cache
-        if: steps.pnpm-store.outputs.path != ''
+        if: steps.pnpm-store.outputs.path != '' && steps.pnpm-lock-hash.outputs.hash != ''
         uses: actions/cache@v4
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-pnpm-store-${{ steps.pnpm-lock-hash.outputs.hash }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
             
