@@ -40,6 +40,61 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.2.1 (2025) - 🎨 Spójność interfejsu i zarządzanie kolumnami
+
+- 📊 **Zarządzanie kolumnami filamentów** - Dodano widoczność i sortowanie kolumn do komponentu Filamenty:
+  - Menu przełączania widoczności kolumn (jak w komponencie Drukarki)
+  - Kolumny sortowalne: Marka, Typ, Waga, Cena/kg
+  - Preferencje widoczności kolumn zapisane w ustawieniach
+  - Spójny interfejs z komponentem Drukarki (przycisk zarządzania, menu rozwijane, wskaźniki sortowania)
+- 🎨 **Spójność kolorów motywu** - Ulepszone użycie kolorów motywu we wszystkich komponentach:
+  - Wszystkie przyciski i menu rozwijane teraz konsekwentnie używają kolorów motywu (Filamenty, Drukarki, Kalkulator, Trendy cenowe)
+  - Usunięto hardcodowane kolory (szare przyciski zastąpione podstawowym kolorem motywu)
+  - Komponent Header w pełni dostosowuje się do wszystkich motywów i kolorów
+  - Karta informacji o stanie używa kolorów motywu zamiast hardcodowanych wartości rgba
+  - Spójne efekty hover używając themeStyles.buttonHover
+- 🔧 **Ulepszenia interfejsu**:
+  - Przycisk "Zarządzaj kolumnami" teraz używa podstawowego koloru motywu zamiast drugorzędnego
+  - Menu rozwijane select Trendy cenowe używa odpowiednich stylów fokusa
+  - Wszystkie menu rozwijane stylizowane konsekwentnie z kolorami motywu
+  - Lepsza spójność wizualna na wszystkich stronach
+
+### v1.1.6 (2025) - 🌍 Pełne pokrycie tłumaczeń
+
+- 🌍 **Tłumaczenia samouczka** - Dodano brakujące klucze tłumaczeń samouczka do wszystkich plików językowych:
+  - 8 nowych kroków samouczka w pełni przetłumaczonych (Panel statusu, Podgląd PDF, Przeciągnij i upuść, Menu kontekstowe, Historia cen, Porównanie cen online, Eksport/Import, Kopia zapasowa/Przywracanie)
+  - Cała zawartość samouczka jest teraz dostępna we wszystkich 14 obsługiwanych językach
+  - Pełne doświadczenie samouczka w języku czeskim, hiszpańskim, francuskim, włoskim, polskim, portugalskim, rosyjskim, słowackim, ukraińskim i chińskim
+- 🎨 **Tłumaczenie nazw motywów** - Nazwy motywów są teraz w pełni przetłumaczone we wszystkich językach:
+  - 15 nazw motywów dodanych do wszystkich plików językowych (Jasny, Ciemny, Niebieski, Zielony, Las, Fioletowy, Pomarańczowy, Pastelowy, Węgiel, Północ, Gradient, Neon, Cyberpunk, Zachód słońca, Ocean)
+  - Nazwy motywów są dynamicznie ładowane z systemu tłumaczeń zamiast zakodowanych wartości
+  - Mechanizm zapasowy: klucz tłumaczenia → displayName → nazwa motywu
+  - Wszystkie motywy są teraz wyświetlane w języku wybranym przez użytkownika w Ustawieniach
+
+### v1.1.5 (2025) - 🎨 Ulepszenia interfejsu i zarządzanie logami
+
+- 🎨 **Przeprojektowanie okna dialogowego dodawania filamentu** - Ulepszony układ dwukolumnowy dla lepszej organizacji:
+  - Lewa kolumna: Dane podstawowe (Marka, Typ, Waga, Cena, Przesyłanie obrazu)
+  - Prawa kolumna: Wybór koloru ze wszystkimi opcjami kolorów
+  - Wszystkie pola wejściowe mają spójną szerokość
+  - Lepsza hierarchia wizualna i odstępy
+  - Przesyłanie obrazu przeniesione do lewej kolumny pod pole Ceny
+- 📋 **Zarządzanie plikami logów** - Nowa sekcja zarządzania logami w ustawieniach Zarządzania danymi:
+  - Konfigurowalne automatyczne usuwanie starych plików logów (5, 10, 15, 30, 60, 90 dni lub nigdy)
+  - Przycisk do otwierania folderu logów w menedżerze plików
+  - Automatyczne czyszczenie przy zmianie ustawienia
+  - Otwieranie folderu specyficzne dla platformy (macOS, Windows, Linux)
+- 📦 **Układ Eksport/Import** - Sekcje Eksport i Import są teraz obok siebie:
+  - Responsywny układ dwukolumnowy
+  - Lepsze wykorzystanie przestrzeni
+  - Ulepszona równowaga wizualna
+- 🍎 **Ostrzeżenie o powiadomieniach macOS** - Zamykane okno dialogowe ostrzeżenia:
+  - Pojawia się tylko na platformie macOS
+  - Dwie opcje zamknięcia: tymczasowe (przycisk X) lub trwałe (przycisk Zamknij)
+  - Zamknięcie tymczasowe: ukryte tylko dla bieżącej sesji, pojawia się ponownie po ponownym uruchomieniu
+  - Zamknięcie trwałe: zapisane w ustawieniach, nigdy się nie pojawia
+  - Jasne rozróżnienie wizualne między typami zamknięcia
+
 ### v1.1.4 (2025) - 🐛 Automatyczne tworzenie pliku aktualizacji biblioteki filamentów
 
 - 🐛 **Automatyczne tworzenie pliku aktualizacji** - Naprawiono problem, gdzie `update_filamentLibrary.json` nie był automatycznie tworzony:
@@ -710,7 +765,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 1.1.1
+**Wersja**: 1.2.1
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

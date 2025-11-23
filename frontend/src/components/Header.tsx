@@ -109,12 +109,11 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
   const isGradientBg = typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient');
   const isNeon = theme.name === 'neon' || theme.name === 'cyberpunk';
   const isGlassmorphism = theme.name === 'gradient' || theme.name === 'sunset' || theme.name === 'ocean';
-  const isLight = theme.name === 'light' || theme.name === 'pastel';
   
   // Header background - use surface color for better contrast
   const getHeaderBg = () => {
     if (isGradientBg && isGlassmorphism) {
-      return "rgba(255, 255, 255, 0.95)";
+      return theme.colors.surface || "rgba(255, 255, 255, 0.95)";
     }
     if (isGradientBg) {
       return theme.colors.surface || "rgba(255, 255, 255, 0.9)";
@@ -129,7 +128,11 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
       return theme.colors.text || "#1a1a1a";
     }
     if (isGradientBg) {
-      return "#ffffff";
+      // Gradient háttér esetén ellenőrizzük a kontrasztot
+      const surfaceLuminance = typeof theme.colors.surface === 'string' 
+        ? (theme.colors.surface.includes('gradient') ? 0.5 : 0.5) 
+        : 0.5;
+      return surfaceLuminance > 0.5 ? theme.colors.text : "#ffffff";
     }
     return theme.colors.text;
   };
@@ -138,17 +141,18 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
   // Muted text color for date
   const getMutedText = () => {
     if (isGradientBg && isGlassmorphism) {
-      return theme.colors.textMuted || "#6b7280";
+      return theme.colors.textMuted || theme.colors.textSecondary || "#6b7280";
     }
     if (isGradientBg) {
-      return "rgba(255, 255, 255, 0.8)";
+      // Gradient háttér esetén dinamikusan számoljuk
+      return theme.colors.textMuted || theme.colors.textSecondary || "rgba(255, 255, 255, 0.8)";
     }
-    return theme.colors.textMuted || (isLight ? "#6b7280" : "#9ca3af");
+    return theme.colors.textMuted || theme.colors.textSecondary || theme.colors.text;
   };
   const mutedText = getMutedText();
   
   const borderColor = theme.colors.border;
-  const hoverBg = theme.colors.surfaceHover || (isLight ? "rgba(0, 0, 0, 0.05)" : "rgba(255, 255, 255, 0.1)");
+  const hoverBg = theme.colors.surfaceHover || theme.colors.surface;
 
   // Responsive breakpoints - dinamikus elrejtés kisebb méreteknél
   // A breakpoint-ok úgy vannak beállítva, hogy mielőtt levágásra kerülnének az elemek, elrejtődjön a kevésbé fontos
@@ -428,7 +432,10 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
       }}>
         {/* Quick Actions - balra a status info kártyától */}
         {quickActions.length > 0 && themeStyles && (
-          <div style={{ 
+          <div 
+            data-tutorial="quick-actions"
+            data-quick-actions="true"
+            style={{ 
             display: "flex", 
             alignItems: "center", 
             gap: compactQuickActions ? "4px" : "8px", 
@@ -479,10 +486,8 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
               gap: "3px",
               padding: "6px 12px",
               borderRadius: "8px",
-              backgroundColor: isLight 
-                ? "rgba(0, 0, 0, 0.03)" 
-                : "rgba(255, 255, 255, 0.05)",
-              border: `1px solid ${isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.1)"}`,
+              backgroundColor: theme.colors.surfaceHover || (isGradientBg ? "rgba(255, 255, 255, 0.1)" : theme.colors.surface),
+              border: `1px solid ${theme.colors.border}`,
               flexShrink: 0,
               minWidth: "160px",
               lineHeight: "1.4",

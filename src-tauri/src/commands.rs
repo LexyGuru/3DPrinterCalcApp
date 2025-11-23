@@ -184,6 +184,108 @@ pub fn get_frontend_log_path() -> Result<Option<String>, String> {
     Ok(Some(log_file_path.to_string_lossy().to_string()))
 }
 
+/// Log fájlok törlése a megadott napnál régebbiek
+#[tauri::command]
+pub fn delete_old_logs(days: u32) -> Result<u32, String> {
+    use dirs;
+    use std::fs;
+    use chrono::NaiveDate;
+    
+    let log_dir = dirs::data_local_dir()
+        .ok_or_else(|| "Nem található data directory".to_string())?
+        .join("3DPrinterCalcApp")
+        .join("logs");
+    
+    if !log_dir.exists() {
+        return Ok(0);
+    }
+    
+    let cutoff_date = chrono::Local::now().date_naive() - chrono::Duration::days(days as i64);
+    let mut deleted_count = 0;
+    
+    match fs::read_dir(&log_dir) {
+        Ok(entries) => {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    if path.is_file() {
+                        // Fájl neve: frontend-YYYY-MM-DD.log vagy backend-YYYY-MM-DD.log
+                        if let Some(file_name) = path.file_name().and_then(|n| n.to_str()) {
+                            // Kinyerjük a dátumot a fájlnévből
+                            if let Some(date_str) = file_name.strip_prefix("frontend-")
+                                .or_else(|| file_name.strip_prefix("backend-")) {
+                                if let Some(date_str) = date_str.strip_suffix(".log") {
+                                    if let Ok(file_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
+                                        if file_date < cutoff_date {
+                                            if let Err(e) = fs::remove_file(&path) {
+                                                logger::log_warn(&format!("Nem sikerült törölni a log fájlt: {} - {}", path.display(), e));
+                                            } else {
+                                                deleted_count += 1;
+                                                logger::log_info(&format!("Régi log fájl törölve: {}", path.display()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            return Err(format!("Nem sikerült olvasni a log könyvtárat: {}", e));
+        }
+    }
+    
+    Ok(deleted_count)
+}
+
+/// Log mappa útvonalának lekérése
+#[tauri::command]
+pub fn get_log_directory_path() -> Result<String, String> {
+    use dirs;
+    
+    let log_dir = dirs::data_local_dir()
+        .ok_or_else(|| "Nem található data directory".to_string())?
+        .join("3DPrinterCalcApp")
+        .join("logs");
+    
+    Ok(log_dir.to_string_lossy().to_string())
+}
+
+/// Mappa megnyitása a fájlkezelőben (platform-specifikus)
+#[tauri::command]
+pub fn open_directory(path: String) -> Result<(), String> {
+    use std::process::Command;
+    
+    #[cfg(target_os = "macos")]
+    {
+        Command::new("open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| format!("Nem sikerült megnyitni a mappát macOS-on: {}", e))?;
+    }
+    
+    #[cfg(target_os = "windows")]
+    {
+        Command::new("explorer")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| format!("Nem sikerült megnyitni a mappát Windows-on: {}", e))?;
+    }
+    
+    #[cfg(target_os = "linux")]
+    {
+        Command::new("xdg-open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| format!("Nem sikerült megnyitni a mappát Linux-on: {}", e))?;
+    }
+    
+    logger::log_info(&format!("Mappa megnyitva: {}", path));
+    Ok(())
+}
+
 /// Backend log fájl útvonalának lekérése
 #[tauri::command]
 pub fn get_backend_log_path() -> Result<Option<String>, String> {

@@ -41,6 +41,61 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.2.1 (2025) - 🎨 Coerenza UI e gestione colonne
+
+- 📊 **Gestione colonne filamenti** - Aggiunta visibilità e ordinamento colonne al componente Filamenti:
+  - Menu toggle visibilità colonne (come nel componente Stampanti)
+  - Colonne ordinabili: Marca, Tipo, Peso, Prezzo/kg
+  - Preferenze visibilità colonne salvate nelle impostazioni
+  - UI coerente con componente Stampanti (pulsante gestione, menu a discesa, indicatori ordinamento)
+- 🎨 **Coerenza colori tema** - Migliorato utilizzo colori tema in tutti i componenti:
+  - Tutti i pulsanti e menu a discesa ora usano coerentemente i colori tema (Filamenti, Stampanti, Calcolatrice, Tendenze prezzi)
+  - Rimossi colori hardcoded (pulsanti grigi sostituiti con colore tema primario)
+  - Componente Header si adatta completamente a tutti i temi e colori
+  - Card informazioni stato usa colori tema invece di valori rgba hardcoded
+  - Effetti hover coerenti usando themeStyles.buttonHover
+- 🔧 **Miglioramenti UI**:
+  - Pulsante "Gestisci colonne" ora usa colore tema primario invece di secondario
+  - Menu a discesa select Tendenze prezzi usa stili focus appropriati
+  - Tutti i menu a discesa stilizzati coerentemente con colori tema
+  - Migliore coerenza visiva su tutte le pagine
+
+### v1.1.6 (2025) - 🌍 Copertura traduzione completa
+
+- 🌍 **Traduzioni tutorial** - Aggiunte chiavi di traduzione tutorial mancanti a tutti i file linguistici:
+  - 8 nuovi passaggi tutorial completamente tradotti (Dashboard stato, Anteprima PDF, Trascina e rilascia, Menu contestuale, Cronologia prezzi, Confronto prezzi online, Esporta/Importa, Backup/Ripristino)
+  - Tutto il contenuto del tutorial ora disponibile in tutte le 14 lingue supportate
+  - Esperienza tutorial completa in ceco, spagnolo, francese, italiano, polacco, portoghese, russo, slovacco, ucraino e cinese
+- 🎨 **Traduzione nomi temi** - I nomi dei temi ora sono completamente tradotti in tutte le lingue:
+  - 15 nomi di temi aggiunti a tutti i file linguistici (Chiaro, Scuro, Blu, Verde, Foresta, Viola, Arancione, Pastello, Carbone, Mezzanotte, Gradiente, Neon, Cyberpunk, Tramonto, Oceano)
+  - I nomi dei temi vengono caricati dinamicamente dal sistema di traduzione invece di valori hardcoded
+  - Meccanismo di fallback: chiave di traduzione → displayName → nome tema
+  - Tutti i temi ora vengono visualizzati nella lingua selezionata dall'utente in Impostazioni
+
+### v1.1.5 (2025) - 🎨 Miglioramenti UI e gestione log
+
+- 🎨 **Ridisegno del dialogo di aggiunta filamento** - Layout a due colonne migliorato per una migliore organizzazione:
+  - Colonna sinistra: Dati di base (Marca, Tipo, Peso, Prezzo, Caricamento immagine)
+  - Colonna destra: Selezione colore con tutte le opzioni di colore
+  - Tutti i campi di input hanno larghezza consistente
+  - Migliore gerarchia visiva e spaziatura
+  - Caricamento immagine spostato nella colonna sinistra sotto il campo Prezzo
+- 📋 **Gestione file di log** - Nuova sezione di gestione log nelle impostazioni di Gestione dati:
+  - Eliminazione automatica configurabile di vecchi file di log (5, 10, 15, 30, 60, 90 giorni o mai)
+  - Pulsante per aprire la cartella log nel file manager
+  - Pulizia automatica quando l'impostazione viene modificata
+  - Apertura cartelle specifica per piattaforma (macOS, Windows, Linux)
+- 📦 **Layout Esporta/Importa** - Le sezioni Esporta e Importa ora sono affiancate:
+  - Layout responsive a due colonne
+  - Migliore utilizzo dello spazio
+  - Bilanciamento visivo migliorato
+- 🍎 **Avviso notifiche macOS** - Dialogo di avviso chiudibile:
+  - Appare solo sulla piattaforma macOS
+  - Due opzioni di chiusura: temporanea (pulsante X) o permanente (pulsante Chiudi)
+  - Chiusura temporanea: nascosto solo per la sessione corrente, riappare dopo il riavvio
+  - Chiusura permanente: salvato nelle impostazioni, non appare mai più
+  - Chiara distinzione visiva tra i tipi di chiusura
+
 ### v1.1.4 (2025) - 🐛 Creazione automatica del file di aggiornamento della libreria filamenti
 
 - 🐛 **Creazione automatica del file di aggiornamento** - Risolto problema dove `update_filamentLibrary.json` non veniva creato automaticamente:
@@ -711,7 +766,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 1.1.1
+**Versione**: 1.2.1
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

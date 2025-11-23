@@ -40,6 +40,61 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.2.1 (2025) - 🎨 Konzistencia UI a správa stĺpcov
+
+- 📊 **Správa stĺpcov filamentov** - Pridaná viditeľnosť a triedenie stĺpcov do komponentu Filamenty:
+  - Menu prepínania viditeľnosti stĺpcov (rovnaké ako komponenta Tlačiarne)
+  - Triediteľné stĺpce: Značka, Typ, Hmotnosť, Cena/kg
+  - Preference viditeľnosti stĺpcov uložené v nastaveniach
+  - Konzistentné UI s komponentou Tlačiarne (tlačidlo správy, rozbaľovacie menu, indikátory triedenia)
+- 🎨 **Konzistencia farieb motívu** - Vylepšené použitie farieb motívu vo všetkých komponentoch:
+  - Všetky tlačidlá a rozbaľovacie menu teraz konzistentne používajú farby motívu (Filamenty, Tlačiarne, Kalkulačka, Cenové trendy)
+  - Odstránené hardcodované farby (sivé tlačidlá nahradené primárnou farbou motívu)
+  - Komponenta Header sa plne prispôsobuje všetkým motívom a farbám
+  - Karta informácií o stave používa farby motívu namiesto hardcodovaných rgba hodnôt
+  - Konzistentné efekty hover pomocou themeStyles.buttonHover
+- 🔧 **Vylepšenia UI**:
+  - Tlačidlo "Spravovať stĺpce" teraz používa primárnu farbu motívu namiesto sekundárnej
+  - Rozbaľovacie select menu Cenových trendov používa vhodné štýly fokusu
+  - Všetky rozbaľovacie menu stylizované konzistentne s farbami motívu
+  - Lepšia vizuálna konzistencia na všetkých stránkach
+
+### v1.1.6 (2025) - 🌍 Úplné pokrytie prekladov
+
+- 🌍 **Preklady tutoriálu** - Pridané chýbajúce prekladové kľúče tutoriálu do všetkých jazykových súborov:
+  - 8 nových krokov tutoriálu plne preložených (Panel stavov, Náhľad PDF, Presúvanie, Kontextové menu, História cien, Online porovnanie cien, Export/Import, Zálohovanie/Obnovenie)
+  - Celý obsah tutoriálu je teraz dostupný vo všetkých 14 podporovaných jazykoch
+  - Kompletný zážitok z tutoriálu v slovenčine, španielčine, francúzštine, taliančine, polštine, portugalčine, ruštine, slovenčine, ukrajinčine a čínštine
+- 🎨 **Preklad názvov tém** - Názvy tém sú teraz plne preložené vo všetkých jazykoch:
+  - 15 názvov tém pridaných do všetkých jazykových súborov (Svetlý, Tmavý, Modrý, Zelený, Les, Fialový, Oranžový, Pastelový, Antracit, Polnoc, Prelínanie, Neón, Cyberpunk, Západ slnka, Oceán)
+  - Názvy tém sa dynamicky načítavajú z prekladového systému namiesto pevne zakódovaných hodnôt
+  - Fallback mechanizmus: prekladový kľúč → displayName → názov témy
+  - Všetky témy sa teraz zobrazujú v jazyku vybranom používateľom v Nastaveniach
+
+### v1.1.5 (2025) - 🎨 Vylepšenia UI a správa logov
+
+- 🎨 **Prepracovanie dialógu na pridanie filamentu** - Vylepšené dvojstĺpcové rozloženie pre lepšiu organizáciu:
+  - Ľavý stĺpec: Základné údaje (Značka, Typ, Hmotnosť, Cena, Nahratie obrázka)
+  - Pravý stĺpec: Výber farby so všetkými možnosťami farieb
+  - Všetky vstupné polia majú konzistentnú šírku
+  - Lepšia vizuálna hierarchia a rozostupy
+  - Nahratie obrázka presunuté do ľavého stĺpca pod pole Cena
+- 📋 **Správa súborov logov** - Nová sekcia správy logov v nastavení Správy dát:
+  - Konfigurovateľné automatické mazanie starých súborov logov (5, 10, 15, 30, 60, 90 dní alebo nikdy)
+  - Tlačidlo na otvorenie priečinka logov v správcovi súborov
+  - Automatické čistenie pri zmene nastavenia
+  - Otváranie priečinkov špecifické pre platformu (macOS, Windows, Linux)
+- 📦 **Rozloženie Export/Import** - Sekcie Export a Import sú teraz vedľa seba:
+  - Responzívne dvojstĺpcové rozloženie
+  - Lepšie využitie priestoru
+  - Vylepšená vizuálna rovnováha
+- 🍎 **Varovanie o oznámeniach macOS** - Zatvárateľné dialógové okno varovania:
+  - Zobrazuje sa len na platforme macOS
+  - Dve možnosti zatvorenia: dočasné (tlačidlo X) alebo trvalé (tlačidlo Zatvoriť)
+  - Dočasné zatvorenie: skryté len pre aktuálnu reláciu, znovu sa objaví po reštarte
+  - Trvalé zatvorenie: uložené v nastavení, nikdy sa znovu neobjaví
+  - Jasné vizuálne rozlíšenie medzi typmi zatvorenia
+
 ### v1.1.4 (2025) - 🐛 Automatické vytvorenie súboru aktualizácie knižnice filamentov
 
 - 🐛 **Automatické vytvorenie súboru aktualizácie** - Opravený problém, kde `update_filamentLibrary.json` nebol automaticky vytvorený:
@@ -710,7 +765,7 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ---
 
-**Verzia**: 1.1.1
+**Verzia**: 1.2.1
 
 Ak máte nejaké otázky alebo nájdete chybu, prosím otvorte issue v repozitári GitHub!
 

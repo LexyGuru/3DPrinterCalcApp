@@ -261,12 +261,13 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
           alignItems: 'flex-start',
           justifyContent: 'center',
           paddingTop: '20vh',
-          zIndex: 10000,
+          zIndex: 9998, // Alacsonyabb mint a Tutorial overlay (9999), hogy a tutorial alatt látható legyen
           backdropFilter: 'blur(4px)',
         }}
         onClick={onClose}
       >
         <motion.div
+          data-tutorial="global-search-modal"
           initial={{ opacity: 0, y: -20, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.96 }}

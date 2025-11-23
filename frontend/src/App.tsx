@@ -477,7 +477,10 @@ export default function App() {
   const PageComponent = useMemo(() => {
     switch (activePage) {
       case "filaments": 
-        return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-filament'} />; 
+        return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-filament'} onSettingsChange={(newSettings) => {
+          setSettings(newSettings);
+          debouncedSaveSettings();
+        }} />; 
       case "printers":
         return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-printer'} onSettingsChange={(newSettings) => {
           setSettings(newSettings);
@@ -495,6 +498,7 @@ export default function App() {
             themeStyles={themeStyles}
             printers={printers}
             filaments={filaments}
+            customers={customers}
           />
         );
       case "customers":
@@ -674,6 +678,7 @@ export default function App() {
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={activePage}
+                    data-page={activePage}
                     initial={pageTransitionVariants.initial}
                     animate={pageTransitionVariants.animate}
                     exit={pageTransitionVariants.exit}
@@ -749,6 +754,18 @@ export default function App() {
             theme={currentTheme}
             themeStyles={themeStyles}
             isOpen={showTutorial}
+            onOpenGlobalSearch={() => {
+              // Megnyitjuk a GlobalSearch-et a tutorial során
+              if (!showGlobalSearch) {
+                setShowGlobalSearch(true);
+              }
+            }}
+            onCloseGlobalSearch={() => {
+              // Bezárjuk a GlobalSearch-et, ha elhagyjuk a global-search lépést
+              if (showGlobalSearch) {
+                setShowGlobalSearch(false);
+              }
+            }}
             onComplete={async () => {
               setShowTutorial(false);
               const updatedSettings = { ...settings, tutorialCompleted: true };

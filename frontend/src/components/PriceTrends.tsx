@@ -318,7 +318,12 @@ export const PriceTrends: React.FC<Props> = ({ filaments, settings, theme, theme
             );
             setSelectedFilament(filament || null);
           }}
-          style={{ ...themeStyles.select, width: "100%", maxWidth: "500px" }}
+          onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+          onBlur={(e) => {
+            e.target.style.borderColor = theme.colors.inputBorder;
+            e.target.style.boxShadow = "none";
+          }}
+          style={{ ...themeStyles.select, width: "100%", maxWidth: "500px", boxSizing: "border-box" }}
         >
           <option value="">{t("priceTrends.selectFilamentPlaceholder")}</option>
           {uniqueFilaments.map((filament, idx) => {

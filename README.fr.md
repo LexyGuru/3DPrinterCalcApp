@@ -41,6 +41,61 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
+### v1.2.1 (2025) - 🎨 Cohérence UI et gestion des colonnes
+
+- 📊 **Gestion des colonnes de filaments** - Ajout de la visibilité et du tri des colonnes au composant Filaments:
+  - Menu de basculement de visibilité des colonnes (identique au composant Imprimantes)
+  - Colonnes triables: Marque, Type, Poids, Prix/kg
+  - Préférences de visibilité des colonnes enregistrées dans les paramètres
+  - Interface cohérente avec le composant Imprimantes (bouton de gestion, menu déroulant, indicateurs de tri)
+- 🎨 **Cohérence des couleurs de thème** - Amélioration de l'utilisation des couleurs de thème dans tous les composants:
+  - Tous les boutons et menus déroulants utilisent maintenant de manière cohérente les couleurs de thème (Filaments, Imprimantes, Calculatrice, Tendances de prix)
+  - Suppression des couleurs codées en dur (boutons gris remplacés par la couleur de thème primaire)
+  - Le composant Header s'adapte entièrement à tous les thèmes et couleurs
+  - La carte d'informations de statut utilise les couleurs de thème au lieu de valeurs rgba codées en dur
+  - Effets de survol cohérents utilisant themeStyles.buttonHover
+- 🔧 **Améliorations UI**:
+  - Le bouton "Gérer les colonnes" utilise maintenant la couleur de thème primaire au lieu de secondaire
+  - Le menu déroulant select de Tendances de prix utilise des styles de focus appropriés
+  - Tous les menus déroulants stylisés de manière cohérente avec les couleurs de thème
+  - Meilleure cohérence visuelle sur toutes les pages
+
+### v1.1.6 (2025) - 🌍 Couverture de traduction complète
+
+- 🌍 **Traductions du tutoriel** - Ajout des clés de traduction du tutoriel manquantes à tous les fichiers de langue:
+  - 8 nouvelles étapes du tutoriel entièrement traduites (Tableau de bord des statuts, Aperçu PDF, Glisser-déposer, Menu contextuel, Historique des prix, Comparaison de prix en ligne, Exporter/Importer, Sauvegarde/Restauration)
+  - Tout le contenu du tutoriel est maintenant disponible dans les 14 langues prises en charge
+  - Expérience complète du tutoriel en tchèque, espagnol, français, italien, polonais, portugais, russe, slovaque, ukrainien et chinois
+- 🎨 **Traduction des noms de thèmes** - Les noms des thèmes sont maintenant entièrement traduits dans toutes les langues:
+  - 15 noms de thèmes ajoutés à tous les fichiers de langue (Clair, Sombre, Bleu, Vert, Forêt, Violet, Orange, Pastel, Charbon, Minuit, Dégradé, Néon, Cyberpunk, Coucher de soleil, Océan)
+  - Les noms des thèmes sont chargés dynamiquement depuis le système de traduction au lieu de valeurs codées en dur
+  - Mécanisme de repli: clé de traduction → displayName → nom du thème
+  - Tous les thèmes s'affichent maintenant dans la langue sélectionnée par l'utilisateur dans les Paramètres
+
+### v1.1.5 (2025) - 🎨 Améliorations de l'interface et gestion des journaux
+
+- 🎨 **Refonte de la boîte de dialogue d'ajout de filament** - Mise en page à deux colonnes améliorée pour une meilleure organisation:
+  - Colonne gauche: Données de base (Marque, Type, Poids, Prix, Téléchargement d'image)
+  - Colonne droite: Sélection de couleur avec toutes les options de couleur
+  - Tous les champs de saisie ont une largeur cohérente
+  - Meilleure hiérarchie visuelle et espacement
+  - Téléchargement d'image déplacé dans la colonne gauche sous le champ Prix
+- 📋 **Gestion des fichiers de journal** - Nouvelle section de gestion des journaux dans les paramètres de Gestion des données:
+  - Suppression automatique configurable des anciens fichiers de journal (5, 10, 15, 30, 60, 90 jours ou jamais)
+  - Bouton pour ouvrir le dossier de journal dans le gestionnaire de fichiers
+  - Nettoyage automatique lors du changement de paramètre
+  - Ouverture de dossier spécifique à la plateforme (macOS, Windows, Linux)
+- 📦 **Mise en page Export/Import** - Les sections Export et Import sont maintenant côte à côte:
+  - Mise en page responsive à deux colonnes
+  - Meilleure utilisation de l'espace
+  - Équilibre visuel amélioré
+- 🍎 **Avertissement de notification macOS** - Dialogue d'avertissement fermable:
+  - N'apparaît que sur la plateforme macOS
+  - Deux options de fermeture: temporaire (bouton X) ou permanente (bouton Fermer)
+  - Fermeture temporaire: masqué uniquement pour la session actuelle, réapparaît après redémarrage
+  - Fermeture permanente: enregistré dans les paramètres, n'apparaît plus jamais
+  - Distinction visuelle claire entre les types de fermeture
+
 ### v1.1.4 (2025) - 🐛 Création automatique du fichier de mise à jour de la bibliothèque de filaments
 
 - 🐛 **Création automatique du fichier de mise à jour** - Problème corrigé où `update_filamentLibrary.json` n'était pas créé automatiquement:
@@ -711,7 +766,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 1.1.1
+**Version**: 1.2.1
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

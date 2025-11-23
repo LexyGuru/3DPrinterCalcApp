@@ -42,6 +42,61 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.2.1 (2025) - 🎨 UI-Konsistenz und Spaltenverwaltung
+
+- 📊 **Filament-Spaltenverwaltung** - Spaltensichtbarkeit und Sortierung zur Filamente-Komponente hinzugefügt:
+  - Spaltensichtbarkeits-Toggle-Menü (wie bei Drucker-Komponente)
+  - Sortierbare Spalten: Marke, Typ, Gewicht, Preis/kg
+  - Spaltensichtbarkeits-Präferenzen in Einstellungen gespeichert
+  - Konsistente UI mit Drucker-Komponente (Verwaltungsbutton, Dropdown-Menü, Sortierindikatoren)
+- 🎨 **Themenfarben-Konsistenz** - Verbesserte Themenfarben-Nutzung in allen Komponenten:
+  - Alle Buttons und Dropdown-Menüs verwenden jetzt konsistent Themenfarben (Filamente, Drucker, Rechner, Preistrends)
+  - Entfernte hardcodierte Farben (graue Buttons durch primäre Themenfarbe ersetzt)
+  - Header-Komponente passt sich vollständig an alle Themen und Farben an
+  - Status-Info-Karte verwendet Themenfarben statt hardcodierter rgba-Werte
+  - Konsistente Hover-Effekte mit themeStyles.buttonHover
+- 🔧 **UI-Verbesserungen**:
+  - "Spalten verwalten"-Button verwendet jetzt primäre Themenfarbe statt sekundärer
+  - Preistrends-Select-Dropdown verwendet ordnungsgemäße Focus-Styles
+  - Alle Dropdown-Menüs konsistent mit Themenfarben gestylt
+  - Bessere visuelle Konsistenz auf allen Seiten
+
+### v1.1.6 (2025) - 🌍 Vollständige Übersetzungsabdeckung
+
+- 🌍 **Tutorial-Übersetzungen** - Fehlende Tutorial-Übersetzungsschlüssel zu allen Sprachdateien hinzugefügt:
+  - 8 neue Tutorial-Schritte vollständig übersetzt (Status-Dashboard, PDF-Vorschau, Drag & Drop, Kontextmenü, Preishistorie, Online-Preisvergleich, Export/Import, Backup/Wiederherstellung)
+  - Alle Tutorial-Inhalte sind jetzt in allen 14 unterstützten Sprachen verfügbar
+  - Vollständige Tutorial-Erfahrung in Tschechisch, Spanisch, Französisch, Italienisch, Polnisch, Portugiesisch, Russisch, Slowakisch, Ukrainisch und Chinesisch
+- 🎨 **Themennamen-Übersetzung** - Themennamen sind jetzt vollständig in allen Sprachen übersetzt:
+  - 15 Themennamen zu allen Sprachdateien hinzugefügt (Hell, Dunkel, Blau, Grün, Wald, Lila, Orange, Pastell, Anthrazit, Mitternacht, Gradient, Neon, Cyberpunk, Sonnenuntergang, Ozean)
+  - Themennamen werden dynamisch aus dem Übersetzungssystem geladen, anstatt hartcodierter Werte
+  - Fallback-Mechanismus: Übersetzungsschlüssel → displayName → Themenname
+  - Alle Themen werden jetzt in der vom Benutzer ausgewählten Sprache in den Einstellungen angezeigt
+
+### v1.1.5 (2025) - 🎨 UI-Verbesserungen und Log-Verwaltung
+
+- 🎨 **Filament-Hinzufügen-Dialog überarbeitet** - Verbessertes zweispaltiges Layout für bessere Organisation:
+  - Linke Spalte: Grunddaten (Marke, Typ, Gewicht, Preis, Bild-Upload)
+  - Rechte Spalte: Farbauswahl mit allen Farboptionen
+  - Alle Eingabefelder haben konsistente Breite
+  - Bessere visuelle Hierarchie und Abstände
+  - Bild-Upload in die linke Spalte unter das Preis-Feld verschoben
+- 📋 **Log-Dateien-Verwaltung** - Neuer Log-Verwaltungsbereich in den Datenverwaltungs-Einstellungen:
+  - Konfigurierbare automatische Löschung alter Log-Dateien (5, 10, 15, 30, 60, 90 Tage oder nie)
+  - Schaltfläche zum Öffnen des Log-Ordners im Dateimanager
+  - Automatische Bereinigung bei Änderung der Einstellung
+  - Plattformspezifisches Öffnen von Ordnern (macOS, Windows, Linux)
+- 📦 **Export/Import-Layout** - Export- und Import-Bereiche jetzt nebeneinander:
+  - Zweispaltiges responsives Layout
+  - Bessere Raumnutzung
+  - Verbesserte visuelle Balance
+- 🍎 **macOS-Benachrichtigungswarnung** - Ausblendbare Warnung:
+  - Erscheint nur auf macOS-Plattform
+  - Zwei Ausblendoptionen: temporär (X-Schaltfläche) oder permanent (Schließen-Schaltfläche)
+  - Temporäres Ausblenden: nur für die aktuelle Sitzung verborgen, erscheint nach Neustart wieder
+  - Permanentes Ausblenden: in Einstellungen gespeichert, erscheint nie wieder
+  - Klare visuelle Unterscheidung zwischen Ausblendtypen
+
 ### v1.1.4 (2025) - 🐛 Automatische Erstellung der Filament-Bibliothek-Update-Datei
 
 - 🐛 **Automatische Update-Datei-Erstellung** - Behobenes Problem, bei dem `update_filamentLibrary.json` nicht automatisch erstellt wurde:
@@ -712,7 +767,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 1.1.1
+**Version**: 1.2.1
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

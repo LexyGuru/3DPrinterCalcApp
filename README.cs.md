@@ -38,6 +38,61 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
+### v1.2.1 (2025) - 🎨 Konzistence UI a správa sloupců
+
+- 📊 **Správa sloupců filamentů** - Přidána viditelnost a řazení sloupců do komponentu Filamenty:
+  - Menu přepínání viditelnosti sloupců (stejné jako komponenta Tiskárny)
+  - Řaditelné sloupce: Značka, Typ, Hmotnost, Cena/kg
+  - Preference viditelnosti sloupců uložené v nastavení
+  - Konzistentní UI s komponentou Tiskárny (tlačítko správy, rozbalovací menu, indikátory řazení)
+- 🎨 **Konzistence barev motivu** - Vylepšeno použití barev motivu ve všech komponentech:
+  - Všechna tlačítka a rozbalovací menu nyní konzistentně používají barvy motivu (Filamenty, Tiskárny, Kalkulačka, Cenové trendy)
+  - Odstraněny hardcodované barvy (šedá tlačítka nahrazena primární barvou motivu)
+  - Komponenta Header se plně přizpůsobuje všem motivům a barvám
+  - Karta informací o stavu používá barvy motivu místo hardcodovaných rgba hodnot
+  - Konzistentní efekty hover pomocí themeStyles.buttonHover
+- 🔧 **Vylepšení UI**:
+  - Tlačítko "Spravovat sloupce" nyní používá primární barvu motivu místo sekundární
+  - Rozbalovací select menu Cenových trendů používá vhodné styly fokusu
+  - Všechna rozbalovací menu stylizována konzistentně s barvami motivu
+  - Lepší vizuální konzistence na všech stránkách
+
+### v1.1.6 (2025) - 🌍 Úplné pokrytí překladů
+
+- 🌍 **Překlady tutoriálu** - Přidány chybějící překladové klíče tutoriálu do všech jazykových souborů:
+  - 8 nových kroků tutoriálu plně přeloženo (Stavový dashboard, PDF náhled, Přetahování, Kontextové menu, Historie cen, Online porovnání cen, Export/Import, Zálohování/Obnovení)
+  - Veškerý obsah tutoriálu je nyní dostupný ve všech 14 podporovaných jazycích
+  - Kompletní zážitek z tutoriálu v češtině, španělštině, francouzštině, italštině, polštině, portugalštině, ruštině, slovenštině, ukrajinštině a čínštině
+- 🎨 **Překlad názvů témat** - Názvy témat jsou nyní plně přeloženy ve všech jazycích:
+  - 15 názvů témat přidáno do všech jazykových souborů (Světlý, Tmavý, Modrý, Zelený, Les, Fialový, Oranžový, Pastelový, Antracit, Půlnoc, Přechod, Neon, Cyberpunk, Západ slunce, Oceán)
+  - Názvy témat se dynamicky načítají z překladového systému místo pevně zakódovaných hodnot
+  - Fallback mechanismus: překladový klíč → displayName → název tématu
+  - Všechna témata se nyní zobrazují v jazyce vybraném uživatelem v Nastavení
+
+### v1.1.5 (2025) - 🎨 Vylepšení UI a správa logů
+
+- 🎨 **Přepracování dialogu pro přidání filamentu** - Vylepšené dvousloupcové rozvržení pro lepší organizaci:
+  - Levý sloupec: Základní údaje (Značka, Typ, Hmotnost, Cena, Nahrání obrázku)
+  - Pravý sloupec: Výběr barvy se všemi možnostmi barev
+  - Všechna vstupní pole mají konzistentní šířku
+  - Lepší vizuální hierarchie a rozestupy
+  - Nahrání obrázku přesunuto do levého sloupce pod pole Cena
+- 📋 **Správa souborů logů** - Nová sekce správy logů v nastavení Správy dat:
+  - Konfigurovatelné automatické mazání starých souborů logů (5, 10, 15, 30, 60, 90 dní nebo nikdy)
+  - Tlačítko pro otevření složky logů ve správci souborů
+  - Automatické čištění při změně nastavení
+  - Otevírání složek specifické pro platformu (macOS, Windows, Linux)
+- 📦 **Rozvržení Export/Import** - Sekce Export a Import jsou nyní vedle sebe:
+  - Responzivní dvousloupcové rozvržení
+  - Lepší využití prostoru
+  - Vylepšená vizuální rovnováha
+- 🍎 **Varování o oznámeních macOS** - Zavíratelné dialogové okno varování:
+  - Zobrazuje se pouze na platformě macOS
+  - Dvě možnosti zavření: dočasné (tlačítko X) nebo trvalé (tlačítko Zavřít)
+  - Dočasné zavření: skryto pouze pro aktuální relaci, znovu se objeví po restartu
+  - Trvalé zavření: uloženo v nastavení, nikdy se znovu neobjeví
+  - Jasné vizuální rozlišení mezi typy zavření
+
 ### v1.1.4 (2025) - 🐛 Automatické vytvoření souboru aktualizace knihovny filamentů
 
 - 🐛 **Automatické vytvoření souboru aktualizace** - Opraven problém, kde `update_filamentLibrary.json` nebyl automaticky vytvořen:
@@ -709,6 +764,8 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 ---
 
 **Verze**: 1.1.1
+
+**Verze**: 1.2.1
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 

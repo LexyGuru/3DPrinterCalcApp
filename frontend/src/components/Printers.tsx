@@ -669,11 +669,17 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               <Tooltip content={t("printers.columns.manage")}>
                 <button
                   onClick={() => setShowColumnMenu(!showColumnMenu)}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                  onMouseEnter={(e) => {
+                    Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
+                  }}
+                  onMouseLeave={(e) => {
+                    const btn = e.currentTarget as HTMLButtonElement;
+                    btn.style.transform = "translateY(0)";
+                    btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow;
+                  }}
                   style={{ 
                     ...themeStyles.button,
-                    ...themeStyles.buttonSecondary,
+                    ...themeStyles.buttonPrimary,
                     fontSize: "16px",
                     padding: "14px 28px"
                   }}

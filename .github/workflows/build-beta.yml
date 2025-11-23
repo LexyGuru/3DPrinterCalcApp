@@ -7,6 +7,10 @@ on:
     branches: [ beta ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   build:
     strategy:
@@ -52,13 +56,28 @@ jobs:
         id: pnpm-store
         shell: bash
         run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      
+      - name: Get pnpm lock file hash
+        id: pnpm-lock-hash
+        shell: bash
+        run: |
+          if [ -f "frontend/pnpm-lock.yaml" ]; then
+            if command -v sha256sum > /dev/null; then
+              HASH=$(sha256sum frontend/pnpm-lock.yaml | cut -d ' ' -f1)
+            else
+              HASH=$(shasum -a 256 frontend/pnpm-lock.yaml | cut -d ' ' -f1)
+            fi
+            echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+          else
+            echo "hash=" >> "$GITHUB_OUTPUT"
+          fi
           
       - name: Setup pnpm cache
-        if: steps.pnpm-store.outputs.path != ''
+        if: steps.pnpm-store.outputs.path != '' && steps.pnpm-lock-hash.outputs.hash != ''
         uses: actions/cache@v4
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-pnpm-store-${{ steps.pnpm-lock-hash.outputs.hash }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
             
@@ -83,7 +102,23 @@ jobs:
           fi
           echo "Frontend build verified"
           
+      - name: Get Cargo lock file hash
+        id: cargo-lock-hash
+        shell: bash
+        run: |
+          if [ -f "src-tauri/Cargo.lock" ]; then
+            if command -v sha256sum > /dev/null; then
+              HASH=$(sha256sum src-tauri/Cargo.lock | cut -d ' ' -f1)
+            else
+              HASH=$(shasum -a 256 src-tauri/Cargo.lock | cut -d ' ' -f1)
+            fi
+            echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+          else
+            echo "hash=" >> "$GITHUB_OUTPUT"
+          fi
+      
       - name: Setup Rust cache
+        if: steps.cargo-lock-hash.outputs.hash != ''
         uses: actions/cache@v4
         with:
           path: |
@@ -92,7 +127,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             src-tauri/target/
-          key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-rust-${{ steps.cargo-lock-hash.outputs.hash }}
           restore-keys: |
             ${{ runner.os }}-rust-
             
@@ -114,4 +149,126 @@ jobs:
           path: src-tauri/target/release/bundle/
           if-no-files-found: error
           retention-days: 30
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Get version from Cargo.toml
+        id: get-version
+        shell: bash
+        run: |
+          VERSION=$(grep '^version =' src-tauri/Cargo.toml | cut -d '"' -f2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+      
+      - name: Prepare release files
+        shell: bash
+        env:
+          VERSION: ${{ steps.get-version.outputs.version }}
+        run: |
+          mkdir -p ./release-files
+          
+          # macOS files (filter by version)
+          if [ -d "./artifacts/macos-latest-beta" ]; then
+            find ./artifacts/macos-latest-beta -type f -name "*${VERSION}*.dmg" -exec cp {} ./release-files/ \;
+            find ./artifacts/macos-latest-beta -type f -name "*${VERSION}*.app" -exec cp {} ./release-files/ \;
+          fi
+          
+          # Linux files (filter by version)
+          if [ -d "./artifacts/ubuntu-latest-beta" ]; then
+            find ./artifacts/ubuntu-latest-beta -type f -name "*${VERSION}*.deb" -exec cp {} ./release-files/ \;
+            find ./artifacts/ubuntu-latest-beta -type f -name "*${VERSION}*.AppImage" -exec cp {} ./release-files/ \;
+            find ./artifacts/ubuntu-latest-beta -type f -name "*-${VERSION}-*.rpm" -exec cp {} ./release-files/ \;
+          fi
+          
+          # Windows files (filter by version)
+          if [ -d "./artifacts/windows-latest-beta" ]; then
+            find ./artifacts/windows-latest-beta -type f -name "*${VERSION}*.msi" -exec cp {} ./release-files/ \;
+            find ./artifacts/windows-latest-beta -type f -name "*${VERSION}*.exe" -exec cp {} ./release-files/ \;
+          fi
+          
+          echo "Release files prepared (version ${VERSION}):"
+          ls -lh ./release-files/
+      
+      - name: Generate release notes from commits
+        id: release-notes
+        shell: bash
+        env:
+          VERSION: ${{ steps.get-version.outputs.version }}
+        run: |
+          # Fetch all tags to ensure we have the latest
+          git fetch --tags --force
+          
+          # Get all tags sorted by version
+          ALL_TAGS=$(git tag -l "v*" | sort -V)
+          
+          # Get the previous tag (second to last if current tag exists, or last if not)
+          CURRENT_TAG="v${VERSION}"
+          PREV_TAG=$(echo "$ALL_TAGS" | grep -v "^${CURRENT_TAG}$" | tail -1 || echo "")
+          
+          if [ -z "$PREV_TAG" ]; then
+            # No previous tag, get all commits
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+            echo "No previous tag found, using all commits"
+          else
+            # Get commits between previous tag and current commit
+            CHANGELOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+            echo "Comparing ${PREV_TAG}..HEAD"
+          fi
+          
+          # If no changelog, add a note
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="- No changes detected"
+          fi
+          
+          # Save to output (escape newlines for GitHub Actions)
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          
+          echo "Previous tag: ${PREV_TAG:-none}"
+          echo "Changelog generated with $(echo "$CHANGELOG" | grep -c "^-" || echo "0") commits"
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get-version.outputs.version }}
+          name: Beta v${{ steps.get-version.outputs.version }}
+          body: |
+            ## Beta Release v${{ steps.get-version.outputs.version }}
+            
+            This is an automated beta release built from the `beta` branch.
+            
+            ### Changes since last release
+            
+            ${{ steps.release-notes.outputs.changelog }}
+            
+            ### Download
+            Download the appropriate file for your platform:
+            - **macOS**: `.dmg` file
+            - **Linux**: `.deb`, `.AppImage`, or `.rpm` file
+            - **Windows**: `.msi` file
+            
+            ### Build Info
+            - Branch: `beta`
+            - Commit: ${{ github.sha }}
+            - Workflow: ${{ github.workflow }}
+          prerelease: true
+          files: ./release-files/*
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

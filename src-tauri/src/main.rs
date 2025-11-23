@@ -21,6 +21,9 @@ fn main() {
             write_frontend_log,
             get_frontend_log_path,
             get_backend_log_path,
+            delete_old_logs,
+            get_log_directory_path,
+            open_directory,
             #[cfg(target_os = "macos")]
             set_dock_badge,
             #[cfg(target_os = "windows")]

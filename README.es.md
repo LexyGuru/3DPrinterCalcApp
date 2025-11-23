@@ -41,6 +41,61 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 
 ## 📋 Registro de cambios (Changelog)
 
+### v1.2.1 (2025) - 🎨 Consistencia UI y gestión de columnas
+
+- 📊 **Gestión de columnas de filamentos** - Agregada visibilidad y ordenamiento de columnas al componente Filamentos:
+  - Menú de alternancia de visibilidad de columnas (igual que componente Impresoras)
+  - Columnas ordenables: Marca, Tipo, Peso, Precio/kg
+  - Preferencias de visibilidad de columnas guardadas en configuración
+  - UI consistente con componente Impresoras (botón gestionar, menú desplegable, indicadores de ordenamiento)
+- 🎨 **Consistencia de colores de tema** - Mejorado uso de colores de tema en todos los componentes:
+  - Todos los botones y menús desplegables ahora usan consistentemente colores de tema (Filamentos, Impresoras, Calculadora, Tendencias de precios)
+  - Eliminados colores hardcoded (botones grises reemplazados con color de tema primario)
+  - Componente Header se adapta completamente a todos los temas y colores
+  - Tarjeta de información de estado usa colores de tema en lugar de valores rgba hardcoded
+  - Efectos hover consistentes usando themeStyles.buttonHover
+- 🔧 **Mejoras UI**:
+  - Botón "Gestionar columnas" ahora usa color de tema primario en lugar de secundario
+  - Menú desplegable select de Tendencias de precios usa estilos de foco apropiados
+  - Todos los menús desplegables estilizados consistentemente con colores de tema
+  - Mejor consistencia visual en todas las páginas
+
+### v1.1.6 (2025) - 🌍 Cobertura de traducción completa
+
+- 🌍 **Traducciones del tutorial** - Se agregaron las claves de traducción del tutorial faltantes a todos los archivos de idioma:
+  - 8 nuevos pasos del tutorial completamente traducidos (Panel de estado, Vista previa PDF, Arrastrar y soltar, Menú contextual, Historial de precios, Comparación de precios en línea, Exportar/Importar, Copia de seguridad)
+  - Todo el contenido del tutorial ahora está disponible en los 14 idiomas admitidos
+  - Experiencia completa del tutorial en checo, español, francés, italiano, polaco, portugués, ruso, eslovaco, ucraniano y chino
+- 🎨 **Traducción de nombres de temas** - Los nombres de los temas ahora están completamente traducidos en todos los idiomas:
+  - 15 nombres de temas agregados a todos los archivos de idioma (Claro, Oscuro, Azul, Verde, Bosque, Morado, Naranja, Pastel, Carbón, Medianoche, Degradado, Neón, Cyberpunk, Atardecer, Océano)
+  - Los nombres de los temas se cargan dinámicamente desde el sistema de traducción en lugar de valores codificados
+  - Mecanismo de respaldo: clave de traducción → displayName → nombre del tema
+  - Todos los temas ahora se muestran en el idioma seleccionado por el usuario en Configuración
+
+### v1.1.5 (2025) - 🎨 Mejoras de UI y gestión de registros
+
+- 🎨 **Rediseño del diálogo de agregar filamento** - Diseño de dos columnas mejorado para mejor organización:
+  - Columna izquierda: Datos básicos (Marca, Tipo, Peso, Precio, Carga de imagen)
+  - Columna derecha: Selección de color con todas las opciones de color
+  - Todos los campos de entrada tienen ancho consistente
+  - Mejor jerarquía visual y espaciado
+  - Carga de imagen movida a la columna izquierda debajo del campo Precio
+- 📋 **Gestión de archivos de registro** - Nueva sección de gestión de registros en la configuración de Gestión de datos:
+  - Eliminación automática configurable de archivos de registro antiguos (5, 10, 15, 30, 60, 90 días o nunca)
+  - Botón para abrir la carpeta de registros en el administrador de archivos
+  - Limpieza automática cuando se cambia la configuración
+  - Apertura de carpetas específica de plataforma (macOS, Windows, Linux)
+- 📦 **Diseño de Exportar/Importar** - Las secciones Exportar e Importar ahora están lado a lado:
+  - Diseño responsivo de dos columnas
+  - Mejor utilización del espacio
+  - Balance visual mejorado
+- 🍎 **Advertencia de notificación de macOS** - Diálogo de advertencia descartable:
+  - Solo aparece en la plataforma macOS
+  - Dos opciones de descarte: temporal (botón X) o permanente (botón Cerrar)
+  - Descarte temporal: oculto solo para la sesión actual, reaparece después del reinicio
+  - Descarte permanente: guardado en configuración, nunca aparece de nuevo
+  - Distinción visual clara entre tipos de descarte
+
 ### v1.1.4 (2025) - 🐛 Creación automática del archivo de actualización de la biblioteca de filamentos
 
 - 🐛 **Creación automática del archivo de actualización** - Corregido problema donde `update_filamentLibrary.json` no se creaba automáticamente:
@@ -711,7 +766,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ---
 
-**Versión**: 1.1.1
+**Versión**: 1.2.1
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 

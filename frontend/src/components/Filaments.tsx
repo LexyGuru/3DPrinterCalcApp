@@ -51,9 +51,10 @@ interface Props {
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
   triggerAddForm?: boolean; // Gyors művelet gomb esetén automatikusan megnyitja a formot
+  onSettingsChange?: (newSettings: Settings) => void; // Beállítások változtatása callback
 }
 
-export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, theme, themeStyles, triggerAddForm }) => {
+export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, theme, themeStyles, triggerAddForm, onSettingsChange }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   
@@ -144,6 +145,38 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [selectedFilamentIds, setSelectedFilamentIds] = useState<Set<string>>(new Set());
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const [selectedFinish, setSelectedFinish] = useState<string>("all");
+  const [showColumnMenu, setShowColumnMenu] = useState(false);
+  const [sortColumn, setSortColumn] = useState<keyof Filament | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  // Oszlop láthatóság beállítások
+  const defaultColumnVisibility = {
+    image: true,
+    brand: true,
+    type: true,
+    color: true,
+    weight: true,
+    pricePerKg: true,
+    action: true,
+  };
+  const columnVisibility = useMemo(() => {
+    return settings.filamentColumnsVisibility || defaultColumnVisibility;
+  }, [settings.filamentColumnsVisibility]);
+
+  // Oszlop láthatóság váltása
+  const toggleColumnVisibility = (column: keyof typeof columnVisibility) => {
+    const newVisibility = {
+      ...columnVisibility,
+      [column]: !columnVisibility[column],
+    };
+    const newSettings = {
+      ...settings,
+      filamentColumnsVisibility: newVisibility,
+    };
+    if (onSettingsChange) {
+      onSettingsChange(newSettings);
+    }
+  };
   const [useCustomBrand, setUseCustomBrand] = useState(false);
   const [useCustomType, setUseCustomType] = useState(false);
   const [useCustomColor, setUseCustomColor] = useState(false);
@@ -985,20 +1018,77 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   };
 
   // Szűrés a keresési kifejezés és kedvenc alapján
-  const filteredFilaments = filamentsWithHistory.filter(f => {
-    // Kedvenc szűrés
-    if (showFavoritesOnly && !f.favorite) return false;
-    
-    // Keresési kifejezés szűrés
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      f.brand.toLowerCase().includes(term) ||
-      f.type.toLowerCase().includes(term) ||
-      (f.color && f.color.toLowerCase().includes(term)) ||
+  const filteredFilaments = useMemo(() => {
+    return filamentsWithHistory.filter(f => {
+      // Kedvenc szűrés
+      if (showFavoritesOnly && !f.favorite) return false;
+      
+      // Keresési kifejezés szűrés
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return (
+        f.brand.toLowerCase().includes(term) ||
+        f.type.toLowerCase().includes(term) ||
+        (f.color && f.color.toLowerCase().includes(term)) ||
       (f.colorHex && f.colorHex.toLowerCase().includes(term))
     );
-  });
+    });
+  }, [filamentsWithHistory, showFavoritesOnly, searchTerm]);
+
+  // Rendezés logika
+  const sortedFilaments = useMemo(() => {
+    if (!sortColumn) return filteredFilaments;
+    
+    const sorted = [...filteredFilaments].sort((a: Filament, b: Filament) => {
+      let aValue: any = a[sortColumn];
+      let bValue: any = b[sortColumn];
+      
+      // Szöveges értékek esetén
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      // Számértékek esetén
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+      }
+      
+      // Szöveges értékek esetén
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+    
+    return sorted;
+  }, [filteredFilaments, sortColumn, sortDirection]);
+
+  // Rendezés váltása
+  const handleSort = (column: keyof Filament) => {
+    if (sortColumn === column) {
+      // Ha ugyanaz az oszlop, váltjuk az irányt
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Ha más oszlop, új rendezés növekvő irányban
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  // Oszlop menü bezárása kattintásra kívülre
+  useEffect(() => {
+    if (!showColumnMenu) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-column-menu]')) {
+        setShowColumnMenu(false);
+      }
+    };
+
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, [showColumnMenu]);
 
   // Bulk műveletek
   const getFilamentId = (_f: Filament, index: number): string => {
@@ -1018,7 +1108,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   };
 
   const selectAll = () => {
-    const allIds = new Set(filteredFilaments.map((f) => {
+    const allIds = new Set(sortedFilaments.map((f) => {
       const originalIndex = filamentsWithHistory.findIndex(orig => orig === f);
       return getFilamentId(f, originalIndex);
     }));
@@ -1059,8 +1149,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     showToast(successMessage, "success");
   };
 
-  const isAllSelected = filteredFilaments.length > 0 && 
-    filteredFilaments.every((f) => {
+  const isAllSelected = sortedFilaments.length > 0 && 
+    sortedFilaments.every((f) => {
       const originalIndex = filamentsWithHistory.findIndex(orig => orig === f);
       return selectedFilamentIds.has(getFilamentId(f, originalIndex));
     });
@@ -1328,9 +1418,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         </div>
       )}
       
-      {/* Új filament hozzáadása gomb */}
+      {/* Új filament hozzáadása gomb és oszlop kezelő */}
       {!showAddForm && editingIndex === null && (
-        <div style={{ marginBottom: "24px" }}>
+        <div style={{ marginBottom: "24px", display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
           <Tooltip content={t("filaments.tooltip.addShortcut")}>
             <button
               onClick={() => setShowAddForm(true)}
@@ -1361,6 +1451,95 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               ➕ {t("filaments.addTitle")}
             </button>
           </Tooltip>
+          
+          {/* Oszlop kezelő gomb */}
+          {sortedFilaments.length > 0 && (
+            <div style={{ position: "relative" }} data-column-menu>
+              <Tooltip content={t("filaments.columns.manage")}>
+                <button
+                  onClick={() => setShowColumnMenu(!showColumnMenu)}
+                  onMouseEnter={(e) => {
+                    Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
+                  }}
+                  onMouseLeave={(e) => {
+                    const btn = e.currentTarget as HTMLButtonElement;
+                    btn.style.transform = "translateY(0)";
+                    btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow;
+                  }}
+                  style={{ 
+                    ...themeStyles.button,
+                    ...themeStyles.buttonPrimary,
+                    fontSize: "16px",
+                    padding: "14px 28px"
+                  }}
+                  aria-label={t("filaments.columns.manage")}
+                >
+                  📋 {t("filaments.columns.manage")}
+                </button>
+              </Tooltip>
+              
+              {/* Oszlop kezelő menü */}
+              {showColumnMenu && (
+                <div
+                  data-column-menu
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    marginTop: "8px",
+                    backgroundColor: theme.colors.surface,
+                    border: `1px solid ${theme.colors.border}`,
+                    borderRadius: "8px",
+                    padding: "12px",
+                    minWidth: "200px",
+                    boxShadow: theme.name === 'neon' || theme.name === 'cyberpunk'
+                      ? `0 0 20px ${theme.colors.shadow}, 0 4px 16px rgba(0,0,0,0.3)`
+                      : `0 4px 16px rgba(0,0,0,0.2)`,
+                    zIndex: 1000,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
+                    {t("filaments.columns.manage")}
+                  </div>
+                  {Object.entries(columnVisibility).map(([column, visible]) => (
+                    <label
+                      key={column}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "8px",
+                        cursor: "pointer",
+                        borderRadius: "4px",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={visible}
+                        onChange={() => toggleColumnVisibility(column as keyof typeof columnVisibility)}
+                        style={{
+                          cursor: "pointer",
+                          width: "18px",
+                          height: "18px",
+                        }}
+                      />
+                      <span style={{ fontSize: "14px", color: theme.colors.text }}>
+                        {t(`filaments.columns.${column}` as any) || t(`printers.columns.${column}` as any) || column}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       
@@ -1452,18 +1631,39 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             </button>
           )}
         </div>
-              <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
-                <div style={{ width: "200px", flexShrink: 0, minWidth: "180px" }}>
-            <label style={{ 
-              display: "block", 
-              marginBottom: "8px", 
-              fontWeight: "600", 
-              fontSize: "14px", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-              whiteSpace: "nowrap" 
-            }}>
-              {t("filaments.brand")}
-            </label>
+              
+              {/* Fő tartalom: két oszlopos elrendezés */}
+              <div style={{ 
+                display: "flex", 
+                flexDirection: "row",
+                gap: "24px", 
+                marginBottom: "24px",
+                flexWrap: "wrap"
+              }}>
+                <div style={{ flex: "1 1 300px", minWidth: "280px" }}>
+                  <h4 style={{
+                    margin: "0 0 20px 0",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                    borderBottom: `2px solid ${theme.colors.border}`,
+                    paddingBottom: "12px"
+                  }}>
+                    📋 Alapadatok
+                  </h4>
+                  
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    {/* Márka */}
+                    <div>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                      }}>
+                        {t("filaments.brand")}
+                      </label>
             {!useCustomBrand ? (
               <div style={{ position: "relative" }}>
                 <div
@@ -1477,6 +1677,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     backgroundColor: theme.colors.surface,
                     boxShadow: themeStyles.card.boxShadow,
                     cursor: "pointer",
+                    width: "100%",
+                    boxSizing: "border-box",
                   }}
                   onClick={toggleBrandPanel}
                 >
@@ -1618,18 +1820,19 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 </button>
               </div>
             )}
-          </div>
-          <div style={{ width: "240px", flexShrink: 0 }}>
-            <label style={{ 
-              display: "block", 
-              marginBottom: "8px", 
-              fontWeight: "600", 
-              fontSize: "14px", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-              whiteSpace: "nowrap" 
-            }}>
-              {t("filaments.type")}
-            </label>
+                    </div>
+                    
+                    {/* Típus */}
+                    <div>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                      }}>
+                        {t("filaments.type")}
+                      </label>
             {!useCustomType ? (
               <div style={{ position: "relative" }}>
                 <div
@@ -1643,6 +1846,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     backgroundColor: theme.colors.surface,
                     boxShadow: themeStyles.card.boxShadow,
                     cursor: "pointer",
+                    width: "100%",
+                    boxSizing: "border-box",
                   }}
                   onClick={toggleTypePanel}
                 >
@@ -1784,18 +1989,19 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 </button>
               </div>
             )}
-          </div>
-          <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ 
-              display: "block", 
-              marginBottom: "8px", 
-              fontWeight: "600", 
-              fontSize: "14px", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-              whiteSpace: "nowrap" 
-            }}>
-              {t("filaments.weight")}
-            </label>
+                    </div>
+                    
+                    {/* Súly */}
+                    <div>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                      }}>
+                        {t("filaments.weight")}
+                      </label>
             <input 
               type="number" 
               min="1"
@@ -1813,26 +2019,32 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               }}
               onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
               onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-              style={{ ...themeStyles.input, width: "100%" }}
+              style={{ 
+                ...themeStyles.input, 
+                width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
+              }}
               aria-label={t("filaments.weight")}
               aria-required="true"
               aria-describedby="filament-weight-description"
             />
-            <span id="filament-weight-description" style={{ display: "none" }}>
-              {t("filaments.weightDescription")}
-            </span>
-          </div>
-          <div style={{ width: "180px", flexShrink: 0 }}>
-            <label style={{ 
-              display: "block", 
-              marginBottom: "8px", 
-              fontWeight: "600", 
-              fontSize: "14px", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-              whiteSpace: "nowrap" 
-            }}>
-              {t("filaments.pricePerKg")}
-            </label>
+                      <span id="filament-weight-description" style={{ display: "none" }}>
+                        {t("filaments.weightDescription")}
+                      </span>
+                    </div>
+                    
+                    {/* Ár */}
+                    <div>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                      }}>
+                        {t("filaments.pricePerKg")}
+                      </label>
             <input 
               type="number" 
               step="0.01"
@@ -1859,6 +2071,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
             {editingIndex !== null && priceHistory.length > 0 && (
               <div style={{ marginTop: "8px" }}>
                 <button
+                  data-tutorial="price-history-button"
                   type="button"
                   onClick={() => setShowPriceHistory(!showPriceHistory)}
                   style={{
@@ -1937,53 +2150,210 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 )}
               </div>
             )}
+                    </div>
+                    
+                    {/* Kép feltöltés */}
+                    <div>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text, 
+                      }}>
+                        📷 {t("filaments.image.label")}
+                      </label>
+                      {imagePreview ? (
+                        <div style={{ position: "relative", display: "inline-block", marginBottom: "8px" }}>
+                          <img 
+                            src={imagePreview} 
+                            alt={t("filaments.imagePreviewAlt")} 
+                            style={{ 
+                              maxWidth: "100%", 
+                              maxHeight: "200px", 
+                              borderRadius: "8px",
+                              border: `2px solid ${theme.colors.border}`,
+                              objectFit: "cover",
+                              boxShadow: `0 2px 8px ${theme.colors.shadow}`,
+                              width: "100%"
+                            }} 
+                          />
+                          <button
+                            onClick={removeImage}
+                            style={{
+                              position: "absolute",
+                              top: "8px",
+                              right: "8px",
+                              padding: "6px 12px",
+                              fontSize: "14px",
+                              backgroundColor: theme.colors.danger,
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                              boxShadow: `0 2px 4px ${theme.colors.shadow}`,
+                            }}
+                          >
+                            ✕ {t("filaments.image.remove")}
+                          </button>
+                        </div>
+                      ) : (
+                        <label
+                          style={{
+                            display: "flex",
+                            padding: "20px",
+                            border: `2px dashed ${theme.colors.border}`,
+                            borderRadius: "8px",
+                            textAlign: "center",
+                            cursor: "pointer",
+                            backgroundColor: theme.colors.surfaceHover,
+                            transition: "all 0.2s",
+                            width: "100%",
+                            boxSizing: "border-box",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "12px",
+                            minHeight: "120px"
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!interactionsEnabled) return;
+                            e.currentTarget.style.borderColor = theme.colors.primary;
+                            e.currentTarget.style.backgroundColor = theme.colors.primary + "10";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!interactionsEnabled) return;
+                            e.currentTarget.style.borderColor = theme.colors.border;
+                            e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                          }}
+                        >
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            style={{ display: "none" }}
+                          />
+                          <img
+                            src={getFilamentPlaceholder(fallbackHex)}
+                            alt={t("filaments.placeholderAlt")}
+                            style={{ width: "60px", height: "60px" }}
+                          />
+                          <span
+                            style={{
+                              fontSize: "13px",
+                              color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
+                              display: "block",
+                            }}
+                          >
+                            {t("filaments.image.uploadPrompt")}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              color: theme.colors.textMuted,
+                              display: "block",
+                            }}
+                          >
+                            {t("filaments.image.uploadLimit")}
+                          </span>
+                        </label>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ flex: "1 1 280px", minWidth: "220px" }}>
-            <label style={{ 
-              display: "block", 
-              marginBottom: "8px", 
-              fontWeight: "600", 
-              fontSize: "14px", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-              whiteSpace: "nowrap" 
-            }}>
-              {t("filaments.color")}
-            </label>
-            <input
-              placeholder={t("filaments.color")}
-              value={color}
-              onChange={e => handleColorInputChange(e.target.value)}
-              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-              style={{ ...themeStyles.input, width: "30%" }}
-            />
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "10px", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                {t("filaments.customColor")}
-              </span>
-              <input
-                type="color"
-                value={fallbackHex}
-                onChange={e => handleCustomColorPick(e.target.value)}
-                disabled={colorMode === "multicolor"}
-                style={{
-                  width: "36px",
-                  height: "24px",
-                  border: "none",
-                  background: "none",
-                  cursor: colorMode === "multicolor" ? "not-allowed" : "pointer",
-                  opacity: colorMode === "multicolor" ? 0.6 : 1,
-                }}
-                aria-label={t("filaments.customColor")}
-              />
-              <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                {colorMode === "multicolor" ? multicolorLabel : fallbackHex}
-              </span>
-            </div>
-            <div style={{ marginTop: "12px", display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-              <span style={{ fontSize: "12px", color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
-                {t("filaments.colorMode.label")}
-              </span>
+                
+                {/* Jobb oszlop: Szín választás */}
+                <div style={{ flex: "1 1 300px", minWidth: "280px" }}>
+                <div style={{
+                  ...themeStyles.card,
+                  padding: "20px",
+                  backgroundColor: theme.colors.surface,
+                  border: `1px solid ${theme.colors.border}`,
+                }}>
+                  <h4 style={{
+                    margin: "0 0 20px 0",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                    borderBottom: `2px solid ${theme.colors.border}`,
+                    paddingBottom: "12px"
+                  }}>
+                    🎨 {t("filaments.color")}
+                  </h4>
+                  
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    {/* Szín név */}
+                    <div>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                      }}>
+                        {t("filaments.color")}
+                      </label>
+                      <input
+                        placeholder={t("filaments.color")}
+                        value={color}
+                        onChange={e => handleColorInputChange(e.target.value)}
+                        onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                        style={{ 
+                          ...themeStyles.input, 
+                          width: "100%",
+                          maxWidth: "100%",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Egyedi szín */}
+                    <div>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                      }}>
+                        {t("filaments.customColor")}
+                      </label>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                        <input
+                          type="color"
+                          value={fallbackHex}
+                          onChange={e => handleCustomColorPick(e.target.value)}
+                          disabled={colorMode === "multicolor"}
+                          style={{
+                            width: "48px",
+                            height: "32px",
+                            border: `1px solid ${theme.colors.border}`,
+                            borderRadius: "6px",
+                            background: "none",
+                            cursor: colorMode === "multicolor" ? "not-allowed" : "pointer",
+                            opacity: colorMode === "multicolor" ? 0.6 : 1,
+                          }}
+                          aria-label={t("filaments.customColor")}
+                        />
+                        <span style={{ fontSize: "13px", color: theme.colors.textMuted, fontFamily: "monospace" }}>
+                          {colorMode === "multicolor" ? multicolorLabel : fallbackHex}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Szín mód */}
+                    <div>
+                      <label style={{ 
+                        display: "block", 
+                        marginBottom: "8px", 
+                        fontWeight: "600", 
+                        fontSize: "14px", 
+                        color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text, 
+                      }}>
+                        {t("filaments.colorMode.label")}
+                      </label>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {(["solid", "multicolor"] as ColorMode[]).map(mode => {
                 const isActive = colorMode === mode;
                 const label =
@@ -2009,83 +2379,101 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     {label}
                   </button>
                 );
-              })}
-            </div>
-            {colorMode === "multicolor" && (
-              <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                  {t("filaments.colorMode.note")}
-                </span>
-                <input
-                  value={multiColorHint}
-                  onChange={e => setMultiColorHint(e.target.value)}
-                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = theme.colors.inputBorder;
-                    e.target.style.boxShadow = "none";
-                  }}
-                  placeholder={t("filaments.colorMode.placeholder")}
-                  style={{ 
-                    ...themeStyles.input, 
-                    width: "60%",
-                    maxWidth: "60%",
-                    boxSizing: "border-box",
-                    minWidth: "200px",
-                  }}
-                />
-              </div>
-            )}
-            {paletteColorOptions.length > 0 && (
-              <div style={{ marginTop: "14px" }}>
-                <strong style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                  {t("filaments.colorPaletteTitle")}
-                </strong>
-                <p style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, marginTop: "4px" }}>
-                  {t("filaments.colorPaletteHint")}
-                </p>
-                {finishOptions.length > 1 && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "8px" }}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFinish("all")}
-                      style={{
-                        padding: "6px 12px",
-                        borderRadius: "999px",
-                        fontSize: "12px",
-                        border: `1px solid ${selectedFinish === "all" ? theme.colors.primary : theme.colors.border}`,
-                        backgroundColor: selectedFinish === "all" ? theme.colors.primary : theme.colors.surfaceHover,
-                        color: selectedFinish === "all" ? "#fff" : theme.colors.text,
-                        cursor: "pointer",
-                        transition: "all 0.2s"
-                      }}
-                    >
-                      {t("filaments.finishAll")}
-                    </button>
-                    {finishOptions.map((finish: string) => {
-                      const isActive = selectedFinish === finish;
-                      return (
-                        <button
-                          key={finish}
-                          type="button"
-                          onClick={() => setSelectedFinish(finish)}
-                          style={{
-                            padding: "6px 12px",
-                            borderRadius: "999px",
-                            fontSize: "12px",
-                            border: `1px solid ${isActive ? theme.colors.primary : theme.colors.border}`,
-                            backgroundColor: isActive ? theme.colors.primary : theme.colors.surfaceHover,
-                            color: isActive ? "#fff" : theme.colors.text,
-                            cursor: "pointer",
-                            transition: "all 0.2s"
+                      })}
+                      </div>
+                    </div>
+                    
+                    {/* Többszínű megjegyzés */}
+                    {colorMode === "multicolor" && (
+                      <div>
+                        <label style={{ 
+                          display: "block", 
+                          marginBottom: "8px", 
+                          fontWeight: "600", 
+                          fontSize: "14px", 
+                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                        }}>
+                          {t("filaments.colorMode.placeholder")}
+                        </label>
+                        <input
+                          value={multiColorHint}
+                          onChange={e => setMultiColorHint(e.target.value)}
+                          onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = theme.colors.inputBorder;
+                            e.target.style.boxShadow = "none";
                           }}
-                        >
-                          {getFinishLabel(finish as FilamentFinish, settings.language)}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "12px" }}>
+                          placeholder={t("filaments.colorMode.placeholder")}
+                          style={{ 
+                            ...themeStyles.input, 
+                            width: "100%",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                        <p style={{ fontSize: "11px", color: theme.colors.textMuted, marginTop: "6px", marginBottom: 0 }}>
+                          {t("filaments.colorMode.note")}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Ajánlott színek */}
+                    {paletteColorOptions.length > 0 && (
+                      <div>
+                        <label style={{ 
+                          display: "block", 
+                          marginBottom: "8px", 
+                          fontWeight: "600", 
+                          fontSize: "14px", 
+                          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                        }}>
+                          {t("filaments.colorPaletteTitle")}
+                        </label>
+                        <p style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, marginBottom: "12px" }}>
+                          {t("filaments.colorPaletteHint")}
+                        </p>
+                        {finishOptions.length > 1 && (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedFinish("all")}
+                              style={{
+                                padding: "6px 12px",
+                                borderRadius: "999px",
+                                fontSize: "12px",
+                                border: `1px solid ${selectedFinish === "all" ? theme.colors.primary : theme.colors.border}`,
+                                backgroundColor: selectedFinish === "all" ? theme.colors.primary : theme.colors.surfaceHover,
+                                color: selectedFinish === "all" ? "#fff" : theme.colors.text,
+                                cursor: "pointer",
+                                transition: "all 0.2s"
+                              }}
+                            >
+                              {t("filaments.finishAll")}
+                            </button>
+                            {finishOptions.map((finish: string) => {
+                              const isActive = selectedFinish === finish;
+                              return (
+                                <button
+                                  key={finish}
+                                  type="button"
+                                  onClick={() => setSelectedFinish(finish)}
+                                  style={{
+                                    padding: "6px 12px",
+                                    borderRadius: "999px",
+                                    fontSize: "12px",
+                                    border: `1px solid ${isActive ? theme.colors.primary : theme.colors.border}`,
+                                    backgroundColor: isActive ? theme.colors.primary : theme.colors.surfaceHover,
+                                    color: isActive ? "#fff" : theme.colors.text,
+                                    cursor: "pointer",
+                                    transition: "all 0.2s"
+                                  }}
+                                >
+                                  {getFinishLabel(finish as FilamentFinish, settings.language)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", maxHeight: "200px", overflowY: "auto", padding: "4px" }}>
                   {filteredPaletteOptions.map(option => {
                     const optionHex = getOptionHex(option);
                     const optionIsMulticolor = option.colorMode === "multicolor";
@@ -2133,121 +2521,16 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                       </button>
                     );
                   })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
                 </div>
               </div>
               
-              {/* Kép feltöltés */}
-              <div style={{ marginTop: "20px" }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: "8px",
-              fontWeight: "600",
-              fontSize: "14px",
-              color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
-            }}
-          >
-            📷 {t("filaments.image.label")}
-          </label>
-          {imagePreview ? (
-            <div style={{ position: "relative", display: "inline-block", marginBottom: "8px" }}>
-              <img 
-                src={imagePreview} 
-                alt={t("filaments.imagePreviewAlt")} 
-                style={{ 
-                  maxWidth: "300px", 
-                  maxHeight: "300px", 
-                  borderRadius: "8px",
-                  border: `2px solid ${theme.colors.border}`,
-                  objectFit: "cover",
-                  boxShadow: `0 2px 8px ${theme.colors.shadow}`
-                }} 
-              />
-              <button
-                onClick={removeImage}
-                style={{
-                  position: "absolute",
-                  top: "8px",
-                  right: "8px",
-                  padding: "6px 12px",
-                  fontSize: "14px",
-                  backgroundColor: theme.colors.danger,
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  boxShadow: `0 2px 4px ${theme.colors.shadow}`,
-                }}
-              >
-                ✕ {t("filaments.image.remove")}
-              </button>
-            </div>
-          ) : (
-            <label
-              style={{
-              display: "inline-flex",
-                padding: "20px",
-                border: `2px dashed ${theme.colors.border}`,
-                borderRadius: "8px",
-              textAlign: "center",
-                cursor: "pointer",
-                backgroundColor: theme.colors.surfaceHover,
-                transition: "all 0.2s",
-                minWidth: "200px",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "12px"
-              }}
-              onMouseEnter={(e) => {
-                if (!interactionsEnabled) return;
-                e.currentTarget.style.borderColor = theme.colors.primary;
-                e.currentTarget.style.backgroundColor = theme.colors.primary + "10";
-              }}
-              onMouseLeave={(e) => {
-                if (!interactionsEnabled) return;
-                e.currentTarget.style.borderColor = theme.colors.border;
-                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
-              }}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: "none" }}
-              />
-              <img
-                src={getFilamentPlaceholder(fallbackHex)}
-                alt={t("filaments.placeholderAlt")}
-                style={{ width: "80px", height: "80px" }}
-              />
-              <span
-                style={{
-                  fontSize: "14px",
-                  color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
-                  display: "block",
-                  maxWidth: "220px",
-                }}
-              >
-                {t("filaments.image.uploadPrompt")}
-              </span>
-              <span
-                style={{
-                  fontSize: "11px",
-                  color: theme.colors.textMuted,
-                  display: "block",
-                  marginTop: "4px",
-                }}
-              >
-                {t("filaments.image.uploadLimit")}
-              </span>
-            </label>
-          )}
-        </div>
-        <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
+              {/* Akció gombok */}
+          <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", paddingTop: "20px", borderTop: `2px solid ${theme.colors.border}` }}>
           <Tooltip content={editingIndex !== null ? t("filaments.tooltip.saveShortcut") : t("filaments.tooltip.addShortcut")}>
             <button 
               onClick={addFilament}
@@ -2316,7 +2599,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         )}
       </AnimatePresence>
 
-      {filteredFilaments.length > 0 ? (
+      {sortedFilaments.length > 0 ? (
         <div style={{ ...themeStyles.card, overflow: "hidden", padding: 0 }}>
           {/* Bulk műveletek toolbar */}
           {selectedFilamentIds.size > 0 && (
@@ -2383,17 +2666,119 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     aria-label={t("filaments.bulk.selectAll")}
                   />
                 </th>
-                <th style={themeStyles.tableHeader}>{t("common.image")}</th>
-                <th style={themeStyles.tableHeader}>{t("filaments.brand")}</th>
-                <th style={themeStyles.tableHeader}>{t("filaments.type")}</th>
-                <th style={themeStyles.tableHeader}>{t("filaments.color")}</th>
-                <th style={themeStyles.tableHeader}>{t("filaments.weight")}</th>
-                <th style={themeStyles.tableHeader}>{t("filaments.pricePerKg").replace("€", settings.currency)}</th>
-                <th style={themeStyles.tableHeader}>{t("filaments.action")}</th>
+                {columnVisibility.image && (
+                  <th style={themeStyles.tableHeader}>{t("common.image")}</th>
+                )}
+                {columnVisibility.brand && (
+                  <th 
+                    style={{ 
+                      ...themeStyles.tableHeader, 
+                      cursor: "pointer",
+                      userSelect: "none",
+                      position: "relative",
+                      paddingRight: "24px"
+                    }}
+                    onClick={() => handleSort("brand")}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surface;
+                    }}
+                  >
+                    {t("filaments.brand")}
+                    {sortColumn === "brand" && (
+                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </th>
+                )}
+                {columnVisibility.type && (
+                  <th 
+                    style={{ 
+                      ...themeStyles.tableHeader, 
+                      cursor: "pointer",
+                      userSelect: "none",
+                      position: "relative",
+                      paddingRight: "24px"
+                    }}
+                    onClick={() => handleSort("type")}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surface;
+                    }}
+                  >
+                    {t("filaments.type")}
+                    {sortColumn === "type" && (
+                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </th>
+                )}
+                {columnVisibility.color && (
+                  <th style={themeStyles.tableHeader}>{t("filaments.color")}</th>
+                )}
+                {columnVisibility.weight && (
+                  <th 
+                    style={{ 
+                      ...themeStyles.tableHeader, 
+                      cursor: "pointer",
+                      userSelect: "none",
+                      position: "relative",
+                      paddingRight: "24px"
+                    }}
+                    onClick={() => handleSort("weight")}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surface;
+                    }}
+                  >
+                    {t("filaments.weight")}
+                    {sortColumn === "weight" && (
+                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </th>
+                )}
+                {columnVisibility.pricePerKg && (
+                  <th 
+                    style={{ 
+                      ...themeStyles.tableHeader, 
+                      cursor: "pointer",
+                      userSelect: "none",
+                      position: "relative",
+                      paddingRight: "24px"
+                    }}
+                    onClick={() => handleSort("pricePerKg")}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.surface;
+                    }}
+                  >
+                    {t("filaments.pricePerKg").replace("€", settings.currency)}
+                    {sortColumn === "pricePerKg" && (
+                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </th>
+                )}
+                {columnVisibility.action && (
+                  <th style={themeStyles.tableHeader}>{t("filaments.action")}</th>
+                )}
               </tr>
             </thead>
             <tbody>
-              {filteredFilaments.map((f, i) => {
+              {sortedFilaments.map((f, i) => {
                 const originalIndex = filamentsWithHistory.findIndex(orig => orig === f);
                 const storedHex = normalizeHex(f.colorHex) || "";
                 const nameBasedHex = resolveLibraryHexFromName(f.color, f.brand, f.type) || resolveColorHexFromName(f.color);
@@ -2477,93 +2862,107 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                         aria-label={t("filaments.bulk.select").replace("{{brand}}", f.brand).replace("{{type}}", f.type)}
                       />
                     </td>
-                    <td style={{ ...themeStyles.tableCell, padding: "8px", textAlign: "center" }}>
-                      <img
-                        src={previewSrc}
-                        alt={hasUploadedImage ? `${f.brand} ${f.type}` : t("filaments.placeholderAlt")}
-                        style={{
-                          width: "60px",
-                          height: "60px",
-                          objectFit: "cover",
-                          borderRadius: "6px",
-                          border: `1px solid ${theme.colors.border}`,
-                          cursor: hasUploadedImage ? "pointer" : "default",
-                          boxShadow: hasUploadedImage ? `0 2px 6px ${theme.colors.shadow}` : "none"
+                {columnVisibility.image && (
+                  <td style={{ ...themeStyles.tableCell, padding: "8px", textAlign: "center" }}>
+                    <img
+                      src={previewSrc}
+                      alt={hasUploadedImage ? `${f.brand} ${f.type}` : t("filaments.placeholderAlt")}
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        objectFit: "cover",
+                        borderRadius: "6px",
+                        border: `1px solid ${theme.colors.border}`,
+                        cursor: hasUploadedImage ? "pointer" : "default",
+                        boxShadow: hasUploadedImage ? `0 2px 6px ${theme.colors.shadow}` : "none"
+                      }}
+                      onClick={handleThumbnailClick}
+                      title={hasUploadedImage ? t("filaments.tooltip.viewImage") : undefined}
+                    />
+                  </td>
+                )}
+                {columnVisibility.brand && (
+                  <td style={themeStyles.tableCell}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(originalIndex);
                         }}
-                        onClick={handleThumbnailClick}
-                        title={hasUploadedImage ? t("filaments.tooltip.viewImage") : undefined}
-                      />
-                    </td>
-                    <td style={themeStyles.tableCell}>
+                        onMouseEnter={(e) => {
+                          if (!interactionsEnabled) return;
+                          e.currentTarget.style.transform = "scale(1.2)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!interactionsEnabled) return;
+                          e.currentTarget.style.transform = "scale(1)";
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: "4px",
+                          fontSize: "18px",
+                          color: f.favorite ? "#fbbf24" : theme.colors.textMuted,
+                          transition: "all 0.2s",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        aria-label={f.favorite ? t("filaments.favorite.remove") : t("filaments.favorite.add")}
+                        title={f.favorite ? t("filaments.favorite.remove") : t("filaments.favorite.add")}
+                      >
+                        {f.favorite ? "⭐" : "☆"}
+                      </button>
+                      <span>{f.brand}</span>
+                    </div>
+                  </td>
+                )}
+                {columnVisibility.type && (
+                  <td style={themeStyles.tableCell}>{f.type}</td>
+                )}
+                {columnVisibility.color && (
+                  <td style={themeStyles.tableCell}>
+                    {displayName ? (
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavorite(originalIndex);
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!interactionsEnabled) return;
-                            e.currentTarget.style.transform = "scale(1.2)";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!interactionsEnabled) return;
-                            e.currentTarget.style.transform = "scale(1)";
-                          }}
+                        <span
                           style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            padding: "4px",
-                            fontSize: "18px",
-                            color: f.favorite ? "#fbbf24" : theme.colors.textMuted,
-                            transition: "all 0.2s",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
+                            width: "18px",
+                            height: "18px",
+                            borderRadius: "50%",
+                            backgroundColor: isMulticolor ? "transparent" : displayHex,
+                            backgroundImage: isMulticolor ? swatchGradient : "none",
+                            border: "1px solid rgba(0,0,0,0.15)",
                           }}
-                          aria-label={f.favorite ? t("filaments.favorite.remove") : t("filaments.favorite.add")}
-                          title={f.favorite ? t("filaments.favorite.remove") : t("filaments.favorite.add")}
-                        >
-                          {f.favorite ? "⭐" : "☆"}
-                        </button>
-                        <span>{f.brand}</span>
-                      </div>
-                    </td>
-                    <td style={themeStyles.tableCell}>{f.type}</td>
-                    <td style={themeStyles.tableCell}>
-                      {displayName ? (
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <span
-                            style={{
-                              width: "18px",
-                              height: "18px",
-                              borderRadius: "50%",
-                              backgroundColor: isMulticolor ? "transparent" : displayHex,
-                              backgroundImage: isMulticolor ? swatchGradient : "none",
-                              border: "1px solid rgba(0,0,0,0.15)",
-                            }}
-                          />
-                          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                            <span>{displayName}</span>
-                            <span style={{ fontSize: "11px", color: theme.colors.textMuted }}>
-                              {secondaryText}
-                            </span>
-                          </div>
+                        />
+                        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                          <span>{displayName}</span>
+                          <span style={{ fontSize: "11px", color: theme.colors.textMuted }}>
+                            {secondaryText}
+                          </span>
                         </div>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
+                      </div>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                )}
+                {columnVisibility.weight && (
                   <td style={themeStyles.tableCell}>{f.weight}g</td>
+                )}
+                {columnVisibility.pricePerKg && (
                   <td style={themeStyles.tableCell}>
                     <strong style={{ color: theme.colors.success }}>
                       {filamentPrice(f, settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}/kg
                     </strong>
                   </td>
+                )}
+                {columnVisibility.action && (
                   <td style={themeStyles.tableCell}>
                     <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                       <Tooltip content={t("filaments.priceSearch")}>
                         <button
+                          data-tutorial="online-price-button"
                           onClick={() => void handleOpenPriceSearch(f)}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.transform = "translateY(-1px)";
@@ -2625,7 +3024,8 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                       </Tooltip>
                     </div>
                   </td>
-                </tr>
+                )}
+              </tr>
                 );
               })}
             </tbody>

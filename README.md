@@ -244,6 +244,61 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.2.1 (2025) - 🎨 UI Consistency and Column Management
+
+- 📊 **Filaments Column Management** - Added column visibility and sorting to Filaments component:
+  - Column visibility toggle menu (same as Printers component)
+  - Sortable columns: Brand, Type, Weight, Price/kg
+  - Column visibility preferences saved in settings
+  - Consistent UI with Printers component (manage button, dropdown menu, sort indicators)
+- 🎨 **Theme Color Consistency** - Improved theme color usage across all components:
+  - All buttons and dropdown menus now consistently use theme colors (Filaments, Printers, Calculator, PriceTrends)
+  - Removed hardcoded colors (gray buttons replaced with primary theme color)
+  - Header component fully adapts to all themes and colors
+  - Status info card uses theme colors instead of hardcoded rgba values
+  - Consistent hover effects using themeStyles.buttonHover
+- 🔧 **UI Improvements**:
+  - "Oszlopok kezelése" button now uses primary theme color instead of secondary
+  - PriceTrends select dropdown uses proper focus styles
+  - All dropdown menus consistently styled with theme colors
+  - Better visual consistency across all pages
+
+### v1.1.6 (2025) - 🌍 Complete Translation Coverage
+
+- 🌍 **Tutorial Translations** - Added missing tutorial translation keys to all language files:
+  - 8 new tutorial steps fully translated (Status Dashboard, PDF Preview, Drag & Drop, Context Menu, Price History, Online Price, Export/Import, Backup/Restore)
+  - All tutorial content now available in all 14 supported languages
+  - Complete tutorial experience in Czech, Spanish, French, Italian, Polish, Portuguese, Russian, Slovak, Ukrainian, and Chinese
+- 🎨 **Theme Names Translation** - Theme names now fully translated in all languages:
+  - 15 theme names added to all language files (Light, Dark, Blue, Green, Forest, Purple, Orange, Pastel, Charcoal, Midnight, Gradient, Neon, Cyberpunk, Sunset, Ocean)
+  - Theme names dynamically loaded from translation system instead of hardcoded values
+  - Fallback mechanism: translation key → displayName → theme name
+  - All themes now display in user's selected language in Settings
+
+### v1.1.5 (2025) - 🎨 UI Improvements and Log Management
+
+- 🎨 **Filament Add Dialog Redesign** - Improved two-column layout for better organization:
+  - Left column: Basic data (Brand, Type, Weight, Price, Image upload)
+  - Right column: Color selection with all color options
+  - All input fields have consistent width
+  - Better visual hierarchy and spacing
+  - Image upload moved to left column below Price field
+- 📋 **Log Files Management** - New log management section in Data Management settings:
+  - Configurable automatic deletion of old log files (5, 10, 15, 30, 60, 90 days or never)
+  - Button to open log folder in file manager
+  - Automatic cleanup when setting is changed
+  - Platform-specific folder opening (macOS, Windows, Linux)
+- 📦 **Export/Import Layout** - Export and Import sections now side by side:
+  - Two-column responsive layout
+  - Better space utilization
+  - Improved visual balance
+- 🍎 **macOS Notification Warning** - Dismissible warning dialog:
+  - Only appears on macOS platform
+  - Two dismissal options: temporary (X button) or permanent (Close button)
+  - Temporary dismissal: hidden for current session only, reappears after restart
+  - Permanent dismissal: saved to settings, never appears again
+  - Clear visual distinction between dismissal types
+
 ### v1.1.4 (2025) - 🐛 Filament Library Update File Auto-Creation
 
 - 🐛 **Auto-Create Update File** - Fixed issue where `update_filamentLibrary.json` was not automatically created:
@@ -656,6 +711,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.1.1
+**Version**: 1.2.1
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!

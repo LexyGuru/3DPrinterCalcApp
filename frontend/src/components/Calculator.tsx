@@ -281,6 +281,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
               disabled={templates.length === 0}
               style={{
                 ...themeStyles.button,
+                ...themeStyles.buttonPrimary,
                 padding: "8px 16px",
                 fontSize: "12px",
                 cursor: templates.length === 0 ? "not-allowed" : "pointer",
@@ -294,7 +295,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
               onMouseLeave={(e) => {
                 if (templates.length > 0) {
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = themeStyles.button.boxShadow;
+                  e.currentTarget.style.boxShadow = themeStyles.buttonPrimary.boxShadow;
                 }
               }}
               aria-label={t("calculator.tooltip.loadTemplate")}
@@ -335,6 +336,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
               onClick={() => setShowSlicerImportModal(true)}
               style={{
                 ...themeStyles.button,
+                ...themeStyles.buttonPrimary,
                 padding: "8px 16px",
                 fontSize: "12px",
               }}
@@ -343,7 +345,7 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = themeStyles.button.boxShadow;
+                e.currentTarget.style.boxShadow = themeStyles.buttonPrimary.boxShadow;
               }}
               aria-label={t("calculator.tooltip.importGcode")}
             >
