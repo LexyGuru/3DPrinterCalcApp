@@ -477,7 +477,10 @@ export default function App() {
   const PageComponent = useMemo(() => {
     switch (activePage) {
       case "filaments": 
-        return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-filament'} />; 
+        return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-filament'} onSettingsChange={(newSettings) => {
+          setSettings(newSettings);
+          debouncedSaveSettings();
+        }} />; 
       case "printers":
         return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-printer'} onSettingsChange={(newSettings) => {
           setSettings(newSettings);
@@ -495,6 +498,7 @@ export default function App() {
             themeStyles={themeStyles}
             printers={printers}
             filaments={filaments}
+            customers={customers}
           />
         );
       case "customers":

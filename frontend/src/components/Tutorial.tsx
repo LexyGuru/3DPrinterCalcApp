@@ -105,17 +105,6 @@ export const Tutorial: React.FC<Props> = ({
       action: () => onOpenGlobalSearch?.(),
     },
     {
-      id: "global-search",
-      target: "[data-tutorial='global-search-modal']",
-      title: t("tutorial.globalSearch.title") || "Globális keresés",
-      description:
-        t("tutorial.globalSearch.description") ||
-        "Nyomd meg a Ctrl+K (vagy Cmd+K Mac-en) billentyűkombinációt a globális keresés megnyitásához. Itt kereshetsz oldalak, filamentek, árajánlatok és ügyfelek között, és gyorsan navigálhatsz.",
-      position: "top",
-      page: "home",
-      action: () => onOpenGlobalSearch?.(),
-    },
-    {
       id: "printers",
       target: "[data-page='printers']",
       title: t("tutorial.printers.title") || "Nyomtatók kezelése",
@@ -189,94 +178,6 @@ export const Tutorial: React.FC<Props> = ({
       position: "bottom-right",
       page: "offers",
       action: () => onNavigate?.("offers"),
-    },
-    {
-      id: "status-dashboard",
-      target: "[data-tutorial='status-dashboard']",
-      title: t("tutorial.statusDashboard.title") || "Státusz dashboard",
-      description:
-        t("tutorial.statusDashboard.description") ||
-        "A státusz dashboard segít követni az árajánlatok státuszát. Itt láthatod a státusz kártyákat, gyors szűrőket, és a legutóbbi státusz változások idővonalát.",
-      position: "bottom-right",
-      page: "offers",
-      action: () => onNavigate?.("offers"),
-    },
-    {
-      id: "pdf-preview",
-      target: "[data-tutorial='pdf-preview-button']",
-      title: t("tutorial.pdfPreview.title") || "PDF előnézet és sablonok",
-      description:
-        t("tutorial.pdfPreview.description") ||
-        "Az árajánlatok exportálása előtt megtekintheted őket PDF formátumban. Választhatsz különböző sablonokat (Modern, Minimalist, Professional) és testreszabhatod a cég branding információit.",
-      position: "bottom-right",
-      page: "offers",
-      action: () => onNavigate?.("offers"),
-    },
-    {
-      id: "drag-drop",
-      target: "[data-tutorial='offers-list']",
-      title: t("tutorial.dragDrop.title") || "Húzd és ejtsd",
-      description:
-        t("tutorial.dragDrop.description") ||
-        "Az árajánlatokat húzással átrendezheted. Fogd meg egy árajánlatot és húzd át egy másik elé vagy mögé a kívánt sorrend eléréséhez. Az árajánlatok bal oldalán láthatod a drag handle-t.",
-      position: "bottom-right",
-      page: "offers",
-      action: () => onNavigate?.("offers"),
-    },
-    {
-      id: "context-menu",
-      target: "[data-tutorial='offers-list']",
-      title: t("tutorial.contextMenu.title") || "Jobb klikk menü",
-      description:
-        t("tutorial.contextMenu.description") ||
-        "Jobb klikkel egy árajánlatra gyors műveleteket érhetsz el: szerkesztés, duplikálás, törlés vagy PDF export. Ez gyorsabb, mint a gombok használata.",
-      position: "bottom-right",
-      page: "offers",
-      action: () => onNavigate?.("offers"),
-    },
-    {
-      id: "price-history",
-      target: "[data-tutorial='price-history-button']",
-      title: t("tutorial.priceHistory.title") || "Ár előzmények és trendek",
-      description:
-        t("tutorial.priceHistory.description") ||
-        "A filamentek ár változásait követheted az ár előzmények funkcióval. Láthatod a trend diagramokat, statisztikákat (átlag, min, max), és figyelmeztetést kapsz jelentős ár változásokról.",
-      position: "bottom-right",
-      page: "filaments",
-      action: () => onNavigate?.("filaments"),
-    },
-    {
-      id: "online-price",
-      target: "[data-tutorial='online-price-button']",
-      title: t("tutorial.onlinePrice.title") || "Online ár összehasonlítás",
-      description:
-        t("tutorial.onlinePrice.description") ||
-        "Egy kattintással kereshetsz a filamentekhez online árakat Google vagy Bing-en. Ha találsz jobb árat, frissítheted a filament árát azonnal.",
-      position: "bottom-right",
-      page: "filaments",
-      action: () => onNavigate?.("filaments"),
-    },
-    {
-      id: "export-import",
-      target: "[data-tutorial='export-import-section']",
-      title: t("tutorial.exportImport.title") || "Adatok exportálása és importálása",
-      description:
-        t("tutorial.exportImport.description") ||
-        "Exportálhatod az adataidat CSV vagy JSON formátumban, és később vissza is importálhatod őket. Ez hasznos biztonsági mentéshez vagy adatok átviteléhez.",
-      position: "bottom-right",
-      page: "settings",
-      action: () => onNavigate?.("settings"),
-    },
-    {
-      id: "backup-restore",
-      target: "[data-tutorial='backup-restore-section']",
-      title: t("tutorial.backupRestore.title") || "Biztonsági mentés és visszaállítás",
-      description:
-        t("tutorial.backupRestore.description") ||
-        "Készíthetsz teljes biztonsági mentést az összes adatodról (nyomtatók, filamentek, árajánlatok, beállítások), és később visszaállíthatod őket egy korábbi állapotból.",
-      position: "bottom-right",
-      page: "settings",
-      action: () => onNavigate?.("settings"),
     },
     {
       id: "settings",
@@ -431,8 +332,15 @@ export const Tutorial: React.FC<Props> = ({
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
                 // Stabil tooltip méretek - fix értékek használata, hogy ne változzon
-                const estimatedTooltipWidth = 400;
-                const estimatedTooltipHeight = 280;
+                // Ha van tooltipRef, próbáljuk meg a valós méretet használni
+                let estimatedTooltipWidth = 400;
+                let estimatedTooltipHeight = 280;
+                
+                if (tooltipRef.current) {
+                  const tooltipRect = tooltipRef.current.getBoundingClientRect();
+                  if (tooltipRect.width > 0) estimatedTooltipWidth = tooltipRect.width;
+                  if (tooltipRect.height > 0) estimatedTooltipHeight = tooltipRect.height;
+                }
                 const viewportWidth = window.innerWidth;
                 const viewportHeight = window.innerHeight;
                 const padding = 20;
@@ -444,11 +352,48 @@ export const Tutorial: React.FC<Props> = ({
                 let left = 0;
                 let preferredPosition = currentStepData.position || "bottom";
 
-                // Speciális pozíció: bottom-right - fixen jobb alul
+                // Speciális pozíció: bottom-right - intelligens pozícionálás viewport mérethez igazítva
                 if (preferredPosition === "bottom-right") {
-                  top = viewportHeight - estimatedTooltipHeight - padding;
-                  left = viewportWidth - estimatedTooltipWidth - padding;
+                  // Próbáljuk meg a jobb alulra pozícionálni
+                  let preferredTop = viewportHeight - estimatedTooltipHeight - padding;
+                  let preferredLeft = viewportWidth - estimatedTooltipWidth - padding;
                   
+                  // Ellenőrizzük, hogy befér-e a viewport-ba
+                  const fitsRight = preferredLeft >= padding;
+                  const fitsBottom = preferredTop >= padding;
+                  const fitsInViewport = fitsRight && fitsBottom && 
+                                         preferredLeft + estimatedTooltipWidth <= viewportWidth - padding &&
+                                         preferredTop + estimatedTooltipHeight <= viewportHeight - padding;
+                  
+                  // Ha nem fér be, intelligens pozícionálás
+                  if (!fitsInViewport) {
+                    // Ha a tooltip nagyobb, mint a viewport, középre igazítjuk
+                    if (estimatedTooltipWidth >= viewportWidth - 2 * padding || 
+                        estimatedTooltipHeight >= viewportHeight - 2 * padding) {
+                      preferredTop = Math.max(padding, Math.floor((viewportHeight - estimatedTooltipHeight) / 2));
+                      preferredLeft = Math.max(padding, Math.floor((viewportWidth - estimatedTooltipWidth) / 2));
+                    } else {
+                      // Ha csak részben nem fér be, korrigáljuk
+                      // Jobbra korrekció
+                      if (!fitsRight || preferredLeft + estimatedTooltipWidth > viewportWidth - padding) {
+                        preferredLeft = Math.max(padding, viewportWidth - estimatedTooltipWidth - padding);
+                      }
+                      
+                      // Alulra korrekció
+                      if (!fitsBottom || preferredTop + estimatedTooltipHeight > viewportHeight - padding) {
+                        preferredTop = Math.max(padding, viewportHeight - estimatedTooltipHeight - padding);
+                      }
+                      
+                      // Végleges korrekció - biztosan a viewport-on belül
+                      preferredTop = Math.max(padding, Math.min(preferredTop, viewportHeight - estimatedTooltipHeight - padding));
+                      preferredLeft = Math.max(padding, Math.min(preferredLeft, viewportWidth - estimatedTooltipWidth - padding));
+                    }
+                  }
+                  
+                  top = preferredTop;
+                  left = preferredLeft;
+                  
+                  // Skip a normál pozícionálást, mert már elvégeztük
                   const newPosition = { top, left };
                   if (!lastPositionRef.current || 
                       Math.abs(lastPositionRef.current.top - newPosition.top) > 5 || 
@@ -457,7 +402,7 @@ export const Tutorial: React.FC<Props> = ({
                     lastPositionRef.current = newPosition;
                   }
                   positionUpdateInProgressRef.current = false;
-                  return;
+                  return; // Early return, hogy ne menjen át a normál pozícionálásra
                 }
 
                 // Intelligens pozícionálás - automatikusan választja a legjobb pozíciót
@@ -536,6 +481,14 @@ export const Tutorial: React.FC<Props> = ({
                 // Ha kilóg felülről, lejjebb toljuk
                 if (top < padding) {
                   top = padding;
+                }
+                
+                // Ha még mindig nem fér be (nagyon kis viewport), középre igazítjuk
+                if (estimatedTooltipWidth >= viewportWidth - 2 * padding || 
+                    estimatedTooltipHeight >= viewportHeight - 2 * padding) {
+                  // Ha a tooltip nagyobb, mint a viewport, középre igazítjuk
+                  top = Math.max(padding, (viewportHeight - estimatedTooltipHeight) / 2);
+                  left = Math.max(padding, (viewportWidth - estimatedTooltipWidth) / 2);
                 }
 
                 // Csak akkor frissítjük a pozíciót, ha valóban változott (ugrálás elkerülése)

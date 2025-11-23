@@ -41,6 +41,25 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.2.1 (2025) - 🎨 Coerenza UI e gestione colonne
+
+- 📊 **Gestione colonne filamenti** - Aggiunta visibilità e ordinamento colonne al componente Filamenti:
+  - Menu toggle visibilità colonne (come nel componente Stampanti)
+  - Colonne ordinabili: Marca, Tipo, Peso, Prezzo/kg
+  - Preferenze visibilità colonne salvate nelle impostazioni
+  - UI coerente con componente Stampanti (pulsante gestione, menu a discesa, indicatori ordinamento)
+- 🎨 **Coerenza colori tema** - Migliorato utilizzo colori tema in tutti i componenti:
+  - Tutti i pulsanti e menu a discesa ora usano coerentemente i colori tema (Filamenti, Stampanti, Calcolatrice, Tendenze prezzi)
+  - Rimossi colori hardcoded (pulsanti grigi sostituiti con colore tema primario)
+  - Componente Header si adatta completamente a tutti i temi e colori
+  - Card informazioni stato usa colori tema invece di valori rgba hardcoded
+  - Effetti hover coerenti usando themeStyles.buttonHover
+- 🔧 **Miglioramenti UI**:
+  - Pulsante "Gestisci colonne" ora usa colore tema primario invece di secondario
+  - Menu a discesa select Tendenze prezzi usa stili focus appropriati
+  - Tutti i menu a discesa stilizzati coerentemente con colori tema
+  - Migliore coerenza visiva su tutte le pagine
+
 ### v1.1.6 (2025) - 🌍 Copertura traduzione completa
 
 - 🌍 **Traduzioni tutorial** - Aggiunte chiavi di traduzione tutorial mancanti a tutti i file linguistici:
@@ -747,7 +766,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 1.1.6
+**Versione**: 1.2.1
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

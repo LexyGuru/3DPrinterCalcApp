@@ -42,6 +42,25 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
+### v1.2.1 (2025) - 🎨 UI konzisztencia és oszlopkezelés
+
+- 📊 **Filamentek oszlopkezelés** - Oszlop láthatóság és rendezés hozzáadása a Filamentek komponenshez:
+  - Oszlop láthatóság váltó menü (ugyanúgy, mint a Nyomtatók komponensben)
+  - Rendezési oszlopok: Márka, Típus, Súly, Ár/kg
+  - Oszlop láthatóság preferenciák mentése a beállításokban
+  - Konzisztens UI a Nyomtatók komponenssel (kezelő gomb, lenyíló menü, rendezési jelzők)
+- 🎨 **Téma szín konzisztencia** - Továbbfejlesztett téma szín használat az összes komponensben:
+  - Minden gomb és lenyíló ablak konzisztensen használja a téma színeit (Filamentek, Nyomtatók, Kalkulátor, Ár trendek)
+  - Eltávolított hardcoded színek (szürke gombok lecserélve elsődleges téma színre)
+  - Header komponens teljes alkalmazkodás minden témához és színhez
+  - Status info kártya téma színeket használ hardcoded rgba értékek helyett
+  - Konzisztens hover effektek themeStyles.buttonHover használatával
+- 🔧 **UI fejlesztések**:
+  - "Oszlopok kezelése" gomb most elsődleges téma színt használ másodlagos helyett
+  - Ár trendek select lenyíló ablak megfelelő focus stílusok használata
+  - Minden lenyíló ablak konzisztensen stílusozva téma színekkel
+  - Jobb vizuális konzisztencia minden oldalon
+
 ### v1.1.6 (2025) - 🌍 Teljes fordítási lefedettség
 
 - 🌍 **Tutorial fordítások** - Hiányzó tutorial fordítási kulcsok hozzáadva minden nyelvi fájlhoz:
@@ -730,7 +749,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 1.1.6
+**Verzió**: 1.2.1
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

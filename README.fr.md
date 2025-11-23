@@ -41,6 +41,25 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
+### v1.2.1 (2025) - 🎨 Cohérence UI et gestion des colonnes
+
+- 📊 **Gestion des colonnes de filaments** - Ajout de la visibilité et du tri des colonnes au composant Filaments:
+  - Menu de basculement de visibilité des colonnes (identique au composant Imprimantes)
+  - Colonnes triables: Marque, Type, Poids, Prix/kg
+  - Préférences de visibilité des colonnes enregistrées dans les paramètres
+  - Interface cohérente avec le composant Imprimantes (bouton de gestion, menu déroulant, indicateurs de tri)
+- 🎨 **Cohérence des couleurs de thème** - Amélioration de l'utilisation des couleurs de thème dans tous les composants:
+  - Tous les boutons et menus déroulants utilisent maintenant de manière cohérente les couleurs de thème (Filaments, Imprimantes, Calculatrice, Tendances de prix)
+  - Suppression des couleurs codées en dur (boutons gris remplacés par la couleur de thème primaire)
+  - Le composant Header s'adapte entièrement à tous les thèmes et couleurs
+  - La carte d'informations de statut utilise les couleurs de thème au lieu de valeurs rgba codées en dur
+  - Effets de survol cohérents utilisant themeStyles.buttonHover
+- 🔧 **Améliorations UI**:
+  - Le bouton "Gérer les colonnes" utilise maintenant la couleur de thème primaire au lieu de secondaire
+  - Le menu déroulant select de Tendances de prix utilise des styles de focus appropriés
+  - Tous les menus déroulants stylisés de manière cohérente avec les couleurs de thème
+  - Meilleure cohérence visuelle sur toutes les pages
+
 ### v1.1.6 (2025) - 🌍 Couverture de traduction complète
 
 - 🌍 **Traductions du tutoriel** - Ajout des clés de traduction du tutoriel manquantes à tous les fichiers de langue:
@@ -747,7 +766,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 1.1.6
+**Version**: 1.2.1
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

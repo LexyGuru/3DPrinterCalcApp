@@ -40,6 +40,25 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.2.1 (2025) - 🎨 Spójność interfejsu i zarządzanie kolumnami
+
+- 📊 **Zarządzanie kolumnami filamentów** - Dodano widoczność i sortowanie kolumn do komponentu Filamenty:
+  - Menu przełączania widoczności kolumn (jak w komponencie Drukarki)
+  - Kolumny sortowalne: Marka, Typ, Waga, Cena/kg
+  - Preferencje widoczności kolumn zapisane w ustawieniach
+  - Spójny interfejs z komponentem Drukarki (przycisk zarządzania, menu rozwijane, wskaźniki sortowania)
+- 🎨 **Spójność kolorów motywu** - Ulepszone użycie kolorów motywu we wszystkich komponentach:
+  - Wszystkie przyciski i menu rozwijane teraz konsekwentnie używają kolorów motywu (Filamenty, Drukarki, Kalkulator, Trendy cenowe)
+  - Usunięto hardcodowane kolory (szare przyciski zastąpione podstawowym kolorem motywu)
+  - Komponent Header w pełni dostosowuje się do wszystkich motywów i kolorów
+  - Karta informacji o stanie używa kolorów motywu zamiast hardcodowanych wartości rgba
+  - Spójne efekty hover używając themeStyles.buttonHover
+- 🔧 **Ulepszenia interfejsu**:
+  - Przycisk "Zarządzaj kolumnami" teraz używa podstawowego koloru motywu zamiast drugorzędnego
+  - Menu rozwijane select Trendy cenowe używa odpowiednich stylów fokusa
+  - Wszystkie menu rozwijane stylizowane konsekwentnie z kolorami motywu
+  - Lepsza spójność wizualna na wszystkich stronach
+
 ### v1.1.6 (2025) - 🌍 Pełne pokrycie tłumaczeń
 
 - 🌍 **Tłumaczenia samouczka** - Dodano brakujące klucze tłumaczeń samouczka do wszystkich plików językowych:
@@ -746,7 +765,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 1.1.6
+**Wersja**: 1.2.1
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

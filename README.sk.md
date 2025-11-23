@@ -40,6 +40,25 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.2.1 (2025) - 🎨 Konzistencia UI a správa stĺpcov
+
+- 📊 **Správa stĺpcov filamentov** - Pridaná viditeľnosť a triedenie stĺpcov do komponentu Filamenty:
+  - Menu prepínania viditeľnosti stĺpcov (rovnaké ako komponenta Tlačiarne)
+  - Triediteľné stĺpce: Značka, Typ, Hmotnosť, Cena/kg
+  - Preference viditeľnosti stĺpcov uložené v nastaveniach
+  - Konzistentné UI s komponentou Tlačiarne (tlačidlo správy, rozbaľovacie menu, indikátory triedenia)
+- 🎨 **Konzistencia farieb motívu** - Vylepšené použitie farieb motívu vo všetkých komponentoch:
+  - Všetky tlačidlá a rozbaľovacie menu teraz konzistentne používajú farby motívu (Filamenty, Tlačiarne, Kalkulačka, Cenové trendy)
+  - Odstránené hardcodované farby (sivé tlačidlá nahradené primárnou farbou motívu)
+  - Komponenta Header sa plne prispôsobuje všetkým motívom a farbám
+  - Karta informácií o stave používa farby motívu namiesto hardcodovaných rgba hodnôt
+  - Konzistentné efekty hover pomocou themeStyles.buttonHover
+- 🔧 **Vylepšenia UI**:
+  - Tlačidlo "Spravovať stĺpce" teraz používa primárnu farbu motívu namiesto sekundárnej
+  - Rozbaľovacie select menu Cenových trendov používa vhodné štýly fokusu
+  - Všetky rozbaľovacie menu stylizované konzistentne s farbami motívu
+  - Lepšia vizuálna konzistencia na všetkých stránkach
+
 ### v1.1.6 (2025) - 🌍 Úplné pokrytie prekladov
 
 - 🌍 **Preklady tutoriálu** - Pridané chýbajúce prekladové kľúče tutoriálu do všetkých jazykových súborov:
@@ -746,7 +765,7 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ---
 
-**Verzia**: 1.1.6
+**Verzia**: 1.2.1
 
 Ak máte nejaké otázky alebo nájdete chybu, prosím otvorte issue v repozitári GitHub!
 

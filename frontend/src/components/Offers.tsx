@@ -8,6 +8,7 @@ import type {
   OfferStatus,
   OfferStatusHistory,
   Filament,
+  Customer,
 } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation, type TranslationKey } from "../utils/translations";
@@ -35,6 +36,7 @@ interface Props {
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
   printers: Printer[];
   filaments: Filament[];
+  customers: Customer[];
 }
 
 export const Offers: React.FC<Props> = ({
@@ -45,6 +47,7 @@ export const Offers: React.FC<Props> = ({
   themeStyles,
   printers,
   filaments,
+  customers,
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
@@ -133,6 +136,18 @@ export const Offers: React.FC<Props> = ({
   const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
   const [editCustomerName, setEditCustomerName] = useState("");
   const [editCustomerContact, setEditCustomerContact] = useState("");
+  const [selectedEditCustomerId, setSelectedEditCustomerId] = useState<number | "">("");
+
+  // Ügyfél kiválasztás kezelése szerkesztésnél
+  useEffect(() => {
+    if (selectedEditCustomerId !== "" && selectedEditCustomerId !== null) {
+      const customer = customers.find(c => c.id === selectedEditCustomerId);
+      if (customer) {
+        setEditCustomerName(customer.name);
+        setEditCustomerContact(customer.contact || "");
+      }
+    }
+  }, [selectedEditCustomerId, customers]);
   const [editDescription, setEditDescription] = useState("");
   const [editProfitPercentage, setEditProfitPercentage] = useState<number>(30);
   const [editPrintDueDate, setEditPrintDueDate] = useState<string>("");
@@ -385,6 +400,12 @@ export const Offers: React.FC<Props> = ({
       printers[0];
     setEditPrinterId(matchedPrinter ? matchedPrinter.id : null);
     setSelectedLibraryFilamentIndex("");
+    
+    // Próbáljuk meg megtalálni a megfelelő ügyfelet a customers listából
+    const matchedCustomer = offer.customerName 
+      ? customers.find(c => c.name === offer.customerName && c.contact === (offer.customerContact || ""))
+      : null;
+    setSelectedEditCustomerId(matchedCustomer ? matchedCustomer.id : "");
   };
 
   const cancelEditOffer = () => {
@@ -394,6 +415,7 @@ export const Offers: React.FC<Props> = ({
     setEditDescription("");
     setEditProfitPercentage(30);
     setEditPrintDueDate("");
+    setSelectedEditCustomerId("");
     setEditFilaments([]);
     setEditPrinterId(null);
     setSelectedLibraryFilamentIndex("");
@@ -535,7 +557,7 @@ export const Offers: React.FC<Props> = ({
       });
       
       // HTML tartalom generálása
-      const htmlContent = generatePDFContent(offer, t, settings, locale);
+      const htmlContent = generatePDFContent(offer, t, settings, locale, theme);
       
       // Próbáljuk meg az új ablakot megnyitni (user gesture, így működik)
       const printWindow = window.open('', '_blank', 'width=800,height=600');
@@ -605,7 +627,7 @@ export const Offers: React.FC<Props> = ({
       }
       
       // HTML tartalom generálása
-      const htmlContent = generatePDFContent(offer, t, settings, locale);
+      const htmlContent = generatePDFContent(offer, t, settings, locale, theme);
       
       // Tauri save dialog használata
       const dateStr = new Date().toISOString().split('T')[0];
@@ -654,7 +676,8 @@ export const Offers: React.FC<Props> = ({
     offer: Offer,
     t: (key: TranslationKey) => string,
     settings: Settings,
-    locale: string
+    locale: string,
+    theme?: Theme
   ): string => {
     const formatTime = (hours: number, minutes: number, seconds: number) => {
       const parts = [];
@@ -733,6 +756,25 @@ export const Offers: React.FC<Props> = ({
       `
       : "";
 
+    // Téma színek használata vagy fallback az alapértelmezett színekre
+    const bgColor = theme?.colors.background?.includes('gradient') 
+      ? theme.colors.surface || '#ffffff'
+      : (theme?.colors.background || '#ffffff');
+    const surfaceColor = theme?.colors.surface || '#ffffff';
+    const textColor = theme?.colors.text || '#333333';
+    const textSecondaryColor = theme?.colors.textSecondary || '#666666';
+    const primaryColor = theme?.colors.primary || '#007bff';
+    const borderColor = theme?.colors.border || '#e5e7eb';
+    const surfaceHoverColor = theme?.colors.surfaceHover || '#f5f5f5';
+    const successColor = theme?.colors.success || '#28a745';
+    const tableHeaderBg = theme?.colors.tableHeaderBg || surfaceHoverColor;
+    const tableBorder = theme?.colors.tableBorder || borderColor;
+
+    // Gradient háttér kezelése - ha gradient, akkor használjuk a surface-t
+    const bodyBackground = theme?.colors.background?.includes('gradient')
+      ? surfaceColor
+      : bgColor;
+
     return `
       <!DOCTYPE html>
       <html>
@@ -743,24 +785,99 @@ export const Offers: React.FC<Props> = ({
           body {
             font-family: Arial, sans-serif;
             padding: 20px;
-            color: #333;
+            color: ${textColor};
+            background-color: ${bodyBackground};
           }
-          h1 { color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-          h2 { color: #555; margin-top: 30px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }
-          th { background-color: #f5f5f5; font-weight: bold; }
-          .total { font-size: 1.2em; font-weight: bold; color: #007bff; }
-          .section { margin-bottom: 30px; }
-          .info { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-          .company-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 16px; margin-bottom: 24px; border-bottom: 2px solid #e5e7eb; }
-          .company-details { flex: 1 1 auto; }
-          .company-details h2 { margin: 0 0 8px 0; font-size: 24px; color: #1f2937; }
-          .company-details p { margin: 4px 0; font-size: 13px; color: #374151; }
-          .company-details a { color: #007bff; text-decoration: none; }
-          .company-details a:hover { text-decoration: underline; }
-          .company-logo { flex: 0 0 auto; max-width: 160px; max-height: 120px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background: #ffffff; display: flex; align-items: center; justify-content: center; }
-          .company-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+          h1 { 
+            color: ${primaryColor}; 
+            border-bottom: 2px solid ${primaryColor}; 
+            padding-bottom: 10px; 
+          }
+          h2 { 
+            color: ${textSecondaryColor}; 
+            margin-top: 30px; 
+          }
+          table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+          }
+          th, td { 
+            padding: 10px; 
+            text-align: left; 
+            border: 1px solid ${tableBorder}; 
+          }
+          th { 
+            background-color: ${tableHeaderBg}; 
+            font-weight: bold; 
+            color: ${textColor};
+          }
+          td {
+            background-color: ${surfaceColor};
+            color: ${textColor};
+          }
+          .total { 
+            font-size: 1.2em; 
+            font-weight: bold; 
+            color: ${primaryColor}; 
+          }
+          .section { 
+            margin-bottom: 30px; 
+          }
+          .info { 
+            background-color: ${surfaceHoverColor}; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin-bottom: 20px; 
+            border: 1px solid ${borderColor};
+            color: ${textColor};
+          }
+          .company-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start; 
+            gap: 24px; 
+            padding-bottom: 16px; 
+            margin-bottom: 24px; 
+            border-bottom: 2px solid ${borderColor}; 
+          }
+          .company-details { 
+            flex: 1 1 auto; 
+          }
+          .company-details h2 { 
+            margin: 0 0 8px 0; 
+            font-size: 24px; 
+            color: ${textColor}; 
+          }
+          .company-details p { 
+            margin: 4px 0; 
+            font-size: 13px; 
+            color: ${textSecondaryColor}; 
+          }
+          .company-details a { 
+            color: ${primaryColor}; 
+            text-decoration: none; 
+          }
+          .company-details a:hover { 
+            text-decoration: underline; 
+          }
+          .company-logo { 
+            flex: 0 0 auto; 
+            max-width: 160px; 
+            max-height: 120px; 
+            border: 1px solid ${borderColor}; 
+            border-radius: 8px; 
+            padding: 8px; 
+            background: ${surfaceColor}; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+          }
+          .company-logo img { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+          }
         </style>
       </head>
       <body>
@@ -809,7 +926,7 @@ export const Offers: React.FC<Props> = ({
                   return `
                     <tr>
                       <td style="text-align:center;">
-                        <img src="${imageSrc}" alt="${safeBrand} ${safeType}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" />
+                        <img src="${imageSrc}" alt="${safeBrand} ${safeType}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid ${borderColor};" />
                       </td>
                       <td>${safeBrand}</td>
                       <td>${safeType}</td>
@@ -866,13 +983,13 @@ export const Offers: React.FC<Props> = ({
               <td><strong>${t("offers.pdf.cost.total")}</strong></td>
               <td><strong>${totalCost.toFixed(2)} ${displayCurrencyLabel}</strong></td>
             </tr>
-            <tr style="border-top: 2px solid #333;">
+            <tr style="border-top: 2px solid ${textColor};">
               <td><strong>${t("offers.pdf.summary.revenue").replace("{profit}", String(offer.profitPercentage ?? 30))}:</strong></td>
-              <td><strong style="color: #28a745; font-size: 1.1em;">${revenue.toFixed(2)} ${displayCurrencyLabel}</strong></td>
+              <td><strong style="color: ${successColor}; font-size: 1.1em;">${revenue.toFixed(2)} ${displayCurrencyLabel}</strong></td>
             </tr>
-            <tr class="total" style="background-color: #f0f8ff;">
+            <tr class="total" style="background-color: ${surfaceHoverColor};">
               <td><strong>${t("offers.pdf.summary.profit")}:</strong></td>
-              <td><strong style="color: #007bff; font-size: 1.3em;">${profit.toFixed(2)} ${displayCurrencyLabel}</strong></td>
+              <td><strong style="color: ${primaryColor}; font-size: 1.3em;">${profit.toFixed(2)} ${displayCurrencyLabel}</strong></td>
             </tr>
                       `;
                     })()}
@@ -1982,13 +2099,43 @@ export const Offers: React.FC<Props> = ({
                                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
                                 whiteSpace: "nowrap" 
                               }}>
+                                {t("offers.selectCustomer")}
+                              </label>
+                              <select
+                                value={selectedEditCustomerId}
+                                onChange={e => setSelectedEditCustomerId(e.target.value === "" ? "" : Number(e.target.value))}
+                                onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
+                                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                style={{ ...themeStyles.select, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}
+                              >
+                                <option value="">{t("offers.selectCustomer")}</option>
+                                {customers.map(customer => (
+                                  <option key={customer.id} value={customer.id}>
+                                    {customer.name} {customer.contact ? `(${customer.contact})` : ""}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div style={{ width: "200px", flexShrink: 0 }}>
+                              <label style={{ 
+                                display: "block", 
+                                marginBottom: "8px", 
+                                fontWeight: "600", 
+                                fontSize: "14px", 
+                                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                                whiteSpace: "nowrap" 
+                              }}>
                                 {t("offers.customerName")} *
                               </label>
                               <input
                                 type="text"
                                 placeholder={t("offers.customerName")}
                                 value={editCustomerName}
-                                onChange={e => setEditCustomerName(e.target.value)}
+                                onChange={e => {
+                                  setEditCustomerName(e.target.value);
+                                  // Ha manuálisan módosítjuk, töröljük a kiválasztott ügyfelet
+                                  setSelectedEditCustomerId("");
+                                }}
                                 onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
                                 onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
                                 style={{ ...themeStyles.input, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}

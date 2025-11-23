@@ -244,6 +244,25 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.2.1 (2025) - 🎨 UI Consistency and Column Management
+
+- 📊 **Filaments Column Management** - Added column visibility and sorting to Filaments component:
+  - Column visibility toggle menu (same as Printers component)
+  - Sortable columns: Brand, Type, Weight, Price/kg
+  - Column visibility preferences saved in settings
+  - Consistent UI with Printers component (manage button, dropdown menu, sort indicators)
+- 🎨 **Theme Color Consistency** - Improved theme color usage across all components:
+  - All buttons and dropdown menus now consistently use theme colors (Filaments, Printers, Calculator, PriceTrends)
+  - Removed hardcoded colors (gray buttons replaced with primary theme color)
+  - Header component fully adapts to all themes and colors
+  - Status info card uses theme colors instead of hardcoded rgba values
+  - Consistent hover effects using themeStyles.buttonHover
+- 🔧 **UI Improvements**:
+  - "Oszlopok kezelése" button now uses primary theme color instead of secondary
+  - PriceTrends select dropdown uses proper focus styles
+  - All dropdown menus consistently styled with theme colors
+  - Better visual consistency across all pages
+
 ### v1.1.6 (2025) - 🌍 Complete Translation Coverage
 
 - 🌍 **Tutorial Translations** - Added missing tutorial translation keys to all language files:
@@ -692,6 +711,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.1.6
+**Version**: 1.2.1
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!

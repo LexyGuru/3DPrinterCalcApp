@@ -38,6 +38,25 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
+### v1.2.1 (2025) - 🎨 Konzistence UI a správa sloupců
+
+- 📊 **Správa sloupců filamentů** - Přidána viditelnost a řazení sloupců do komponentu Filamenty:
+  - Menu přepínání viditelnosti sloupců (stejné jako komponenta Tiskárny)
+  - Řaditelné sloupce: Značka, Typ, Hmotnost, Cena/kg
+  - Preference viditelnosti sloupců uložené v nastavení
+  - Konzistentní UI s komponentou Tiskárny (tlačítko správy, rozbalovací menu, indikátory řazení)
+- 🎨 **Konzistence barev motivu** - Vylepšeno použití barev motivu ve všech komponentech:
+  - Všechna tlačítka a rozbalovací menu nyní konzistentně používají barvy motivu (Filamenty, Tiskárny, Kalkulačka, Cenové trendy)
+  - Odstraněny hardcodované barvy (šedá tlačítka nahrazena primární barvou motivu)
+  - Komponenta Header se plně přizpůsobuje všem motivům a barvám
+  - Karta informací o stavu používá barvy motivu místo hardcodovaných rgba hodnot
+  - Konzistentní efekty hover pomocí themeStyles.buttonHover
+- 🔧 **Vylepšení UI**:
+  - Tlačítko "Spravovat sloupce" nyní používá primární barvu motivu místo sekundární
+  - Rozbalovací select menu Cenových trendů používá vhodné styly fokusu
+  - Všechna rozbalovací menu stylizována konzistentně s barvami motivu
+  - Lepší vizuální konzistence na všech stránkách
+
 ### v1.1.6 (2025) - 🌍 Úplné pokrytí překladů
 
 - 🌍 **Překlady tutoriálu** - Přidány chybějící překladové klíče tutoriálu do všech jazykových souborů:
@@ -746,7 +765,7 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 
 **Verze**: 1.1.1
 
-**Verze**: 1.1.6
+**Verze**: 1.2.1
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 

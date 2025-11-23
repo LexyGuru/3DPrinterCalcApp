@@ -41,6 +41,25 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 
 ## 📋 Registro de cambios (Changelog)
 
+### v1.2.1 (2025) - 🎨 Consistencia UI y gestión de columnas
+
+- 📊 **Gestión de columnas de filamentos** - Agregada visibilidad y ordenamiento de columnas al componente Filamentos:
+  - Menú de alternancia de visibilidad de columnas (igual que componente Impresoras)
+  - Columnas ordenables: Marca, Tipo, Peso, Precio/kg
+  - Preferencias de visibilidad de columnas guardadas en configuración
+  - UI consistente con componente Impresoras (botón gestionar, menú desplegable, indicadores de ordenamiento)
+- 🎨 **Consistencia de colores de tema** - Mejorado uso de colores de tema en todos los componentes:
+  - Todos los botones y menús desplegables ahora usan consistentemente colores de tema (Filamentos, Impresoras, Calculadora, Tendencias de precios)
+  - Eliminados colores hardcoded (botones grises reemplazados con color de tema primario)
+  - Componente Header se adapta completamente a todos los temas y colores
+  - Tarjeta de información de estado usa colores de tema en lugar de valores rgba hardcoded
+  - Efectos hover consistentes usando themeStyles.buttonHover
+- 🔧 **Mejoras UI**:
+  - Botón "Gestionar columnas" ahora usa color de tema primario en lugar de secundario
+  - Menú desplegable select de Tendencias de precios usa estilos de foco apropiados
+  - Todos los menús desplegables estilizados consistentemente con colores de tema
+  - Mejor consistencia visual en todas las páginas
+
 ### v1.1.6 (2025) - 🌍 Cobertura de traducción completa
 
 - 🌍 **Traducciones del tutorial** - Se agregaron las claves de traducción del tutorial faltantes a todos los archivos de idioma:
@@ -747,7 +766,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ---
 
-**Versión**: 1.1.6
+**Versión**: 1.2.1
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 

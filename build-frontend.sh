@@ -12,4 +12,11 @@ else
 fi
 
 cd "$(dirname "$0")/frontend"
+
+# Töröljük a régi dist mappát, hogy ne maradjanak régi build fájlok
+if [ -d "dist" ]; then
+  echo "🧹 Töröljük a régi dist mappát..."
+  rm -rf dist
+fi
+
 pnpm build

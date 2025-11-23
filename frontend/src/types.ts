@@ -189,6 +189,15 @@ export interface Settings {
     ams: boolean;
     action: boolean;
   }; // Nyomtatók oszlopok láthatósága
+  filamentColumnsVisibility?: {
+    image: boolean;
+    brand: boolean;
+    type: boolean;
+    color: boolean;
+    weight: boolean;
+    pricePerKg: boolean;
+    action: boolean;
+  }; // Filamentek oszlopok láthatósága
   showTutorialOnStartup?: boolean; // Kezdő tutorial megjelenítése indításkor
   tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
   logRetentionDays?: number; // Log fájlok megtartása napokban (0 = soha ne törölje)
