@@ -102,7 +102,23 @@ jobs:
           fi
           echo "Frontend build verified"
           
+      - name: Get Cargo lock file hash
+        id: cargo-lock-hash
+        shell: bash
+        run: |
+          if [ -f "src-tauri/Cargo.lock" ]; then
+            if command -v sha256sum > /dev/null; then
+              HASH=$(sha256sum src-tauri/Cargo.lock | cut -d ' ' -f1)
+            else
+              HASH=$(shasum -a 256 src-tauri/Cargo.lock | cut -d ' ' -f1)
+            fi
+            echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+          else
+            echo "hash=" >> "$GITHUB_OUTPUT"
+          fi
+      
       - name: Setup Rust cache
+        if: steps.cargo-lock-hash.outputs.hash != ''
         uses: actions/cache@v4
         with:
           path: |
@@ -111,7 +127,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             src-tauri/target/
-          key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-rust-${{ steps.cargo-lock-hash.outputs.hash }}
           restore-keys: |
             ${{ runner.os }}-rust-
             
