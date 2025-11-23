@@ -199,6 +199,47 @@ jobs:
           echo "Release files prepared (version ${VERSION}):"
           ls -lh ./release-files/
       
+      - name: Generate release notes from commits
+        id: release-notes
+        shell: bash
+        env:
+          VERSION: ${{ steps.get-version.outputs.version }}
+        run: |
+          # Fetch all tags to ensure we have the latest
+          git fetch --tags --force
+          
+          # Get all tags sorted by version
+          ALL_TAGS=$(git tag -l "v*" | sort -V)
+          
+          # Get the previous tag (second to last if current tag exists, or last if not)
+          CURRENT_TAG="v${VERSION}"
+          PREV_TAG=$(echo "$ALL_TAGS" | grep -v "^${CURRENT_TAG}$" | tail -1 || echo "")
+          
+          if [ -z "$PREV_TAG" ]; then
+            # No previous tag, get all commits
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+            echo "No previous tag found, using all commits"
+          else
+            # Get commits between previous tag and current commit
+            CHANGELOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+            echo "Comparing ${PREV_TAG}..HEAD"
+          fi
+          
+          # If no changelog, add a note
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="- No changes detected"
+          fi
+          
+          # Save to output (escape newlines for GitHub Actions)
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          
+          echo "Previous tag: ${PREV_TAG:-none}"
+          echo "Changelog generated with $(echo "$CHANGELOG" | grep -c "^-" || echo "0") commits"
+      
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -208,6 +249,10 @@ jobs:
             ## Release v${{ steps.get-version.outputs.version }}
             
             This is a stable release built from the `main` branch.
+            
+            ### Changes since last release
+            
+            ${{ steps.release-notes.outputs.changelog }}
             
             ### Download
             Download the appropriate file for your platform:
