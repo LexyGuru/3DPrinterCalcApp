@@ -143,25 +143,31 @@ jobs:
       
       - name: Prepare release files
         shell: bash
+        env:
+          VERSION: ${{ steps.get-version.outputs.version }}
         run: |
           mkdir -p ./release-files
           
-          # macOS files
+          # macOS files (filter by version)
           if [ -d "./artifacts/macos-latest-beta" ]; then
-            find ./artifacts/macos-latest-beta -type f \( -name "*.dmg" -o -name "*.app" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/macos-latest-beta -type f -name "*${VERSION}*.dmg" -exec cp {} ./release-files/ \;
+            find ./artifacts/macos-latest-beta -type f -name "*${VERSION}*.app" -exec cp {} ./release-files/ \;
           fi
           
-          # Linux files
+          # Linux files (filter by version)
           if [ -d "./artifacts/ubuntu-latest-beta" ]; then
-            find ./artifacts/ubuntu-latest-beta -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.rpm" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/ubuntu-latest-beta -type f -name "*${VERSION}*.deb" -exec cp {} ./release-files/ \;
+            find ./artifacts/ubuntu-latest-beta -type f -name "*${VERSION}*.AppImage" -exec cp {} ./release-files/ \;
+            find ./artifacts/ubuntu-latest-beta -type f -name "*-${VERSION}-*.rpm" -exec cp {} ./release-files/ \;
           fi
           
-          # Windows files
+          # Windows files (filter by version)
           if [ -d "./artifacts/windows-latest-beta" ]; then
-            find ./artifacts/windows-latest-beta -type f \( -name "*.msi" -o -name "*.exe" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/windows-latest-beta -type f -name "*${VERSION}*.msi" -exec cp {} ./release-files/ \;
+            find ./artifacts/windows-latest-beta -type f -name "*${VERSION}*.exe" -exec cp {} ./release-files/ \;
           fi
           
-          echo "Release files prepared:"
+          echo "Release files prepared (version ${VERSION}):"
           ls -lh ./release-files/
       
       - name: Create GitHub Release
