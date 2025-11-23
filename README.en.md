@@ -42,6 +42,20 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 
 ## 📋 Changelog
 
+### v1.3.11 (2025) - 🎨 Widget Dashboard Improvements
+
+- 📊 **Widget Dashboard Enhancements** - Improved widget dashboard functionality:
+  - Fixed widget container padding and margins for better edge-to-edge layout
+  - Improved scroll behavior - widgets now properly scroll when content exceeds viewport
+  - Fixed widget shrinking issue on window resize - widgets maintain size across all breakpoints
+  - Consistent 12-column layout across all screen sizes
+  - Better widget positioning and spacing
+- 🔧 **Layout Fixes**:
+  - Removed fixed container padding that prevented widgets from reaching app edges
+  - Fixed ResponsiveGridLayout height calculation for proper scrolling
+  - Improved container overflow handling
+  - Better widget group layout consistency
+
 ### v1.2.1 (2025) - 🎨 UI Consistency and Column Management
 
 - 📊 **Filaments Column Management** - Added column visibility and sorting to Filaments component:
@@ -767,7 +781,7 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.2.1
+**Version**: 1.3.11
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
 

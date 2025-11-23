@@ -547,7 +547,10 @@ export default function App() {
       case "console":
         return <Console settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
       default: 
-        return <Home settings={settings} offers={offers} theme={currentTheme} />;
+        return <Home settings={settings} offers={offers} theme={currentTheme} onSettingsChange={(newSettings) => {
+          setSettings(newSettings);
+          // A Home komponensben az onLayoutChange már meghívja a saveSettings-t
+        }} />;
     }
   }, [activePage, filaments, printers, offers, customers, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers, quickActionTrigger]);
 
@@ -768,13 +771,17 @@ export default function App() {
             }}
             onComplete={async () => {
               setShowTutorial(false);
-              const updatedSettings = { ...settings, tutorialCompleted: true };
+              const updatedSettings = { 
+                ...settings, 
+                tutorialCompleted: true,
+                showTutorialOnStartup: false, // Ne mutassa többet indításkor
+              };
               setSettings(updatedSettings);
               // Azonnal mentjük, hogy biztosan elmentődjön
               try {
                 await saveSettings(updatedSettings);
                 if (import.meta.env.DEV) {
-                  console.log("✅ Tutorial completed státusz mentve");
+                  console.log("✅ Tutorial completed státusz mentve:", updatedSettings);
                 }
               } catch (error) {
                 console.error("❌ Hiba a tutorial completed státusz mentésekor:", error);

@@ -42,6 +42,20 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.3.11 (2025) - 🎨 Widget Dashboard Verbesserungen
+
+- 📊 **Widget Dashboard Verbesserungen** - Verbesserte Widget Dashboard Funktionalität:
+  - Behobene Widget-Container-Padding und -Abstände für besseres Edge-to-Edge-Layout
+  - Verbessertes Scroll-Verhalten - Widgets scrollen jetzt ordnungsgemäß, wenn der Inhalt die Ansicht überschreitet
+  - Behobenes Widget-Schrumpfproblem bei Fenstergrößenänderung - Widgets behalten die Größe über alle Breakpoints hinweg
+  - Konsistentes 12-Spalten-Layout für alle Bildschirmgrößen
+  - Bessere Widget-Positionierung und -Abstände
+- 🔧 **Layout-Fixes**:
+  - Entferntes festes Container-Padding, das verhinderte, dass Widgets die App-Ränder erreichen
+  - Behobene ResponsiveGridLayout-Höhenberechnung für ordnungsgemäßes Scrollen
+  - Verbesserte Container-Overflow-Behandlung
+  - Bessere Widget-Gruppen-Layout-Konsistenz
+
 ### v1.2.1 (2025) - 🎨 UI-Konsistenz und Spaltenverwaltung
 
 - 📊 **Filament-Spaltenverwaltung** - Spaltensichtbarkeit und Sortierung zur Filamente-Komponente hinzugefügt:
@@ -767,7 +781,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 1.2.1
+**Version**: 1.3.11
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

@@ -40,6 +40,20 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.3.11 (2025) - 🎨 Vylepšenia widget dashboardu
+
+- 📊 **Vylepšenia widget dashboardu** - Vylepšená funkčnosť widget dashboardu:
+  - Opravené odsadenie a okraje kontajnera widgetov pre lepšie rozloženie od okraja k okraju
+  - Vylepšené správanie posúvania - widgety sa teraz správne posúvajú, keď obsah presiahne zobrazenie
+  - Opravený problém so zmenšovaním widgetov pri zmene veľkosti okna - widgety si zachovávajú veľkosť vo všetkých bodoch prerušenia
+  - Konzistentné rozloženie 12 stĺpcov na všetkých veľkostiach obrazovky
+  - Lepšie umiestnenie a rozostupy widgetov
+- 🔧 **Opravy rozloženia**:
+  - Odstránené pevné odsadenie kontajnera, ktoré bránilo widgetom dosiahnuť okraje aplikácie
+  - Opravený výpočet výšky ResponsiveGridLayout pre správne posúvanie
+  - Vylepšená správa pretečenia kontajnera
+  - Lepšia konzistencia rozloženia skupiny widgetov
+
 ### v1.2.1 (2025) - 🎨 Konzistencia UI a správa stĺpcov
 
 - 📊 **Správa stĺpcov filamentov** - Pridaná viditeľnosť a triedenie stĺpcov do komponentu Filamenty:
@@ -765,7 +779,7 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ---
 
-**Verzia**: 1.2.1
+**Verzia**: 1.3.11
 
 Ak máte nejaké otázky alebo nájdete chybu, prosím otvorte issue v repozitári GitHub!
 

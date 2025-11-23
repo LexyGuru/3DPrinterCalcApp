@@ -1,0 +1,1157 @@
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import { Responsive, WidthProvider } from "react-grid-layout";
+import type { Layout } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+import type { WidgetConfig, WidgetSize, DashboardLayout } from "../../types/widgets";
+import type { Theme } from "../../utils/themes";
+import type { Settings } from "../../types";
+import { WidgetContainer } from "./WidgetContainer";
+import { StatisticsWidget } from "./StatisticsWidget";
+import { TrendChartWidget } from "./TrendChartWidget";
+import { PeriodComparisonWidget } from "./PeriodComparisonWidget";
+import { FilamentBreakdownWidget } from "./FilamentBreakdownWidget";
+import { PrinterBreakdownWidget } from "./PrinterBreakdownWidget";
+import { SummaryWidget } from "./SummaryWidget";
+import { StatCardWidget } from "./StatCardWidget";
+import { WidgetGroup } from "./WidgetGroup";
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
+
+interface DashboardProps {
+  settings: Settings;
+  theme: Theme;
+  statistics: {
+    totalFilamentUsed: number;
+    totalRevenue: number;
+    totalElectricityConsumed: number;
+    totalCosts: number;
+    totalProfit: number;
+    totalPrintTime: number;
+    offerCount: number;
+  };
+  trendData: Array<{
+    name: string;
+    revenue: number;
+    costs: number;
+    profit: number;
+  }>;
+  weeklyStats?: {
+    totalProfit: number;
+    offerCount: number;
+  };
+  monthlyStats?: {
+    totalProfit: number;
+    offerCount: number;
+  };
+  yearlyStats?: {
+    totalProfit: number;
+    offerCount: number;
+  };
+  filamentBreakdown?: Array<{
+    label: string;
+    value: number;
+    color: string;
+  }>;
+  printerBreakdown?: Array<{
+    label: string;
+    value: number;
+    color: string;
+  }>;
+  summaryData?: Array<{
+    label: string;
+    value: string | number;
+    icon: string;
+    color: string;
+  }>;
+  statsLabels?: {
+    totalFilament: string;
+    totalRevenue: string;
+    totalElectricity: string;
+    totalCost: string;
+    netProfit: string;
+    totalPrintTime: string;
+  };
+  currencyLabel?: string;
+  formatNumber?: (value: number, decimals: number) => string;
+  formatCurrency?: (value: number) => number;
+  onLayoutChange?: (layout: DashboardLayout) => void;
+  onWidgetManagerToggle?: () => void;
+  showWidgetManager?: boolean;
+  onError?: (error: Error) => void;
+}
+
+// Alapértelmezett widget konfigurációk - klasszikus nézet sorrendje szerint
+const createDefaultWidgets = (): WidgetConfig[] => {
+  return [
+    // 1. Időszak összehasonlítás (első sor, 3 kártya egymás mellett)
+    {
+      id: "period-comparison-1",
+      type: "period-comparison",
+      title: "Időszak összehasonlítás",
+      size: "medium",
+      visible: true,
+      layout: { i: "period-comparison-1", x: 0, y: 0, w: 12, h: 3, minW: 6, minH: 2 },
+    },
+    // 2. Statisztikai kártyák (6 kártya grid-ben, 2 sorban)
+    {
+      id: "stat-card-filament-1",
+      type: "stat-card-filament",
+      title: "Összes filament",
+      size: "small",
+      visible: true,
+      layout: { i: "stat-card-filament-1", x: 0, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+    },
+    {
+      id: "stat-card-revenue-1",
+      type: "stat-card-revenue",
+      title: "Összes bevétel",
+      size: "small",
+      visible: true,
+      layout: { i: "stat-card-revenue-1", x: 2, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+    },
+    {
+      id: "stat-card-electricity-1",
+      type: "stat-card-electricity",
+      title: "Összes áram",
+      size: "small",
+      visible: true,
+      layout: { i: "stat-card-electricity-1", x: 4, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+    },
+    {
+      id: "stat-card-cost-1",
+      type: "stat-card-cost",
+      title: "Összes költség",
+      size: "small",
+      visible: true,
+      layout: { i: "stat-card-cost-1", x: 6, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+    },
+    {
+      id: "stat-card-profit-1",
+      type: "stat-card-profit",
+      title: "Nettó profit",
+      size: "small",
+      visible: true,
+      layout: { i: "stat-card-profit-1", x: 8, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+    },
+    {
+      id: "stat-card-print-time-1",
+      type: "stat-card-print-time",
+      title: "Összes nyomtatási idő",
+      size: "small",
+      visible: true,
+      layout: { i: "stat-card-print-time-1", x: 10, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+    },
+    // 3. Pénzügyi trendek (nagy kártya, teljes szélesség)
+    {
+      id: "trend-chart-1",
+      type: "trend-chart",
+      title: "Trendek",
+      size: "large",
+      visible: true,
+      layout: { i: "trend-chart-1", x: 0, y: 6, w: 12, h: 5, minW: 6, minH: 4 },
+    },
+    // 4. Filament megoszlás és Bevétel nyomtatónként (2 kártya egymás mellett)
+    {
+      id: "filament-breakdown-1",
+      type: "filament-breakdown",
+      title: "Filament megoszlás",
+      size: "medium",
+      visible: true,
+      layout: { i: "filament-breakdown-1", x: 0, y: 11, w: 6, h: 4, minW: 4, minH: 3 },
+    },
+    {
+      id: "printer-breakdown-1",
+      type: "printer-breakdown",
+      title: "Bevétel nyomtatónként",
+      size: "medium",
+      visible: true,
+      layout: { i: "printer-breakdown-1", x: 6, y: 11, w: 6, h: 4, minW: 4, minH: 3 },
+    },
+    // 5. Összefoglaló (utolsó sor, teljes szélesség)
+    {
+      id: "summary-1",
+      type: "summary",
+      title: "Összefoglaló",
+      size: "large",
+      visible: true,
+      layout: { i: "summary-1", x: 0, y: 15, w: 12, h: 3, minW: 6, minH: 2 },
+    },
+  ];
+};
+
+export const Dashboard: React.FC<DashboardProps> = ({
+  settings,
+  theme,
+  statistics,
+  trendData,
+  weeklyStats,
+  monthlyStats,
+  yearlyStats,
+  filamentBreakdown = [],
+  printerBreakdown = [],
+  summaryData = [],
+  statsLabels,
+  currencyLabel = settings.currency === "HUF" ? "Ft" : settings.currency,
+  formatNumber = (value: number, decimals: number) => value.toFixed(decimals),
+  formatCurrency = (value: number) => value,
+  onLayoutChange,
+  onWidgetManagerToggle,
+  showWidgetManager: externalShowWidgetManager,
+  onError,
+}) => {
+
+  // Widget konfigurációk betöltése vagy alapértelmezett
+  const [widgets, setWidgets] = useState<WidgetConfig[]>(() => {
+    try {
+      const savedWidgets = settings.dashboardLayout?.widgets;
+      if (savedWidgets && savedWidgets.length > 0) {
+        console.log("[Dashboard] Loading saved widget layout:", {
+          savedWidgetCount: savedWidgets.length,
+          savedWidgetIds: savedWidgets.map(w => w.id),
+        });
+        // Ha van mentett layout, de kevés widget van benne, akkor kiegészítjük az alapértelmezettekkel
+        const defaultWidgets = createDefaultWidgets();
+        const savedWidgetIds = new Set(savedWidgets.map(w => w.id));
+        const missingWidgets = defaultWidgets.filter(w => !savedWidgetIds.has(w.id));
+        const mergedWidgets = [...savedWidgets, ...missingWidgets];
+        console.log("[Dashboard] Merged widgets:", {
+          total: mergedWidgets.length,
+          saved: savedWidgets.length,
+          added: missingWidgets.length,
+        });
+        return mergedWidgets;
+      }
+      console.log("[Dashboard] No saved layout found, using default widgets");
+      return createDefaultWidgets();
+    } catch (error) {
+      console.error("[Dashboard] Error initializing widgets:", {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      // Fallback to default widgets on error
+      return createDefaultWidgets();
+    }
+  });
+
+  // Frissítés, ha a settings.dashboardLayout változik
+  useEffect(() => {
+    const savedWidgets = settings.dashboardLayout?.widgets;
+    if (savedWidgets && savedWidgets.length > 0) {
+      // Ha van mentett layout, de kevés widget van benne, akkor kiegészítjük az alapértelmezettekkel
+      const defaultWidgets = createDefaultWidgets();
+      const savedWidgetIds = new Set(savedWidgets.map(w => w.id));
+      const missingWidgets = defaultWidgets.filter(w => !savedWidgetIds.has(w.id));
+      setWidgets([...savedWidgets, ...missingWidgets]);
+    } else {
+      setWidgets(createDefaultWidgets());
+    }
+  }, [settings.dashboardLayout]);
+
+  // Layout konverzió react-grid-layout formátumra
+  // Csoport widget-ek nem jelennek meg külön, csak a bennük lévő widget-ek
+  const layouts = useMemo(() => {
+    const lg: Layout[] = widgets
+      .filter((w) => w.visible && w.type !== "widget-group" && !w.groupId)
+      .map((widget) => ({
+        i: widget.id,
+        x: widget.layout.x,
+        y: widget.layout.y,
+        w: widget.layout.w,
+        h: widget.layout.h,
+        minW: widget.layout.minW || 2,
+        minH: widget.layout.minH || 2,
+        maxW: widget.layout.maxW || 12,
+        maxH: widget.layout.maxH || 8,
+      }));
+    
+    // Csoport widget-ek hozzáadása
+    widgets
+      .filter((w) => w.visible && w.type === "widget-group")
+      .forEach((groupWidget) => {
+        lg.push({
+          i: groupWidget.id,
+          x: groupWidget.layout.x,
+          y: groupWidget.layout.y,
+          w: groupWidget.layout.w,
+          h: groupWidget.layout.h,
+          minW: groupWidget.layout.minW || 4,
+          minH: groupWidget.layout.minH || 3,
+          maxW: groupWidget.layout.maxW || 12,
+          maxH: groupWidget.layout.maxH || 8,
+        });
+      });
+    
+    // Minden breakpoint-hoz ugyanazt a layout-ot használjuk, hogy ne változzon az ablak méretezéskor
+    return { 
+      lg,
+      md: lg,
+      sm: lg,
+      xs: lg,
+      xxs: lg,
+    };
+  }, [widgets]);
+
+  // Layout változás kezelése - debounced, hogy ne legyen túl sok mentés
+  const layoutChangeTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  const handleLayoutChange = useCallback(
+    (layout: Layout[]) => {
+      try {
+        const newWidgets = widgets.map((widget) => {
+          const layoutItem = layout.find((l) => l.i === widget.id);
+          if (layoutItem) {
+            const updatedWidget = {
+              ...widget,
+              layout: {
+                ...widget.layout,
+                x: layoutItem.x,
+                y: layoutItem.y,
+                w: layoutItem.w,
+                h: layoutItem.h,
+              },
+            };
+            
+            // Ha egy csoport widget-et mozgatunk, akkor a benne lévő widget-ek pozícióját is frissítsük
+            if (widget.type === "widget-group" && widget.children) {
+              // A gyerek widget-ek nem jelennek meg külön a grid-ben, csak a csoport
+              // A pozíciójuk relatív a csoporthoz, ezért nem kell külön frissíteni
+              return updatedWidget;
+            }
+            
+            return updatedWidget;
+          }
+          return widget;
+        });
+        
+        setWidgets(newWidgets);
+
+        // Debounced mentés - hogy ne legyen render közbeni state frissítés
+        if (layoutChangeTimeoutRef.current) {
+          clearTimeout(layoutChangeTimeoutRef.current);
+        }
+        layoutChangeTimeoutRef.current = setTimeout(() => {
+          try {
+            const dashboardLayout: DashboardLayout = {
+              widgets: newWidgets,
+              version: 1,
+            };
+            console.log("[Dashboard] Layout change saved:", {
+              widgetCount: newWidgets.length,
+              layoutItems: layout.length,
+            });
+            onLayoutChange?.(dashboardLayout);
+          } catch (error) {
+            console.error("[Dashboard] Error saving layout change:", {
+              error: error instanceof Error ? error.message : String(error),
+              stack: error instanceof Error ? error.stack : undefined,
+            });
+            if (onError) {
+              onError(error instanceof Error ? error : new Error(String(error)));
+            }
+          }
+        }, 300);
+      } catch (error) {
+        console.error("[Dashboard] Error in handleLayoutChange:", {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+        if (onError) {
+          onError(error instanceof Error ? error : new Error(String(error)));
+        }
+      }
+    },
+    [widgets, onLayoutChange, onError]
+  );
+  
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (layoutChangeTimeoutRef.current) {
+        clearTimeout(layoutChangeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Csoport layout változás kezelése - debounced
+  const groupLayoutChangeTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  const handleGroupLayoutChange = useCallback(
+    (groupId: string, layouts: Layout[]) => {
+      setWidgets((prevWidgets) => {
+        const updatedWidgets = prevWidgets.map((w) => {
+          // Ha a widget a csoportban van
+          if (w.groupId === groupId) {
+            const layoutItem = layouts.find((l) => l.i === w.id);
+            if (layoutItem) {
+              return {
+                ...w,
+                layout: {
+                  ...w.layout,
+                  x: layoutItem.x,
+                  y: layoutItem.y,
+                  w: layoutItem.w,
+                  h: layoutItem.h,
+                },
+              };
+            }
+          }
+          return w;
+        });
+
+        // Debounced mentés - hogy ne legyen render közbeni state frissítés
+        if (groupLayoutChangeTimeoutRef.current) {
+          clearTimeout(groupLayoutChangeTimeoutRef.current);
+        }
+        groupLayoutChangeTimeoutRef.current = setTimeout(() => {
+          const dashboardLayout: DashboardLayout = {
+            widgets: updatedWidgets.map((w) => ({
+              id: w.id,
+              type: w.type,
+              title: w.title,
+              size: w.size,
+              visible: w.visible,
+              layout: w.layout,
+              groupId: w.groupId,
+              children: w.children,
+            })),
+            version: 1,
+          };
+          onLayoutChange?.(dashboardLayout);
+        }, 300);
+
+        return updatedWidgets;
+      });
+    },
+    [onLayoutChange]
+  );
+  
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (groupLayoutChangeTimeoutRef.current) {
+        clearTimeout(groupLayoutChangeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Widget eltávolítása
+  const handleRemoveWidget = useCallback(
+    (widgetId: string) => {
+      const widgetToRemove = widgets.find((w) => w.id === widgetId);
+      let newWidgets = widgets.filter((w) => w.id !== widgetId);
+      
+      // Ha csoport widget-et távolítunk el, akkor a benne lévő widget-eket is eltávolítjuk vagy kivesszük a csoportból
+      if (widgetToRemove?.type === "widget-group" && widgetToRemove.children) {
+        // Kivesszük a widget-eket a csoportból (groupId törlése)
+        newWidgets = newWidgets.map((w) => {
+          if (widgetToRemove.children?.includes(w.id)) {
+            return {
+              ...w,
+              groupId: undefined,
+            };
+          }
+          return w;
+        });
+      }
+      
+      // Ha egy widget-et távolítunk el, akkor eltávolítjuk a csoport children listájából is
+      newWidgets = newWidgets.map((w) => {
+        if (w.type === "widget-group" && w.children?.includes(widgetId)) {
+          return {
+            ...w,
+            children: w.children.filter((id) => id !== widgetId),
+          };
+        }
+        return w;
+      });
+      
+      setWidgets(newWidgets);
+      const dashboardLayout: DashboardLayout = {
+        widgets: newWidgets,
+        version: 1,
+      };
+      onLayoutChange?.(dashboardLayout);
+    },
+    [widgets, onLayoutChange]
+  );
+
+  // Widget láthatóság váltása
+  const handleToggleVisibility = useCallback(
+    (widgetId: string) => {
+      const newWidgets = widgets.map((w) =>
+        w.id === widgetId ? { ...w, visible: !w.visible } : w
+      );
+      setWidgets(newWidgets);
+      const dashboardLayout: DashboardLayout = {
+        widgets: newWidgets,
+        version: 1,
+      };
+      onLayoutChange?.(dashboardLayout);
+    },
+    [widgets, onLayoutChange]
+  );
+
+  // Widget méretezése
+  const handleResize = useCallback(
+    (widgetId: string, size: WidgetSize) => {
+      const sizeMap: Record<WidgetSize, { w: number; h: number }> = {
+        small: { w: 2, h: 2 },
+        medium: { w: 4, h: 3 },
+        large: { w: 6, h: 4 },
+      };
+
+      const newWidgets = widgets.map((w) => {
+        if (w.id === widgetId) {
+          const dimensions = sizeMap[size];
+          return {
+            ...w,
+            size,
+            layout: {
+              ...w.layout,
+              w: dimensions.w,
+              h: dimensions.h,
+            },
+          };
+        }
+        return w;
+      });
+      setWidgets(newWidgets);
+      const dashboardLayout: DashboardLayout = {
+        widgets: newWidgets,
+        version: 1,
+      };
+      onLayoutChange?.(dashboardLayout);
+    },
+    [widgets, onLayoutChange]
+  );
+
+  // Csoport létrehozása
+  const handleCreateGroup = useCallback(
+    (widgetIds: string[]) => {
+      if (widgetIds.length === 0) return;
+      
+      // Egyedi csoport szám generálása
+      const existingGroups = widgets.filter((w) => w.type === "widget-group");
+      const groupNumber = existingGroups.length + 1;
+      
+      const groupId = `widget-group-${Date.now()}`;
+      const groupWidget: WidgetConfig = {
+        id: groupId,
+        type: "widget-group",
+        title: `Csoport ${groupNumber}`,
+        size: "large",
+        visible: true,
+        layout: {
+          i: groupId,
+          x: 0,
+          y: 0,
+          w: 6,
+          h: 4,
+          minW: 4,
+          minH: 3,
+        },
+        children: widgetIds,
+      };
+      
+      // Frissítjük a widget-eket, hogy a csoportba tartozzanak
+      const newWidgets = widgets.map((w) => {
+        if (widgetIds.includes(w.id)) {
+          return {
+            ...w,
+            groupId: groupId,
+          };
+        }
+        return w;
+      });
+      
+      // Hozzáadjuk a csoport widget-et
+      newWidgets.push(groupWidget);
+      
+      setWidgets(newWidgets);
+      const dashboardLayout: DashboardLayout = {
+        widgets: newWidgets,
+        version: 1,
+      };
+      onLayoutChange?.(dashboardLayout);
+    },
+    [widgets, onLayoutChange]
+  );
+
+  // Widget hozzáadása csoporthoz
+  const handleAddToGroup = useCallback(
+    (widgetId: string, groupId: string) => {
+      const newWidgets = widgets.map((w) => {
+        if (w.id === widgetId) {
+          return {
+            ...w,
+            groupId: groupId,
+          };
+        }
+        if (w.id === groupId && w.type === "widget-group") {
+          const currentChildren = w.children || [];
+          if (!currentChildren.includes(widgetId)) {
+            return {
+              ...w,
+              children: [...currentChildren, widgetId],
+            };
+          }
+        }
+        return w;
+      });
+      
+      setWidgets(newWidgets);
+      const dashboardLayout: DashboardLayout = {
+        widgets: newWidgets,
+        version: 1,
+      };
+      onLayoutChange?.(dashboardLayout);
+    },
+    [widgets, onLayoutChange]
+  );
+
+  // Widget eltávolítása csoportból
+  const handleRemoveFromGroup = useCallback(
+    (widgetId: string) => {
+      const widget = widgets.find((w) => w.id === widgetId);
+      if (!widget?.groupId) return;
+      
+      const groupId = widget.groupId;
+      const newWidgets = widgets.map((w) => {
+        if (w.id === widgetId) {
+          return {
+            ...w,
+            groupId: undefined,
+          };
+        }
+        if (w.id === groupId && w.type === "widget-group") {
+          return {
+            ...w,
+            children: w.children?.filter((id) => id !== widgetId) || [],
+          };
+        }
+        return w;
+      });
+      
+      setWidgets(newWidgets);
+      const dashboardLayout: DashboardLayout = {
+        widgets: newWidgets,
+        version: 1,
+      };
+      onLayoutChange?.(dashboardLayout);
+    },
+    [widgets, onLayoutChange]
+  );
+
+  // Csoport nevének módosítása
+  const handleRenameGroup = useCallback(
+    (groupId: string, newTitle: string) => {
+      const newWidgets = widgets.map((w) => {
+        if (w.id === groupId && w.type === "widget-group") {
+          return {
+            ...w,
+            title: newTitle || w.title,
+          };
+        }
+        return w;
+      });
+      
+      setWidgets(newWidgets);
+      const dashboardLayout: DashboardLayout = {
+        widgets: newWidgets,
+        version: 1,
+      };
+      onLayoutChange?.(dashboardLayout);
+    },
+    [widgets, onLayoutChange]
+  );
+
+  // Widget renderelése típus alapján
+  const renderWidget = (widget: WidgetConfig) => {
+    try {
+      // Alapértelmezett értékek, ha hiányoznak
+      const safeFormatNumber = formatNumber || ((value: number, decimals: number) => value.toFixed(decimals));
+      const safeFormatCurrency = formatCurrency || ((value: number) => value);
+      const safeCurrencyLabel = currencyLabel || "EUR";
+      const safeStatsLabels = statsLabels || {
+        totalFilament: "Összes filament",
+        totalRevenue: "Összes bevétel",
+        totalElectricity: "Összes áram",
+        totalCost: "Összes költség",
+        netProfit: "Nettó profit",
+        totalPrintTime: "Összes nyomtatási idő",
+      };
+      const safeFilamentBreakdown = filamentBreakdown || [];
+      const safePrinterBreakdown = printerBreakdown || [];
+      const safeSummaryData = summaryData || [];
+      const safeTrendData = trendData || [];
+      const safeWeeklyStats = weeklyStats || { totalProfit: 0, offerCount: 0 };
+      const safeMonthlyStats = monthlyStats || { totalProfit: 0, offerCount: 0 };
+      const safeYearlyStats = yearlyStats || { totalProfit: 0, offerCount: 0 };
+
+    switch (widget.type) {
+      case "statistics":
+        return (
+          <StatisticsWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            statistics={statistics}
+          />
+        );
+      case "trend-chart":
+        return (
+          <TrendChartWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            data={safeTrendData}
+            onDataPointClick={(data, index) => {
+              console.log("Chart point clicked:", data, index);
+            }}
+            onExport={() => {
+              console.log("Export chart");
+            }}
+          />
+        );
+      case "period-comparison":
+        if (!weeklyStats || !monthlyStats || !yearlyStats) {
+          return <div>Period comparison data not available</div>;
+        }
+        return (
+          <PeriodComparisonWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            weeklyStats={safeWeeklyStats}
+            monthlyStats={safeMonthlyStats}
+            yearlyStats={safeYearlyStats}
+          />
+        );
+      case "filament-breakdown":
+        return (
+          <FilamentBreakdownWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            filamentBreakdown={safeFilamentBreakdown}
+          />
+        );
+      case "printer-breakdown":
+        return (
+          <PrinterBreakdownWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            printerBreakdown={safePrinterBreakdown}
+          />
+        );
+      case "summary":
+        return (
+          <SummaryWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            summaryData={safeSummaryData}
+          />
+        );
+      case "stat-card-filament":
+        return (
+          <StatCardWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            title={safeStatsLabels.totalFilament}
+            value={safeFormatNumber(statistics.totalFilamentUsed / 1000, 2)}
+            unit="kg"
+            icon="🧵"
+            color="#007bff"
+          />
+        );
+      case "stat-card-revenue":
+        return (
+          <StatCardWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            title={safeStatsLabels.totalRevenue}
+            value={safeFormatNumber(safeFormatCurrency(statistics.totalRevenue), 2)}
+            unit={safeCurrencyLabel}
+            icon="💰"
+            color="#28a745"
+          />
+        );
+      case "stat-card-electricity":
+        return (
+          <StatCardWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            title={safeStatsLabels.totalElectricity}
+            value={safeFormatNumber(statistics.totalElectricityConsumed, 2)}
+            unit="kWh"
+            icon="⚡"
+            color="#ffc107"
+          />
+        );
+      case "stat-card-cost":
+        return (
+          <StatCardWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            title={safeStatsLabels.totalCost}
+            value={safeFormatNumber(safeFormatCurrency(statistics.totalCosts), 2)}
+            unit={safeCurrencyLabel}
+            icon="💸"
+            color="#dc3545"
+          />
+        );
+      case "stat-card-profit":
+        return (
+          <StatCardWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            title={safeStatsLabels.netProfit}
+            value={safeFormatNumber(safeFormatCurrency(statistics.totalProfit || 0), 2)}
+            unit={safeCurrencyLabel}
+            icon="📈"
+            color={(statistics.totalProfit || 0) >= 0 ? "#28a745" : "#dc3545"}
+          />
+        );
+      case "stat-card-print-time":
+        return (
+          <StatCardWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            title={safeStatsLabels.totalPrintTime}
+            value={safeFormatNumber(statistics.totalPrintTime, 1)}
+            unit="óra"
+            icon="⏱️"
+            color="#6c757d"
+          />
+        );
+      case "widget-group":
+        return (
+          <WidgetGroup
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            allWidgets={widgets}
+            onRemove={handleRemoveWidget}
+            onToggleVisibility={handleToggleVisibility}
+            onResize={handleResize}
+            onLayoutChange={handleGroupLayoutChange}
+            renderWidget={renderWidget}
+          />
+        );
+      default:
+        return <div>Unknown widget type: {widget.type}</div>;
+    }
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      console.error("[Dashboard] Error rendering widget:", {
+        widgetId: widget.id,
+        widgetType: widget.type,
+        error: errorObj.message,
+        stack: errorObj.stack,
+      });
+      
+      // Hiba callback hívása, ha van
+      if (onError) {
+        try {
+          onError(errorObj);
+        } catch (callbackError) {
+          console.error("[Dashboard] Error in onError callback:", callbackError);
+        }
+      }
+      
+      return (
+        <div style={{
+          padding: "20px",
+          backgroundColor: theme.colors.surface,
+          border: `2px solid ${theme.colors.danger}`,
+          borderRadius: "8px",
+          color: theme.colors.danger,
+        }}>
+          <strong>Hiba a widget betöltésekor:</strong> {widget.type}
+          {import.meta.env.DEV && errorObj.stack && (
+            <pre style={{ marginTop: "10px", fontSize: "12px" }}>{errorObj.stack}</pre>
+          )}
+        </div>
+      );
+    }
+  };
+
+  const visibleWidgets = widgets.filter((w) => w.visible);
+  const [internalShowWidgetManager, setInternalShowWidgetManager] = React.useState(false);
+  const showWidgetManager = externalShowWidgetManager !== undefined ? externalShowWidgetManager : internalShowWidgetManager;
+  const setShowWidgetManager = onWidgetManagerToggle || setInternalShowWidgetManager;
+
+  // Debug log
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log("Dashboard widgets:", {
+        total: widgets.length,
+        visible: visibleWidgets.length,
+        widgets: widgets.map(w => ({ id: w.id, type: w.type, visible: w.visible })),
+      });
+    }
+  }, [widgets, visibleWidgets.length]);
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        minHeight: "calc(100vh - 200px)",
+        padding: "0",
+        backgroundColor: theme.colors.background,
+        position: "relative",
+        overflow: "visible",
+      }}
+    >
+
+      {/* Widget kezelő panel */}
+      {showWidgetManager && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 2000,
+            backgroundColor: theme.colors.surface,
+            border: `2px solid ${theme.colors.border}`,
+            borderRadius: "16px",
+            padding: "24px",
+            boxShadow: `0 8px 32px ${theme.colors.shadow}`,
+            maxWidth: "600px",
+            width: "90%",
+            maxHeight: "80vh",
+            overflow: "auto",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "20px",
+            paddingBottom: "12px",
+            borderBottom: `1px solid ${theme.colors.border}`,
+          }}>
+            <h2 style={{
+              margin: 0,
+              fontSize: "20px",
+              fontWeight: "700",
+              color: theme.colors.text,
+            }}>
+              Widget kezelő
+            </h2>
+            <button
+              onClick={() => {
+                if (onWidgetManagerToggle) {
+                  onWidgetManagerToggle();
+                } else {
+                  setShowWidgetManager(false);
+                }
+              }}
+              style={{
+                padding: "6px 12px",
+                backgroundColor: theme.colors.surfaceHover,
+                color: theme.colors.text,
+                border: `1px solid ${theme.colors.border}`,
+                borderRadius: "6px",
+                fontSize: "14px",
+                cursor: "pointer",
+              }}
+            >
+              ✕ Bezárás
+            </button>
+          </div>
+
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}>
+            {widgets.map((widget) => (
+              <div
+                key={widget.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "12px",
+                  backgroundColor: widget.visible ? theme.colors.surfaceHover : theme.colors.surface,
+                  border: `1px solid ${theme.colors.border}`,
+                  borderRadius: "8px",
+                }}
+              >
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  flex: 1,
+                }}>
+                  <span style={{
+                    fontSize: "20px",
+                  }}>
+                    {widget.type === "widget-group" ? "📦" : 
+                     widget.type.includes("stat-card") ? "📊" :
+                     widget.type.includes("chart") || widget.type.includes("trend") ? "📈" :
+                     widget.type === "summary" ? "📋" : "🔹"}
+                  </span>
+                  <div>
+                    <div style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: theme.colors.text,
+                    }}>
+                      {widget.title}
+                    </div>
+                    <div style={{
+                      fontSize: "12px",
+                      color: theme.colors.textMuted,
+                    }}>
+                      {widget.type} • {widget.size}
+                    </div>
+                  </div>
+                </div>
+                <label style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={widget.visible}
+                    onChange={() => handleToggleVisibility(widget.id)}
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      cursor: "pointer",
+                    }}
+                  />
+                  <span style={{
+                    fontSize: "14px",
+                    color: theme.colors.text,
+                    fontWeight: widget.visible ? "600" : "400",
+                  }}>
+                    {widget.visible ? "Látható" : "Elrejtve"}
+                  </span>
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Overlay a panel mögött */}
+      {showWidgetManager && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 1999,
+          }}
+          onClick={() => {
+            if (onWidgetManagerToggle) {
+              onWidgetManagerToggle();
+            } else {
+              setShowWidgetManager(false);
+            }
+          }}
+        />
+      )}
+      {visibleWidgets.length === 0 ? (
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "400px",
+          color: theme.colors.textMuted,
+          fontSize: "16px",
+        }}>
+          Nincsenek látható widget-ek. Kattints a "Widget Dashboard" gombra a nézet váltáshoz.
+        </div>
+      ) : (
+        <ResponsiveGridLayout
+          className="layout"
+          layouts={layouts}
+          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+          cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
+          rowHeight={90}
+          onLayoutChange={handleLayoutChange}
+          isDraggable={true}
+          isResizable={true}
+          compactType="vertical"
+          preventCollision={false}
+          draggableHandle=".widget-header"
+          margin={[12, 20]}
+          containerPadding={[20, 20]}
+          useCSSTransforms={true}
+          transformScale={1}
+          measureBeforeMount={false}
+          style={{
+            backgroundColor: theme.colors.background,
+            width: "100%",
+          }}
+        >
+          {visibleWidgets
+            .filter((w) => w.type === "widget-group" || !w.groupId) // Csoport widget-eket és a csoportban nem lévő widget-eket jelenítjük meg
+            .map((widget) => {
+              // Ha widget-group, akkor csak akkor legyen draggable, ha nincs aktív drag a csoporton belül
+              const isGroupWidget = widget.type === "widget-group";
+              return (
+                <div 
+                  key={widget.id} 
+                  style={{ 
+                    height: "100%", 
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: 0,
+                    position: "relative",
+                  }}
+                  onMouseDown={(e) => {
+                    // Ha a csoport widget-en belül történik drag, akkor megakadályozzuk
+                    if (isGroupWidget) {
+                      const target = e.target as HTMLElement;
+                      // Ha a drag a csoporton belüli widget header-en történik, akkor ne mozogjon a csoport
+                      if (target.closest('.react-grid-item') && target.closest('.widget-header')) {
+                        e.stopPropagation();
+                      }
+                    }
+                  }}
+                >
+                  <WidgetContainer
+                    widget={widget}
+                    theme={theme}
+                    onRemove={handleRemoveWidget}
+                    onToggleVisibility={handleToggleVisibility}
+                    onResize={handleResize}
+                    onAddToGroup={widget.type !== "widget-group" ? handleAddToGroup : undefined}
+                    onRemoveFromGroup={widget.groupId ? handleRemoveFromGroup : undefined}
+                    onCreateGroup={widget.type !== "widget-group" ? handleCreateGroup : undefined}
+                    onRenameGroup={widget.type === "widget-group" ? handleRenameGroup : undefined}
+                    availableGroups={widgets.filter((w) => w.type === "widget-group" && w.visible).map((w) => ({ id: w.id, title: w.title }))}
+                  >
+                    {renderWidget(widget)}
+                  </WidgetContainer>
+                </div>
+              );
+            })}
+          </ResponsiveGridLayout>
+      )}
+    </div>
+  );
+};
+

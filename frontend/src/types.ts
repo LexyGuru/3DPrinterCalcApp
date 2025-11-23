@@ -202,6 +202,8 @@ export interface Settings {
   tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
   logRetentionDays?: number; // Log fájlok megtartása napokban (0 = soha ne törölje)
   hideMacOSNotificationWarning?: boolean; // macOS értesítési figyelmeztetés elrejtése
+  dashboardLayout?: import("./types/widgets").DashboardLayout; // Dashboard widget layout
+  useWidgetDashboard?: boolean; // Widget dashboard használata (true) vagy klasszikus nézet (false)
 }
 
 export const defaultSettings: Settings = {

@@ -130,11 +130,24 @@ let allMaterials: string[] = [];
 let groupByBrand = new Map<string, LibraryColorOption[]>();
 
 const notifyListeners = () => {
-  listeners.forEach(listener => {
+  listeners.forEach((listener, index) => {
     try {
       listener();
     } catch (error) {
-      console.error("[FilamentLibrary] Listener error", error);
+      // Log error with better error handling
+      const errorMessage = error instanceof Error ? error.message : String(error || "Unknown error");
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const errorName = error instanceof Error ? error.name : typeof error;
+      console.error("[FilamentLibrary] Listener error", {
+        listenerIndex: index,
+        listenerCount: listeners.size,
+        errorName: errorName,
+        message: errorMessage,
+        stack: errorStack,
+        error: error,
+        errorType: typeof error,
+        errorString: String(error),
+      });
     }
   });
 };

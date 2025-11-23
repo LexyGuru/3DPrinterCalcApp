@@ -42,6 +42,20 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
+### v1.3.11 (2025) - 🎨 Widget Dashboard fejlesztések
+
+- 📊 **Widget Dashboard fejlesztések** - Továbbfejlesztett widget dashboard funkcionalitás:
+  - Javított widget container padding és margin a jobb szélről-szélig elrendezéshez
+  - Javított görgetési viselkedés - a widgetek most megfelelően görgetnek, ha a tartalom meghaladja a nézetet
+  - Javított widget zsugorodási probléma ablak méretezéskor - a widgetek mérete minden breakpoint-on konzisztens marad
+  - Konzisztens 12 oszlopos elrendezés minden képernyőmérethez
+  - Jobb widget pozicionálás és térköz
+- 🔧 **Elrendezés javítások**:
+  - Eltávolított fix container padding, ami megakadályozta, hogy a widgetek elérjék az app szélét
+  - Javított ResponsiveGridLayout magasság számítás a megfelelő görgetéshez
+  - Jobb container overflow kezelés
+  - Jobb widget csoport elrendezés konzisztencia
+
 ### v1.2.1 (2025) - 🎨 UI konzisztencia és oszlopkezelés
 
 - 📊 **Filamentek oszlopkezelés** - Oszlop láthatóság és rendezés hozzáadása a Filamentek komponenshez:
@@ -749,7 +763,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 1.2.1
+**Verzió**: 1.3.11
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

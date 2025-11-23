@@ -40,6 +40,20 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.3.11 (2025) - 🎨 Melhorias do Dashboard de Widgets
+
+- 📊 **Melhorias do Dashboard de Widgets** - Funcionalidade aprimorada do dashboard de widgets:
+  - Padding e margens do contêiner de widgets corrigidos para melhor layout de borda a borda
+  - Comportamento de rolagem melhorado - os widgets agora rolam corretamente quando o conteúdo excede a viewport
+  - Problema de encolhimento de widgets corrigido ao redimensionar a janela - os widgets mantêm o tamanho em todos os breakpoints
+  - Layout consistente de 12 colunas em todos os tamanhos de tela
+  - Melhor posicionamento e espaçamento de widgets
+- 🔧 **Correções de layout**:
+  - Removido o padding fixo do contêiner que impedia os widgets de alcançarem as bordas do aplicativo
+  - Corrigido o cálculo de altura do ResponsiveGridLayout para rolagem adequada
+  - Melhor tratamento de overflow do contêiner
+  - Melhor consistência do layout do grupo de widgets
+
 ### v1.2.1 (2025) - 🎨 Consistência UI e gerenciamento de colunas
 
 - 📊 **Gerenciamento de colunas de filamentos** - Adicionada visibilidade e ordenação de colunas ao componente Filamentos:
@@ -765,7 +779,7 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ---
 
-**Versão**: 1.2.1
+**Versão**: 1.3.11
 
 Se você tiver alguma dúvida ou encontrar um bug, por favor abra uma issue no repositório GitHub!
 
