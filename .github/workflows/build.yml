@@ -113,3 +113,74 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  release:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Get version from Cargo.toml
+        id: get-version
+        shell: bash
+        run: |
+          VERSION=$(grep '^version =' src-tauri/Cargo.toml | cut -d '"' -f2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+      
+      - name: Prepare release files
+        shell: bash
+        run: |
+          mkdir -p ./release-files
+          
+          # macOS files
+          if [ -d "./artifacts/macos-latest" ]; then
+            find ./artifacts/macos-latest -type f \( -name "*.dmg" -o -name "*.app" \) -exec cp {} ./release-files/ \;
+          fi
+          
+          # Linux files
+          if [ -d "./artifacts/ubuntu-latest" ]; then
+            find ./artifacts/ubuntu-latest -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.rpm" \) -exec cp {} ./release-files/ \;
+          fi
+          
+          # Windows files
+          if [ -d "./artifacts/windows-latest" ]; then
+            find ./artifacts/windows-latest -type f \( -name "*.msi" -o -name "*.exe" \) -exec cp {} ./release-files/ \;
+          fi
+          
+          echo "Release files prepared:"
+          ls -lh ./release-files/
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get-version.outputs.version }}
+          name: v${{ steps.get-version.outputs.version }}
+          body: |
+            ## Release v${{ steps.get-version.outputs.version }}
+            
+            This is a stable release built from the `main` branch.
+            
+            ### Download
+            Download the appropriate file for your platform:
+            - **macOS**: `.dmg` file
+            - **Linux**: `.deb`, `.AppImage`, or `.rpm` file
+            - **Windows**: `.msi` file
+            
+            ### Build Info
+            - Branch: `main`
+            - Commit: ${{ github.sha }}
+            - Workflow: ${{ github.workflow }}
+          prerelease: false
+          files: ./release-files/*
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
