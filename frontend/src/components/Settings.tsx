@@ -1219,8 +1219,9 @@ export const SettingsPage: React.FC<Props> = ({
   // Átalakítjuk az áramárat megjelenítéshez (Ft/kWh -> választott pénznem)
   const getDisplayElectricityPrice = (): number => {
     // Az electricityPrice mindig Ft/kWh-ban van tárolva
-    // Konvertáljuk a választott pénznemre
-    return convertCurrencyFromTo(settings.electricityPrice, "HUF", settings.currency);
+    // Konvertáljuk a választott pénznemre és kerekítsük 2 tizedesjegyre
+    const converted = convertCurrencyFromTo(settings.electricityPrice, "HUF", settings.currency);
+    return parseFloat(converted.toFixed(2));
   };
 
   // Konvertáljuk vissza Ft/kWh-ba amikor a felhasználó megadja az értéket
