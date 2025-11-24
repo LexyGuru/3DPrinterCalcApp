@@ -179,27 +179,42 @@ jobs:
         run: |
           mkdir -p ./release-files
           
-          # macOS files (filter by version)
+          echo "Looking for artifacts in:"
+          ls -la ./artifacts/ || echo "No artifacts directory found"
+          
+          # macOS files - try multiple patterns
           if [ -d "./artifacts/macos-latest-beta" ]; then
-            find ./artifacts/macos-latest-beta -type f -name "*${VERSION}*.dmg" -exec cp {} ./release-files/ \;
-            find ./artifacts/macos-latest-beta -type f -name "*${VERSION}*.app" -exec cp {} ./release-files/ \;
+            echo "Found macos-latest-beta directory"
+            find ./artifacts/macos-latest-beta -type f \( -name "*${VERSION}*.dmg" -o -name "*.dmg" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/macos-latest-beta -type f \( -name "*${VERSION}*.app" -o -name "*.app" \) -exec cp -r {} ./release-files/ \; 2>/dev/null || true
           fi
           
-          # Linux files (filter by version)
+          # Linux files - try multiple patterns
           if [ -d "./artifacts/ubuntu-latest-beta" ]; then
-            find ./artifacts/ubuntu-latest-beta -type f -name "*${VERSION}*.deb" -exec cp {} ./release-files/ \;
-            find ./artifacts/ubuntu-latest-beta -type f -name "*${VERSION}*.AppImage" -exec cp {} ./release-files/ \;
-            find ./artifacts/ubuntu-latest-beta -type f -name "*-${VERSION}-*.rpm" -exec cp {} ./release-files/ \;
+            echo "Found ubuntu-latest-beta directory"
+            find ./artifacts/ubuntu-latest-beta -type f \( -name "*${VERSION}*.deb" -o -name "*.deb" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/ubuntu-latest-beta -type f \( -name "*${VERSION}*.AppImage" -o -name "*.AppImage" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/ubuntu-latest-beta -type f \( -name "*-${VERSION}-*.rpm" -o -name "*.rpm" \) -exec cp {} ./release-files/ \;
           fi
           
-          # Windows files (filter by version)
+          # Windows files - try multiple patterns
           if [ -d "./artifacts/windows-latest-beta" ]; then
-            find ./artifacts/windows-latest-beta -type f -name "*${VERSION}*.msi" -exec cp {} ./release-files/ \;
-            find ./artifacts/windows-latest-beta -type f -name "*${VERSION}*.exe" -exec cp {} ./release-files/ \;
+            echo "Found windows-latest-beta directory"
+            find ./artifacts/windows-latest-beta -type f \( -name "*${VERSION}*.msi" -o -name "*.msi" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/windows-latest-beta -type f \( -name "*${VERSION}*.exe" -o -name "*.exe" \) -exec cp {} ./release-files/ \;
           fi
           
           echo "Release files prepared (version ${VERSION}):"
-          ls -lh ./release-files/
+          ls -lh ./release-files/ || echo "No release files found"
+          
+          # Count files
+          FILE_COUNT=$(find ./release-files -type f | wc -l)
+          echo "Total files found: ${FILE_COUNT}"
+          
+          if [ "$FILE_COUNT" -eq 0 ]; then
+            echo "WARNING: No release files found! Listing all artifacts:"
+            find ./artifacts -type f | head -20
+          fi
       
       - name: Extract changelog from README files
         id: extract-changelog
@@ -207,21 +222,31 @@ jobs:
         env:
           VERSION: ${{ steps.get-version.outputs.version }}
         run: |
-          # Extract changelog from README.hu.md
+          # Extract changelog from README.hu.md - try multiple patterns
           VERSION_PATTERN="v${VERSION}"
           CHANGELOG_HU=$(awk "/^### ${VERSION_PATTERN}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN}/) print}" README.hu.md | sed '$d' || echo "")
           
-          # If empty, try with different pattern
+          # If empty, try with pattern that includes date: "v1.3.12 (2025)"
           if [ -z "$CHANGELOG_HU" ]; then
-            CHANGELOG_HU=$(awk "/^### v${VERSION}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION}/) print}" README.hu.md | sed '$d' || echo "")
+            CHANGELOG_HU=$(awk "/^### v${VERSION} /,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION} /) print}" README.hu.md | sed '$d' || echo "")
           fi
           
-          # Extract changelog from README.en.md
+          # If still empty, try without "v" prefix
+          if [ -z "$CHANGELOG_HU" ]; then
+            CHANGELOG_HU=$(awk "/^### ${VERSION}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION}/) print}" README.hu.md | sed '$d' || echo "")
+          fi
+          
+          # Extract changelog from README.en.md - try multiple patterns
           CHANGELOG_EN=$(awk "/^### ${VERSION_PATTERN}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN}/) print}" README.en.md | sed '$d' || echo "")
           
-          # If empty, try with different pattern
+          # If empty, try with pattern that includes date: "v1.3.12 (2025)"
           if [ -z "$CHANGELOG_EN" ]; then
-            CHANGELOG_EN=$(awk "/^### v${VERSION}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION}/) print}" README.en.md | sed '$d' || echo "")
+            CHANGELOG_EN=$(awk "/^### v${VERSION} /,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION} /) print}" README.en.md | sed '$d' || echo "")
+          fi
+          
+          # If still empty, try without "v" prefix
+          if [ -z "$CHANGELOG_EN" ]; then
+            CHANGELOG_EN=$(awk "/^### ${VERSION}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION}/) print}" README.en.md | sed '$d' || echo "")
           fi
           
           # Combine both changelogs
@@ -273,8 +298,15 @@ jobs:
             - Commit: ${{ github.sha }}
             - Workflow: ${{ github.workflow }}
           prerelease: true
-          files: ./release-files/*
+          files: |
+            ./release-files/*.dmg
+            ./release-files/*.deb
+            ./release-files/*.AppImage
+            ./release-files/*.rpm
+            ./release-files/*.msi
+            ./release-files/*.exe
           generate_release_notes: false
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
