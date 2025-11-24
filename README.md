@@ -57,66 +57,36 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 
 ### Application Screenshots
 
-#### Dashboard & Statistics
-<p align="center">
-  <img src="docs/images/screenshot-dashboard.png" alt="Dashboard" width="800">
-</p>
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0;">
+  <div>
+    <img src="docs/images/screenshot-dashboard.png" alt="Dashboard" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-calculator.png" alt="Calculator" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-filament.png" alt="Filament Management" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-printcalc.png" alt="Printer Management" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-offers.png" alt="Offers" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-settings.png" alt="Settings" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-themes.png" alt="Themes" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-adevenced.png" alt="Advanced Settings" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-filament_db.png" alt="FilamentDB" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+</div>
 
-#### Calculator & Cost Analysis
-<p align="center">
-  <img src="docs/images/screenshot-calculator.png" alt="Calculator" width="800">
-</p>
-
-#### Filament Management
-<p align="center">
-  <img src="docs/images/screenshot-filaments.png" alt="Filament Management" width="800">
-</p>
-
-#### Printer Management
-<p align="center">
-  <img src="docs/images/screenshot-printers.png" alt="Printer Management" width="800">
-</p>
-
-#### Offers & Quotes
-<p align="center">
-  <img src="docs/images/screenshot-offers.png" alt="Offers" width="800">
-</p>
-
-#### Settings
-<p align="center">
-  <img src="docs/images/screenshot-settings.png" alt="Settings" width="800">
-</p>
-
-#### Widget System
-<p align="center">
-  <img src="docs/images/screenshot-widgets.png" alt="Widget System" width="800">
-</p>
-
-#### Charts & Analytics
-<p align="center">
-  <img src="docs/images/screenshot-charts.png" alt="Charts" width="800">
-</p>
-
-#### Period Comparison
-<p align="center">
-  <img src="docs/images/screenshot-period-comparison.png" alt="Period Comparison" width="800">
-</p>
-
-#### Customer Statistics
-<p align="center">
-  <img src="docs/images/screenshot-customer-stats.png" alt="Customer Statistics" width="800">
-</p>
-
-The application includes:
-- Home dashboard with statistics
-- Filament management
-- Printer management
-- Cost calculation calculator
-- Quotes list and detailed view
-- Status dashboard and timeline
-- PDF export and built-in preview
-- Interactive widget system
-- Advanced charts and analytics
 
 ## 🚀 Installation
 
