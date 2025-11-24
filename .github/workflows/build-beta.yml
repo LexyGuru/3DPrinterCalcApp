@@ -226,7 +226,8 @@ jobs:
           
           # Combine both changelogs
           if [ -n "$CHANGELOG_HU" ] && [ -n "$CHANGELOG_EN" ]; then
-            COMBINED_CHANGELOG="## 🇭🇺 Magyar / 🇬🇧 English
+            COMBINED_CHANGELOG=$(cat <<EOF
+## 🇭🇺 Magyar / 🇬🇧 English
 
 ### 🇭🇺 Magyar változások
 
@@ -236,19 +237,30 @@ ${CHANGELOG_HU}
 
 ### 🇬🇧 English Changes
 
-${CHANGELOG_EN}"
+${CHANGELOG_EN}
+EOF
+)
           elif [ -n "$CHANGELOG_HU" ]; then
-            COMBINED_CHANGELOG="## 🇭🇺 Magyar változások
+            COMBINED_CHANGELOG=$(cat <<EOF
+## 🇭🇺 Magyar változások
 
-${CHANGELOG_HU}"
+${CHANGELOG_HU}
+EOF
+)
           elif [ -n "$CHANGELOG_EN" ]; then
-            COMBINED_CHANGELOG="## 🇬🇧 English Changes
+            COMBINED_CHANGELOG=$(cat <<EOF
+## 🇬🇧 English Changes
 
-${CHANGELOG_EN}"
+${CHANGELOG_EN}
+EOF
+)
           else
-            COMBINED_CHANGELOG="## Beta Release v${VERSION}
+            COMBINED_CHANGELOG=$(cat <<EOF
+## Beta Release v${VERSION}
 
-No changelog found in README files for this version."
+No changelog found in README files for this version.
+EOF
+)
           fi
           
           # Save to output (escape newlines for GitHub Actions)
