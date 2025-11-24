@@ -226,41 +226,13 @@ jobs:
           
           # Combine both changelogs
           if [ -n "$CHANGELOG_HU" ] && [ -n "$CHANGELOG_EN" ]; then
-            COMBINED_CHANGELOG=$(cat <<EOF
-## 🇭🇺 Magyar / 🇬🇧 English
-
-### 🇭🇺 Magyar változások
-
-${CHANGELOG_HU}
-
----
-
-### 🇬🇧 English Changes
-
-${CHANGELOG_EN}
-EOF
-)
+            COMBINED_CHANGELOG="## 🇭🇺 Magyar / 🇬🇧 English"$'\n\n'"### 🇭🇺 Magyar változások"$'\n\n'"${CHANGELOG_HU}"$'\n\n'"---"$'\n\n'"### 🇬🇧 English Changes"$'\n\n'"${CHANGELOG_EN}"
           elif [ -n "$CHANGELOG_HU" ]; then
-            COMBINED_CHANGELOG=$(cat <<EOF
-## 🇭🇺 Magyar változások
-
-${CHANGELOG_HU}
-EOF
-)
+            COMBINED_CHANGELOG="## 🇭🇺 Magyar változások"$'\n\n'"${CHANGELOG_HU}"
           elif [ -n "$CHANGELOG_EN" ]; then
-            COMBINED_CHANGELOG=$(cat <<EOF
-## 🇬🇧 English Changes
-
-${CHANGELOG_EN}
-EOF
-)
+            COMBINED_CHANGELOG="## 🇬🇧 English Changes"$'\n\n'"${CHANGELOG_EN}"
           else
-            COMBINED_CHANGELOG=$(cat <<EOF
-## Beta Release v${VERSION}
-
-No changelog found in README files for this version.
-EOF
-)
+            COMBINED_CHANGELOG="## Beta Release v${VERSION}"$'\n\n'"No changelog found in README files for this version."
           fi
           
           # Save to output (escape newlines for GitHub Actions)
