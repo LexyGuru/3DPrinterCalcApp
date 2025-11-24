@@ -46,7 +46,7 @@ export const FilamentBreakdownWidget: React.FC<FilamentBreakdownWidgetProps> = (
           <div style={{ 
             width: "100%", 
             flex: "1 1 0",
-            minHeight: 0,
+            minHeight: "150px",
             position: "relative", 
             display: "flex",
             justifyContent: "center",
@@ -59,6 +59,8 @@ export const FilamentBreakdownWidget: React.FC<FilamentBreakdownWidgetProps> = (
               theme={theme}
               settings={settings}
               height="100%"
+              showLegend={false}
+              exportFileName={t("home.chart.filamentBreakdown").toLowerCase().replace(/\s+/g, "-")}
             />
           </div>
           <div style={{ 

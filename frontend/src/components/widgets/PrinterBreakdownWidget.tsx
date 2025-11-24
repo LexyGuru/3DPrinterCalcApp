@@ -3,6 +3,7 @@ import type { WidgetConfig } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
 import type { Settings } from "../../types";
 import { useTranslation } from "../../utils/translations";
+import { getCurrencyLabel } from "../../utils/currency";
 import { InteractiveChart } from "./InteractiveChart";
 
 interface PrinterBreakdownWidgetProps {
@@ -33,7 +34,7 @@ export const PrinterBreakdownWidget: React.FC<PrinterBreakdownWidgetProps> = ({
     return value;
   };
 
-  const currencyLabel = settings.currency === "HUF" ? "Ft" : settings.currency;
+  const currencyLabel = getCurrencyLabel(settings.currency);
 
   const chartData = printerBreakdown.map(slice => ({
     name: slice.label,
@@ -56,7 +57,7 @@ export const PrinterBreakdownWidget: React.FC<PrinterBreakdownWidgetProps> = ({
           <div style={{ 
             width: "100%", 
             flex: "1 1 0",
-            minHeight: 0,
+            minHeight: "150px",
             position: "relative", 
             overflow: "hidden",
           }}>
@@ -66,6 +67,8 @@ export const PrinterBreakdownWidget: React.FC<PrinterBreakdownWidgetProps> = ({
               theme={theme}
               settings={settings}
               height="100%"
+              showLegend={false}
+              exportFileName={t("home.chart.revenueByPrinter").toLowerCase().replace(/\s+/g, "-")}
             />
           </div>
           <div style={{ 

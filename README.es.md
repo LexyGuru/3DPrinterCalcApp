@@ -25,7 +25,7 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 - 👥 **Base de datos de clientes** - Gestión de clientes con información de contacto, detalles de empresa y estadísticas de ofertas
 - 📊 **Historial y tendencias de precios** - Seguimiento de cambios de precios de filamento con gráficos y estadísticas
 - 🌍 **Multilingüe** - Traducción completa en húngaro, inglés, alemán, francés, chino simplificado, checo, español, italiano, polaco, portugués, eslovaco, ucraniano y ruso (14 idiomas, 850+ claves de traducción por idioma)
-- 💱 **Múltiples monedas** - EUR, HUF, USD
+- 💱 **Múltiples monedas** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 monedas)
 - 🔄 **Actualizaciones automáticas** - Verifica GitHub Releases para nuevas versiones
 - 🧪 **Versiones beta** - Soporte para branch beta y build beta
 - ⚙️ **Verificación beta** - Verificación configurable de versiones beta
@@ -40,6 +40,32 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 - 🍎 **Funciones específicas de plataforma** - Badge de Dock de macOS, notificaciones nativas, integración de bandeja del sistema
 
 ## 📋 Registro de cambios (Changelog)
+
+### v1.3.12 (2025) - 🎨 Mejoras del Sistema de Widgets y Monedas
+
+- 📊 **Mejoras del Sistema de Widgets** - Funcionalidad mejorada de widgets y localización:
+  - Nuevos widgets añadidos: Gráfico de Tiempo de Impresión, Gráfico de Estadísticas de Clientes, Gráfico de Estado de Ofertas
+  - Funcionalidad de exportación de widgets corregida - todos los widgets de gráficos ahora exportables como SVG
+  - Traducción dinámica de títulos de widgets basada en el idioma seleccionado
+  - Nombres de archivo de exportación localizados con nomenclatura compatible con OS (guiones bajos, sin caracteres especiales)
+  - Idiomas de widgets se actualizan inmediatamente después del cambio de idioma
+  - Notificaciones toast para exportaciones de gráficos exitosas
+  - Todos los elementos de widgets y estados de carga completamente traducidos en los 14 idiomas
+- 💱 **Expansión de Soporte de Monedas** - Soporte de monedas extendido:
+  - Monedas añadidas: GBP (Libra Esterlina), PLN (Zloty Polaco), CZK (Corona Checa), CNY (Yuan Chino), UAH (Grivna Ucraniana), RUB (Rublo Ruso)
+  - Símbolos y etiquetas de monedas para todas las nuevas monedas
+  - Conversión y visualización correcta de monedas en todos los componentes
+  - Menú desplegable de selección de moneda actualizado con todas las monedas admitidas
+- 💰 **Corrección de Precisión de Cálculo de Costos** - Problemas de precisión de punto flotante corregidos:
+  - Todos los cálculos de costos (filamento, electricidad, secado, uso, total) ahora redondeados a 2 decimales
+  - Eliminadas visualizaciones decimales largas (ej. `0.17500000000000002` → `0.18`)
+  - Formato de números consistente en toda la aplicación
+- 🏢 **Diálogo de Información de la Empresa** - Gestión mejorada de información de la empresa:
+  - Formulario de información de la empresa movido a diálogo modal (similar a Bienes/Filamentos)
+  - Botón "Detalles de la Empresa" para abrir/editar información de la empresa
+  - El diálogo se puede cerrar mediante botón X, clic en el fondo o tecla Escape
+  - Mejor UX con transiciones modales animadas
+  - Todos los campos de información de la empresa accesibles en interfaz de diálogo organizada
 
 ### v1.3.11 (2025) - 🎨 Mejoras del Dashboard de Widgets
 
@@ -780,7 +806,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ---
 
-**Versión**: 1.3.11
+**Versión**: 1.3.12
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 

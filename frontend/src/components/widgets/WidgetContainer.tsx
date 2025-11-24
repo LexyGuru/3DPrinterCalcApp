@@ -2,10 +2,13 @@ import React, { type ReactNode } from "react";
 import type { WidgetConfig, WidgetSize } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
 import { getThemeStyles } from "../../utils/themes";
+import type { Settings } from "../../types";
+import { useTranslation } from "../../utils/translations";
 
 interface WidgetContainerProps {
   widget: WidgetConfig;
   theme: Theme;
+  settings: Settings;
   children: ReactNode;
   onRemove?: (widgetId: string) => void;
   onToggleVisibility?: (widgetId: string) => void;
@@ -21,6 +24,7 @@ interface WidgetContainerProps {
 export const WidgetContainer: React.FC<WidgetContainerProps> = ({
   widget,
   theme,
+  settings,
   children,
   onRemove,
   onToggleVisibility,
@@ -33,9 +37,62 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
   isDragging = false,
 }) => {
   const themeStyles = getThemeStyles(theme);
+  const t = useTranslation(settings.language);
   const [showControls, setShowControls] = React.useState(false);
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [editedTitle, setEditedTitle] = React.useState(widget.title);
+
+  // Widget cím dinamikus fordítása
+  const getWidgetTitle = React.useCallback((widget: WidgetConfig): string => {
+    // Ha a widget egy csoport és van egyedi címe (nem az alapértelmezett), akkor azt használjuk
+    if (widget.type === "widget-group") {
+      const defaultGroupName = t("widget.group.name");
+      // Ha a cím nem az alapértelmezett csoport név formátumú, akkor egyedi név
+      if (widget.title && !widget.title.match(new RegExp(`^${defaultGroupName} \\d+$`))) {
+        return widget.title;
+      }
+      // Ha az alapértelmezett formátumú, akkor fordítjuk
+      const match = widget.title?.match(/^Csoport (\d+)$/) || widget.title?.match(new RegExp(`^${defaultGroupName} (\\d+)$`));
+      if (match) {
+        return `${t("widget.group.name")} ${match[1]}`;
+      }
+      return widget.title || `${t("widget.group.name")} 1`;
+    }
+    
+    // Egyéb widget típusok fordítása
+    switch (widget.type) {
+      case "period-comparison":
+        return t("widget.title.periodComparison");
+      case "stat-card-filament":
+        return t("widget.title.totalFilament");
+      case "stat-card-revenue":
+        return t("widget.title.totalRevenue");
+      case "stat-card-electricity":
+        return t("widget.title.totalElectricity");
+      case "stat-card-cost":
+        return t("widget.title.totalCost");
+      case "stat-card-profit":
+        return t("widget.title.netProfit");
+      case "stat-card-print-time":
+        return t("widget.title.totalPrintTime");
+      case "trend-chart":
+        return t("widget.title.trends");
+      case "filament-breakdown":
+        return t("widget.title.filamentBreakdown");
+      case "printer-breakdown":
+        return t("widget.title.revenueByPrinter");
+      case "summary":
+        return t("widget.title.summary");
+      case "print-time-chart":
+        return t("widget.title.printTimeChart");
+      case "customer-stats-chart":
+        return t("widget.title.customerStatsChart");
+      case "offer-status-chart":
+        return t("widget.title.offerStatusChart");
+      default:
+        return widget.title || "";
+    }
+  }, [t, widget]);
 
   // Frissítjük az editedTitle-t, ha a widget.title változik
   React.useEffect(() => {
@@ -73,6 +130,13 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
       }}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
+      onMouseDown={(e) => {
+        // Ne blokkoljuk az export gomb eseményeit
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-export-button]')) {
+          return;
+        }
+      }}
     >
         {/* Widget Header */}
         <div
@@ -150,9 +214,9 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
                   setEditedTitle(widget.title);
                 }
               }}
-              title={widget.type === "widget-group" && onRenameGroup ? "Dupla kattintás a szerkesztéshez" : widget.title}
+              title={widget.type === "widget-group" && onRenameGroup ? t("widget.action.doubleClickToEdit") : getWidgetTitle(widget)}
             >
-              {widget.title}
+              {getWidgetTitle(widget)}
             </h3>
           )}
           
@@ -198,7 +262,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
                   fontSize: "12px",
                   minWidth: "auto",
                 }}
-                title="Elrejtés"
+                title={t("widget.action.hide")}
               >
                 👁️
               </button>
@@ -217,7 +281,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
                     fontSize: "12px",
                     minWidth: "auto",
                   }}
-                  title="Eltávolítás"
+                  title={t("widget.action.remove")}
                 >
                   ✕
                 </button>
@@ -238,7 +302,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
                     fontSize: "12px",
                     minWidth: "auto",
                   }}
-                  title="Csoport átnevezése"
+                  title={t("widget.action.renameGroup")}
                 >
                   ✏️
                 </button>
@@ -260,7 +324,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
                         fontSize: "12px",
                         minWidth: "auto",
                       }}
-                      title="Kivétel a csoportból"
+                      title={t("widget.action.removeFromGroup")}
                     >
                       📤
                     </button>
@@ -282,9 +346,9 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
                             fontSize: "12px",
                             marginRight: "4px",
                           }}
-                          title="Csoportba helyezés"
+                          title={t("widget.action.addToGroup")}
                         >
-                          <option value="">📦 Csoport</option>
+                          <option value="">📦 {t("widget.group.name")}</option>
                           {availableGroups.map((group) => (
                             <option key={group.id} value={group.id}>
                               {group.title}
@@ -305,7 +369,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
                             fontSize: "12px",
                             minWidth: "auto",
                           }}
-                          title="Új csoport létrehozása"
+                          title={t("widget.action.createGroup")}
                         >
                           ➕
                         </button>
@@ -322,7 +386,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
         <div
           style={{
             flex: 1,
-            overflow: "visible",
+            overflow: "hidden",
             minHeight: 0,
             minWidth: 0,
             display: "flex",
@@ -338,7 +402,8 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
             minWidth: 0,
             display: "flex",
             flexDirection: "column",
-            overflow: "visible",
+            overflow: "hidden",
+            position: "relative",
           }}>
             {children}
           </div>

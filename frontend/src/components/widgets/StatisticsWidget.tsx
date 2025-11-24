@@ -2,6 +2,7 @@ import React from "react";
 import type { WidgetConfig } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
 import { useTranslation } from "../../utils/translations";
+import { getCurrencyLabel } from "../../utils/currency";
 import type { Settings } from "../../types";
 
 interface StatisticsWidgetProps {
@@ -26,7 +27,7 @@ export const StatisticsWidget: React.FC<StatisticsWidgetProps> = ({
   statistics,
 }) => {
   const t = useTranslation(settings.language);
-  const currencyLabel = settings.currency === "HUF" ? "Ft" : settings.currency;
+  const currencyLabel = getCurrencyLabel(settings.currency);
 
   const stats = [
     {

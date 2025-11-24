@@ -26,7 +26,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 👥 **Ügyfél adatbázis** - Ügyfelek kezelése kapcsolattartási adatokkal, cégadatokkal és árajánlat statisztikákkal
 - 📊 **Ár előzmények és trendek** - Filament ár változások követése grafikonokkal és statisztikákkal
 - 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia, egyszerűsített kínai, cseh, spanyol, olasz, lengyel, portugál, szlovák, ukrán és orosz nyelveken (14 nyelv, összesen 850+ fordítási kulcs minden nyelven)
-- 💱 **Több pénznem** - EUR, HUF, USD
+- 💱 **Több pénznem** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 pénznem)
 - 🔄 **Automatikus frissítések** - Ellenőrzi a GitHub Releases-t új verziókért
 - 🧪 **Beta verziók** - Beta branch és beta buildelés támogatás
 - ⚙️ **Beta ellenőrzés** - Beállítható, hogy ellenőrizze-e a beta verziókat
@@ -41,6 +41,32 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🍎 **Platform-specifikus funkciók** - macOS Dock badge, natív értesítések, system tray integráció
 
 ## 📋 Változások (Changelog)
+
+### v1.3.12 (2025) - 🎨 Widget rendszer és pénznem fejlesztések
+
+- 📊 **Widget rendszer fejlesztések** - Továbbfejlesztett widget funkcionalitás és lokalizálás:
+  - Új widgetek hozzáadva: Nyomtatási idő grafikon, Ügyfél statisztikák grafikon, Árajánlat státusz grafikon
+  - Widget export funkció javítva - minden grafikon widget most exportálható SVG-ként
+  - Dinamikus widget címek fordítása a kiválasztott nyelv alapján
+  - Lokalizált export fájlnevek megfelelő OS-kompatibilis elnevezéssel (aláhúzások, nincs speciális karakter)
+  - Widget nyelvek azonnal frissülnek nyelvválasztás után
+  - Toast értesítések sikeres grafikon exportokhoz
+  - Minden widget elem és betöltési állapot teljes mértékben lefordítva mind a 14 nyelven
+- 💱 **Pénznem támogatás bővítése** - Kibővített pénznem támogatás:
+  - Hozzáadott pénznemek: GBP (Brit font), PLN (Lengyel zloty), CZK (Cseh korona), CNY (Kínai jüan), UAH (Ukrán hrivnya), RUB (Orosz rubel)
+  - Pénznem szimbólumok és címkék minden új pénznemhez
+  - Megfelelő pénznem konverzió és megjelenítés minden komponensben
+  - Pénznem választó lenyíló ablak frissítve minden támogatott pénznemmel
+- 💰 **Költségszámítás precíziós javítás** - Lebegőpontos precíziós hibák javítva:
+  - Minden költségszámítás (filament, áram, szárítás, használat, összes) most 2 tizedesjegyre kerekítve
+  - Eltávolított hosszú tizedesjegyek megjelenítése (pl. `0.17500000000000002` → `0.18`)
+  - Konzisztens számformázás az alkalmazásban
+- 🏢 **Céginformációk dialógus** - Továbbfejlesztett cégadat kezelés:
+  - Céginformációk űrlap dialógusba helyezve (hasonlóan a Goods/Filamentekhez)
+  - "Cégadatok" gomb a céginformációk megnyitásához/szerkesztéséhez
+  - Dialógus bezárható X gombbal, backdrop kattintással vagy Escape billentyűvel
+  - Jobb UX animált modal átmenetekkel
+  - Minden céginformáció mező elérhető rendezett dialógus felületen
 
 ### v1.3.11 (2025) - 🎨 Widget Dashboard fejlesztések
 
@@ -763,7 +789,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 1.3.11
+**Verzió**: 1.3.12
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

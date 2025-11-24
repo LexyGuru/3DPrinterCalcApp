@@ -25,7 +25,7 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 - 👥 **Database clienti** - Gestione clienti con informazioni di contatto, dettagli aziendali e statistiche delle offerte
 - 📊 **Storico e tendenze dei prezzi** - Tracciamento delle variazioni di prezzo del filamento con grafici e statistiche
 - 🌍 **Multilingue** - Traduzione completa in ungherese, inglese, tedesco, francese, cinese semplificato, ceco, spagnolo, italiano, polacco, portoghese, slovacco, ucraino e russo (14 lingue, 850+ chiavi di traduzione per lingua)
-- 💱 **Valute multiple** - EUR, HUF, USD
+- 💱 **Valute multiple** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 valute)
 - 🔄 **Aggiornamenti automatici** - Controlla GitHub Releases per nuove versioni
 - 🧪 **Versioni beta** - Supporto branch beta e build beta
 - ⚙️ **Controllo beta** - Controllo configurabile versioni beta
@@ -780,7 +780,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 1.3.11
+**Versione**: 1.3.12
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

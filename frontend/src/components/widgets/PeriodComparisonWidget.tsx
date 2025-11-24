@@ -3,6 +3,7 @@ import type { WidgetConfig } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
 import type { Settings } from "../../types";
 import { useTranslation } from "../../utils/translations";
+import { getCurrencyLabel } from "../../utils/currency";
 
 interface PeriodComparisonWidgetProps {
   widget: WidgetConfig;
@@ -116,7 +117,7 @@ export const PeriodComparisonWidget: React.FC<PeriodComparisonWidgetProps> = ({
               whiteSpace: "nowrap",
               flexShrink: 0,
             }}>
-              {formatCurrency(period.stats.totalProfit).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
+              {formatCurrency(period.stats.totalProfit).toFixed(2)} {getCurrencyLabel(settings.currency)}
             </div>
             <div style={{ 
               fontSize: "10px", 

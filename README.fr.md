@@ -25,7 +25,7 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 - 👥 **Base de données clients** - Gestion des clients avec informations de contact, détails d'entreprise et statistiques d'offres
 - 📊 **Historique et tendances des prix** - Suivi des changements de prix de filament avec graphiques et statistiques
 - 🌍 **Multilingue** - Traduction complète en hongrois, anglais, allemand, français, chinois simplifié, tchèque, espagnol, italien, polonais, portugais, slovaque, ukrainien et russe (14 langues, 850+ clés de traduction par langue)
-- 💱 **Plusieurs devises** - EUR, HUF, USD
+- 💱 **Plusieurs devises** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 devises)
 - 🔄 **Mises à jour automatiques** - Vérifie GitHub Releases pour nouvelles versions
 - 🧪 **Versions bêta** - Support de branche bêta et build bêta
 - ⚙️ **Vérification bêta** - Vérification configurable des versions bêta
@@ -40,6 +40,32 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 - 🍎 **Fonctionnalités spécifiques à la plateforme** - Badge Dock macOS, notifications natives, intégration de la barre d'état système
 
 ## 📋 Journal des modifications (Changelog)
+
+### v1.3.12 (2025) - 🎨 Améliorations du système de widgets et des devises
+
+- 📊 **Améliorations du système de widgets** - Fonctionnalité de widgets améliorée et localisation:
+  - Nouveaux widgets ajoutés: Graphique du temps d'impression, Graphique des statistiques clients, Graphique du statut des offres
+  - Fonctionnalité d'exportation de widgets corrigée - tous les widgets graphiques maintenant exportables en SVG
+  - Traduction dynamique des titres de widgets basée sur la langue sélectionnée
+  - Noms de fichiers d'exportation localisés avec nomenclature compatible OS (soulignés, pas de caractères spéciaux)
+  - Langues des widgets mises à jour immédiatement après changement de langue
+  - Notifications toast pour exportations de graphiques réussies
+  - Tous les éléments de widgets et états de chargement entièrement traduits dans les 14 langues
+- 💱 **Extension du support des devises** - Support des devises étendu:
+  - Devises ajoutées: GBP (Livre Sterling), PLN (Zloty Polonais), CZK (Couronne Tchèque), CNY (Yuan Chinois), UAH (Hryvnia Ukrainienne), RUB (Rouble Russe)
+  - Symboles et étiquettes de devises pour toutes les nouvelles devises
+  - Conversion et affichage corrects des devises dans tous les composants
+  - Menu déroulant de sélection de devise mis à jour avec toutes les devises supportées
+- 💰 **Correction de précision du calcul des coûts** - Problèmes de précision en virgule flottante corrigés:
+  - Tous les calculs de coûts (filament, électricité, séchage, utilisation, total) maintenant arrondis à 2 décimales
+  - Affichages décimaux longs éliminés (ex. `0.17500000000000002` → `0.18`)
+  - Formatage de nombres cohérent dans toute l'application
+- 🏢 **Dialogue d'informations sur l'entreprise** - Gestion améliorée des informations sur l'entreprise:
+  - Formulaire d'informations sur l'entreprise déplacé vers dialogue modal (similaire à Biens/Filaments)
+  - Bouton "Détails de l'entreprise" pour ouvrir/modifier les informations sur l'entreprise
+  - Dialogue peut être fermé via bouton X, clic sur l'arrière-plan ou touche Escape
+  - Meilleure UX avec transitions modales animées
+  - Tous les champs d'informations sur l'entreprise accessibles dans interface de dialogue organisée
 
 ### v1.3.11 (2025) - 🎨 Améliorations du tableau de bord des widgets
 
@@ -780,7 +806,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 1.3.11
+**Version**: 1.3.12
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

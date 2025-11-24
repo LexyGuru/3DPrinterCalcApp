@@ -26,7 +26,7 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 👥 **Kundendatenbank** - Kundenverwaltung mit Kontaktinformationen, Firmendaten und Angebotsstatistiken
 - 📊 **Preisverlauf und Trends** - Verfolgung von Filamentpreisänderungen mit Diagrammen und Statistiken
 - 🌍 **Mehrsprachig** - Vollständige Übersetzung in Ungarisch, Englisch, Deutsch, Französisch, Vereinfachtem Chinesisch, Tschechisch, Spanisch, Italienisch, Polnisch, Portugiesisch, Slowakisch, Ukrainisch und Russisch (14 Sprachen, 850+ Übersetzungsschlüssel pro Sprache)
-- 💱 **Mehrere Währungen** - EUR, HUF, USD
+- 💱 **Mehrere Währungen** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 Währungen)
 - 🔄 **Automatische Updates** - Prüft GitHub Releases auf neue Versionen
 - 🧪 **Beta-Versionen** - Beta-Branch und Beta-Build-Unterstützung
 - ⚙️ **Beta-Prüfung** - Konfigurierbare Beta-Versionsprüfung
@@ -41,6 +41,32 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 🍎 **Plattformspezifische Funktionen** - macOS Dock-Badge, native Benachrichtigungen, System-Tray-Integration
 
 ## 📋 Änderungsprotokoll (Changelog)
+
+### v1.3.12 (2025) - 🎨 Widget-System & Währungsverbesserungen
+
+- 📊 **Widget-System Verbesserungen** - Erweiterte Widget-Funktionalität und Lokalisierung:
+  - Neue Widgets hinzugefügt: Druckzeit-Diagramm, Kundenstatistik-Diagramm, Angebotsstatus-Diagramm
+  - Widget-Export-Funktionalität behoben - alle Diagramm-Widgets jetzt als SVG exportierbar
+  - Dynamische Widget-Titel-Übersetzung basierend auf ausgewählter Sprache
+  - Lokalisierte Export-Dateinamen mit OS-kompatibler Benennung (Unterstriche, keine Sonderzeichen)
+  - Widget-Sprachen aktualisieren sich sofort nach Sprachänderung
+  - Toast-Benachrichtigungen für erfolgreiche Diagramm-Exporte
+  - Alle Widget-Elemente und Ladezustände vollständig in allen 14 Sprachen übersetzt
+- 💱 **Währungsunterstützung erweitert** - Erweiterte Währungsunterstützung:
+  - Hinzugefügte Währungen: GBP (Britisches Pfund), PLN (Polnischer Zloty), CZK (Tschechische Krone), CNY (Chinesischer Yuan), UAH (Ukrainische Hryvnia), RUB (Russischer Rubel)
+  - Währungssymbole und -bezeichnungen für alle neuen Währungen
+  - Korrekte Währungsumrechnung und -anzeige in allen Komponenten
+  - Währungsauswahl-Dropdown mit allen unterstützten Währungen aktualisiert
+- 💰 **Kostenberechnungs-Präzisionsfix** - Gleitkomma-Präzisionsprobleme behoben:
+  - Alle Kostenberechnungen (Filament, Strom, Trocknung, Nutzung, Gesamt) jetzt auf 2 Dezimalstellen gerundet
+  - Lange Dezimalanzeigen eliminiert (z.B. `0.17500000000000002` → `0.18`)
+  - Konsistente Zahlenformatierung in der gesamten Anwendung
+- 🏢 **Firmeninformations-Dialog** - Verbesserte Firmeninfo-Verwaltung:
+  - Firmeninformationsformular in modalen Dialog verschoben (ähnlich wie Waren/Filamente)
+  - "Firmendaten" Button zum Öffnen/Bearbeiten von Firmeninformationen
+  - Dialog kann über X-Button, Backdrop-Klick oder Escape-Taste geschlossen werden
+  - Bessere UX mit animierten Modal-Übergängen
+  - Alle Firmeninfo-Felder in organisiertem Dialog-Interface zugänglich
 
 ### v1.3.11 (2025) - 🎨 Widget Dashboard Verbesserungen
 
@@ -781,7 +807,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 1.3.11
+**Version**: 1.3.12
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

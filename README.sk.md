@@ -23,7 +23,7 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 - 🧾 **Import G-code a vytváranie konceptu** - Načítanie exportov G-code/JSON (Prusa, Cura, Orca, Qidi) z modalu v kalkulačke, s podrobným zhrnutím a automatickým generovaním konceptu ponuky
 - 📈 **Štatistiky** - Prehľadný dashboard pre spotrebu filamentu, príjmy, zisk
 - 🌍 **Viacjazyčnosť** - Úplný preklad do maďarčiny, angličtiny, nemčiny, francúzštiny, zjednodušenej čínštiny, češtiny, španielčiny, taliančiny, poľštiny, portugalčiny, slovenčiny, ukrajinčiny a ruštiny (14 jazykov, 813 prekladových kľúčov na jazyk)
-- 💱 **Viaceré meny** - EUR, HUF, USD
+- 💱 **Viaceré meny** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 mien)
 - 🔄 **Automatické aktualizácie** - Kontroluje GitHub Releases pre nové verzie
 - 🧪 **Beta verzie** - Podpora beta vetvy a beta buildu
 - ⚙️ **Kontrola beta** - Konfigurovateľná kontrola beta verzií
@@ -39,6 +39,32 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 ## 📸 Screenshoty
 
 ## 📋 Zoznam zmien (Changelog)
+
+### v1.3.12 (2025) - 🎨 Vylepšenia systému widgetov a mien
+
+- 📊 **Vylepšenia systému widgetov** - Vylepšená funkčnosť widgetov a lokalizácia:
+  - Pridané nové widgety: Graf času tlače, Graf štatistík zákazníkov, Graf stavu ponúk
+  - Opravená funkčnosť exportu widgetov - všetky grafické widgety teraz exportovateľné ako SVG
+  - Dynamický preklad názvov widgetov na základe vybraného jazyka
+  - Lokalizované názvy súborov exportu s kompatibilným pomenovaním OS (podčiarkovníky, žiadne špeciálne znaky)
+  - Jazyky widgetov sa aktualizujú okamžite po zmene jazyka
+  - Toast notifikácie pre úspešné exporty grafov
+  - Všetky prvky widgetov a stavy načítania plne preložené vo všetkých 14 jazykoch
+- 💱 **Rozšírenie podpory mien** - Rozšírená podpora mien:
+  - Pridané meny: GBP (Britská libra), PLN (Poľský zlotý), CZK (Česká koruna), CNY (Čínsky jüan), UAH (Ukrajinská hrivna), RUB (Ruský rubeľ)
+  - Symboly a štítky mien pre všetky nové meny
+  - Správna konverzia a zobrazenie mien vo všetkých komponentoch
+  - Rozbaľovacie menu výberu meny aktualizované všetkými podporovanými menami
+- 💰 **Oprava presnosti výpočtu nákladov** - Opravené problémy s presnosťou plávajúcej desatinnej čiarky:
+  - Všetky výpočty nákladov (filament, elektrina, sušenie, použitie, celkom) teraz zaokrúhlené na 2 desatinné miesta
+  - Eliminované dlhé desatinné zobrazenie (napr. `0.17500000000000002` → `0.18`)
+  - Konzistentné formátovanie čísel v celej aplikácii
+- 🏢 **Dialóg informácií o spoločnosti** - Vylepšená správa informácií o spoločnosti:
+  - Formulár informácií o spoločnosti presunutý do modálneho dialógu (podobne ako Tovar/Filamenty)
+  - Tlačidlo "Detaily spoločnosti" pre otvorenie/úpravu informácií o spoločnosti
+  - Dialóg možno zavrieť pomocou tlačidla X, kliknutia na pozadie alebo klávesu Escape
+  - Lepšie UX s animovanými modálnymi prechodmi
+  - Všetky polia informácií o spoločnosti prístupné v organizovanom rozhraní dialógu
 
 ### v1.3.11 (2025) - 🎨 Vylepšenia widget dashboardu
 
@@ -779,7 +805,7 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ---
 
-**Verzia**: 1.3.11
+**Verzia**: 1.3.12
 
 Ak máte nejaké otázky alebo nájdete chybu, prosím otvorte issue v repozitári GitHub!
 

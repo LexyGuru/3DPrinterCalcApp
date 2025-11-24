@@ -3,9 +3,11 @@ import { Responsive, WidthProvider } from "react-grid-layout";
 import type { Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
+import { getCurrencyLabel } from "../../utils/currency";
 import type { WidgetConfig, WidgetSize, DashboardLayout } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
 import type { Settings } from "../../types";
+import { useTranslation } from "../../utils/translations";
 import { WidgetContainer } from "./WidgetContainer";
 import { StatisticsWidget } from "./StatisticsWidget";
 import { TrendChartWidget } from "./TrendChartWidget";
@@ -15,6 +17,9 @@ import { PrinterBreakdownWidget } from "./PrinterBreakdownWidget";
 import { SummaryWidget } from "./SummaryWidget";
 import { StatCardWidget } from "./StatCardWidget";
 import { WidgetGroup } from "./WidgetGroup";
+import { PrintTimeChartWidget } from "./PrintTimeChartWidget";
+import { CustomerStatsChartWidget } from "./CustomerStatsChartWidget";
+import { OfferStatusChartWidget } from "./OfferStatusChartWidget";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -58,6 +63,21 @@ interface DashboardProps {
     value: number;
     color: string;
   }>;
+  printTimeData?: Array<{
+    name: string;
+    hours: number;
+  }>;
+  customerStatsData?: Array<{
+    name: string;
+    offerCount: number;
+    totalRevenue: number;
+    totalProfit: number;
+  }>;
+  offerStatusData?: Array<{
+    status: string;
+    count: number;
+    color: string;
+  }>;
   summaryData?: Array<{
     label: string;
     value: string | number;
@@ -82,13 +102,13 @@ interface DashboardProps {
 }
 
 // Alapértelmezett widget konfigurációk - klasszikus nézet sorrendje szerint
-const createDefaultWidgets = (): WidgetConfig[] => {
+const createDefaultWidgets = (t: (key: import("../../utils/languages/types").TranslationKey) => string): WidgetConfig[] => {
   return [
     // 1. Időszak összehasonlítás (első sor, 3 kártya egymás mellett)
     {
       id: "period-comparison-1",
       type: "period-comparison",
-      title: "Időszak összehasonlítás",
+      title: t("widget.title.periodComparison"),
       size: "medium",
       visible: true,
       layout: { i: "period-comparison-1", x: 0, y: 0, w: 12, h: 3, minW: 6, minH: 2 },
@@ -97,7 +117,7 @@ const createDefaultWidgets = (): WidgetConfig[] => {
     {
       id: "stat-card-filament-1",
       type: "stat-card-filament",
-      title: "Összes filament",
+      title: t("widget.title.totalFilament"),
       size: "small",
       visible: true,
       layout: { i: "stat-card-filament-1", x: 0, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
@@ -105,7 +125,7 @@ const createDefaultWidgets = (): WidgetConfig[] => {
     {
       id: "stat-card-revenue-1",
       type: "stat-card-revenue",
-      title: "Összes bevétel",
+      title: t("widget.title.totalRevenue"),
       size: "small",
       visible: true,
       layout: { i: "stat-card-revenue-1", x: 2, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
@@ -113,7 +133,7 @@ const createDefaultWidgets = (): WidgetConfig[] => {
     {
       id: "stat-card-electricity-1",
       type: "stat-card-electricity",
-      title: "Összes áram",
+      title: t("widget.title.totalElectricity"),
       size: "small",
       visible: true,
       layout: { i: "stat-card-electricity-1", x: 4, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
@@ -121,7 +141,7 @@ const createDefaultWidgets = (): WidgetConfig[] => {
     {
       id: "stat-card-cost-1",
       type: "stat-card-cost",
-      title: "Összes költség",
+      title: t("widget.title.totalCost"),
       size: "small",
       visible: true,
       layout: { i: "stat-card-cost-1", x: 6, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
@@ -129,7 +149,7 @@ const createDefaultWidgets = (): WidgetConfig[] => {
     {
       id: "stat-card-profit-1",
       type: "stat-card-profit",
-      title: "Nettó profit",
+      title: t("widget.title.netProfit"),
       size: "small",
       visible: true,
       layout: { i: "stat-card-profit-1", x: 8, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
@@ -137,7 +157,7 @@ const createDefaultWidgets = (): WidgetConfig[] => {
     {
       id: "stat-card-print-time-1",
       type: "stat-card-print-time",
-      title: "Összes nyomtatási idő",
+      title: t("widget.title.totalPrintTime"),
       size: "small",
       visible: true,
       layout: { i: "stat-card-print-time-1", x: 10, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
@@ -146,7 +166,7 @@ const createDefaultWidgets = (): WidgetConfig[] => {
     {
       id: "trend-chart-1",
       type: "trend-chart",
-      title: "Trendek",
+      title: t("widget.title.trends"),
       size: "large",
       visible: true,
       layout: { i: "trend-chart-1", x: 0, y: 6, w: 12, h: 5, minW: 6, minH: 4 },
@@ -155,7 +175,7 @@ const createDefaultWidgets = (): WidgetConfig[] => {
     {
       id: "filament-breakdown-1",
       type: "filament-breakdown",
-      title: "Filament megoszlás",
+      title: t("widget.title.filamentBreakdown"),
       size: "medium",
       visible: true,
       layout: { i: "filament-breakdown-1", x: 0, y: 11, w: 6, h: 4, minW: 4, minH: 3 },
@@ -163,7 +183,7 @@ const createDefaultWidgets = (): WidgetConfig[] => {
     {
       id: "printer-breakdown-1",
       type: "printer-breakdown",
-      title: "Bevétel nyomtatónként",
+      title: t("widget.title.revenueByPrinter"),
       size: "medium",
       visible: true,
       layout: { i: "printer-breakdown-1", x: 6, y: 11, w: 6, h: 4, minW: 4, minH: 3 },
@@ -172,10 +192,37 @@ const createDefaultWidgets = (): WidgetConfig[] => {
     {
       id: "summary-1",
       type: "summary",
-      title: "Összefoglaló",
+      title: t("widget.title.summary"),
       size: "large",
       visible: true,
       layout: { i: "summary-1", x: 0, y: 15, w: 12, h: 3, minW: 6, minH: 2 },
+    },
+    // 6. Nyomtatási idő grafikon
+    {
+      id: "print-time-chart-1",
+      type: "print-time-chart",
+      title: t("widget.title.printTimeChart"),
+      size: "medium",
+      visible: false, // Alapértelmezetten rejtve, hogy ne legyen túl sok widget
+      layout: { i: "print-time-chart-1", x: 0, y: 18, w: 12, h: 4, minW: 6, minH: 3 },
+    },
+    // 7. Ügyfél statisztikák grafikon
+    {
+      id: "customer-stats-chart-1",
+      type: "customer-stats-chart",
+      title: t("widget.title.customerStatsChart"),
+      size: "medium",
+      visible: false, // Alapértelmezetten rejtve
+      layout: { i: "customer-stats-chart-1", x: 0, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
+    },
+    // 8. Árajánlat státusz eloszlás
+    {
+      id: "offer-status-chart-1",
+      type: "offer-status-chart",
+      title: t("widget.title.offerStatusChart"),
+      size: "medium",
+      visible: false, // Alapértelmezetten rejtve
+      layout: { i: "offer-status-chart-1", x: 6, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
     },
   ];
 };
@@ -190,9 +237,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   yearlyStats,
   filamentBreakdown = [],
   printerBreakdown = [],
+  printTimeData = [],
+  customerStatsData = [],
+  offerStatusData = [],
   summaryData = [],
   statsLabels,
-  currencyLabel = settings.currency === "HUF" ? "Ft" : settings.currency,
+  currencyLabel = getCurrencyLabel(settings.currency),
   formatNumber = (value: number, decimals: number) => value.toFixed(decimals),
   formatCurrency = (value: number) => value,
   onLayoutChange,
@@ -200,6 +250,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   showWidgetManager: externalShowWidgetManager,
   onError,
 }) => {
+  const t = useTranslation(settings.language);
 
   // Widget konfigurációk betöltése vagy alapértelmezett
   const [widgets, setWidgets] = useState<WidgetConfig[]>(() => {
@@ -211,7 +262,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           savedWidgetIds: savedWidgets.map(w => w.id),
         });
         // Ha van mentett layout, de kevés widget van benne, akkor kiegészítjük az alapértelmezettekkel
-        const defaultWidgets = createDefaultWidgets();
+        const defaultWidgets = createDefaultWidgets(t);
         const savedWidgetIds = new Set(savedWidgets.map(w => w.id));
         const missingWidgets = defaultWidgets.filter(w => !savedWidgetIds.has(w.id));
         const mergedWidgets = [...savedWidgets, ...missingWidgets];
@@ -223,14 +274,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         return mergedWidgets;
       }
       console.log("[Dashboard] No saved layout found, using default widgets");
-      return createDefaultWidgets();
+      return createDefaultWidgets(t);
     } catch (error) {
       console.error("[Dashboard] Error initializing widgets:", {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
       // Fallback to default widgets on error
-      return createDefaultWidgets();
+      return createDefaultWidgets(t);
     }
   });
 
@@ -239,14 +290,81 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const savedWidgets = settings.dashboardLayout?.widgets;
     if (savedWidgets && savedWidgets.length > 0) {
       // Ha van mentett layout, de kevés widget van benne, akkor kiegészítjük az alapértelmezettekkel
-      const defaultWidgets = createDefaultWidgets();
+      const defaultWidgets = createDefaultWidgets(t);
       const savedWidgetIds = new Set(savedWidgets.map(w => w.id));
       const missingWidgets = defaultWidgets.filter(w => !savedWidgetIds.has(w.id));
-      setWidgets([...savedWidgets, ...missingWidgets]);
+      if (missingWidgets.length > 0) {
+        console.log("[Dashboard] Adding missing widgets:", missingWidgets.map(w => w.id));
+        const mergedWidgets = [...savedWidgets, ...missingWidgets];
+        setWidgets(mergedWidgets);
+        // Automatikusan mentjük a frissített layout-ot
+        const dashboardLayout: DashboardLayout = {
+          widgets: mergedWidgets,
+          version: 1,
+        };
+        onLayoutChange?.(dashboardLayout);
+      } else {
+        setWidgets(savedWidgets);
+      }
     } else {
-      setWidgets(createDefaultWidgets());
+      setWidgets(createDefaultWidgets(t));
     }
-  }, [settings.dashboardLayout]);
+  }, [settings.dashboardLayout, onLayoutChange, t]);
+
+  // Widget címek dinamikus fordítása
+  const getWidgetTitle = useCallback((widget: WidgetConfig): string => {
+    // Ha a widget egy csoport és van egyedi címe (nem az alapértelmezett), akkor azt használjuk
+    if (widget.type === "widget-group") {
+      const defaultGroupName = t("widget.group.name");
+      // Ha a cím nem az alapértelmezett csoport név formátumú, akkor egyedi név
+      if (widget.title && !widget.title.match(new RegExp(`^${defaultGroupName} \\d+$`))) {
+        return widget.title;
+      }
+      // Ha az alapértelmezett formátumú, akkor fordítjuk
+      const match = widget.title?.match(/^Csoport (\d+)$/) || widget.title?.match(new RegExp(`^${defaultGroupName} (\\d+)$`));
+      if (match) {
+        return `${t("widget.group.name")} ${match[1]}`;
+      }
+      return widget.title || `${t("widget.group.name")} 1`;
+    }
+    
+    // Egyéb widget típusok fordítása
+    switch (widget.type) {
+      case "period-comparison":
+        return t("widget.title.periodComparison");
+      case "stat-card-filament":
+        return t("widget.title.totalFilament");
+      case "stat-card-revenue":
+        return t("widget.title.totalRevenue");
+      case "stat-card-electricity":
+        return t("widget.title.totalElectricity");
+      case "stat-card-cost":
+        return t("widget.title.totalCost");
+      case "stat-card-profit":
+        return t("widget.title.netProfit");
+      case "stat-card-print-time":
+        return t("widget.title.totalPrintTime");
+      case "trend-chart":
+        return t("widget.title.trends");
+      case "filament-breakdown":
+        return t("widget.title.filamentBreakdown");
+      case "printer-breakdown":
+        return t("widget.title.revenueByPrinter");
+      case "summary":
+        return t("widget.title.summary");
+      case "print-time-chart":
+        return t("widget.title.printTimeChart");
+      case "customer-stats-chart":
+        return t("widget.title.customerStatsChart");
+      case "offer-status-chart":
+        return t("widget.title.offerStatusChart");
+      default:
+        return widget.title || "";
+    }
+  }, [t]);
+
+  // Widget címeket nem frissítjük a state-ben, hanem csak rendereléskor fordítjuk
+  // Ez elkerüli a végtelen ciklust, és a címek automatikusan frissülnek, amikor a nyelv változik
 
   // Layout konverzió react-grid-layout formátumra
   // Csoport widget-ek nem jelennek meg külön, csak a bennük lévő widget-ek
@@ -539,7 +657,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const groupWidget: WidgetConfig = {
         id: groupId,
         type: "widget-group",
-        title: `Csoport ${groupNumber}`,
+        title: `${t("widget.group.name")} ${groupNumber}`,
         size: "large",
         visible: true,
         layout: {
@@ -683,6 +801,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       };
       const safeFilamentBreakdown = filamentBreakdown || [];
       const safePrinterBreakdown = printerBreakdown || [];
+      const safePrintTimeData = printTimeData || [];
+      const safeCustomerStatsData = customerStatsData || [];
+      const safeOfferStatusData = offerStatusData || [];
       const safeSummaryData = summaryData || [];
       const safeTrendData = trendData || [];
       const safeWeeklyStats = weeklyStats || { totalProfit: 0, offerCount: 0 };
@@ -706,12 +827,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
             theme={theme}
             settings={settings}
             data={safeTrendData}
+            formatNumber={formatNumber}
+            formatCurrency={formatCurrency}
+            currencyLabel={currencyLabel}
             onDataPointClick={(data, index) => {
               console.log("Chart point clicked:", data, index);
             }}
-            onExport={() => {
-              console.log("Export chart");
-            }}
+            onExport={undefined}
           />
         );
       case "period-comparison":
@@ -744,6 +866,48 @@ export const Dashboard: React.FC<DashboardProps> = ({
             theme={theme}
             settings={settings}
             printerBreakdown={safePrinterBreakdown}
+          />
+        );
+      case "print-time-chart":
+        return (
+          <PrintTimeChartWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            data={safePrintTimeData}
+            onDataPointClick={(data, index) => {
+              console.log("Print time chart point clicked:", data, index);
+            }}
+            onExport={undefined}
+          />
+        );
+      case "customer-stats-chart":
+        return (
+          <CustomerStatsChartWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            data={safeCustomerStatsData}
+            formatNumber={formatNumber}
+            formatCurrency={formatCurrency}
+            currencyLabel={currencyLabel}
+            onDataPointClick={(data, index) => {
+              console.log("Customer stats chart point clicked:", data, index);
+            }}
+            onExport={undefined}
+          />
+        );
+      case "offer-status-chart":
+        return (
+          <OfferStatusChartWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            data={safeOfferStatusData}
+            onDataPointClick={(data, index) => {
+              console.log("Offer status chart point clicked:", data, index);
+            }}
+            onExport={undefined}
           />
         );
       case "summary":
@@ -876,7 +1040,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           borderRadius: "8px",
           color: theme.colors.danger,
         }}>
-          <strong>Hiba a widget betöltésekor:</strong> {widget.type}
+          <strong>{t("widget.error.loading")}:</strong> {widget.type}
           {import.meta.env.DEV && errorObj.stack && (
             <pre style={{ marginTop: "10px", fontSize: "12px" }}>{errorObj.stack}</pre>
           )}
@@ -948,7 +1112,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               fontWeight: "700",
               color: theme.colors.text,
             }}>
-              Widget kezelő
+              {t("widget.manager.title")}
             </h2>
             <button
               onClick={() => {
@@ -968,7 +1132,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 cursor: "pointer",
               }}
             >
-              ✕ Bezárás
+              ✕ {t("widget.manager.close")}
             </button>
           </div>
 
@@ -1010,7 +1174,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       fontWeight: "600",
                       color: theme.colors.text,
                     }}>
-                      {widget.title}
+                      {getWidgetTitle(widget)}
                     </div>
                     <div style={{
                       fontSize: "12px",
@@ -1041,7 +1205,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     color: theme.colors.text,
                     fontWeight: widget.visible ? "600" : "400",
                   }}>
-                    {widget.visible ? "Látható" : "Elrejtve"}
+                    {widget.visible ? t("widget.manager.visible") : t("widget.manager.hidden")}
                   </span>
                 </label>
               </div>
@@ -1080,7 +1244,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           color: theme.colors.textMuted,
           fontSize: "16px",
         }}>
-          Nincsenek látható widget-ek. Kattints a "Widget Dashboard" gombra a nézet váltáshoz.
+          {t("widget.manager.noVisible")}. {t("widget.manager.noVisibleDescription")}
         </div>
       ) : (
         <ResponsiveGridLayout
@@ -1135,6 +1299,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <WidgetContainer
                     widget={widget}
                     theme={theme}
+                    settings={settings}
                     onRemove={handleRemoveWidget}
                     onToggleVisibility={handleToggleVisibility}
                     onResize={handleResize}

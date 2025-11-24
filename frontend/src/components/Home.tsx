@@ -7,7 +7,7 @@ import { defaultAnimationSettings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { logWithLanguage } from "../utils/languages/global_console";
-import { convertCurrency, convertCurrencyFromTo } from "../utils/currency";
+import { convertCurrency, convertCurrencyFromTo, getCurrencyLabel } from "../utils/currency";
 import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
 import { FadeIn, StaggerContainer, StaggerItem, HoverLift } from "../utils/animations";
@@ -102,7 +102,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
   }, [widgetError, useWidgetDashboard, settings, onSettingsChange]);
   
   const locale = LANGUAGE_LOCALES[settings.language] ?? "en-US";
-  const currencyLabel = settings.currency === "HUF" ? "Ft" : settings.currency;
+  const currencyLabel = getCurrencyLabel(settings.currency);
   const trendChartRef = useRef<SVGSVGElement | null>(null);
   const filamentChartRef = useRef<SVGSVGElement | null>(null);
   const printerChartRef = useRef<SVGSVGElement | null>(null);
@@ -409,6 +409,127 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
     [printerBreakdown]
   );
 
+  // Ügyfél statisztikák
+  const customerStatsData = useMemo(() => {
+    const filtered = filterOffersByPeriod(offers, selectedPeriod);
+    if (filtered.length === 0) {
+      return [];
+    }
+
+    const map = new Map<string, { offerCount: number; totalRevenue: number; totalProfit: number }>();
+    filtered.forEach(offer => {
+      const { revenueEUR, profitEUR } = getOfferFinancials(offer);
+      const customerName = offer.customerName || t("offers.customerName");
+      const existing = map.get(customerName);
+      if (existing) {
+        existing.offerCount += 1;
+        existing.totalRevenue += revenueEUR;
+        existing.totalProfit += profitEUR;
+      } else {
+        map.set(customerName, {
+          offerCount: 1,
+          totalRevenue: revenueEUR,
+          totalProfit: profitEUR,
+        });
+      }
+    });
+
+    return Array.from(map.entries())
+      .map(([name, stats]) => ({
+        name,
+        offerCount: stats.offerCount,
+        totalRevenue: stats.totalRevenue,
+        totalProfit: stats.totalProfit,
+      }))
+      .sort((a, b) => b.offerCount - a.offerCount)
+      .slice(0, 10); // Top 10 ügyfél
+  }, [offers, selectedPeriod]);
+
+  // Árajánlat státusz eloszlás
+  const offerStatusData = useMemo(() => {
+    const filtered = filterOffersByPeriod(offers, selectedPeriod);
+    if (filtered.length === 0) {
+      return [];
+    }
+
+    const statusColors: Record<string, string> = {
+      draft: "#6c757d",
+      sent: "#0d6efd",
+      accepted: "#20c997",
+      rejected: "#dc3545",
+      completed: "#6610f2",
+    };
+
+    const map = new Map<string, number>();
+    filtered.forEach(offer => {
+      const status = offer.status || "draft";
+      map.set(status, (map.get(status) || 0) + 1);
+    });
+
+    return Array.from(map.entries())
+      .map(([status, count]) => ({
+        status,
+        count,
+        color: statusColors[status] || CHART_PALETTE[0],
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [offers, selectedPeriod]);
+
+  // Nyomtatási idő adatok trendData-hoz hasonlóan
+  const printTimeData = useMemo(() => {
+    const filtered = filterOffersByPeriod(offers, selectedPeriod);
+    if (filtered.length === 0) {
+      return [];
+    }
+
+    const buckets = new Map<
+      string,
+      {
+        label: string;
+        dateKey: Date;
+        hours: number;
+      }
+    >();
+
+    filtered.forEach(offer => {
+      const offerDate = new Date(offer.date);
+      let key: string;
+      let label: string;
+      const normalizedDate = new Date(offerDate);
+      normalizedDate.setHours(0, 0, 0, 0);
+
+      if (selectedPeriod === "year" || selectedPeriod === "all") {
+        key = `${offerDate.getFullYear()}-${offerDate.getMonth()}`;
+        label = offerDate.toLocaleDateString(locale, { year: "numeric", month: "short" });
+        normalizedDate.setDate(1);
+      } else if (selectedPeriod === "week") {
+        key = offerDate.toISOString().slice(0, 10);
+        label = offerDate.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" });
+      } else {
+        key = offerDate.toISOString().slice(0, 10);
+        label = offerDate.toLocaleDateString(locale, { month: "short", day: "numeric" });
+      }
+
+      const existing = buckets.get(key);
+      if (existing) {
+        existing.hours += offer.totalPrintTimeHours || 0;
+      } else {
+        buckets.set(key, {
+          label,
+          dateKey: normalizedDate,
+          hours: offer.totalPrintTimeHours || 0,
+        });
+      }
+    });
+
+    return Array.from(buckets.values())
+      .sort((a, b) => a.dateKey.getTime() - b.dateKey.getTime())
+      .map(item => ({
+        name: item.label,
+        hours: item.hours,
+      }));
+  }, [offers, selectedPeriod, locale]);
+
   const hasTrendData = trendData.some(point => point.revenue !== 0 || point.costs !== 0 || point.profit !== 0);
   const hasFilamentData = filamentBreakdown.length > 0 && totalFilamentByType > 0;
   const hasPrinterData = printerBreakdown.length > 0 && totalRevenueByPrinter > 0;
@@ -656,13 +777,13 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
         const timeUnit = t("home.stats.unit.hours");
         
         csvRows.push(`${filamentLabel},${(statsToExport.totalFilamentUsed / 1000).toFixed(2)},kg`);
-        csvRows.push(`${revenueLabel},${formatCurrency(statsToExport.totalRevenue).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
+        csvRows.push(`${revenueLabel},${formatCurrency(statsToExport.totalRevenue).toFixed(2)},${currencyLabel}`);
         csvRows.push(`${electricityLabel},${statsToExport.totalElectricityConsumed.toFixed(2)},kWh`);
-        csvRows.push(`${costLabel},${formatCurrency(statsToExport.totalCosts).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
-        csvRows.push(`${profitLabel},${formatCurrency(statsToExport.totalProfit).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
+        csvRows.push(`${costLabel},${formatCurrency(statsToExport.totalCosts).toFixed(2)},${currencyLabel}`);
+        csvRows.push(`${profitLabel},${formatCurrency(statsToExport.totalProfit).toFixed(2)},${currencyLabel}`);
         csvRows.push(`${printTimeLabel},${statsToExport.totalPrintTime.toFixed(1)},${timeUnit}`);
         csvRows.push(`${offerCountLabel},${statsToExport.offerCount},${t("home.csv.unit.pcs")}`);
-        csvRows.push(`${avgProfitLabel},${statsToExport.offerCount > 0 ? formatCurrency(statsToExport.totalProfit / statsToExport.offerCount).toFixed(2) : "0.00"},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
+        csvRows.push(`${avgProfitLabel},${statsToExport.offerCount > 0 ? formatCurrency(statsToExport.totalProfit / statsToExport.offerCount).toFixed(2) : "0.00"},${currencyLabel}`);
         csvRows.push(`${profitMarginLabel},${statsToExport.totalRevenue > 0 ? ((statsToExport.totalProfit / statsToExport.totalRevenue) * 100).toFixed(1) : "0.0"},%`);
         csvRows.push("");
         const offerDetailsLabel = t("home.csv.offerDetails");
@@ -673,9 +794,9 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
         const totalCostLabel = t("home.csv.totalCost");
         const profitPercentLabel = t("home.csv.profitPercentage");
         const revenueLabel2 = t("home.csv.revenue");
-        const currencyLabel = t("home.csv.currency");
+        const currencyColumnLabel = t("home.csv.currency");
         
-        csvRows.push(`${idLabel},${dateLabel},${customerLabel},${totalCostLabel},${profitPercentLabel},${revenueLabel2},${currencyLabel}`);
+        csvRows.push(`${idLabel},${dateLabel},${customerLabel},${totalCostLabel},${profitPercentLabel},${revenueLabel2},${currencyColumnLabel}`);
         filterOffersByPeriod(offers, selectedPeriod).forEach(o => {
           const profitPct = o.profitPercentage || 30;
           const revenue = o.costs.totalCost * (1 + profitPct / 100);
@@ -1283,9 +1404,9 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
                 alignItems: "center",
                 gap: "8px",
               }}
-              title="Widget kezelő"
+              title={t("widget.manager.title")}
             >
-              📋 Widget kezelő
+              📋 {t("widget.manager.title")}
             </button>
           )}
           
@@ -1392,6 +1513,33 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
                       visible: true,
                       layout: { i: "summary-1", x: 0, y: 15, w: 12, h: 3, minW: 6, minH: 2 },
                     },
+                    // 6. Nyomtatási idő grafikon
+                    {
+                      id: "print-time-chart-1",
+                      type: "print-time-chart",
+                      title: "Nyomtatási idő",
+                      size: "medium",
+                      visible: false,
+                      layout: { i: "print-time-chart-1", x: 0, y: 18, w: 12, h: 4, minW: 6, minH: 3 },
+                    },
+                    // 7. Ügyfél statisztikák grafikon
+                    {
+                      id: "customer-stats-chart-1",
+                      type: "customer-stats-chart",
+                      title: "Ügyfél statisztikák",
+                      size: "medium",
+                      visible: false,
+                      layout: { i: "customer-stats-chart-1", x: 0, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
+                    },
+                    // 8. Árajánlat státusz eloszlás
+                    {
+                      id: "offer-status-chart-1",
+                      type: "offer-status-chart",
+                      title: "Árajánlat státusz",
+                      size: "medium",
+                      visible: false,
+                      layout: { i: "offer-status-chart-1", x: 6, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
+                    },
                   ],
                   version: 1,
                 };
@@ -1418,7 +1566,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
               transition: "all 0.2s",
             }}
           >
-            {useWidgetDashboard ? "📊 Widget Dashboard" : "📋 Klasszikus Nézet"}
+            {useWidgetDashboard ? `📊 ${t("widget.view.dashboard")}` : `📋 ${t("widget.view.classic")}`}
           </button>
         </div>
         </div>
@@ -1468,6 +1616,9 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
                 value: slice.value,
                 color: slice.color ?? "#6366F1",
               }))}
+              printTimeData={printTimeData}
+              customerStatsData={customerStatsData}
+              offerStatusData={offerStatusData}
               summaryData={[
                 { 
                   label: summaryLabels.offerCount,
@@ -1477,7 +1628,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
                 },
                 { 
                   label: summaryLabels.averageProfit,
-                  value: `${currentStats.offerCount > 0 ? formatNumber(formatCurrency(currentStats.totalProfit / currentStats.offerCount), 2) : "0.00"} ${settings.currency === "HUF" ? "Ft" : settings.currency}`,
+                  value: `${currentStats.offerCount > 0 ? formatNumber(formatCurrency(currentStats.totalProfit / currentStats.offerCount), 2) : "0.00"} ${currencyLabel}`,
                   color: currentStats.totalProfit >= 0 ? theme.colors.success : theme.colors.danger,
                   icon: "💰"
                 },
@@ -1843,7 +1994,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
             <StatCard
               title={statsLabels.totalRevenue}
               value={formatNumber(formatCurrency(currentStats.totalRevenue), 2)}
-              unit={settings.currency === "HUF" ? "Ft" : settings.currency}
+              unit={currencyLabel}
               icon="💰"
               color="#28a745"
               delay={0.1}
@@ -1863,7 +2014,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
             <StatCard
               title={statsLabels.totalCost}
               value={formatNumber(formatCurrency(currentStats.totalCosts), 2)}
-              unit={settings.currency === "HUF" ? "Ft" : settings.currency}
+              unit={currencyLabel}
               icon="💸"
               color="#dc3545"
               delay={0.3}
@@ -1873,7 +2024,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
             <StatCard
               title={statsLabels.netProfit}
               value={formatCurrency(currentStats.totalProfit).toFixed(2)}
-              unit={settings.currency === "HUF" ? "Ft" : settings.currency}
+              unit={currencyLabel}
               icon="📈"
               color={currentStats.totalProfit >= 0 ? "#28a745" : "#dc3545"}
               delay={0.4}

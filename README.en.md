@@ -26,7 +26,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 👥 **Customer Database** - Manage customers with contact information, company details, and offer statistics
 - 📊 **Price History & Trends** - Track filament price changes over time with charts and statistics
 - 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (14 languages, 850+ translation keys per language)
-- 💱 **Multiple Currencies** - EUR, HUF, USD
+- 💱 **Multiple Currencies** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 currencies)
 - 🔄 **Auto Updates** - Checks GitHub Releases for new versions
 - 🧪 **Beta Versions** - Beta branch and beta build support
 - ⚙️ **Beta Check** - Configurable beta version checking
@@ -41,6 +41,32 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 🍎 **Platform-Specific Features** - macOS Dock badge, native notifications, system tray integration
 
 ## 📋 Changelog
+
+### v1.3.12 (2025) - 🎨 Widget System & Currency Enhancements
+
+- 📊 **Widget System Improvements** - Enhanced widget functionality and localization:
+  - New widgets added: Print Time Chart, Customer Stats Chart, Offer Status Chart
+  - Widget export functionality fixed - all chart widgets now exportable as SVG
+  - Dynamic widget title translation based on selected language
+  - Localized export filenames with proper OS-compatible naming (underscores, no special chars)
+  - Widget language updates immediately after language change
+  - Toast notifications for successful chart exports
+  - All widget elements and loading states fully translated in all 14 languages
+- 💱 **Currency Support Expansion** - Extended currency support:
+  - Added currencies: GBP (British Pound), PLN (Polish Zloty), CZK (Czech Koruna), CNY (Chinese Yuan), UAH (Ukrainian Hryvnia), RUB (Russian Ruble)
+  - Currency symbols and labels for all new currencies
+  - Proper currency conversion and display across all components
+  - Currency selection dropdown updated with all supported currencies
+- 💰 **Cost Calculation Precision Fix** - Fixed floating-point precision issues:
+  - All cost calculations (filament, electricity, drying, usage, total) now rounded to 2 decimal places
+  - Eliminated long decimal displays (e.g., `0.17500000000000002` → `0.18`)
+  - Consistent number formatting throughout the application
+- 🏢 **Company Information Dialog** - Improved company info management:
+  - Company information form moved to modal dialog (similar to Goods/Filaments)
+  - "Company Details" button to open/edit company information
+  - Dialog can be closed via X button, backdrop click, or Escape key
+  - Better UX with animated modal transitions
+  - All company info fields accessible in organized dialog interface
 
 ### v1.3.11 (2025) - 🎨 Widget Dashboard Improvements
 

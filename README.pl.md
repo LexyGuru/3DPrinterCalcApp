@@ -40,6 +40,32 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.3.12 (2025) - 🎨 Ulepszenia systemu widgetów i walut
+
+- 📊 **Ulepszenia systemu widgetów** - Ulepszona funkcjonalność widgetów i lokalizacja:
+  - Dodane nowe widgety: Wykres czasu druku, Wykres statystyk klientów, Wykres statusu ofert
+  - Naprawiona funkcjonalność eksportu widgetów - wszystkie widgety wykresów teraz eksportowalne jako SVG
+  - Dynamiczne tłumaczenie tytułów widgetów na podstawie wybranego języka
+  - Zlokalizowane nazwy plików eksportu z odpowiednią nazwą zgodną z OS (podkreślenia, brak znaków specjalnych)
+  - Języki widgetów aktualizują się natychmiast po zmianie języka
+  - Powiadomienia toast dla udanych eksportów wykresów
+  - Wszystkie elementy widgetów i stany ładowania w pełni przetłumaczone we wszystkich 14 językach
+- 💱 **Rozszerzenie wsparcia walut** - Rozszerzone wsparcie walut:
+  - Dodane waluty: GBP (Funt brytyjski), PLN (Złoty polski), CZK (Korona czeska), CNY (Juan chiński), UAH (Hrywna ukraińska), RUB (Rubel rosyjski)
+  - Symbole i etykiety walut dla wszystkich nowych walut
+  - Prawidłowa konwersja i wyświetlanie walut we wszystkich komponentach
+  - Menu rozwijane wyboru waluty zaktualizowane wszystkimi obsługiwanymi walutami
+- 💰 **Naprawa precyzji obliczeń kosztów** - Naprawione problemy z precyzją zmiennoprzecinkową:
+  - Wszystkie obliczenia kosztów (filament, prąd, suszenie, użycie, całkowity) teraz zaokrąglone do 2 miejsc po przecinku
+  - Wyeliminowane długie wyświetlania dziesiętne (np. `0.17500000000000002` → `0.18`)
+  - Spójne formatowanie liczb w całej aplikacji
+- 🏢 **Okno dialogowe informacji o firmie** - Ulepszona obsługa informacji o firmie:
+  - Formularz informacji o firmie przeniesiony do okna dialogowego modalnego (podobnie jak Towary/Filamenty)
+  - Przycisk "Szczegóły firmy" do otwierania/edytowania informacji o firmie
+  - Okno dialogowe można zamknąć za pomocą przycisku X, kliknięcia w tło lub klawisza Escape
+  - Lepsze UX z animowanymi przejściami modalnymi
+  - Wszystkie pola informacji o firmie dostępne w zorganizowanym interfejsie okna dialogowego
+
 ### v1.3.11 (2025) - 🎨 Ulepszenia panelu widgetów
 
 - 📊 **Ulepszenia panelu widgetów** - Ulepszona funkcjonalność panelu widgetów:
@@ -779,7 +805,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 1.3.11
+**Wersja**: 1.3.12
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

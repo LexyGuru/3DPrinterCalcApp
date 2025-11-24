@@ -6,6 +6,7 @@ import type { WidgetConfig } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
 import type { Settings } from "../../types";
 import { WidgetContainer } from "./WidgetContainer";
+import { useTranslation } from "../../utils/translations";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -24,6 +25,7 @@ interface WidgetGroupProps {
 export const WidgetGroup: React.FC<WidgetGroupProps> = ({
   widget,
   theme,
+  settings,
   allWidgets,
   onRemove,
   onToggleVisibility,
@@ -31,6 +33,7 @@ export const WidgetGroup: React.FC<WidgetGroupProps> = ({
   onLayoutChange,
   renderWidget,
 }) => {
+  const t = useTranslation(settings.language);
   // A csoportban lévő widget-ek lekérése
   const childWidgets = useMemo(() => {
     if (!widget.children || widget.children.length === 0) {
@@ -95,7 +98,7 @@ export const WidgetGroup: React.FC<WidgetGroupProps> = ({
         alignItems: "center",
         justifyContent: "center",
       }}>
-        <p style={{ margin: 0 }}>Üres csoport. Húzz widget-eket ide a csoportosításhoz.</p>
+        <p style={{ margin: 0 }}>{t("widget.group.empty")}. {t("widget.group.dragHere")}</p>
       </div>
     );
   }
@@ -157,6 +160,7 @@ export const WidgetGroup: React.FC<WidgetGroupProps> = ({
             <WidgetContainer
               widget={childWidget}
               theme={theme}
+              settings={settings}
               onRemove={onRemove}
               onToggleVisibility={onToggleVisibility}
               onResize={onResize}

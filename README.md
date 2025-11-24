@@ -25,7 +25,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 👥 **Customer Database** - Manage customers with contact information, company details, and offer statistics
 - 📊 **Price History & Trends** - Track filament price changes over time with charts and statistics
 - 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (14 languages, 850+ translation keys per language)
-- 💱 **Multiple Currencies** - EUR, HUF, USD
+- 💱 **Multiple Currencies** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 currencies)
 - 🔄 **Auto Updates** - Checks GitHub Releases for new versions
 - 🧪 **Beta Versions** - Beta branch and beta build support
 - ⚙️ **Beta Check** - Configurable beta version checking
@@ -41,6 +41,72 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 
 ## 📸 Screenshots
 
+### Application Icon
+
+<div align="center">
+  <img src="docs/images/icon.png" alt="3D Printer Calculator App Icon" width="128" height="128">
+  
+  <p><em>3D Printer Calculator App - Desktop Application Icon</em></p>
+</div>
+
+### Application Preview
+
+<div align="center">
+  <img src="docs/images/Square310x310Logo.png" alt="App Logo" width="300" height="300">
+</div>
+
+### Application Screenshots
+
+#### Dashboard & Statistics
+<p align="center">
+  <img src="docs/images/screenshot-dashboard.png" alt="Dashboard" width="800">
+</p>
+
+#### Calculator & Cost Analysis
+<p align="center">
+  <img src="docs/images/screenshot-calculator.png" alt="Calculator" width="800">
+</p>
+
+#### Filament Management
+<p align="center">
+  <img src="docs/images/screenshot-filaments.png" alt="Filament Management" width="800">
+</p>
+
+#### Printer Management
+<p align="center">
+  <img src="docs/images/screenshot-printers.png" alt="Printer Management" width="800">
+</p>
+
+#### Offers & Quotes
+<p align="center">
+  <img src="docs/images/screenshot-offers.png" alt="Offers" width="800">
+</p>
+
+#### Settings
+<p align="center">
+  <img src="docs/images/screenshot-settings.png" alt="Settings" width="800">
+</p>
+
+#### Widget System
+<p align="center">
+  <img src="docs/images/screenshot-widgets.png" alt="Widget System" width="800">
+</p>
+
+#### Charts & Analytics
+<p align="center">
+  <img src="docs/images/screenshot-charts.png" alt="Charts" width="800">
+</p>
+
+#### Period Comparison
+<p align="center">
+  <img src="docs/images/screenshot-period-comparison.png" alt="Period Comparison" width="800">
+</p>
+
+#### Customer Statistics
+<p align="center">
+  <img src="docs/images/screenshot-customer-stats.png" alt="Customer Statistics" width="800">
+</p>
+
 The application includes:
 - Home dashboard with statistics
 - Filament management
@@ -49,6 +115,8 @@ The application includes:
 - Quotes list and detailed view
 - Status dashboard and timeline
 - PDF export and built-in preview
+- Interactive widget system
+- Advanced charts and analytics
 
 ## 🚀 Installation
 
@@ -243,6 +311,32 @@ Lekszikov Miklós (LexyGuru)
 When pushing to the `beta` branch, the GitHub Actions workflow automatically runs, building the beta version.
 
 ## 📋 Version History
+
+### v1.3.12 (2025) - 🎨 Widget System & Currency Enhancements
+
+- 📊 **Widget System Improvements** - Enhanced widget functionality and localization:
+  - New widgets added: Print Time Chart, Customer Stats Chart, Offer Status Chart
+  - Widget export functionality fixed - all chart widgets now exportable as SVG
+  - Dynamic widget title translation based on selected language
+  - Localized export filenames with proper OS-compatible naming (underscores, no special chars)
+  - Widget language updates immediately after language change
+  - Toast notifications for successful chart exports
+  - All widget elements and loading states fully translated in all 14 languages
+- 💱 **Currency Support Expansion** - Extended currency support:
+  - Added currencies: GBP (British Pound), PLN (Polish Zloty), CZK (Czech Koruna), CNY (Chinese Yuan), UAH (Ukrainian Hryvnia), RUB (Russian Ruble)
+  - Currency symbols and labels for all new currencies
+  - Proper currency conversion and display across all components
+  - Currency selection dropdown updated with all supported currencies
+- 💰 **Cost Calculation Precision Fix** - Fixed floating-point precision issues:
+  - All cost calculations (filament, electricity, drying, usage, total) now rounded to 2 decimal places
+  - Eliminated long decimal displays (e.g., `0.17500000000000002` → `0.18`)
+  - Consistent number formatting throughout the application
+- 🏢 **Company Information Dialog** - Improved company info management:
+  - Company information form moved to modal dialog (similar to Goods/Filaments)
+  - "Company Details" button to open/edit company information
+  - Dialog can be closed via X button, backdrop click, or Escape key
+  - Better UX with animated modal transitions
+  - All company info fields accessible in organized dialog interface
 
 ### v1.3.11 (2025) - 🎨 Widget Dashboard Improvements
 
@@ -725,6 +819,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.3.11
+**Version**: 1.3.12
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
