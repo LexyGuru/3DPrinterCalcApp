@@ -159,15 +159,31 @@ export async function loadOffers(): Promise<Offer[]> {
     }
     const data = await store.get("offers");
     const offers = Array.isArray(data) ? data : [];
-    // Javítjuk a régi árajánlatokat, amelyeknek nincs currency mezője
+    // Javítjuk a régi árajánlatokat, amelyeknek nincs currency mezője vagy costs objektuma
     const fixedOffers = offers.map((offer: any) => {
       if (!offer.currency) {
         offer.currency = "EUR"; // Alapértelmezett pénznem a régi árajánlatokhoz
+      }
+      // Ha nincs costs objektum, hozzáadjuk egy üreset (ez nem ideális, de megelőzi a hibákat)
+      if (!offer.costs) {
+        console.warn(`[Store] Offer ${offer.id} has no costs object, adding default costs`);
+        offer.costs = {
+          filamentCost: 0,
+          electricityCost: 0,
+          dryingCost: 0,
+          usageCost: 0,
+          totalCost: 0,
+        };
       }
       return offer;
     });
     if (import.meta.env.DEV) {
       console.log("✅ Árajánlatok betöltve", { count: fixedOffers.length });
+      // Logoljuk, hogy mely árajánlatoknak nincs costs objektuma
+      const offersWithoutCosts = fixedOffers.filter((o: any) => !o.costs);
+      if (offersWithoutCosts.length > 0) {
+        console.warn(`[Store] ${offersWithoutCosts.length} árajánlatnak nincs costs objektuma:`, offersWithoutCosts.map((o: any) => o.id));
+      }
     }
     return fixedOffers;
   } catch (error) {

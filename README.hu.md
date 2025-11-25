@@ -42,7 +42,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
-### v1.4.33 (2025) - 🔧 Widget elrendezés és húzás fejlesztések
+### v1.4.33 (2025) - 🔧 Widget elrendezés és húzás fejlesztések + Tutorial Demo Adatok
 
 - 📊 **Widget elrendezés javítások** - Javított widget pozicionálás és húzás funkcionalitás:
   - Javított automatikus pozicionálás 6 kis "S" méretű widget esetén, hogy egymás mellé kerüljenek
@@ -51,6 +51,17 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
   - Továbbfejlesztett húzás funkció - a widgetek húzhatók a fejlécről vagy a húzás sávról
   - Javított üres terület problémák a widgetek alatt újra pozicionálás után
   - Továbbfejlesztett elrendezés változás kezelés, hogy ne írja felül a manuális változásokat
+- 🎓 **Tutorial Demo Adatok Rendszer** - Automatikus demo adatok generálás és törlés:
+  - Demo adatok automatikusan generálódnak amikor a tutorial elindul (ha nincs meglévő adat)
+  - Demo adatok tartalmazzák: minta nyomtatókat, filamenteket, árajánlatokat és ügyfeleket
+  - Demo adatok automatikusan törlődnek amikor a tutorial befejeződik vagy kihagyásra kerül
+  - Az alkalmazás automatikusan újraindul a demo adatok törlése után, hogy a memóriából is eltűnjenek
+  - A beállítások megmaradnak a demo adatok törlése során (nyelv, tutorial státusz)
+  - Javított végtelen ciklus probléma - a tutorial nem indul újra befejezés után
+- 🔧 **Main Build Release Javítás** - Továbbfejlesztett GitHub release létrehozás:
+  - Hozzáadott release fájl ellenőrzés a GitHub release létrehozása előtt
+  - Továbbfejlesztett release létrehozás, hogy biztosan megjelenjen a latest verzió
+  - Javított release név formátum a konzisztencia érdekében
 
 ### v1.3.12 (2025) - 🎨 Widget rendszer és pénznem fejlesztések
 

@@ -41,7 +41,7 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
-### v1.4.33 (2025) - 🔧 Miglioramenti del Layout e Trascinamento dei Widget
+### v1.4.33 (2025) - 🔧 Miglioramenti del Layout e Trascinamento dei Widget + Dati Demo Tutorial
 
 - 📊 **Correzioni del Layout dei Widget** - Corretto il posizionamento e la funzionalità di trascinamento dei widget:
   - Corretto il posizionamento automatico di 6 widget piccoli di dimensione "S" per allinearli uno accanto all'altro
@@ -50,6 +50,17 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
   - Migliorata la funzionalità della maniglia di trascinamento - i widget possono essere trascinati dall'intestazione o dalla barra della maniglia
   - Corretti i problemi di spazio vuoto sotto i widget dopo il riposizionamento
   - Gestione migliorata delle modifiche del layout per evitare di sovrascrivere le modifiche manuali
+- 🎓 **Sistema Dati Demo Tutorial** - Generazione e pulizia automatica dei dati demo:
+  - I dati demo vengono generati automaticamente quando il tutorial inizia (se non ci sono dati esistenti)
+  - I dati demo includono stampanti, filamenti, offerte e clienti di esempio
+  - I dati demo vengono eliminati automaticamente quando il tutorial viene completato o saltato
+  - L'applicazione si riavvia automaticamente dopo l'eliminazione dei dati demo per pulire la memoria
+  - Le impostazioni vengono preservate durante la pulizia dei dati demo (lingua, stato del tutorial)
+  - Risolto il problema del loop infinito - il tutorial non si riavvia più dopo il completamento
+- 🔧 **Correzione Release Build Principale** - Miglioramento della creazione delle release GitHub:
+  - Aggiunta verifica dei file di release prima di creare la release GitHub
+  - Migliorata la creazione delle release per assicurare che l'ultima versione venga visualizzata correttamente
+  - Corretto il formato del nome della release per coerenza
 
 ### v1.3.12 (2025) - 🎨 Miglioramenti del Sistema Widget e Valute
 

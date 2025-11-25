@@ -4,6 +4,8 @@ import type { Settings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import type { getThemeStyles } from "../utils/themes";
+import { generateTutorialDemoData, clearTutorialDemoData, hasExistingData } from "../utils/tutorialDemoData";
+import { saveSettings } from "../utils/store";
 
 interface Props {
   settings: Settings;
@@ -16,6 +18,7 @@ interface Props {
   onNavigate?: (page: string) => void;
   onOpenGlobalSearch?: () => void; // Callback a GlobalSearch megnyitásához
   onCloseGlobalSearch?: () => void; // Callback a GlobalSearch bezárásához
+  onDataReload?: () => void; // Callback az adatok újratöltéséhez (demo adatok generálása után)
 }
 
 interface TutorialStep {
@@ -39,6 +42,7 @@ export const Tutorial: React.FC<Props> = ({
   onNavigate,
   onOpenGlobalSearch,
   onCloseGlobalSearch,
+  onDataReload,
 }) => {
   const t = useTranslation(settings.language);
   const [currentStep, setCurrentStep] = useState(0);
@@ -51,6 +55,33 @@ export const Tutorial: React.FC<Props> = ({
   const retryCountRef = useRef<number>(0);
   const lastPositionRef = useRef<{ top: number; left: number } | null>(null);
   const positionUpdateInProgressRef = useRef<boolean>(false);
+  const demoDataGeneratedRef = useRef<boolean>(false); // Tracks if we generated demo data
+
+  // Demo adatok generálása amikor a tutorial elindul
+  useEffect(() => {
+    if (isOpen && !demoDataGeneratedRef.current) {
+      const initializeDemoData = async () => {
+        try {
+          // Ellenőrizzük, hogy van-e már adat
+          const hasData = await hasExistingData();
+          if (!hasData) {
+            console.log("🎓 Tutorial elindult - demo adatok generálása...");
+            await generateTutorialDemoData(settings);
+            demoDataGeneratedRef.current = true;
+            // Frissítjük az adatokat az App.tsx-ben
+            if (onDataReload) {
+              onDataReload();
+            }
+          } else {
+            console.log("ℹ️ Már van adat az alkalmazásban, demo adatok nem generálódnak");
+          }
+        } catch (error) {
+          console.error("❌ Hiba a demo adatok generálásakor:", error);
+        }
+      };
+      initializeDemoData();
+    }
+  }, [isOpen, settings, onDataReload]);
 
   const steps: TutorialStep[] = [
     {
@@ -590,11 +621,39 @@ export const Tutorial: React.FC<Props> = ({
   const isLast = currentStep === steps.length - 1;
   const progress = ((currentStep + 1) / steps.length) * 100;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isLast) {
       // Utolsó lépésnél befejezzük és mentjük
       // Bezárjuk a GlobalSearch-et, ha nyitva van
       onCloseGlobalSearch?.();
+      
+      // Demo adatok törlése, ha generáltuk őket
+      if (demoDataGeneratedRef.current) {
+        try {
+          // Először mentjük el a tutorial completed státuszt, hogy ne jelenjen meg újra
+          console.log("💾 Tutorial completed státusz mentése...");
+          const updatedSettings = {
+            ...settings,
+            tutorialCompleted: true,
+            showTutorialOnStartup: false,
+          };
+          await saveSettings(updatedSettings);
+          
+          console.log("🗑️ Tutorial befejezve - demo adatok törlése...");
+          await clearTutorialDemoData();
+          demoDataGeneratedRef.current = false;
+          
+          // Újraindítjuk az alkalmazást, hogy a memóriából is eltűnjenek az adatok
+          console.log("🔄 Alkalmazás újraindítása a demo adatok törlése után...");
+          setTimeout(() => {
+            window.location.reload();
+          }, 500); // Kis késleltetés, hogy a törlés biztosan megtörténjen
+          return; // Ne hívjuk meg az onComplete-et, mert újraindítjuk az appot
+        } catch (error) {
+          console.error("❌ Hiba a demo adatok törlésekor:", error);
+        }
+      }
+      
       onComplete();
     } else {
       setCurrentStep(currentStep + 1);
@@ -631,10 +690,30 @@ export const Tutorial: React.FC<Props> = ({
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     // Kihagyáskor csak bezárjuk, de NEM állítjuk be a completed-et
     // Bezárjuk a GlobalSearch-et, ha nyitva van
     onCloseGlobalSearch?.();
+    
+    // Demo adatok törlése, ha generáltuk őket
+    if (demoDataGeneratedRef.current) {
+      try {
+        // Skip esetén nem mentjük el a tutorialCompleted-et, csak a demo adatokat töröljük
+        console.log("🗑️ Tutorial kihagyva - demo adatok törlése...");
+        await clearTutorialDemoData();
+        demoDataGeneratedRef.current = false;
+        
+        // Újraindítjuk az alkalmazást, hogy a memóriából is eltűnjenek az adatok
+        console.log("🔄 Alkalmazás újraindítása a demo adatok törlése után...");
+        setTimeout(() => {
+          window.location.reload();
+        }, 500); // Kis késleltetés, hogy a törlés biztosan megtörténjen
+        return; // Ne hívjuk meg az onSkip-et, mert újraindítjuk az appot
+      } catch (error) {
+        console.error("❌ Hiba a demo adatok törlésekor:", error);
+      }
+    }
+    
     if (onSkip) {
       onSkip();
     } else {

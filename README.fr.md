@@ -41,7 +41,7 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
-### v1.4.33 (2025) - 🔧 Améliorations de la mise en page et du glissement des widgets
+### v1.4.33 (2025) - 🔧 Améliorations de la mise en page et du glissement des widgets + Données Demo du Tutoriel
 
 - 📊 **Corrections de la mise en page des widgets** - Correction du positionnement et de la fonctionnalité de glissement des widgets:
   - Correction du positionnement automatique de 6 petits widgets de taille "S" pour les aligner côte à côte
@@ -50,6 +50,17 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
   - Amélioration de la fonctionnalité de la poignée de glissement - les widgets peuvent être glissés depuis l'en-tête ou la barre de poignée
   - Correction des problèmes d'espace vide sous les widgets après repositionnement
   - Gestion améliorée des changements de mise en page pour éviter d'écraser les changements manuels
+- 🎓 **Système de Données Demo du Tutoriel** - Génération et nettoyage automatiques des données demo:
+  - Les données demo sont générées automatiquement lorsque le tutoriel commence (s'il n'y a pas de données existantes)
+  - Les données demo incluent des imprimantes, filaments, offres et clients d'exemple
+  - Les données demo sont automatiquement supprimées lorsque le tutoriel est terminé ou ignoré
+  - L'application redémarre automatiquement après la suppression des données demo pour vider la mémoire
+  - Les paramètres sont préservés pendant le nettoyage des données demo (langue, statut du tutoriel)
+  - Correction du problème de boucle infinie - le tutoriel ne redémarre plus après la fin
+- 🔧 **Correction de Release du Build Principal** - Amélioration de la création des releases GitHub:
+  - Ajout de la vérification des fichiers de release avant de créer le release GitHub
+  - Amélioration de la création des releases pour s'assurer que la dernière version s'affiche correctement
+  - Correction du format du nom du release pour la cohérence
 
 ### v1.3.12 (2025) - 🎨 Améliorations du système de widgets et des devises
 

@@ -244,11 +244,22 @@ jobs:
           echo "Hungarian changelog length: $(echo "$CHANGELOG_HU" | wc -l) lines"
           echo "English changelog length: $(echo "$CHANGELOG_EN" | wc -l) lines"
       
+      - name: Verify release files exist
+        shell: bash
+        run: |
+          if [ ! -d "./release-files" ] || [ -z "$(ls -A ./release-files)" ]; then
+            echo "ERROR: No release files found!"
+            ls -la ./release-files/ || echo "Release files directory does not exist"
+            exit 1
+          fi
+          echo "Release files verified:"
+          ls -lh ./release-files/
+      
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.get-version.outputs.version }}
-          name: v${{ steps.get-version.outputs.version }}
+          name: Release v${{ steps.get-version.outputs.version }}
           body: |
             ${{ steps.extract-changelog.outputs.changelog }}
             
@@ -264,7 +275,9 @@ jobs:
             - Branch: `main`
             - Commit: ${{ github.sha }}
             - Workflow: ${{ github.workflow }}
+            - Version: ${{ steps.get-version.outputs.version }}
           prerelease: false
+          draft: false
           files: ./release-files/*
           generate_release_notes: false
         env:
