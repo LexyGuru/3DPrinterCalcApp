@@ -206,20 +206,31 @@ jobs:
           VERSION: ${{ steps.get-version.outputs.version }}
         run: |
           # Extract changelog from README.hu.md
+          # Try multiple patterns: "v1.4.33", "v1.4.33 (2025)", etc.
           VERSION_PATTERN="v${VERSION}"
           CHANGELOG_HU=$(awk "/^### ${VERSION_PATTERN}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN}/) print}" README.hu.md | sed '$d' || echo "")
           
-          # If empty, try with different pattern
+          # If empty, try with date pattern: "v1.4.33 (2025)"
           if [ -z "$CHANGELOG_HU" ]; then
-            CHANGELOG_HU=$(awk "/^### v${VERSION}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION}/) print}" README.hu.md | sed '$d' || echo "")
+            CHANGELOG_HU=$(awk "/^### ${VERSION_PATTERN} /,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN} /) print}" README.hu.md | sed '$d' || echo "")
+          fi
+          
+          # If still empty, try exact match without date
+          if [ -z "$CHANGELOG_HU" ]; then
+            CHANGELOG_HU=$(awk "/^### v${VERSION}$/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION}$/) print}" README.hu.md | sed '$d' || echo "")
           fi
           
           # Extract changelog from README.en.md
           CHANGELOG_EN=$(awk "/^### ${VERSION_PATTERN}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN}/) print}" README.en.md | sed '$d' || echo "")
           
-          # If empty, try with different pattern
+          # If empty, try with date pattern: "v1.4.33 (2025)"
           if [ -z "$CHANGELOG_EN" ]; then
-            CHANGELOG_EN=$(awk "/^### v${VERSION}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION}/) print}" README.en.md | sed '$d' || echo "")
+            CHANGELOG_EN=$(awk "/^### ${VERSION_PATTERN} /,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN} /) print}" README.en.md | sed '$d' || echo "")
+          fi
+          
+          # If still empty, try exact match without date
+          if [ -z "$CHANGELOG_EN" ]; then
+            CHANGELOG_EN=$(awk "/^### v${VERSION}$/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION}$/) print}" README.en.md | sed '$d' || echo "")
           fi
           
           # Combine both changelogs
