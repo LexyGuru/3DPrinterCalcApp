@@ -205,33 +205,72 @@ jobs:
         env:
           VERSION: ${{ steps.get-version.outputs.version }}
         run: |
-          # Extract changelog from README.hu.md
-          # Try multiple patterns: "v1.4.33", "v1.4.33 (2025)", etc.
-          VERSION_PATTERN="v${VERSION}"
-          CHANGELOG_HU=$(awk "/^### ${VERSION_PATTERN}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN}/) print}" README.hu.md | sed '$d' || echo "")
+          # Function to extract changelog for a version
+          extract_changelog() {
+            local file=$1
+            local version=$2
+            local result=""
+            
+            # Escape dots in version for regex
+            local escaped_version=$(echo "$version" | sed 's/\./\\./g')
+            
+            # Try pattern: "### v1.4.33 (2025)" or "### v1.4.33"
+            result=$(python3 <<EOF
+          import re
+          import sys
           
-          # If empty, try with date pattern: "v1.4.33 (2025)"
-          if [ -z "$CHANGELOG_HU" ]; then
-            CHANGELOG_HU=$(awk "/^### ${VERSION_PATTERN} /,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN} /) print}" README.hu.md | sed '$d' || echo "")
-          fi
+          version = "${escaped_version}"
+          patterns = [
+              rf"^### v{version} ",
+              rf"^### v{version}\(",
+              rf"^### v{version}$",
+          ]
           
-          # If still empty, try exact match without date
-          if [ -z "$CHANGELOG_HU" ]; then
-            CHANGELOG_HU=$(awk "/^### v${VERSION}$/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION}$/) print}" README.hu.md | sed '$d' || echo "")
-          fi
+          try:
+              with open("${file}", "r", encoding="utf-8") as f:
+                  lines = f.readlines()
+              
+              for pattern in patterns:
+                  start_idx = None
+                  for i, line in enumerate(lines):
+                      if re.match(pattern, line):
+                          start_idx = i
+                          break
+                  
+                  if start_idx is not None:
+                      # Find the end (next version header)
+                      end_idx = len(lines)
+                      for i in range(start_idx + 1, len(lines)):
+                          if re.match(r"^### v[0-9]", lines[i]):
+                              end_idx = i
+                              break
+                      
+                      # Extract the changelog (excluding the last line if it's the next version header)
+                      changelog_lines = lines[start_idx:end_idx]
+                      if changelog_lines and re.match(r"^### v[0-9]", changelog_lines[-1]):
+                          changelog_lines = changelog_lines[:-1]
+                      
+                      result = "".join(changelog_lines).strip()
+                      if result:
+                          print(result)
+                          sys.exit(0)
+              
+              print("")
+          except Exception as e:
+              print("")
+          EOF
+          )
+            echo "$result"
+          }
           
-          # Extract changelog from README.en.md
-          CHANGELOG_EN=$(awk "/^### ${VERSION_PATTERN}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN}/) print}" README.en.md | sed '$d' || echo "")
+          # Extract changelogs
+          CHANGELOG_HU=$(extract_changelog "README.hu.md" "${VERSION}")
+          CHANGELOG_EN=$(extract_changelog "README.en.md" "${VERSION}")
           
-          # If empty, try with date pattern: "v1.4.33 (2025)"
-          if [ -z "$CHANGELOG_EN" ]; then
-            CHANGELOG_EN=$(awk "/^### ${VERSION_PATTERN} /,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN} /) print}" README.en.md | sed '$d' || echo "")
-          fi
-          
-          # If still empty, try exact match without date
-          if [ -z "$CHANGELOG_EN" ]; then
-            CHANGELOG_EN=$(awk "/^### v${VERSION}$/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION}$/) print}" README.en.md | sed '$d' || echo "")
-          fi
+          echo "Hungarian changelog found: $([ -n "$CHANGELOG_HU" ] && echo "yes" || echo "no")"
+          echo "English changelog found: $([ -n "$CHANGELOG_EN" ] && echo "yes" || echo "no")"
+          echo "Hungarian changelog length: $(echo "$CHANGELOG_HU" | wc -l) lines"
+          echo "English changelog length: $(echo "$CHANGELOG_EN" | wc -l) lines"
           
           # Combine both changelogs
           if [ -n "$CHANGELOG_HU" ] && [ -n "$CHANGELOG_EN" ]; then
