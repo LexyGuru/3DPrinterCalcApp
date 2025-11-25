@@ -41,6 +41,16 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 
 ## 📋 Registro de cambios (Changelog)
 
+### v1.4.33 (2025) - 🔧 Mejoras de Diseño y Arrastre de Widgets
+
+- 📊 **Correcciones de Diseño de Widgets** - Corregida la posicionamiento y funcionalidad de arrastre de widgets:
+  - Corregido el posicionamiento automático de 6 widgets pequeños de tamaño "S" para alinearlos lado a lado
+  - Los widgets ahora mantienen sus posiciones después de arrastrar y soltar manualmente
+  - Corregida la persistencia del diseño - los widgets ya no vuelven a sus posiciones originales
+  - Funcionalidad mejorada del control de arrastre - los widgets se pueden arrastrar desde el encabezado o la barra de control
+  - Corregidos los problemas de espacio vacío debajo de los widgets después de reposicionar
+  - Manejo mejorado de cambios de diseño para evitar sobrescribir cambios manuales
+
 ### v1.3.12 (2025) - 🎨 Mejoras del Sistema de Widgets y Monedas
 
 - 📊 **Mejoras del Sistema de Widgets** - Funcionalidad mejorada de widgets y localización:
@@ -806,7 +816,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ---
 
-**Versión**: 1.3.12
+**Versión**: 1.4.33
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 

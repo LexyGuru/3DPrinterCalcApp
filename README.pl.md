@@ -40,6 +40,16 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.4.33 (2025) - 🔧 Ulepszenia układu i przeciągania widgetów
+
+- 📊 **Poprawki układu widgetów** - Naprawione pozycjonowanie i funkcjonalność przeciągania widgetów:
+  - Naprawione automatyczne pozycjonowanie 6 małych widgetów rozmiaru "S", aby były wyrównane obok siebie
+  - Widgety teraz zachowują swoje pozycje po ręcznym przeciągnięciu i upuszczeniu
+  - Naprawiona trwałość układu - widgety nie wracają już do swoich pierwotnych pozycji
+  - Ulepszona funkcjonalność uchwytu przeciągania - widgety można przeciągać z nagłówka lub paska uchwytu
+  - Naprawione problemy z pustą przestrzenią pod widgetami po zmianie pozycji
+  - Ulepszona obsługa zmian układu, aby nie nadpisywać zmian ręcznych
+
 ### v1.3.12 (2025) - 🎨 Ulepszenia systemu widgetów i walut
 
 - 📊 **Ulepszenia systemu widgetów** - Ulepszona funkcjonalność widgetów i lokalizacja:
@@ -805,7 +815,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 1.3.12
+**Wersja**: 1.4.33
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

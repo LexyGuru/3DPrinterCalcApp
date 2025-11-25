@@ -42,6 +42,16 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 
 ## 📋 Changelog
 
+### v1.4.33 (2025) - 🔧 Widget Layout & Drag Improvements
+
+- 📊 **Widget Layout Fixes** - Fixed widget positioning and drag functionality:
+  - Fixed automatic positioning of 6 small "S" size widgets to align side by side
+  - Widgets now maintain their positions after manual drag and drop
+  - Fixed layout persistence - widgets no longer jump back to original positions
+  - Improved drag handle functionality - widgets can be dragged from header or drag handle bar
+  - Fixed empty space issues below widgets after repositioning
+  - Enhanced layout change handling to prevent overwriting manual changes
+
 ### v1.3.12 (2025) - 🎨 Widget System & Currency Enhancements
 
 - 📊 **Widget System Improvements** - Enhanced widget functionality and localization:
@@ -807,7 +817,7 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.3.11
+**Version**: 1.4.33
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
 

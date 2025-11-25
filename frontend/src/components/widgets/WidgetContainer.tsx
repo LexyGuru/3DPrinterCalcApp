@@ -106,7 +106,9 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
   // Méret alapján dinamikus padding
   const isSmall = widget.size === "small";
   const isMedium = widget.size === "medium";
-  const containerPadding = isSmall ? "8px" : isMedium ? "12px" : "16px";
+  const containerPadding = isSmall ? "6px" : isMedium ? "10px" : "14px";
+  const headerFontSize = isSmall ? "12px" : isMedium ? "13px" : "14px";
+  const headerPadding = isSmall ? "4px 0" : isMedium ? "6px 0" : "6px 0";
 
   return (
     <div
@@ -136,8 +138,38 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
         if (target.closest('[data-export-button]')) {
           return;
         }
+        // Ne blokkoljuk a drag handle vagy header eseményeit
+        if (target.closest('.widget-drag-handle') || target.closest('.widget-header')) {
+          return;
+        }
       }}
     >
+        {/* Drag Handle Bar - látható csík a widget tetején */}
+        <div
+          className="widget-drag-handle"
+          style={{
+            width: "100%",
+            height: "4px",
+            backgroundColor: theme.colors.primary,
+            opacity: 0.3,
+            borderRadius: "2px 2px 0 0",
+            cursor: "move",
+            flexShrink: 0,
+            transition: "opacity 0.2s ease, height 0.2s ease",
+            position: "relative",
+            zIndex: 11,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = "0.6";
+            e.currentTarget.style.height = "6px";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = "0.3";
+            e.currentTarget.style.height = "4px";
+          }}
+          title={t("widget.action.drag")}
+        />
+
         {/* Widget Header */}
         <div
           className="widget-header"
@@ -145,12 +177,15 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "8px",
-            paddingBottom: "6px",
+            marginBottom: isSmall ? "4px" : "8px",
+            padding: headerPadding,
+            paddingBottom: isSmall ? "4px" : "6px",
             borderBottom: `1px solid ${theme.colors.border}`,
             position: "relative",
             zIndex: 10,
             flexShrink: 0,
+            cursor: "move",
+            minHeight: isSmall ? "24px" : "28px",
           }}
         >
           {isEditingTitle && widget.type === "widget-group" && onRenameGroup ? (
@@ -199,14 +234,16 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
             <h3
               style={{
                 margin: 0,
-                fontSize: "14px",
+                fontSize: headerFontSize,
                 fontWeight: "600",
                 color: theme.colors.text,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
                 flex: 1,
-                cursor: widget.type === "widget-group" && onRenameGroup ? "pointer" : "default",
+                cursor: "move",
+                minWidth: 0,
+                userSelect: "none",
               }}
               onDoubleClick={() => {
                 if (widget.type === "widget-group" && onRenameGroup) {
@@ -224,11 +261,15 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
             <div
               style={{
                 display: "flex",
-                gap: "4px",
+                gap: isSmall ? "2px" : "4px",
                 alignItems: "center",
                 pointerEvents: "auto",
+                flexShrink: 0,
               }}
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => {
+                // Ne blokkoljuk a drag-ot, ha a kontrollokra kattintunk
+                e.stopPropagation();
+              }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Size selector */}

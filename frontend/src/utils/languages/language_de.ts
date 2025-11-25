@@ -1098,6 +1098,7 @@ export const languageDe: TranslationMap = {
   "widget.title.printTimeChart": "Druckzeitdiagramm",
   "widget.title.customerStatsChart": "Kundenstatistiken",
   "widget.title.offerStatusChart": "Angebotsstatus-Verteilung",
+  "widget.action.drag": "Widget ziehen",
   "widget.action.hide": "Ausblenden",
   "widget.action.remove": "Entfernen",
   "widget.action.renameGroup": "Gruppe umbenennen",

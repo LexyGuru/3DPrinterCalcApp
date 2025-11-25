@@ -213,7 +213,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       title: t("widget.title.customerStatsChart"),
       size: "medium",
       visible: false, // Alapértelmezetten rejtve
-      layout: { i: "customer-stats-chart-1", x: 0, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
+      layout: { i: "customer-stats-chart-1", x: 0, y: 22, w: 6, h: 4, minW:4, minH: 3 },
     },
     // 8. Árajánlat státusz eloszlás
     {
@@ -222,7 +222,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       title: t("widget.title.offerStatusChart"),
       size: "medium",
       visible: false, // Alapértelmezetten rejtve
-      layout: { i: "offer-status-chart-1", x: 6, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
+      layout: { i: "offer-status-chart-1", x: 6, y: 22, w: 6, h: 4, minW:4, minH: 3 },
     },
   ];
 };
@@ -285,9 +285,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   });
 
-  // Frissítés, ha a settings.dashboardLayout változik
+  // Ref, hogy követni tudjuk, hogy éppen mentünk-e változást
+  const isSavingLayoutRef = React.useRef(false);
+  const previousLayoutRef = React.useRef<string | undefined>(undefined);
+  
+  // Frissítés, ha a settings.dashboardLayout változik (csak ha nem mi mentettük)
   useEffect(() => {
+    // Ha éppen mentünk változást, ne töltjük be újra
+    if (isSavingLayoutRef.current) {
+      isSavingLayoutRef.current = false;
+      return;
+    }
+    
     const savedWidgets = settings.dashboardLayout?.widgets;
+    const currentLayoutKey = savedWidgets ? JSON.stringify(savedWidgets.map(w => ({ id: w.id, x: w.layout.x, y: w.layout.y }))) : undefined;
+    
+    // Ha a layout nem változott, ne töltjük be újra
+    if (currentLayoutKey === previousLayoutRef.current) {
+      return;
+    }
+    
+    previousLayoutRef.current = currentLayoutKey;
+    
     if (savedWidgets && savedWidgets.length > 0) {
       // Ha van mentett layout, de kevés widget van benne, akkor kiegészítjük az alapértelmezettekkel
       const defaultWidgets = createDefaultWidgets(t);
@@ -306,7 +325,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       } else {
         setWidgets(savedWidgets);
       }
-    } else {
+    } else if (!settings.dashboardLayout?.widgets || settings.dashboardLayout.widgets.length === 0) {
+      // Csak akkor állítjuk vissza az alapértelmezettet, ha valóban nincs mentett layout
       setWidgets(createDefaultWidgets(t));
     }
   }, [settings.dashboardLayout, onLayoutChange, t]);
@@ -369,19 +389,44 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Layout konverzió react-grid-layout formátumra
   // Csoport widget-ek nem jelennek meg külön, csak a bennük lévő widget-ek
   const layouts = useMemo(() => {
-    const lg: Layout[] = widgets
-      .filter((w) => w.visible && w.type !== "widget-group" && !w.groupId)
-      .map((widget) => ({
-        i: widget.id,
-        x: widget.layout.x,
-        y: widget.layout.y,
-        w: widget.layout.w,
-        h: widget.layout.h,
-        minW: widget.layout.minW || 2,
-        minH: widget.layout.minH || 2,
-        maxW: widget.layout.maxW || 12,
-        maxH: widget.layout.maxH || 8,
-      }));
+    // Külön kezeljük a kis stat-card widgeteket, hogy biztosan egymás mellé kerüljenek
+    const statCardWidgets = widgets.filter(
+      (w) => w.visible && w.type.startsWith("stat-card") && !w.groupId
+    );
+    const otherWidgets = widgets.filter(
+      (w) => w.visible && w.type !== "widget-group" && !w.groupId && !w.type.startsWith("stat-card")
+    );
+    
+    // Stat-card widgetek - használjuk az eredeti pozíciókat, ne alkalmazzunk automatikus pozicionálást
+    // Ez biztosítja, hogy a felhasználó áthelyezései megmaradjanak
+    const statCardLayouts: Layout[] = statCardWidgets.map((widget) => ({
+      i: widget.id,
+      x: widget.layout.x,
+      y: widget.layout.y,
+      w: widget.layout.w,
+      h: widget.layout.h,
+      minW: widget.layout.minW || 2,
+      minH: widget.layout.minH || 2,
+      maxW: widget.layout.maxW || 12,
+      maxH: widget.layout.maxH || 8,
+      static: false,
+    }));
+    
+    // Egyéb widgetek
+    const otherLayouts: Layout[] = otherWidgets.map((widget) => ({
+      i: widget.id,
+      x: widget.layout.x,
+      y: widget.layout.y,
+      w: widget.layout.w,
+      h: widget.layout.h,
+      minW: widget.layout.minW || 2,
+      minH: widget.layout.minH || 2,
+      maxW: widget.layout.maxW || 12,
+      maxH: widget.layout.maxH || 8,
+      static: false,
+    }));
+    
+    const lg: Layout[] = [...statCardLayouts, ...otherLayouts];
     
     // Csoport widget-ek hozzáadása
     widgets
@@ -450,6 +495,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         }
         layoutChangeTimeoutRef.current = setTimeout(() => {
           try {
+            // Jelöljük, hogy éppen mentünk változást
+            isSavingLayoutRef.current = true;
             const dashboardLayout: DashboardLayout = {
               widgets: newWidgets,
               version: 1,
@@ -1252,15 +1299,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
           layouts={layouts}
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
           cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
-          rowHeight={90}
+          rowHeight={80}
           onLayoutChange={handleLayoutChange}
           isDraggable={true}
           isResizable={true}
           compactType="vertical"
           preventCollision={false}
-          draggableHandle=".widget-header"
-          margin={[12, 20]}
+          draggableHandle=".widget-header, .widget-drag-handle"
+          margin={[2, 2]}
           containerPadding={[20, 20]}
+          allowOverlap={false}
+          isBounded={false}
           useCSSTransforms={true}
           transformScale={1}
           measureBeforeMount={false}
@@ -1289,9 +1338,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     // Ha a csoport widget-en belül történik drag, akkor megakadályozzuk
                     if (isGroupWidget) {
                       const target = e.target as HTMLElement;
-                      // Ha a drag a csoporton belüli widget header-en történik, akkor ne mozogjon a csoport
-                      if (target.closest('.react-grid-item') && target.closest('.widget-header')) {
-                        e.stopPropagation();
+                      // Csak akkor blokkoljuk, ha nem a drag handle-ról vagy header-ről van szó
+                      if (target.closest('.react-grid-item') && 
+                          target.closest('.widget-header') && 
+                          !target.closest('.widget-drag-handle')) {
+                        // Csak akkor blokkoljuk, ha gombra vagy input mezőre kattintunk
+                        if (target.closest('button') || target.closest('input') || target.closest('select')) {
+                          e.stopPropagation();
+                        }
                       }
                     }
                   }}

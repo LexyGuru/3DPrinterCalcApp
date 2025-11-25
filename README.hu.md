@@ -42,6 +42,16 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
+### v1.4.33 (2025) - 🔧 Widget elrendezés és húzás fejlesztések
+
+- 📊 **Widget elrendezés javítások** - Javított widget pozicionálás és húzás funkcionalitás:
+  - Javított automatikus pozicionálás 6 kis "S" méretű widget esetén, hogy egymás mellé kerüljenek
+  - A widgetek mostantól megtartják pozíciójukat manuális húzás után
+  - Javított elrendezés megőrzés - a widgetek nem ugranak vissza eredeti pozíciójukra
+  - Továbbfejlesztett húzás funkció - a widgetek húzhatók a fejlécről vagy a húzás sávról
+  - Javított üres terület problémák a widgetek alatt újra pozicionálás után
+  - Továbbfejlesztett elrendezés változás kezelés, hogy ne írja felül a manuális változásokat
+
 ### v1.3.12 (2025) - 🎨 Widget rendszer és pénznem fejlesztések
 
 - 📊 **Widget rendszer fejlesztések** - Továbbfejlesztett widget funkcionalitás és lokalizálás:
@@ -789,7 +799,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 1.3.12
+**Verzió**: 1.4.33
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

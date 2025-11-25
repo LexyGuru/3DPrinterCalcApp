@@ -1098,6 +1098,7 @@ export const languageHu: TranslationMap = {
   "widget.title.printTimeChart": "Nyomtatási idő grafikon",
   "widget.title.customerStatsChart": "Ügyfél statisztikák",
   "widget.title.offerStatusChart": "Árajánlat státusz eloszlás",
+  "widget.action.drag": "Húzd a widgetet",
   "widget.action.hide": "Elrejtés",
   "widget.action.remove": "Eltávolítás",
   "widget.action.renameGroup": "Csoport átnevezése",

@@ -1098,6 +1098,7 @@ export const languageSk: TranslationMap = {
   "widget.title.printTimeChart": "Graf času tlače",
   "widget.title.customerStatsChart": "Štatistiky zákazníkov",
   "widget.title.offerStatusChart": "Rozdelenie stavu ponúk",
+  "widget.action.drag": "Pretiahnuť widget",
   "widget.action.hide": "Skryť",
   "widget.action.remove": "Odstrániť",
   "widget.action.renameGroup": "Premenovať skupinu",

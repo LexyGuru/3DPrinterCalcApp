@@ -1098,6 +1098,7 @@ export const languageCs: TranslationMap = {
   "widget.title.printTimeChart": "Graf času tisku",
   "widget.title.customerStatsChart": "Statistiky zákazníků",
   "widget.title.offerStatusChart": "Rozdělení stavu nabídek",
+  "widget.action.drag": "Přetáhnout widget",
   "widget.action.hide": "Skrýt",
   "widget.action.remove": "Odebrat",
   "widget.action.renameGroup": "Přejmenovat skupinu",

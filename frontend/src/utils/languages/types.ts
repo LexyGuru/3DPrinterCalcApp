@@ -1106,6 +1106,7 @@ export type TranslationKey =
   | "widget.title.printTimeChart"
   | "widget.title.customerStatsChart"
   | "widget.title.offerStatusChart"
+  | "widget.action.drag"
   | "widget.action.hide"
   | "widget.action.remove"
   | "widget.action.renameGroup"

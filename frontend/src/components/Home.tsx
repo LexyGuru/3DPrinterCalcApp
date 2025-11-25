@@ -16,6 +16,9 @@ import { Dashboard } from "./widgets/Dashboard";
 import type { DashboardLayout } from "../types/widgets";
 import { saveSettings } from "../utils/store";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { PrintTimeChartWidget } from "./widgets/PrintTimeChartWidget";
+import { CustomerStatsChartWidget } from "./widgets/CustomerStatsChartWidget";
+import { OfferStatusChartWidget } from "./widgets/OfferStatusChartWidget";
 
 type TrendPoint = {
   label: string;
@@ -529,6 +532,34 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
         hours: item.hours,
       }));
   }, [offers, selectedPeriod, locale]);
+
+  // Widget konfigurációk memoizálása a klasszikus nézethez
+  const classicPrintTimeWidget = useMemo(() => ({
+    id: "print-time-chart-classic",
+    type: "print-time-chart" as const,
+    title: t("widget.title.printTimeChart"),
+    size: "medium" as const,
+    visible: true,
+    layout: { i: "print-time-chart-classic", x: 0, y: 0, w: 12, h: 4, minW: 6, minH: 3 },
+  }), [t]);
+
+  const classicCustomerStatsWidget = useMemo(() => ({
+    id: "customer-stats-chart-classic",
+    type: "customer-stats-chart" as const,
+    title: t("widget.title.customerStatsChart"),
+    size: "medium" as const,
+    visible: true,
+    layout: { i: "customer-stats-chart-classic", x: 0, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
+  }), [t]);
+
+  const classicOfferStatusWidget = useMemo(() => ({
+    id: "offer-status-chart-classic",
+    type: "offer-status-chart" as const,
+    title: t("widget.title.offerStatusChart"),
+    size: "medium" as const,
+    visible: true,
+    layout: { i: "offer-status-chart-classic", x: 6, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
+  }), [t]);
 
   const hasTrendData = trendData.some(point => point.revenue !== 0 || point.costs !== 0 || point.profit !== 0);
   const hasFilamentData = filamentBreakdown.length > 0 && totalFilamentByType > 0;
@@ -2438,6 +2469,135 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
               </div>
             </div>
           </FadeIn>
+
+          {/* Nyomtatási idő grafikon */}
+          {printTimeData.length > 0 && (
+            <FadeIn delay={0.45}>
+              <div style={{
+                backgroundColor: theme.colors.background?.includes('gradient') ? "rgba(255, 255, 255, 0.8)" : theme.colors.surface,
+                borderRadius: "20px",
+                padding: "24px",
+                marginBottom: "30px",
+                boxShadow: theme.colors.background?.includes('gradient')
+                  ? `0 6px 18px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)`
+                  : `0 4px 16px ${theme.colors.shadow}`,
+                border: `1px solid ${theme.colors.border}`,
+                backdropFilter: theme.colors.background?.includes('gradient') ? "blur(12px)" : "none",
+                opacity: theme.colors.background?.includes('gradient') ? 0.9 : 1,
+              }}>
+                <h3 style={{
+                  margin: 0,
+                  marginBottom: "16px",
+                  fontSize: "18px",
+                  fontWeight: "700",
+                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                  display: "flex",
+                  gap: "8px",
+                  alignItems: "center",
+                }}>
+                  <span style={{ fontSize: "20px" }}>⏱️</span>
+                  {t("widget.title.printTimeChart")}
+                </h3>
+                <div style={{ height: "350px", width: "100%" }}>
+                  <PrintTimeChartWidget
+                    widget={classicPrintTimeWidget}
+                    theme={theme}
+                    settings={settings}
+                    data={printTimeData}
+                  />
+                </div>
+              </div>
+            </FadeIn>
+          )}
+
+          {/* Ügyfél statisztikák és Árajánlat státusz grafikonok */}
+          {(customerStatsData.length > 0 || offerStatusData.length > 0) && (
+            <FadeIn delay={0.5}>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                gap: "20px",
+                marginBottom: "30px",
+              }}>
+                {/* Ügyfél statisztikák grafikon */}
+                {customerStatsData.length > 0 && (
+                  <div style={{
+                    backgroundColor: theme.colors.background?.includes('gradient') ? "rgba(255, 255, 255, 0.8)" : theme.colors.surface,
+                    borderRadius: "20px",
+                    padding: "24px",
+                    boxShadow: theme.colors.background?.includes('gradient')
+                      ? `0 6px 18px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)`
+                      : `0 4px 16px ${theme.colors.shadow}`,
+                    border: `1px solid ${theme.colors.border}`,
+                    backdropFilter: theme.colors.background?.includes('gradient') ? "blur(12px)" : "none",
+                    opacity: theme.colors.background?.includes('gradient') ? 0.9 : 1,
+                  }}>
+                    <h3 style={{
+                      margin: 0,
+                      marginBottom: "16px",
+                      fontSize: "18px",
+                      fontWeight: "700",
+                      color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}>
+                      <span style={{ fontSize: "20px" }}>👥</span>
+                      {t("widget.title.customerStatsChart")}
+                    </h3>
+                    <div style={{ height: "350px", width: "100%" }}>
+                      <CustomerStatsChartWidget
+                        widget={classicCustomerStatsWidget}
+                        theme={theme}
+                        settings={settings}
+                        data={customerStatsData}
+                        formatNumber={formatNumber}
+                        formatCurrency={formatCurrency}
+                        currencyLabel={currencyLabel}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Árajánlat státusz grafikon */}
+                {offerStatusData.length > 0 && (
+                  <div style={{
+                    backgroundColor: theme.colors.background?.includes('gradient') ? "rgba(255, 255, 255, 0.8)" : theme.colors.surface,
+                    borderRadius: "20px",
+                    padding: "24px",
+                    boxShadow: theme.colors.background?.includes('gradient')
+                      ? `0 6px 18px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)`
+                      : `0 4px 16px ${theme.colors.shadow}`,
+                    border: `1px solid ${theme.colors.border}`,
+                    backdropFilter: theme.colors.background?.includes('gradient') ? "blur(12px)" : "none",
+                    opacity: theme.colors.background?.includes('gradient') ? 0.9 : 1,
+                  }}>
+                    <h3 style={{
+                      margin: 0,
+                      marginBottom: "16px",
+                      fontSize: "18px",
+                      fontWeight: "700",
+                      color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}>
+                      <span style={{ fontSize: "20px" }}>📊</span>
+                      {t("widget.title.offerStatusChart")}
+                    </h3>
+                    <div style={{ height: "350px", width: "100%" }}>
+                      <OfferStatusChartWidget
+                        widget={classicOfferStatusWidget}
+                        theme={theme}
+                        settings={settings}
+                        data={offerStatusData}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </FadeIn>
+          )}
         </>
       )}
 

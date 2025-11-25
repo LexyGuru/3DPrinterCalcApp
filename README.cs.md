@@ -38,6 +38,16 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
+### v1.4.33 (2025) - 🔧 Vylepšení rozvržení a přetahování widgetů
+
+- 📊 **Opravy rozvržení widgetů** - Opraveno umístění a funkčnost přetahování widgetů:
+  - Opraveno automatické umístění 6 malých widgetů velikosti "S", aby byly zarovnány vedle sebe
+  - Widgety nyní zachovávají své pozice po ručním přetáhnutí a puštění
+  - Opravena trvalost rozvržení - widgety se již nevrací na své původní pozice
+  - Vylepšená funkčnost úchopu pro přetahování - widgety lze přetahovat z hlavičky nebo z úchopové lišty
+  - Opraveny problémy s prázdným prostorem pod widgety po změně pozice
+  - Vylepšená správa změn rozvržení, aby se nepřepisovaly ruční změny
+
 ### v1.3.12 (2025) - 🎨 Vylepšení systému widgetů a měn
 
 - 📊 **Vylepšení systému widgetů** - Vylepšená funkčnost widgetů a lokalizace:
@@ -805,7 +815,7 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 
 **Verze**: 1.1.1
 
-**Verze**: 1.3.12
+**Verze**: 1.4.33
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 
