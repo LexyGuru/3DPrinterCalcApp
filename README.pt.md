@@ -40,7 +40,7 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
-### v1.4.33 (2025) - 🔧 Melhorias de Layout e Arrasto de Widgets
+### v1.4.33 (2025) - 🔧 Melhorias de Layout e Arrasto de Widgets + Dados Demo do Tutorial
 
 - 📊 **Correções de Layout de Widgets** - Corrigido o posicionamento e funcionalidade de arrasto de widgets:
   - Corrigido o posicionamento automático de 6 widgets pequenos de tamanho "S" para alinhá-los lado a lado
@@ -49,6 +49,17 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
   - Funcionalidade melhorada da alça de arrasto - os widgets podem ser arrastados do cabeçalho ou da barra de alça
   - Corrigidos problemas de espaço vazio abaixo dos widgets após reposicionamento
   - Gerenciamento melhorado de mudanças de layout para evitar sobrescrever mudanças manuais
+- 🎓 **Sistema de Dados Demo do Tutorial** - Geração e limpeza automática de dados demo:
+  - Dados demo são gerados automaticamente quando o tutorial começa (se não houver dados existentes)
+  - Dados demo incluem impressoras, filamentos, ofertas e clientes de exemplo
+  - Dados demo são automaticamente excluídos quando o tutorial é concluído ou ignorado
+  - Aplicativo reinicia automaticamente após exclusão de dados demo para limpar a memória
+  - Configurações preservadas durante a limpeza de dados demo (idioma, status do tutorial)
+  - Corrigido problema de loop infinito - tutorial não reinicia mais após conclusão
+- 🔧 **Correção de Release do Build Principal** - Melhoria na criação de releases do GitHub:
+  - Adicionada verificação de arquivos de release antes de criar o release do GitHub
+  - Melhorada a criação de releases para garantir que a versão mais recente seja exibida corretamente
+  - Corrigido formato do nome do release para consistência
 
 ### v1.3.12 (2025) - 🎨 Melhorias do Sistema de Widgets e Moedas
 

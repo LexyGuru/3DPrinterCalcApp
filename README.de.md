@@ -42,7 +42,7 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
-### v1.4.33 (2025) - 🔧 Widget-Layout & Drag-Verbesserungen
+### v1.4.33 (2025) - 🔧 Widget-Layout & Drag-Verbesserungen + Tutorial Demo-Daten
 
 - 📊 **Widget-Layout-Fixes** - Behobene Widget-Positionierung und Drag-Funktionalität:
   - Behobene automatische Positionierung von 6 kleinen "S"-Größen-Widgets, um nebeneinander ausgerichtet zu werden
@@ -51,6 +51,17 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
   - Verbesserte Drag-Handle-Funktionalität - Widgets können vom Header oder Drag-Handle-Balken gezogen werden
   - Behobene Leerstellenprobleme unter Widgets nach Neupositionierung
   - Verbesserte Layout-Änderungsbehandlung, um manuelle Änderungen nicht zu überschreiben
+- 🎓 **Tutorial Demo-Daten-System** - Automatische Demo-Daten-Generierung und -Bereinigung:
+  - Demo-Daten werden automatisch generiert, wenn das Tutorial startet (wenn keine vorhandenen Daten vorhanden sind)
+  - Demo-Daten enthalten Beispiel-Drucker, Filamente, Angebote und Kunden
+  - Demo-Daten werden automatisch gelöscht, wenn das Tutorial abgeschlossen oder übersprungen wird
+  - Anwendung startet automatisch nach dem Löschen der Demo-Daten neu, um den Speicher zu leeren
+  - Einstellungen bleiben beim Löschen der Demo-Daten erhalten (Sprache, Tutorial-Status)
+  - Behobenes Endlosschleifen-Problem - Tutorial startet nach Abschluss nicht mehr neu
+- 🔧 **Main Build Release-Fix** - Verbesserte GitHub-Release-Erstellung:
+  - Release-Datei-Überprüfung vor der GitHub-Release-Erstellung hinzugefügt
+  - Verbesserte Release-Erstellung, um sicherzustellen, dass die neueste Version korrekt angezeigt wird
+  - Behobenes Release-Namensformat für Konsistenz
 
 ### v1.3.12 (2025) - 🎨 Widget-System & Währungsverbesserungen
 

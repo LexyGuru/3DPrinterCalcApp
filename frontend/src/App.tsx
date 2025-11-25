@@ -100,6 +100,31 @@ export default function App() {
     setShowLanguageSelector(false);
   };
 
+  // 🔹 Adatok újratöltése (demo adatok generálása után)
+  const reloadData = useCallback(async () => {
+    try {
+      const loadedPrinters = await loadPrinters();
+      if (loadedPrinters.length > 0) {
+        setPrinters(loadedPrinters);
+      }
+      const loadedFilaments = await loadFilaments();
+      if (loadedFilaments.length > 0) {
+        setFilaments(loadedFilaments);
+      }
+      const loadedOffers = await loadOffers();
+      if (loadedOffers.length > 0) {
+        setOffers(loadedOffers);
+      }
+      const loadedCustomers = await loadCustomers();
+      if (loadedCustomers.length > 0) {
+        setCustomers(loadedCustomers);
+      }
+      console.log("✅ Adatok újratöltve demo adatok generálása után");
+    } catch (error) {
+      console.error("❌ Hiba az adatok újratöltésekor:", error);
+    }
+  }, []);
+
   // 🔹 Betöltés indításkor - Progress tracking-gel (csak ha a nyelv kiválasztva)
   useEffect(() => {
     if (!languageSelected) return; // Várjuk meg a nyelvválasztást
@@ -772,6 +797,7 @@ export default function App() {
                 setShowGlobalSearch(false);
               }
             }}
+            onDataReload={reloadData}
             onComplete={async () => {
               setShowTutorial(false);
               const updatedSettings = { 

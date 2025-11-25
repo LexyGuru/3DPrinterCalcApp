@@ -38,7 +38,7 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
-### v1.4.33 (2025) - 🔧 Vylepšení rozvržení a přetahování widgetů
+### v1.4.33 (2025) - 🔧 Vylepšení rozvržení a přetahování widgetů + Demo Data Tutoriálu
 
 - 📊 **Opravy rozvržení widgetů** - Opraveno umístění a funkčnost přetahování widgetů:
   - Opraveno automatické umístění 6 malých widgetů velikosti "S", aby byly zarovnány vedle sebe
@@ -47,6 +47,17 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
   - Vylepšená funkčnost úchopu pro přetahování - widgety lze přetahovat z hlavičky nebo z úchopové lišty
   - Opraveny problémy s prázdným prostorem pod widgety po změně pozice
   - Vylepšená správa změn rozvržení, aby se nepřepisovaly ruční změny
+- 🎓 **Systém Demo Dat Tutoriálu** - Automatické generování a čištění demo dat:
+  - Demo data se automaticky generují, když tutoriál začíná (pokud neexistují žádná existující data)
+  - Demo data zahrnují ukázkové tiskárny, filamenty, nabídky a zákazníky
+  - Demo data se automaticky mažou, když je tutoriál dokončen nebo přeskočen
+  - Aplikace se automaticky restartuje po smazání demo dat, aby vyčistila paměť
+  - Nastavení jsou zachována během čištění demo dat (jazyk, stav tutoriálu)
+  - Opraven problém nekonečné smyčky - tutoriál se již nerestartuje po dokončení
+- 🔧 **Oprava Release Hlavní Build** - Vylepšené vytváření GitHub release:
+  - Přidána kontrola souborů release před vytvořením GitHub release
+  - Vylepšené vytváření release, aby bylo zajištěno správné zobrazení nejnovější verze
+  - Opraven formát názvu release pro konzistenci
 
 ### v1.3.12 (2025) - 🎨 Vylepšení systému widgetů a měn
 

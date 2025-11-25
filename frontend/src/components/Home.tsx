@@ -175,6 +175,18 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
   };
 
   const getOfferFinancials = (offer: Offer) => {
+    // Védelem: ha nincs costs objektum, visszaadunk null értékeket
+    if (!offer.costs) {
+      console.warn(`[Home] Offer ${offer.id} has no costs object, skipping financial calculations`);
+      return {
+        revenueEUR: 0,
+        costsEUR: 0,
+        profitEUR: 0,
+        electricityCostEUR: 0,
+        dryingCostEUR: 0,
+      };
+    }
+
     const profitPercentage = offer.profitPercentage ?? 30;
     const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
     const revenueEUR = convertCurrencyFromTo(revenueInOfferCurrency, offer.currency, "EUR");
@@ -198,7 +210,10 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
   
   // Statisztikák számítása
   const calculateStatistics = (offersToCalculate: Offer[]) => {
-    if (offersToCalculate.length === 0) {
+    // Szűrjük az árajánlatokat, amelyeknek nincs costs objektuma
+    const validOffers = offersToCalculate.filter(offer => offer.costs != null);
+    
+    if (validOffers.length === 0) {
       return {
         totalFilamentUsed: 0,
         totalRevenue: 0,
@@ -217,7 +232,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
     let totalPrintTime = 0;
     let totalProfit = 0;
 
-    offersToCalculate.forEach(offer => {
+    validOffers.forEach(offer => {
       offer.filaments.forEach(f => {
         totalFilamentUsed += f.usedGrams;
       });
@@ -250,7 +265,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
       totalCosts,
       totalProfit,
       totalPrintTime,
-      offerCount: offersToCalculate.length
+      offerCount: validOffers.length
     };
   };
   
@@ -780,9 +795,9 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
             id: o.id,
             date: o.date,
             customerName: o.customerName,
-            totalCost: o.costs.totalCost,
+            totalCost: o.costs?.totalCost ?? 0,
             profitPercentage: o.profitPercentage || 30,
-            revenue: o.costs.totalCost * (1 + (o.profitPercentage || 30) / 100),
+            revenue: (o.costs?.totalCost ?? 0) * (1 + (o.profitPercentage || 30) / 100),
             currency: o.currency,
           })),
         };
@@ -828,11 +843,14 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
         const currencyColumnLabel = t("home.csv.currency");
         
         csvRows.push(`${idLabel},${dateLabel},${customerLabel},${totalCostLabel},${profitPercentLabel},${revenueLabel2},${currencyColumnLabel}`);
-        filterOffersByPeriod(offers, selectedPeriod).forEach(o => {
-          const profitPct = o.profitPercentage || 30;
-          const revenue = o.costs.totalCost * (1 + profitPct / 100);
-          csvRows.push(`${o.id},${o.date},${o.customerName || ""},${o.costs.totalCost.toFixed(2)},${profitPct},${revenue.toFixed(2)},${o.currency || "EUR"}`);
-        });
+        filterOffersByPeriod(offers, selectedPeriod)
+          .filter(o => o.costs != null) // Szűrjük azokat, amelyeknek nincs costs objektuma
+          .forEach(o => {
+            const profitPct = o.profitPercentage || 30;
+            if (!o.costs) return; // Extra védelem
+            const revenue = o.costs.totalCost * (1 + profitPct / 100);
+            csvRows.push(`${o.id},${o.date},${o.customerName || ""},${o.costs.totalCost.toFixed(2)},${profitPct},${revenue.toFixed(2)},${o.currency || "EUR"}`);
+          });
         csvRows.push("");
         const periodLabel = t("home.period.label").replace(/[:：]\s*$/, "");
         csvRows.push(`${periodLabel}: ${periodOptionLabels[selectedPeriod]}`);
@@ -903,7 +921,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
 
       const filteredOffers = offers.filter(o => {
         const offerDate = new Date(o.date);
-        return offerDate >= periodStart && offerDate <= periodEnd;
+        return offerDate >= periodStart && offerDate <= periodEnd && o.costs != null;
       });
 
       // Számítások a szűrt árajánlatokra
@@ -914,6 +932,8 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
       let reportPrintTime = 0;
 
       filteredOffers.forEach(offer => {
+        if (!offer.costs) return; // Védelem: ha nincs costs objektum, kihagyjuk
+        
         offer.filaments.forEach(f => {
           reportFilamentUsed += f.usedGrams;
         });
@@ -964,9 +984,9 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
           date: o.date,
           customerName: o.customerName,
           printerName: o.printerName,
-          totalCost: o.costs.totalCost,
+          totalCost: o.costs?.totalCost ?? 0,
           profitPercentage: o.profitPercentage || 30,
-          revenue: o.costs.totalCost * (1 + (o.profitPercentage || 30) / 100),
+          revenue: (o.costs?.totalCost ?? 0) * (1 + (o.profitPercentage || 30) / 100),
           currency: o.currency,
         })),
       };

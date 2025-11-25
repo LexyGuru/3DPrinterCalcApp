@@ -40,7 +40,7 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
-### v1.4.33 (2025) - 🔧 Ulepszenia układu i przeciągania widgetów
+### v1.4.33 (2025) - 🔧 Ulepszenia układu i przeciągania widgetów + Dane Demo Tutorialu
 
 - 📊 **Poprawki układu widgetów** - Naprawione pozycjonowanie i funkcjonalność przeciągania widgetów:
   - Naprawione automatyczne pozycjonowanie 6 małych widgetów rozmiaru "S", aby były wyrównane obok siebie
@@ -49,6 +49,17 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
   - Ulepszona funkcjonalność uchwytu przeciągania - widgety można przeciągać z nagłówka lub paska uchwytu
   - Naprawione problemy z pustą przestrzenią pod widgetami po zmianie pozycji
   - Ulepszona obsługa zmian układu, aby nie nadpisywać zmian ręcznych
+- 🎓 **System Danych Demo Tutorialu** - Automatyczne generowanie i czyszczenie danych demo:
+  - Dane demo są automatycznie generowane, gdy rozpoczyna się tutorial (jeśli nie ma istniejących danych)
+  - Dane demo zawierają przykładowe drukarki, filamenty, oferty i klientów
+  - Dane demo są automatycznie usuwane, gdy tutorial zostanie ukończony lub pominięty
+  - Aplikacja automatycznie restartuje się po usunięciu danych demo, aby wyczyścić pamięć
+  - Ustawienia są zachowywane podczas czyszczenia danych demo (język, status tutorialu)
+  - Naprawiony problem nieskończonej pętli - tutorial nie restartuje się już po ukończeniu
+- 🔧 **Poprawka Release Build Głównego** - Ulepszona tworzenie release GitHub:
+  - Dodana weryfikacja plików release przed utworzeniem release GitHub
+  - Ulepszone tworzenie release, aby zapewnić prawidłowe wyświetlanie najnowszej wersji
+  - Naprawiony format nazwy release dla spójności
 
 ### v1.3.12 (2025) - 🎨 Ulepszenia systemu widgetów i walut
 
