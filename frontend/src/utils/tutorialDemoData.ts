@@ -1,5 +1,5 @@
 import type { Printer, Filament, Offer, Customer, Settings } from "../types";
-import { savePrinters, saveFilaments, saveOffers, saveCustomers, saveSettings, clearAllData } from "./store";
+import { savePrinters, saveFilaments, saveOffers, saveCustomers } from "./store";
 import { calculateOfferCosts } from "./offerCalc";
 import { Store } from "@tauri-apps/plugin-store";
 
@@ -106,7 +106,9 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
       },
     ];
 
-    // Demo ügyfelek
+    // Demo ügyfelek és árajánlatok dátumok
+    const nowDate = new Date();
+    const nowISO = nowDate.toISOString();
     const demoCustomers: Customer[] = [
       {
         id: 1,
@@ -114,6 +116,8 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
         contact: "john.doe@example.com",
         company: "Example Corp",
         notes: "Rendszeres ügyfél",
+        createdAt: nowISO,
+        updatedAt: nowISO,
       },
       {
         id: 2,
@@ -121,6 +125,8 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
         contact: "+36 20 123 4567",
         company: "Tech Solutions Ltd",
         notes: "Első rendelés",
+        createdAt: nowISO,
+        updatedAt: nowISO,
       },
       {
         id: 3,
@@ -128,14 +134,15 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
         contact: "bob@startup.com",
         company: "Startup Inc",
         notes: "",
+        createdAt: nowISO,
+        updatedAt: nowISO,
       },
     ];
 
     // Demo árajánlatok
-    const now = new Date();
-    const yesterday = new Date(now);
+    const yesterday = new Date(nowDate);
     yesterday.setDate(yesterday.getDate() - 1);
-    const lastWeek = new Date(now);
+    const lastWeek = new Date(nowDate);
     lastWeek.setDate(lastWeek.getDate() - 7);
 
     // Először létrehozzuk az árajánlatokat költségek nélkül
@@ -179,11 +186,11 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
           },
           {
             status: "accepted",
-            date: now.toISOString(),
+            date: nowDate.toISOString(),
             note: "Elfogadva",
           },
         ],
-        statusUpdatedAt: now.toISOString(),
+        statusUpdatedAt: nowDate.toISOString(),
         currency: settings.currency || "EUR",
       },
       {
@@ -238,11 +245,11 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
           },
           {
             status: "completed",
-            date: now.toISOString(),
+            date: nowDate.toISOString(),
             note: "Befejezve",
           },
         ],
-        statusUpdatedAt: now.toISOString(),
+        statusUpdatedAt: nowDate.toISOString(),
         currency: settings.currency || "EUR",
       },
       {
@@ -254,7 +261,7 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
         customerName: "Bob Johnson",
         customerContact: "bob@startup.com",
         description: "Test print - kis mennyiség",
-        date: now.toISOString(),
+        date: nowDate.toISOString(),
         filaments: [
           {
             brand: "eSUN",
@@ -274,11 +281,11 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
         statusHistory: [
           {
             status: "draft",
-            date: now.toISOString(),
+            date: nowDate.toISOString(),
             note: "Piszkozat",
           },
         ],
-        statusUpdatedAt: now.toISOString(),
+        statusUpdatedAt: nowDate.toISOString(),
         currency: settings.currency || "EUR",
       },
     ];
