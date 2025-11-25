@@ -23,7 +23,7 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 - 🧾 **Import G-code a vytváření konceptu** - Načítání exportů G-code/JSON (Prusa, Cura, Orca, Qidi) z modalu v kalkulačce, s podrobným shrnutím a automatickým generováním konceptu nabídky
 - 📈 **Statistiky** - Přehledný dashboard pro spotřebu filamentu, příjmy, zisk
 - 🌍 **Vícejazyčnost** - Úplný překlad do maďarštiny, angličtiny, němčiny, francouzštiny, zjednodušené čínštiny, češtiny, španělštiny, italštiny, polštiny, portugalštiny, slovenštiny, ukrajinštiny a ruštiny (14 jazyků, 813 překladových klíčů na jazyk)
-- 💱 **Více měn** - EUR, HUF, USD
+- 💱 **Více měn** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 měn)
 - 🔄 **Automatické aktualizace** - Kontroluje GitHub Releases pro nové verze
 - 🧪 **Beta verze** - Podpora beta větve a beta buildu
 - ⚙️ **Kontrola beta** - Konfigurovatelná kontrola beta verzí
@@ -37,6 +37,56 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 - 📱 **Kontextová menu** - Menu pravého tlačítka pro rychlé akce (upravit, smazat, duplikovat, exportovat)
 
 ## 📋 Seznam změn (Changelog)
+
+### v1.4.33 (2025) - 🔧 Vylepšení rozvržení a přetahování widgetů
+
+- 📊 **Opravy rozvržení widgetů** - Opraveno umístění a funkčnost přetahování widgetů:
+  - Opraveno automatické umístění 6 malých widgetů velikosti "S", aby byly zarovnány vedle sebe
+  - Widgety nyní zachovávají své pozice po ručním přetáhnutí a puštění
+  - Opravena trvalost rozvržení - widgety se již nevrací na své původní pozice
+  - Vylepšená funkčnost úchopu pro přetahování - widgety lze přetahovat z hlavičky nebo z úchopové lišty
+  - Opraveny problémy s prázdným prostorem pod widgety po změně pozice
+  - Vylepšená správa změn rozvržení, aby se nepřepisovaly ruční změny
+
+### v1.3.12 (2025) - 🎨 Vylepšení systému widgetů a měn
+
+- 📊 **Vylepšení systému widgetů** - Vylepšená funkčnost widgetů a lokalizace:
+  - Přidány nové widgety: Graf času tisku, Graf statistik zákazníků, Graf stavu nabídek
+  - Opravena funkčnost exportu widgetů - všechny grafické widgety nyní exportovatelné jako SVG
+  - Dynamický překlad názvů widgetů na základě vybraného jazyka
+  - Lokalizované názvy souborů exportu s kompatibilním pojmenováním OS (podtržítka, žádné speciální znaky)
+  - Jazyky widgetů se aktualizují okamžitě po změně jazyka
+  - Toast notifikace pro úspěšné exporty grafů
+  - Všechny prvky widgetů a stavy načítání plně přeloženy ve všech 14 jazycích
+- 💱 **Rozšíření podpory měn** - Rozšířená podpora měn:
+  - Přidané měny: GBP (Britská libra), PLN (Polský zlotý), CZK (Česká koruna), CNY (Čínský jüan), UAH (Ukrajinská hřivna), RUB (Ruský rubl)
+  - Symboly a štítky měn pro všechny nové měny
+  - Správná konverze a zobrazení měn ve všech komponentech
+  - Rozbalovací menu výběru měny aktualizováno všemi podporovanými měnami
+- 💰 **Oprava přesnosti výpočtu nákladů** - Opraveny problémy s přesností plovoucí desetinné čárky:
+  - Všechny výpočty nákladů (filament, elektřina, sušení, použití, celkem) nyní zaokrouhleny na 2 desetinná místa
+  - Eliminovány dlouhé desetinné zobrazení (např. `0.17500000000000002` → `0.18`)
+  - Konzistentní formátování čísel v celé aplikaci
+- 🏢 **Dialog informací o společnosti** - Vylepšená správa informací o společnosti:
+  - Formulář informací o společnosti přesunut do modálního dialogu (podobně jako Zboží/Filamenty)
+  - Tlačítko "Detaily společnosti" pro otevření/úpravu informací o společnosti
+  - Dialog lze zavřít pomocí tlačítka X, kliknutí na pozadí nebo klávesy Escape
+  - Lepší UX s animovanými modálními přechody
+  - Všechna pole informací o společnosti přístupná v organizovaném rozhraní dialogu
+
+### v1.3.11 (2025) - 🎨 Vylepšení widget dashboardu
+
+- 📊 **Vylepšení widget dashboardu** - Vylepšená funkčnost widget dashboardu:
+  - Opravené odsazení a okraje kontejneru widgetů pro lepší rozvržení od okraje k okraji
+  - Vylepšené chování posouvání - widgety se nyní správně posouvají, když obsah překročí zobrazení
+  - Opravený problém se zmenšováním widgetů při změně velikosti okna - widgety si zachovávají velikost ve všech bodech přerušení
+  - Konzistentní rozvržení 12 sloupců na všech velikostech obrazovky
+  - Lepší umístění a rozestupy widgetů
+- 🔧 **Opravy rozvržení**:
+  - Odstraněno pevné odsazení kontejneru, které bránilo widgetům dosáhnout okrajů aplikace
+  - Opravený výpočet výšky ResponsiveGridLayout pro správné posouvání
+  - Vylepšená správa přetečení kontejneru
+  - Lepší konzistence rozvržení skupiny widgetů
 
 ### v1.2.1 (2025) - 🎨 Konzistence UI a správa sloupců
 
@@ -765,7 +815,7 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 
 **Verze**: 1.1.1
 
-**Verze**: 1.2.1
+**Verze**: 1.4.33
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 

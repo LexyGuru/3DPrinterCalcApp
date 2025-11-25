@@ -48,6 +48,7 @@ import { sendNativeNotification, setDockBadge, getPlatform, requestNotificationP
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { saveSettings, clearAllData } from "../utils/store";
 import { invoke } from "@tauri-apps/api/core";
+import { convertCurrencyFromTo, getCurrencySymbol } from "../utils/currency";
 
 interface Props {
   settings: Settings;
@@ -85,6 +86,7 @@ export const SettingsPage: React.FC<Props> = ({
   const [importOffers, setImportOffers] = useState(false);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showCompanyInfoDialog, setShowCompanyInfoDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "display" | "advanced" | "data" | "library">("general");
   const [notificationPermissionGranted, setNotificationPermissionGranted] = useState<boolean | null>(null);
   const [hideMacOSWarningTemporarily, setHideMacOSWarningTemporarily] = useState(false); // Csak az aktuális session-re
@@ -233,6 +235,20 @@ export const SettingsPage: React.FC<Props> = ({
       showToast(t("settings.errors.actionFailed"), "error");
     }
   };
+
+  // Escape billentyű kezelése a céginformáció dialógus bezárásához
+  useEffect(() => {
+    if (!showCompanyInfoDialog) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowCompanyInfoDialog(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showCompanyInfoDialog]);
 
   const ensureThemeSettings = (overrides?: Partial<ThemeSettings>): ThemeSettings => {
     const base: ThemeSettings = {
@@ -1203,25 +1219,14 @@ export const SettingsPage: React.FC<Props> = ({
   // Átalakítjuk az áramárat megjelenítéshez (Ft/kWh -> választott pénznem)
   const getDisplayElectricityPrice = (): number => {
     // Az electricityPrice mindig Ft/kWh-ban van tárolva
-    // Konvertáljuk a választott pénznemre: 400 Ft = 1 EUR, 1 EUR = 1.10 USD
-    if (settings.currency === "HUF") {
-      return settings.electricityPrice;
-    } else if (settings.currency === "EUR") {
-      return settings.electricityPrice / 400;
-    } else { // USD
-      return (settings.electricityPrice / 400) * 1.10;
-    }
+    // Konvertáljuk a választott pénznemre és kerekítsük 2 tizedesjegyre
+    const converted = convertCurrencyFromTo(settings.electricityPrice, "HUF", settings.currency);
+    return parseFloat(converted.toFixed(2));
   };
 
   // Konvertáljuk vissza Ft/kWh-ba amikor a felhasználó megadja az értéket
   const convertElectricityPriceToHUF = (value: number): number => {
-    if (settings.currency === "HUF") {
-      return value;
-    } else if (settings.currency === "EUR") {
-      return value * 400;
-    } else { // USD
-      return (value / 1.10) * 400;
-    }
+    return convertCurrencyFromTo(value, settings.currency, "HUF");
   };
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -2454,6 +2459,12 @@ export const SettingsPage: React.FC<Props> = ({
             <option value="EUR">EUR (€)</option>
             <option value="HUF">HUF (Ft)</option>
             <option value="USD">USD ($)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="PLN">PLN (zł)</option>
+            <option value="CZK">CZK (Kč)</option>
+            <option value="CNY">CNY (¥)</option>
+            <option value="UAH">UAH (₴)</option>
+            <option value="RUB">RUB (₽)</option>
           </select>
         </div>
         
@@ -2467,7 +2478,7 @@ export const SettingsPage: React.FC<Props> = ({
               color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
               width: "fit-content" 
             }}>
-              ⚡ {t("settings.electricityPrice")} ({settings.currency === "HUF" ? "Ft" : settings.currency === "EUR" ? "€" : "$"}/kWh)
+              ⚡ {t("settings.electricityPrice")} ({getCurrencySymbol(settings.currency)}/kWh)
             </label>
           </Tooltip>
           <input 
@@ -2583,6 +2594,7 @@ export const SettingsPage: React.FC<Props> = ({
           </p>
         </div>
 
+        {/* Céginformációk gomb */}
         <div style={{
           marginTop: "32px",
           padding: "24px",
@@ -2592,12 +2604,11 @@ export const SettingsPage: React.FC<Props> = ({
         }}>
           <div style={{
             display: "flex",
-            flexWrap: "wrap",
             justifyContent: "space-between",
-            gap: "20px",
-            alignItems: companyInfo.logoBase64 ? "center" : "flex-start"
+            alignItems: "center",
+            gap: "20px"
           }}>
-            <div style={{ flex: "1 1 260px", minWidth: "220px" }}>
+            <div style={{ flex: "1" }}>
               <h3 style={{
                 margin: 0,
                 fontSize: "18px",
@@ -2617,15 +2628,16 @@ export const SettingsPage: React.FC<Props> = ({
             </div>
             {companyInfo.logoBase64 && (
               <div style={{
-                width: "120px",
-                height: "120px",
+                width: "80px",
+                height: "80px",
                 borderRadius: "12px",
                 border: `1px solid ${theme.colors.border}`,
                 backgroundColor: theme.colors.surface,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "12px"
+                padding: "8px",
+                flexShrink: 0
               }}>
                 <img
                   src={companyInfo.logoBase64}
@@ -2634,14 +2646,150 @@ export const SettingsPage: React.FC<Props> = ({
                 />
               </div>
             )}
+            <button
+              onClick={() => setShowCompanyInfoDialog(true)}
+              style={{
+                ...themeStyles.button,
+                ...themeStyles.buttonPrimary,
+                padding: "12px 24px",
+                fontSize: "14px",
+                whiteSpace: "nowrap"
+              }}
+            >
+              {companyInfo.name || companyInfo.email || companyInfo.phone ? "✏️ " : "➕ "}{t("settings.company.editButton") || "Cégadatok"}
+            </button>
           </div>
+        </div>
 
-          <div style={{
-            marginTop: "20px",
-            display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: "16px"
-          }}>
+        {/* Céginformációk dialógus */}
+        <AnimatePresence>
+          {showCompanyInfoDialog && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10000,
+                backdropFilter: 'blur(4px)',
+                overflowY: 'auto',
+                padding: '20px',
+              }}
+              onClick={() => setShowCompanyInfoDialog(false)}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: -20, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.96 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                style={{
+                  backgroundColor: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                    ? 'rgba(255, 255, 255, 0.95)'
+                    : theme.colors.surface,
+                  borderRadius: '16px',
+                  padding: '24px',
+                  width: 'min(900px, 95vw)',
+                  maxHeight: '90vh',
+                  overflowY: 'auto',
+                  boxShadow: theme.name === 'neon' || theme.name === 'cyberpunk'
+                    ? `0 0 30px ${theme.colors.shadow}, 0 8px 32px rgba(0,0,0,0.4)`
+                    : `0 8px 32px rgba(0,0,0,0.3)`,
+                  color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                    ? '#1a202c'
+                    : theme.colors.text,
+                  backdropFilter: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
+                    ? 'blur(12px)'
+                    : 'none',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+                  <h3 style={{ 
+                    margin: 0, 
+                    fontSize: "20px", 
+                    fontWeight: "600", 
+                    color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+                  }}>
+                    🏢 {t("settings.company.title")}
+                  </h3>
+                  <button 
+                    onClick={() => setShowCompanyInfoDialog(false)}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
+                    }}
+                    style={{ 
+                      ...themeStyles.button,
+                      ...themeStyles.buttonSecondary,
+                      padding: "8px 16px",
+                      fontSize: "16px",
+                      minWidth: "40px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}
+                    aria-label={t("common.close") || "Bezárás"}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "space-between",
+                  gap: "20px",
+                  alignItems: companyInfo.logoBase64 ? "center" : "flex-start",
+                  marginBottom: "24px"
+                }}>
+                  <div style={{ flex: "1 1 260px", minWidth: "220px" }}>
+                    <p style={{
+                      marginTop: "8px",
+                      fontSize: "13px",
+                      color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted,
+                      lineHeight: 1.6
+                    }}>
+                      {t("settings.company.description")}
+                    </p>
+                  </div>
+                  {companyInfo.logoBase64 && (
+                    <div style={{
+                      width: "120px",
+                      height: "120px",
+                      borderRadius: "12px",
+                      border: `1px solid ${theme.colors.border}`,
+                      backgroundColor: theme.colors.surface,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "12px"
+                    }}>
+                      <img
+                        src={companyInfo.logoBase64}
+                        alt={t("settings.company.logoPreview")}
+                        style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                  gap: "16px"
+                }}>
             <div>
               <label style={{
                 display: "block",
@@ -2825,7 +2973,10 @@ export const SettingsPage: React.FC<Props> = ({
               {t("settings.company.logoTip")}
             </p>
           </div>
-        </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
         <div style={{
           marginTop: "24px",

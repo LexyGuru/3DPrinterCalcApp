@@ -199,46 +199,50 @@ jobs:
           echo "Release files prepared (version ${VERSION}):"
           ls -lh ./release-files/
       
-      - name: Generate release notes from commits
-        id: release-notes
+      - name: Extract changelog from README files
+        id: extract-changelog
         shell: bash
         env:
           VERSION: ${{ steps.get-version.outputs.version }}
         run: |
-          # Fetch all tags to ensure we have the latest
-          git fetch --tags --force
+          # Extract changelog from README.hu.md
+          VERSION_PATTERN="v${VERSION}"
+          CHANGELOG_HU=$(awk "/^### ${VERSION_PATTERN}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN}/) print}" README.hu.md | sed '$d' || echo "")
           
-          # Get all tags sorted by version
-          ALL_TAGS=$(git tag -l "v*" | sort -V)
-          
-          # Get the previous tag (second to last if current tag exists, or last if not)
-          CURRENT_TAG="v${VERSION}"
-          PREV_TAG=$(echo "$ALL_TAGS" | grep -v "^${CURRENT_TAG}$" | tail -1 || echo "")
-          
-          if [ -z "$PREV_TAG" ]; then
-            # No previous tag, get all commits
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
-            echo "No previous tag found, using all commits"
-          else
-            # Get commits between previous tag and current commit
-            CHANGELOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
-            echo "Comparing ${PREV_TAG}..HEAD"
+          # If empty, try with different pattern
+          if [ -z "$CHANGELOG_HU" ]; then
+            CHANGELOG_HU=$(awk "/^### v${VERSION}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION}/) print}" README.hu.md | sed '$d' || echo "")
           fi
           
-          # If no changelog, add a note
-          if [ -z "$CHANGELOG" ]; then
-            CHANGELOG="- No changes detected"
+          # Extract changelog from README.en.md
+          CHANGELOG_EN=$(awk "/^### ${VERSION_PATTERN}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### ${VERSION_PATTERN}/) print}" README.en.md | sed '$d' || echo "")
+          
+          # If empty, try with different pattern
+          if [ -z "$CHANGELOG_EN" ]; then
+            CHANGELOG_EN=$(awk "/^### v${VERSION}/,/^### v[0-9]/ {if (!/^### v[0-9]/ || /^### v${VERSION}/) print}" README.en.md | sed '$d' || echo "")
+          fi
+          
+          # Combine both changelogs
+          if [ -n "$CHANGELOG_HU" ] && [ -n "$CHANGELOG_EN" ]; then
+            COMBINED_CHANGELOG="## 🇭🇺 Magyar / 🇬🇧 English"$'\n\n'"### 🇭🇺 Magyar változások"$'\n\n'"${CHANGELOG_HU}"$'\n\n'"---"$'\n\n'"### 🇬🇧 English Changes"$'\n\n'"${CHANGELOG_EN}"
+          elif [ -n "$CHANGELOG_HU" ]; then
+            COMBINED_CHANGELOG="## 🇭🇺 Magyar változások"$'\n\n'"${CHANGELOG_HU}"
+          elif [ -n "$CHANGELOG_EN" ]; then
+            COMBINED_CHANGELOG="## 🇬🇧 English Changes"$'\n\n'"${CHANGELOG_EN}"
+          else
+            COMBINED_CHANGELOG="## Release v${VERSION}"$'\n\n'"No changelog found in README files for this version."
           fi
           
           # Save to output (escape newlines for GitHub Actions)
           {
             echo "changelog<<EOF"
-            echo "$CHANGELOG"
+            echo "$COMBINED_CHANGELOG"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
           
-          echo "Previous tag: ${PREV_TAG:-none}"
-          echo "Changelog generated with $(echo "$CHANGELOG" | grep -c "^-" || echo "0") commits"
+          echo "Changelog extracted for version ${VERSION}"
+          echo "Hungarian changelog length: $(echo "$CHANGELOG_HU" | wc -l) lines"
+          echo "English changelog length: $(echo "$CHANGELOG_EN" | wc -l) lines"
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -246,21 +250,17 @@ jobs:
           tag_name: v${{ steps.get-version.outputs.version }}
           name: v${{ steps.get-version.outputs.version }}
           body: |
-            ## Release v${{ steps.get-version.outputs.version }}
+            ${{ steps.extract-changelog.outputs.changelog }}
             
-            This is a stable release built from the `main` branch.
+            ---
             
-            ### Changes since last release
-            
-            ${{ steps.release-notes.outputs.changelog }}
-            
-            ### Download
+            ### 📥 Download
             Download the appropriate file for your platform:
             - **macOS**: `.dmg` file
             - **Linux**: `.deb`, `.AppImage`, or `.rpm` file
             - **Windows**: `.msi` file
             
-            ### Build Info
+            ### 🔧 Build Info
             - Branch: `main`
             - Commit: ${{ github.sha }}
             - Workflow: ${{ github.workflow }}

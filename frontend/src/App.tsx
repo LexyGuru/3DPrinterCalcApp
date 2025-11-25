@@ -34,6 +34,7 @@ import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
 import { initFrontendLog } from "./utils/fileLogger"; // Initialize file logger
 import { logWithLanguage } from "./utils/languages/global_console";
+import { useTranslation } from "./utils/translations";
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
@@ -53,6 +54,7 @@ export default function App() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const [languageSelected, setLanguageSelected] = useState(false);
+  const t = useTranslation(settings.language);
 
   // 🔹 Frontend log inicializálása
   useEffect(() => {
@@ -547,7 +549,10 @@ export default function App() {
       case "console":
         return <Console settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
       default: 
-        return <Home settings={settings} offers={offers} theme={currentTheme} />;
+        return <Home settings={settings} offers={offers} theme={currentTheme} onSettingsChange={(newSettings) => {
+          setSettings(newSettings);
+          // A Home komponensben az onLayoutChange már meghívja a saveSettings-t
+        }} />;
     }
   }, [activePage, filaments, printers, offers, customers, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers, quickActionTrigger]);
 
@@ -569,14 +574,14 @@ export default function App() {
 
     const totalSteps = 6;
     return [
-      { label: "Beállítások betöltése...", progress: calculateStepProgress(0, totalSteps) },
-      { label: "Nyomtatók betöltése...", progress: calculateStepProgress(1, totalSteps) },
-      { label: "Filamentek betöltése...", progress: calculateStepProgress(2, totalSteps) },
-      { label: "Árajánlatok betöltése...", progress: calculateStepProgress(3, totalSteps) },
-      { label: "Ügyfelek betöltése...", progress: calculateStepProgress(4, totalSteps) },
-      { label: "Inicializálás...", progress: calculateStepProgress(5, totalSteps) },
+      { label: t("loading.settings"), progress: calculateStepProgress(0, totalSteps) },
+      { label: t("loading.printers"), progress: calculateStepProgress(1, totalSteps) },
+      { label: t("loading.filaments"), progress: calculateStepProgress(2, totalSteps) },
+      { label: t("loading.offers"), progress: calculateStepProgress(3, totalSteps) },
+      { label: t("loading.customers"), progress: calculateStepProgress(4, totalSteps) },
+      { label: t("loading.initialization"), progress: calculateStepProgress(5, totalSteps) },
     ];
-  }, [loadingProgress]);
+  }, [loadingProgress, t]);
 
   return (
     <ErrorBoundary>
@@ -656,7 +661,8 @@ export default function App() {
           }}>
             {!isInitialized ? (
               <AppSkeleton 
-                theme={currentTheme} 
+                theme={currentTheme}
+                settings={settings}
                 loadingSteps={loadingSteps}
                 currentStep={loadingStep}
               />
@@ -672,7 +678,7 @@ export default function App() {
                     ? 'transparent' 
                     : currentTheme.colors.background,
                 }}>
-                  <LoadingSpinner size="large" message={settings.language === "hu" ? "Betöltés..." : settings.language === "de" ? "Laden..." : "Loading..."} />
+                  <LoadingSpinner size="large" message={t("loading.title")} />
                 </div>
               }>
                 <AnimatePresence mode="wait" initial={false}>
@@ -768,13 +774,17 @@ export default function App() {
             }}
             onComplete={async () => {
               setShowTutorial(false);
-              const updatedSettings = { ...settings, tutorialCompleted: true };
+              const updatedSettings = { 
+                ...settings, 
+                tutorialCompleted: true,
+                showTutorialOnStartup: false, // Ne mutassa többet indításkor
+              };
               setSettings(updatedSettings);
               // Azonnal mentjük, hogy biztosan elmentődjön
               try {
                 await saveSettings(updatedSettings);
                 if (import.meta.env.DEV) {
-                  console.log("✅ Tutorial completed státusz mentve");
+                  console.log("✅ Tutorial completed státusz mentve:", updatedSettings);
                 }
               } catch (error) {
                 console.error("❌ Hiba a tutorial completed státusz mentésekor:", error);

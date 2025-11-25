@@ -26,7 +26,7 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 👥 **Kundendatenbank** - Kundenverwaltung mit Kontaktinformationen, Firmendaten und Angebotsstatistiken
 - 📊 **Preisverlauf und Trends** - Verfolgung von Filamentpreisänderungen mit Diagrammen und Statistiken
 - 🌍 **Mehrsprachig** - Vollständige Übersetzung in Ungarisch, Englisch, Deutsch, Französisch, Vereinfachtem Chinesisch, Tschechisch, Spanisch, Italienisch, Polnisch, Portugiesisch, Slowakisch, Ukrainisch und Russisch (14 Sprachen, 850+ Übersetzungsschlüssel pro Sprache)
-- 💱 **Mehrere Währungen** - EUR, HUF, USD
+- 💱 **Mehrere Währungen** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 Währungen)
 - 🔄 **Automatische Updates** - Prüft GitHub Releases auf neue Versionen
 - 🧪 **Beta-Versionen** - Beta-Branch und Beta-Build-Unterstützung
 - ⚙️ **Beta-Prüfung** - Konfigurierbare Beta-Versionsprüfung
@@ -41,6 +41,56 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 🍎 **Plattformspezifische Funktionen** - macOS Dock-Badge, native Benachrichtigungen, System-Tray-Integration
 
 ## 📋 Änderungsprotokoll (Changelog)
+
+### v1.4.33 (2025) - 🔧 Widget-Layout & Drag-Verbesserungen
+
+- 📊 **Widget-Layout-Fixes** - Behobene Widget-Positionierung und Drag-Funktionalität:
+  - Behobene automatische Positionierung von 6 kleinen "S"-Größen-Widgets, um nebeneinander ausgerichtet zu werden
+  - Widgets behalten jetzt ihre Positionen nach manuellem Drag & Drop bei
+  - Behobene Layout-Persistenz - Widgets springen nicht mehr zu ihren ursprünglichen Positionen zurück
+  - Verbesserte Drag-Handle-Funktionalität - Widgets können vom Header oder Drag-Handle-Balken gezogen werden
+  - Behobene Leerstellenprobleme unter Widgets nach Neupositionierung
+  - Verbesserte Layout-Änderungsbehandlung, um manuelle Änderungen nicht zu überschreiben
+
+### v1.3.12 (2025) - 🎨 Widget-System & Währungsverbesserungen
+
+- 📊 **Widget-System Verbesserungen** - Erweiterte Widget-Funktionalität und Lokalisierung:
+  - Neue Widgets hinzugefügt: Druckzeit-Diagramm, Kundenstatistik-Diagramm, Angebotsstatus-Diagramm
+  - Widget-Export-Funktionalität behoben - alle Diagramm-Widgets jetzt als SVG exportierbar
+  - Dynamische Widget-Titel-Übersetzung basierend auf ausgewählter Sprache
+  - Lokalisierte Export-Dateinamen mit OS-kompatibler Benennung (Unterstriche, keine Sonderzeichen)
+  - Widget-Sprachen aktualisieren sich sofort nach Sprachänderung
+  - Toast-Benachrichtigungen für erfolgreiche Diagramm-Exporte
+  - Alle Widget-Elemente und Ladezustände vollständig in allen 14 Sprachen übersetzt
+- 💱 **Währungsunterstützung erweitert** - Erweiterte Währungsunterstützung:
+  - Hinzugefügte Währungen: GBP (Britisches Pfund), PLN (Polnischer Zloty), CZK (Tschechische Krone), CNY (Chinesischer Yuan), UAH (Ukrainische Hryvnia), RUB (Russischer Rubel)
+  - Währungssymbole und -bezeichnungen für alle neuen Währungen
+  - Korrekte Währungsumrechnung und -anzeige in allen Komponenten
+  - Währungsauswahl-Dropdown mit allen unterstützten Währungen aktualisiert
+- 💰 **Kostenberechnungs-Präzisionsfix** - Gleitkomma-Präzisionsprobleme behoben:
+  - Alle Kostenberechnungen (Filament, Strom, Trocknung, Nutzung, Gesamt) jetzt auf 2 Dezimalstellen gerundet
+  - Lange Dezimalanzeigen eliminiert (z.B. `0.17500000000000002` → `0.18`)
+  - Konsistente Zahlenformatierung in der gesamten Anwendung
+- 🏢 **Firmeninformations-Dialog** - Verbesserte Firmeninfo-Verwaltung:
+  - Firmeninformationsformular in modalen Dialog verschoben (ähnlich wie Waren/Filamente)
+  - "Firmendaten" Button zum Öffnen/Bearbeiten von Firmeninformationen
+  - Dialog kann über X-Button, Backdrop-Klick oder Escape-Taste geschlossen werden
+  - Bessere UX mit animierten Modal-Übergängen
+  - Alle Firmeninfo-Felder in organisiertem Dialog-Interface zugänglich
+
+### v1.3.11 (2025) - 🎨 Widget Dashboard Verbesserungen
+
+- 📊 **Widget Dashboard Verbesserungen** - Verbesserte Widget Dashboard Funktionalität:
+  - Behobene Widget-Container-Padding und -Abstände für besseres Edge-to-Edge-Layout
+  - Verbessertes Scroll-Verhalten - Widgets scrollen jetzt ordnungsgemäß, wenn der Inhalt die Ansicht überschreitet
+  - Behobenes Widget-Schrumpfproblem bei Fenstergrößenänderung - Widgets behalten die Größe über alle Breakpoints hinweg
+  - Konsistentes 12-Spalten-Layout für alle Bildschirmgrößen
+  - Bessere Widget-Positionierung und -Abstände
+- 🔧 **Layout-Fixes**:
+  - Entferntes festes Container-Padding, das verhinderte, dass Widgets die App-Ränder erreichen
+  - Behobene ResponsiveGridLayout-Höhenberechnung für ordnungsgemäßes Scrollen
+  - Verbesserte Container-Overflow-Behandlung
+  - Bessere Widget-Gruppen-Layout-Konsistenz
 
 ### v1.2.1 (2025) - 🎨 UI-Konsistenz und Spaltenverwaltung
 
@@ -767,7 +817,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 1.2.1
+**Version**: 1.4.33
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

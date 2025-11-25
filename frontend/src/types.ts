@@ -164,8 +164,10 @@ export interface CustomShortcut {
   description?: string;
 }
 
+export type Currency = "EUR" | "HUF" | "USD" | "GBP" | "PLN" | "CZK" | "CNY" | "UAH" | "RUB";
+
 export interface Settings {
-  currency: "EUR" | "HUF" | "USD";
+  currency: Currency;
   electricityPrice: number; // Ft/kWh
   language: LanguageCode;
   checkForBetaUpdates?: boolean; // Beta release-ek ellenőrzése
@@ -202,6 +204,8 @@ export interface Settings {
   tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
   logRetentionDays?: number; // Log fájlok megtartása napokban (0 = soha ne törölje)
   hideMacOSNotificationWarning?: boolean; // macOS értesítési figyelmeztetés elrejtése
+  dashboardLayout?: import("./types/widgets").DashboardLayout; // Dashboard widget layout
+  useWidgetDashboard?: boolean; // Widget dashboard használata (true) vagy klasszikus nézet (false)
 }
 
 export const defaultSettings: Settings = {
@@ -287,7 +291,7 @@ export interface Offer {
     usageCost: number;
     totalCost: number;
   };
-  currency: "EUR" | "HUF" | "USD";
+  currency: Currency;
   customerName?: string;
   customerContact?: string; // Email vagy telefon
   description?: string;
@@ -379,7 +383,7 @@ export interface PriceHistory {
   priceChange: number; // Változás összege
   priceChangePercent: number; // Változás százalékban
   date: string; // ISO date string
-  currency: "EUR" | "HUF" | "USD";
+  currency: Currency;
 }
 
 // Filament ár előzmények egy adott filamenthez

@@ -14,7 +14,7 @@ import type { Theme } from "../utils/themes";
 import { useTranslation, type TranslationKey } from "../utils/translations";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
-import { convertCurrencyFromTo } from "../utils/currency";
+import { convertCurrencyFromTo, getCurrencyLabel } from "../utils/currency";
 import { Tooltip } from "./Tooltip";
 import { EmptyState } from "./EmptyState";
 import { calculateOfferCosts } from "../utils/offerCalc";
@@ -1740,7 +1740,7 @@ export const Offers: React.FC<Props> = ({
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px", minWidth: "120px" }}>
                           <span style={{ fontSize: "18px", fontWeight: "700", color: theme.colors.primary }}>
-                            {totalAmount} {settings.currency === "HUF" ? "Ft" : settings.currency}
+                            {totalAmount} {getCurrencyLabel(settings.currency)}
                           </span>
                           {offer.customerContact && (
                             <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
@@ -1990,7 +1990,7 @@ export const Offers: React.FC<Props> = ({
                             {t("offers.details.totalCost")}
                           </span>
                           <div style={{ fontSize: "20px", fontWeight: "700", color: theme.colors.primary, marginTop: "4px" }}>
-                            {convertCurrencyFromTo(selectedOffer.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}
+                            {convertCurrencyFromTo(selectedOffer.costs.totalCost, selectedOffer.currency || "EUR", settings.currency).toFixed(2)} {getCurrencyLabel(settings.currency)}
                           </div>
                         </div>
                         <div style={{

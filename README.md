@@ -25,7 +25,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 👥 **Customer Database** - Manage customers with contact information, company details, and offer statistics
 - 📊 **Price History & Trends** - Track filament price changes over time with charts and statistics
 - 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (14 languages, 850+ translation keys per language)
-- 💱 **Multiple Currencies** - EUR, HUF, USD
+- 💱 **Multiple Currencies** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 currencies)
 - 🔄 **Auto Updates** - Checks GitHub Releases for new versions
 - 🧪 **Beta Versions** - Beta branch and beta build support
 - ⚙️ **Beta Check** - Configurable beta version checking
@@ -41,14 +41,52 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 
 ## 📸 Screenshots
 
-The application includes:
-- Home dashboard with statistics
-- Filament management
-- Printer management
-- Cost calculation calculator
-- Quotes list and detailed view
-- Status dashboard and timeline
-- PDF export and built-in preview
+### Application Icon
+
+<div align="center">
+  <img src="docs/images/icon.png" alt="3D Printer Calculator App Icon" width="128" height="128">
+  
+  <p><em>3D Printer Calculator App - Desktop Application Icon</em></p>
+</div>
+
+### Application Preview
+
+<div align="center">
+  <img src="docs/images/Square310x310Logo.png" alt="App Logo" width="300" height="300">
+</div>
+
+### Application Screenshots
+
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0;">
+  <div>
+    <img src="docs/images/screenshot-dashboard.png" alt="Dashboard" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-calculator.png" alt="Calculator" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-filament.png" alt="Filament Management" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-printcalc.png" alt="Printer Management" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-offers.png" alt="Offers" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-settings.png" alt="Settings" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-themes.png" alt="Themes" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-adevenced.png" alt="Advanced Settings" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-filament_db.png" alt="FilamentDB" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+</div>
+
 
 ## 🚀 Installation
 
@@ -243,6 +281,56 @@ Lekszikov Miklós (LexyGuru)
 When pushing to the `beta` branch, the GitHub Actions workflow automatically runs, building the beta version.
 
 ## 📋 Version History
+
+### v1.4.33 (2025) - 🔧 Widget Layout & Drag Improvements
+
+- 📊 **Widget Layout Fixes** - Fixed widget positioning and drag functionality:
+  - Fixed automatic positioning of 6 small "S" size widgets to align side by side
+  - Widgets now maintain their positions after manual drag and drop
+  - Fixed layout persistence - widgets no longer jump back to original positions
+  - Improved drag handle functionality - widgets can be dragged from header or drag handle bar
+  - Fixed empty space issues below widgets after repositioning
+  - Enhanced layout change handling to prevent overwriting manual changes
+
+### v1.3.12 (2025) - 🎨 Widget System & Currency Enhancements
+
+- 📊 **Widget System Improvements** - Enhanced widget functionality and localization:
+  - New widgets added: Print Time Chart, Customer Stats Chart, Offer Status Chart
+  - Widget export functionality fixed - all chart widgets now exportable as SVG
+  - Dynamic widget title translation based on selected language
+  - Localized export filenames with proper OS-compatible naming (underscores, no special chars)
+  - Widget language updates immediately after language change
+  - Toast notifications for successful chart exports
+  - All widget elements and loading states fully translated in all 14 languages
+- 💱 **Currency Support Expansion** - Extended currency support:
+  - Added currencies: GBP (British Pound), PLN (Polish Zloty), CZK (Czech Koruna), CNY (Chinese Yuan), UAH (Ukrainian Hryvnia), RUB (Russian Ruble)
+  - Currency symbols and labels for all new currencies
+  - Proper currency conversion and display across all components
+  - Currency selection dropdown updated with all supported currencies
+- 💰 **Cost Calculation Precision Fix** - Fixed floating-point precision issues:
+  - All cost calculations (filament, electricity, drying, usage, total) now rounded to 2 decimal places
+  - Eliminated long decimal displays (e.g., `0.17500000000000002` → `0.18`)
+  - Consistent number formatting throughout the application
+- 🏢 **Company Information Dialog** - Improved company info management:
+  - Company information form moved to modal dialog (similar to Goods/Filaments)
+  - "Company Details" button to open/edit company information
+  - Dialog can be closed via X button, backdrop click, or Escape key
+  - Better UX with animated modal transitions
+  - All company info fields accessible in organized dialog interface
+
+### v1.3.11 (2025) - 🎨 Widget Dashboard Improvements
+
+- 📊 **Widget Dashboard Enhancements** - Improved widget dashboard functionality:
+  - Fixed widget container padding and margins for better edge-to-edge layout
+  - Improved scroll behavior - widgets now properly scroll when content exceeds viewport
+  - Fixed widget shrinking issue on window resize - widgets maintain size across all breakpoints
+  - Consistent 12-column layout across all screen sizes
+  - Better widget positioning and spacing
+- 🔧 **Layout Fixes**:
+  - Removed fixed container padding that prevented widgets from reaching app edges
+  - Fixed ResponsiveGridLayout height calculation for proper scrolling
+  - Improved container overflow handling
+  - Better widget group layout consistency
 
 ### v1.2.1 (2025) - 🎨 UI Consistency and Column Management
 
@@ -711,6 +799,6 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.2.1
+**Version**: 1.4.33
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!

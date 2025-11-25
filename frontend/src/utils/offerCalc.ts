@@ -48,7 +48,8 @@ export function calculateOfferCosts(
     });
     totalFilamentCostEUR += filamentCostEUR;
   });
-  const filamentCost = convertCurrencyFromTo(totalFilamentCostEUR, "EUR", offer.currency || "EUR");
+  // Kerekítjük a lebegőpontos precíziós hibák elkerülésére
+  const filamentCost = Math.round(convertCurrencyFromTo(totalFilamentCostEUR, "EUR", offer.currency || "EUR") * 100) / 100;
   logWithLanguage(settings.language, "debug", "offerCalc.totalFilament", {
     offerId: offer.id,
     totalFilamentCostEUR,
@@ -70,7 +71,8 @@ export function calculateOfferCosts(
   const electricityCostHUF = powerConsumedKWh * electricityPrice;
   // Konvertáljuk EUR-ra (400 Ft = 1 EUR), majd az offer pénznemére
   const electricityCostEUR = electricityCostHUF / 400;
-  const electricityCost = convertCurrencyFromTo(electricityCostEUR, "EUR", offer.currency || "EUR");
+  // Kerekítjük a lebegőpontos precíziós hibák elkerülésére
+  const electricityCost = Math.round(convertCurrencyFromTo(electricityCostEUR, "EUR", offer.currency || "EUR") * 100) / 100;
 
   // Szárítás költség minden filamentnél külön
   let totalDryingCostEUR = 0;
@@ -85,14 +87,14 @@ export function calculateOfferCosts(
       totalDryingCostEUR += dryingCostEUR;
     }
   });
-  // Konvertáljuk az offer pénznemére
-  const dryingCost = convertCurrencyFromTo(totalDryingCostEUR, "EUR", offer.currency || "EUR");
+  // Konvertáljuk az offer pénznemére és kerekítjük
+  const dryingCost = Math.round(convertCurrencyFromTo(totalDryingCostEUR, "EUR", offer.currency || "EUR") * 100) / 100;
 
-  // Használati költség (kopás)
-  const usageCost = convertCurrencyFromTo(printer.usageCost * totalPrintTimeHours, "EUR", offer.currency || "EUR");
+  // Használati költség (kopás) és kerekítjük
+  const usageCost = Math.round(convertCurrencyFromTo(printer.usageCost * totalPrintTimeHours, "EUR", offer.currency || "EUR") * 100) / 100;
 
-  // Összes költség
-  const totalCost = filamentCost + electricityCost + dryingCost + usageCost;
+  // Összes költség és kerekítjük
+  const totalCost = Math.round((filamentCost + electricityCost + dryingCost + usageCost) * 100) / 100;
 
   const costs: OfferCosts = {
     filamentCost,

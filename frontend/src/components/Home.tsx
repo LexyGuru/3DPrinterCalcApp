@@ -1,4 +1,5 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import type { ErrorInfo } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import type { Settings, Offer } from "../types";
@@ -6,11 +7,18 @@ import { defaultAnimationSettings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { logWithLanguage } from "../utils/languages/global_console";
-import { convertCurrency, convertCurrencyFromTo } from "../utils/currency";
+import { convertCurrency, convertCurrencyFromTo, getCurrencyLabel } from "../utils/currency";
 import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
 import { FadeIn, StaggerContainer, StaggerItem, HoverLift } from "../utils/animations";
 import { jsPDF } from "jspdf";
+import { Dashboard } from "./widgets/Dashboard";
+import type { DashboardLayout } from "../types/widgets";
+import { saveSettings } from "../utils/store";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { PrintTimeChartWidget } from "./widgets/PrintTimeChartWidget";
+import { CustomerStatsChartWidget } from "./widgets/CustomerStatsChartWidget";
+import { OfferStatusChartWidget } from "./widgets/OfferStatusChartWidget";
 
 type TrendPoint = {
   label: string;
@@ -57,17 +65,47 @@ interface Props {
   settings: Settings;
   offers: Offer[];
   theme: Theme;
+  onSettingsChange?: (newSettings: Settings) => void;
 }
 
-export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
+export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChange }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [exportFormat, setExportFormat] = useState<"json" | "csv">("json");
   const [reportPeriod, setReportPeriod] = useState<"all" | "week" | "month" | "year">("all");
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<"all" | "week" | "month" | "year">("all");
+  const [useWidgetDashboard, setUseWidgetDashboard] = useState(settings.useWidgetDashboard ?? false);
+  const [showWidgetManager, setShowWidgetManager] = useState(false);
+  const [widgetError, setWidgetError] = useState<Error | null>(null);
+  
+  // Frissítés, ha a settings.useWidgetDashboard változik
+  useEffect(() => {
+    setUseWidgetDashboard(settings.useWidgetDashboard ?? false);
+    setWidgetError(null); // Reset error when switching views
+  }, [settings.useWidgetDashboard]);
+  
+  // Ha widget hiba történik, automatikusan visszaváltunk a klasszikus nézetre
+  useEffect(() => {
+    if (widgetError && useWidgetDashboard) {
+      console.error("[Home] Widget error detected, switching to classic view:", {
+        error: widgetError.message || String(widgetError),
+        stack: widgetError.stack,
+        widgetError: widgetError,
+      });
+      setUseWidgetDashboard(false);
+      setWidgetError(null);
+      // Beállítások mentése
+      const newSettings = { ...settings, useWidgetDashboard: false };
+      onSettingsChange?.(newSettings);
+      saveSettings(newSettings).catch(err => {
+        console.error("[Home] Failed to save settings after widget error:", err);
+      });
+    }
+  }, [widgetError, useWidgetDashboard, settings, onSettingsChange]);
+  
   const locale = LANGUAGE_LOCALES[settings.language] ?? "en-US";
-  const currencyLabel = settings.currency === "HUF" ? "Ft" : settings.currency;
+  const currencyLabel = getCurrencyLabel(settings.currency);
   const trendChartRef = useRef<SVGSVGElement | null>(null);
   const filamentChartRef = useRef<SVGSVGElement | null>(null);
   const printerChartRef = useRef<SVGSVGElement | null>(null);
@@ -374,6 +412,155 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
     [printerBreakdown]
   );
 
+  // Ügyfél statisztikák
+  const customerStatsData = useMemo(() => {
+    const filtered = filterOffersByPeriod(offers, selectedPeriod);
+    if (filtered.length === 0) {
+      return [];
+    }
+
+    const map = new Map<string, { offerCount: number; totalRevenue: number; totalProfit: number }>();
+    filtered.forEach(offer => {
+      const { revenueEUR, profitEUR } = getOfferFinancials(offer);
+      const customerName = offer.customerName || t("offers.customerName");
+      const existing = map.get(customerName);
+      if (existing) {
+        existing.offerCount += 1;
+        existing.totalRevenue += revenueEUR;
+        existing.totalProfit += profitEUR;
+      } else {
+        map.set(customerName, {
+          offerCount: 1,
+          totalRevenue: revenueEUR,
+          totalProfit: profitEUR,
+        });
+      }
+    });
+
+    return Array.from(map.entries())
+      .map(([name, stats]) => ({
+        name,
+        offerCount: stats.offerCount,
+        totalRevenue: stats.totalRevenue,
+        totalProfit: stats.totalProfit,
+      }))
+      .sort((a, b) => b.offerCount - a.offerCount)
+      .slice(0, 10); // Top 10 ügyfél
+  }, [offers, selectedPeriod]);
+
+  // Árajánlat státusz eloszlás
+  const offerStatusData = useMemo(() => {
+    const filtered = filterOffersByPeriod(offers, selectedPeriod);
+    if (filtered.length === 0) {
+      return [];
+    }
+
+    const statusColors: Record<string, string> = {
+      draft: "#6c757d",
+      sent: "#0d6efd",
+      accepted: "#20c997",
+      rejected: "#dc3545",
+      completed: "#6610f2",
+    };
+
+    const map = new Map<string, number>();
+    filtered.forEach(offer => {
+      const status = offer.status || "draft";
+      map.set(status, (map.get(status) || 0) + 1);
+    });
+
+    return Array.from(map.entries())
+      .map(([status, count]) => ({
+        status,
+        count,
+        color: statusColors[status] || CHART_PALETTE[0],
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [offers, selectedPeriod]);
+
+  // Nyomtatási idő adatok trendData-hoz hasonlóan
+  const printTimeData = useMemo(() => {
+    const filtered = filterOffersByPeriod(offers, selectedPeriod);
+    if (filtered.length === 0) {
+      return [];
+    }
+
+    const buckets = new Map<
+      string,
+      {
+        label: string;
+        dateKey: Date;
+        hours: number;
+      }
+    >();
+
+    filtered.forEach(offer => {
+      const offerDate = new Date(offer.date);
+      let key: string;
+      let label: string;
+      const normalizedDate = new Date(offerDate);
+      normalizedDate.setHours(0, 0, 0, 0);
+
+      if (selectedPeriod === "year" || selectedPeriod === "all") {
+        key = `${offerDate.getFullYear()}-${offerDate.getMonth()}`;
+        label = offerDate.toLocaleDateString(locale, { year: "numeric", month: "short" });
+        normalizedDate.setDate(1);
+      } else if (selectedPeriod === "week") {
+        key = offerDate.toISOString().slice(0, 10);
+        label = offerDate.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" });
+      } else {
+        key = offerDate.toISOString().slice(0, 10);
+        label = offerDate.toLocaleDateString(locale, { month: "short", day: "numeric" });
+      }
+
+      const existing = buckets.get(key);
+      if (existing) {
+        existing.hours += offer.totalPrintTimeHours || 0;
+      } else {
+        buckets.set(key, {
+          label,
+          dateKey: normalizedDate,
+          hours: offer.totalPrintTimeHours || 0,
+        });
+      }
+    });
+
+    return Array.from(buckets.values())
+      .sort((a, b) => a.dateKey.getTime() - b.dateKey.getTime())
+      .map(item => ({
+        name: item.label,
+        hours: item.hours,
+      }));
+  }, [offers, selectedPeriod, locale]);
+
+  // Widget konfigurációk memoizálása a klasszikus nézethez
+  const classicPrintTimeWidget = useMemo(() => ({
+    id: "print-time-chart-classic",
+    type: "print-time-chart" as const,
+    title: t("widget.title.printTimeChart"),
+    size: "medium" as const,
+    visible: true,
+    layout: { i: "print-time-chart-classic", x: 0, y: 0, w: 12, h: 4, minW: 6, minH: 3 },
+  }), [t]);
+
+  const classicCustomerStatsWidget = useMemo(() => ({
+    id: "customer-stats-chart-classic",
+    type: "customer-stats-chart" as const,
+    title: t("widget.title.customerStatsChart"),
+    size: "medium" as const,
+    visible: true,
+    layout: { i: "customer-stats-chart-classic", x: 0, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
+  }), [t]);
+
+  const classicOfferStatusWidget = useMemo(() => ({
+    id: "offer-status-chart-classic",
+    type: "offer-status-chart" as const,
+    title: t("widget.title.offerStatusChart"),
+    size: "medium" as const,
+    visible: true,
+    layout: { i: "offer-status-chart-classic", x: 6, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
+  }), [t]);
+
   const hasTrendData = trendData.some(point => point.revenue !== 0 || point.costs !== 0 || point.profit !== 0);
   const hasFilamentData = filamentBreakdown.length > 0 && totalFilamentByType > 0;
   const hasPrinterData = printerBreakdown.length > 0 && totalRevenueByPrinter > 0;
@@ -621,13 +808,13 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         const timeUnit = t("home.stats.unit.hours");
         
         csvRows.push(`${filamentLabel},${(statsToExport.totalFilamentUsed / 1000).toFixed(2)},kg`);
-        csvRows.push(`${revenueLabel},${formatCurrency(statsToExport.totalRevenue).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
+        csvRows.push(`${revenueLabel},${formatCurrency(statsToExport.totalRevenue).toFixed(2)},${currencyLabel}`);
         csvRows.push(`${electricityLabel},${statsToExport.totalElectricityConsumed.toFixed(2)},kWh`);
-        csvRows.push(`${costLabel},${formatCurrency(statsToExport.totalCosts).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
-        csvRows.push(`${profitLabel},${formatCurrency(statsToExport.totalProfit).toFixed(2)},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
+        csvRows.push(`${costLabel},${formatCurrency(statsToExport.totalCosts).toFixed(2)},${currencyLabel}`);
+        csvRows.push(`${profitLabel},${formatCurrency(statsToExport.totalProfit).toFixed(2)},${currencyLabel}`);
         csvRows.push(`${printTimeLabel},${statsToExport.totalPrintTime.toFixed(1)},${timeUnit}`);
         csvRows.push(`${offerCountLabel},${statsToExport.offerCount},${t("home.csv.unit.pcs")}`);
-        csvRows.push(`${avgProfitLabel},${statsToExport.offerCount > 0 ? formatCurrency(statsToExport.totalProfit / statsToExport.offerCount).toFixed(2) : "0.00"},${settings.currency === "HUF" ? "Ft" : settings.currency}`);
+        csvRows.push(`${avgProfitLabel},${statsToExport.offerCount > 0 ? formatCurrency(statsToExport.totalProfit / statsToExport.offerCount).toFixed(2) : "0.00"},${currencyLabel}`);
         csvRows.push(`${profitMarginLabel},${statsToExport.totalRevenue > 0 ? ((statsToExport.totalProfit / statsToExport.totalRevenue) * 100).toFixed(1) : "0.0"},%`);
         csvRows.push("");
         const offerDetailsLabel = t("home.csv.offerDetails");
@@ -638,9 +825,9 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
         const totalCostLabel = t("home.csv.totalCost");
         const profitPercentLabel = t("home.csv.profitPercentage");
         const revenueLabel2 = t("home.csv.revenue");
-        const currencyLabel = t("home.csv.currency");
+        const currencyColumnLabel = t("home.csv.currency");
         
-        csvRows.push(`${idLabel},${dateLabel},${customerLabel},${totalCostLabel},${profitPercentLabel},${revenueLabel2},${currencyLabel}`);
+        csvRows.push(`${idLabel},${dateLabel},${customerLabel},${totalCostLabel},${profitPercentLabel},${revenueLabel2},${currencyColumnLabel}`);
         filterOffersByPeriod(offers, selectedPeriod).forEach(o => {
           const profitPct = o.profitPercentage || 30;
           const revenue = o.costs.totalCost * (1 + profitPct / 100);
@@ -1220,8 +1407,302 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
               {t("home.subtitle")}
             </p>
           </div>
-        {statistics.offerCount > 0 && (
-          <div style={{ 
+        
+        {/* Dashboard nézet váltó és Widget kezelő */}
+        <div style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          gap: "12px",
+          marginBottom: "16px",
+          padding: "0 20px",
+        }}>
+          {/* Widget kezelő gomb - csak widget dashboard módban */}
+          {useWidgetDashboard && (
+            <button
+              onClick={() => setShowWidgetManager(!showWidgetManager)}
+              style={{
+                padding: "10px 16px",
+                backgroundColor: theme.colors.primary,
+                color: "#fff",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: "pointer",
+                boxShadow: `0 4px 12px ${theme.colors.shadow}`,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+              title={t("widget.manager.title")}
+            >
+              📋 {t("widget.manager.title")}
+            </button>
+          )}
+          
+          <button
+            onClick={async () => {
+              const newUseWidgetDashboard = !useWidgetDashboard;
+              setUseWidgetDashboard(newUseWidgetDashboard);
+              
+              // Alapértelmezett layout létrehozása, ha még nincs
+              let newLayout: DashboardLayout | undefined = settings.dashboardLayout;
+              if (newUseWidgetDashboard && !settings.dashboardLayout) {
+                newLayout = {
+                  widgets: [
+                    // 1. Időszak összehasonlítás (első sor, 3 kártya egymás mellett)
+                    {
+                      id: "period-comparison-1",
+                      type: "period-comparison",
+                      title: t("home.periodComparison.title"),
+                      size: "medium",
+                      visible: true,
+                      layout: { i: "period-comparison-1", x: 0, y: 0, w: 12, h: 3, minW: 6, minH: 2 },
+                    },
+                    // 2. Statisztikai kártyák (6 kártya grid-ben, 2 sorban)
+                    {
+                      id: "stat-card-filament-1",
+                      type: "stat-card-filament",
+                      title: statsLabels.totalFilament,
+                      size: "small",
+                      visible: true,
+                      layout: { i: "stat-card-filament-1", x: 0, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+                    },
+                    {
+                      id: "stat-card-revenue-1",
+                      type: "stat-card-revenue",
+                      title: statsLabels.totalRevenue,
+                      size: "small",
+                      visible: true,
+                      layout: { i: "stat-card-revenue-1", x: 2, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+                    },
+                    {
+                      id: "stat-card-electricity-1",
+                      type: "stat-card-electricity",
+                      title: statsLabels.totalElectricity,
+                      size: "small",
+                      visible: true,
+                      layout: { i: "stat-card-electricity-1", x: 4, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+                    },
+                    {
+                      id: "stat-card-cost-1",
+                      type: "stat-card-cost",
+                      title: statsLabels.totalCost,
+                      size: "small",
+                      visible: true,
+                      layout: { i: "stat-card-cost-1", x: 6, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+                    },
+                    {
+                      id: "stat-card-profit-1",
+                      type: "stat-card-profit",
+                      title: statsLabels.netProfit,
+                      size: "small",
+                      visible: true,
+                      layout: { i: "stat-card-profit-1", x: 8, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+                    },
+                    {
+                      id: "stat-card-print-time-1",
+                      type: "stat-card-print-time",
+                      title: statsLabels.totalPrintTime,
+                      size: "small",
+                      visible: true,
+                      layout: { i: "stat-card-print-time-1", x: 10, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
+                    },
+                    // 3. Pénzügyi trendek (nagy kártya, teljes szélesség)
+                    {
+                      id: "trend-chart-1",
+                      type: "trend-chart",
+                      title: "Trendek",
+                      size: "large",
+                      visible: true,
+                      layout: { i: "trend-chart-1", x: 0, y: 6, w: 12, h: 5, minW: 6, minH: 4 },
+                    },
+                    // 4. Filament megoszlás és Bevétel nyomtatónként (2 kártya egymás mellett)
+                    {
+                      id: "filament-breakdown-1",
+                      type: "filament-breakdown",
+                      title: t("home.chart.filamentBreakdown"),
+                      size: "medium",
+                      visible: true,
+                      layout: { i: "filament-breakdown-1", x: 0, y: 11, w: 6, h: 4, minW: 4, minH: 3 },
+                    },
+                    {
+                      id: "printer-breakdown-1",
+                      type: "printer-breakdown",
+                      title: t("home.chart.revenueByPrinter"),
+                      size: "medium",
+                      visible: true,
+                      layout: { i: "printer-breakdown-1", x: 6, y: 11, w: 6, h: 4, minW: 4, minH: 3 },
+                    },
+                    // 5. Összefoglaló (utolsó sor, teljes szélesség)
+                    {
+                      id: "summary-1",
+                      type: "summary",
+                      title: summaryLabels.title,
+                      size: "large",
+                      visible: true,
+                      layout: { i: "summary-1", x: 0, y: 15, w: 12, h: 3, minW: 6, minH: 2 },
+                    },
+                    // 6. Nyomtatási idő grafikon
+                    {
+                      id: "print-time-chart-1",
+                      type: "print-time-chart",
+                      title: "Nyomtatási idő",
+                      size: "medium",
+                      visible: false,
+                      layout: { i: "print-time-chart-1", x: 0, y: 18, w: 12, h: 4, minW: 6, minH: 3 },
+                    },
+                    // 7. Ügyfél statisztikák grafikon
+                    {
+                      id: "customer-stats-chart-1",
+                      type: "customer-stats-chart",
+                      title: "Ügyfél statisztikák",
+                      size: "medium",
+                      visible: false,
+                      layout: { i: "customer-stats-chart-1", x: 0, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
+                    },
+                    // 8. Árajánlat státusz eloszlás
+                    {
+                      id: "offer-status-chart-1",
+                      type: "offer-status-chart",
+                      title: "Árajánlat státusz",
+                      size: "medium",
+                      visible: false,
+                      layout: { i: "offer-status-chart-1", x: 6, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
+                    },
+                  ],
+                  version: 1,
+                };
+              }
+              
+              // Mentés a beállításokba
+              const newSettings = { 
+                ...settings, 
+                useWidgetDashboard: newUseWidgetDashboard,
+                dashboardLayout: newLayout,
+              };
+              onSettingsChange?.(newSettings);
+              await saveSettings(newSettings);
+            }}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "8px",
+              border: `1px solid ${theme.colors.border}`,
+              backgroundColor: useWidgetDashboard ? theme.colors.primary : theme.colors.surface,
+              color: useWidgetDashboard ? "#fff" : theme.colors.text,
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            {useWidgetDashboard ? `📊 ${t("widget.view.dashboard")}` : `📋 ${t("widget.view.classic")}`}
+          </button>
+        </div>
+        </div>
+
+        {/* Widget Dashboard vagy Klasszikus nézet */}
+        {useWidgetDashboard ? (
+          <ErrorBoundary
+            onError={(error: Error, errorInfo: ErrorInfo) => {
+              console.error("[Home] Dashboard ErrorBoundary caught error:", {
+                error: error.message || String(error),
+                stack: error.stack,
+                componentStack: errorInfo.componentStack,
+                errorInfo: errorInfo,
+              });
+              setWidgetError(error);
+            }}
+          >
+            <Dashboard
+              settings={settings}
+              theme={theme}
+              statistics={currentStats}
+              trendData={trendData.map(point => ({
+                name: point.label,
+                revenue: point.revenue,
+                costs: point.costs,
+                profit: point.profit,
+              }))}
+              weeklyStats={{
+                totalProfit: weeklyStats.totalProfit,
+                offerCount: weeklyStats.offerCount,
+              }}
+              monthlyStats={{
+                totalProfit: monthlyStats.totalProfit,
+                offerCount: monthlyStats.offerCount,
+              }}
+              yearlyStats={{
+                totalProfit: yearlyStats.totalProfit,
+                offerCount: yearlyStats.offerCount,
+              }}
+              filamentBreakdown={filamentBreakdown.map(slice => ({
+                label: slice.label,
+                value: slice.value,
+                color: slice.color ?? "#6366F1",
+              }))}
+              printerBreakdown={printerBreakdown.map(slice => ({
+                label: slice.label,
+                value: slice.value,
+                color: slice.color ?? "#6366F1",
+              }))}
+              printTimeData={printTimeData}
+              customerStatsData={customerStatsData}
+              offerStatusData={offerStatusData}
+              summaryData={[
+                { 
+                  label: summaryLabels.offerCount,
+                  value: currentStats.offerCount.toString(),
+                  color: theme.colors.primary,
+                  icon: "📋"
+                },
+                { 
+                  label: summaryLabels.averageProfit,
+                  value: `${currentStats.offerCount > 0 ? formatNumber(formatCurrency(currentStats.totalProfit / currentStats.offerCount), 2) : "0.00"} ${currencyLabel}`,
+                  color: currentStats.totalProfit >= 0 ? theme.colors.success : theme.colors.danger,
+                  icon: "💰"
+                },
+                { 
+                  label: summaryLabels.profitMargin,
+                  value: `${currentStats.totalRevenue > 0 ? formatNumber((currentStats.totalProfit / currentStats.totalRevenue) * 100, 1) : "0.0"}%`,
+                  color: currentStats.totalProfit >= 0 ? theme.colors.success : theme.colors.danger,
+                  icon: "📈"
+                },
+              ]}
+              statsLabels={statsLabels}
+              currencyLabel={currencyLabel}
+              formatNumber={formatNumber}
+              formatCurrency={formatCurrency}
+              onLayoutChange={async (layout) => {
+                try {
+                  const newSettings = { ...settings, dashboardLayout: layout };
+                  onSettingsChange?.(newSettings);
+                  await saveSettings(newSettings);
+                  console.log("[Home] Dashboard layout saved successfully");
+                } catch (error) {
+                  console.error("[Home] Failed to save dashboard layout:", {
+                    error: error instanceof Error ? error.message : String(error),
+                    stack: error instanceof Error ? error.stack : undefined,
+                  });
+                }
+              }}
+              onWidgetManagerToggle={() => setShowWidgetManager(!showWidgetManager)}
+              showWidgetManager={showWidgetManager}
+              onError={(error) => {
+                console.error("[Home] Dashboard onError callback:", {
+                  error: error.message || String(error),
+                  stack: error.stack,
+                  errorObject: error,
+                });
+                setWidgetError(error);
+              }}
+            />
+          </ErrorBoundary>
+        ) : (
+          <>
+            {statistics.offerCount > 0 && (
+              <div style={{
             display: "flex", 
             gap: "16px", 
             alignItems: "center", 
@@ -1413,13 +1894,17 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
               </Tooltip>
             </div>
           </div>
+            )}
+          </>
         )}
-        </div>
       </FadeIn>
 
-      {/* Időszak összehasonlító kártyák */}
-      {statistics.offerCount > 0 && (
-        <FadeIn delay={0.2}>
+      {/* Klasszikus nézet elemei - csak akkor jelenjenek meg, ha NEM widget dashboard */}
+      {!useWidgetDashboard && (
+        <>
+          {/* Időszak összehasonlító kártyák */}
+          {statistics.offerCount > 0 && (
+            <FadeIn delay={0.2}>
           <div style={{
             backgroundColor: theme.colors.background?.includes('gradient') 
               ? "rgba(255, 255, 255, 0.75)" 
@@ -1540,7 +2025,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
             <StatCard
               title={statsLabels.totalRevenue}
               value={formatNumber(formatCurrency(currentStats.totalRevenue), 2)}
-              unit={settings.currency === "HUF" ? "Ft" : settings.currency}
+              unit={currencyLabel}
               icon="💰"
               color="#28a745"
               delay={0.1}
@@ -1560,7 +2045,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
             <StatCard
               title={statsLabels.totalCost}
               value={formatNumber(formatCurrency(currentStats.totalCosts), 2)}
-              unit={settings.currency === "HUF" ? "Ft" : settings.currency}
+              unit={currencyLabel}
               icon="💸"
               color="#dc3545"
               delay={0.3}
@@ -1570,7 +2055,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
             <StatCard
               title={statsLabels.netProfit}
               value={formatCurrency(currentStats.totalProfit).toFixed(2)}
-              unit={settings.currency === "HUF" ? "Ft" : settings.currency}
+              unit={currencyLabel}
               icon="📈"
               color={currentStats.totalProfit >= 0 ? "#28a745" : "#dc3545"}
               delay={0.4}
@@ -1984,6 +2469,135 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
               </div>
             </div>
           </FadeIn>
+
+          {/* Nyomtatási idő grafikon */}
+          {printTimeData.length > 0 && (
+            <FadeIn delay={0.45}>
+              <div style={{
+                backgroundColor: theme.colors.background?.includes('gradient') ? "rgba(255, 255, 255, 0.8)" : theme.colors.surface,
+                borderRadius: "20px",
+                padding: "24px",
+                marginBottom: "30px",
+                boxShadow: theme.colors.background?.includes('gradient')
+                  ? `0 6px 18px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)`
+                  : `0 4px 16px ${theme.colors.shadow}`,
+                border: `1px solid ${theme.colors.border}`,
+                backdropFilter: theme.colors.background?.includes('gradient') ? "blur(12px)" : "none",
+                opacity: theme.colors.background?.includes('gradient') ? 0.9 : 1,
+              }}>
+                <h3 style={{
+                  margin: 0,
+                  marginBottom: "16px",
+                  fontSize: "18px",
+                  fontWeight: "700",
+                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                  display: "flex",
+                  gap: "8px",
+                  alignItems: "center",
+                }}>
+                  <span style={{ fontSize: "20px" }}>⏱️</span>
+                  {t("widget.title.printTimeChart")}
+                </h3>
+                <div style={{ height: "350px", width: "100%" }}>
+                  <PrintTimeChartWidget
+                    widget={classicPrintTimeWidget}
+                    theme={theme}
+                    settings={settings}
+                    data={printTimeData}
+                  />
+                </div>
+              </div>
+            </FadeIn>
+          )}
+
+          {/* Ügyfél statisztikák és Árajánlat státusz grafikonok */}
+          {(customerStatsData.length > 0 || offerStatusData.length > 0) && (
+            <FadeIn delay={0.5}>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                gap: "20px",
+                marginBottom: "30px",
+              }}>
+                {/* Ügyfél statisztikák grafikon */}
+                {customerStatsData.length > 0 && (
+                  <div style={{
+                    backgroundColor: theme.colors.background?.includes('gradient') ? "rgba(255, 255, 255, 0.8)" : theme.colors.surface,
+                    borderRadius: "20px",
+                    padding: "24px",
+                    boxShadow: theme.colors.background?.includes('gradient')
+                      ? `0 6px 18px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)`
+                      : `0 4px 16px ${theme.colors.shadow}`,
+                    border: `1px solid ${theme.colors.border}`,
+                    backdropFilter: theme.colors.background?.includes('gradient') ? "blur(12px)" : "none",
+                    opacity: theme.colors.background?.includes('gradient') ? 0.9 : 1,
+                  }}>
+                    <h3 style={{
+                      margin: 0,
+                      marginBottom: "16px",
+                      fontSize: "18px",
+                      fontWeight: "700",
+                      color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}>
+                      <span style={{ fontSize: "20px" }}>👥</span>
+                      {t("widget.title.customerStatsChart")}
+                    </h3>
+                    <div style={{ height: "350px", width: "100%" }}>
+                      <CustomerStatsChartWidget
+                        widget={classicCustomerStatsWidget}
+                        theme={theme}
+                        settings={settings}
+                        data={customerStatsData}
+                        formatNumber={formatNumber}
+                        formatCurrency={formatCurrency}
+                        currencyLabel={currencyLabel}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Árajánlat státusz grafikon */}
+                {offerStatusData.length > 0 && (
+                  <div style={{
+                    backgroundColor: theme.colors.background?.includes('gradient') ? "rgba(255, 255, 255, 0.8)" : theme.colors.surface,
+                    borderRadius: "20px",
+                    padding: "24px",
+                    boxShadow: theme.colors.background?.includes('gradient')
+                      ? `0 6px 18px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)`
+                      : `0 4px 16px ${theme.colors.shadow}`,
+                    border: `1px solid ${theme.colors.border}`,
+                    backdropFilter: theme.colors.background?.includes('gradient') ? "blur(12px)" : "none",
+                    opacity: theme.colors.background?.includes('gradient') ? 0.9 : 1,
+                  }}>
+                    <h3 style={{
+                      margin: 0,
+                      marginBottom: "16px",
+                      fontSize: "18px",
+                      fontWeight: "700",
+                      color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text,
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}>
+                      <span style={{ fontSize: "20px" }}>📊</span>
+                      {t("widget.title.offerStatusChart")}
+                    </h3>
+                    <div style={{ height: "350px", width: "100%" }}>
+                      <OfferStatusChartWidget
+                        widget={classicOfferStatusWidget}
+                        theme={theme}
+                        settings={settings}
+                        data={offerStatusData}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </FadeIn>
+          )}
         </>
       )}
 
@@ -2656,6 +3270,8 @@ export const Home: React.FC<Props> = ({ settings, offers, theme }) => {
           </div>
         );
       })()}
+        </>
+      )}
     </div>
   );
 };

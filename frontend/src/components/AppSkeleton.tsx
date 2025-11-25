@@ -2,9 +2,12 @@ import React from "react";
 import { motion } from "framer-motion";
 import type { Theme } from "../utils/themes";
 import { Skeleton, SkeletonCard, SkeletonTable } from "./Skeleton";
+import type { Settings } from "../types";
+import { useTranslation } from "../utils/translations";
 
 interface AppSkeletonProps {
   theme: Theme;
+  settings: Settings;
   loadingSteps?: LoadingStep[];
   currentStep?: number;
 }
@@ -19,9 +22,11 @@ interface LoadingStep {
  */
 export const AppSkeleton: React.FC<AppSkeletonProps> = ({
   theme,
+  settings,
   loadingSteps = [],
   currentStep = 0,
 }) => {
+  const t = useTranslation(settings.language);
   const themeStyles = {
     background: theme.colors.background,
     surface: theme.colors.surface,
@@ -100,7 +105,7 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
             fontSize: "16px", 
             fontWeight: 600 
           }}>
-            Betöltés...
+            {t("loading.title")}
           </span>
           <span style={{ 
             color: themeStyles.textMuted, 
@@ -284,7 +289,7 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
             margin: 0,
           }}
         >
-          {loadingSteps[currentStep]?.label || "Betöltés..."}
+          {loadingSteps[currentStep]?.label || t("loading.title")}
         </motion.p>
         <motion.div
           animate={{ 

@@ -40,6 +40,56 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.4.33 (2025) - 🔧 Ulepszenia układu i przeciągania widgetów
+
+- 📊 **Poprawki układu widgetów** - Naprawione pozycjonowanie i funkcjonalność przeciągania widgetów:
+  - Naprawione automatyczne pozycjonowanie 6 małych widgetów rozmiaru "S", aby były wyrównane obok siebie
+  - Widgety teraz zachowują swoje pozycje po ręcznym przeciągnięciu i upuszczeniu
+  - Naprawiona trwałość układu - widgety nie wracają już do swoich pierwotnych pozycji
+  - Ulepszona funkcjonalność uchwytu przeciągania - widgety można przeciągać z nagłówka lub paska uchwytu
+  - Naprawione problemy z pustą przestrzenią pod widgetami po zmianie pozycji
+  - Ulepszona obsługa zmian układu, aby nie nadpisywać zmian ręcznych
+
+### v1.3.12 (2025) - 🎨 Ulepszenia systemu widgetów i walut
+
+- 📊 **Ulepszenia systemu widgetów** - Ulepszona funkcjonalność widgetów i lokalizacja:
+  - Dodane nowe widgety: Wykres czasu druku, Wykres statystyk klientów, Wykres statusu ofert
+  - Naprawiona funkcjonalność eksportu widgetów - wszystkie widgety wykresów teraz eksportowalne jako SVG
+  - Dynamiczne tłumaczenie tytułów widgetów na podstawie wybranego języka
+  - Zlokalizowane nazwy plików eksportu z odpowiednią nazwą zgodną z OS (podkreślenia, brak znaków specjalnych)
+  - Języki widgetów aktualizują się natychmiast po zmianie języka
+  - Powiadomienia toast dla udanych eksportów wykresów
+  - Wszystkie elementy widgetów i stany ładowania w pełni przetłumaczone we wszystkich 14 językach
+- 💱 **Rozszerzenie wsparcia walut** - Rozszerzone wsparcie walut:
+  - Dodane waluty: GBP (Funt brytyjski), PLN (Złoty polski), CZK (Korona czeska), CNY (Juan chiński), UAH (Hrywna ukraińska), RUB (Rubel rosyjski)
+  - Symbole i etykiety walut dla wszystkich nowych walut
+  - Prawidłowa konwersja i wyświetlanie walut we wszystkich komponentach
+  - Menu rozwijane wyboru waluty zaktualizowane wszystkimi obsługiwanymi walutami
+- 💰 **Naprawa precyzji obliczeń kosztów** - Naprawione problemy z precyzją zmiennoprzecinkową:
+  - Wszystkie obliczenia kosztów (filament, prąd, suszenie, użycie, całkowity) teraz zaokrąglone do 2 miejsc po przecinku
+  - Wyeliminowane długie wyświetlania dziesiętne (np. `0.17500000000000002` → `0.18`)
+  - Spójne formatowanie liczb w całej aplikacji
+- 🏢 **Okno dialogowe informacji o firmie** - Ulepszona obsługa informacji o firmie:
+  - Formularz informacji o firmie przeniesiony do okna dialogowego modalnego (podobnie jak Towary/Filamenty)
+  - Przycisk "Szczegóły firmy" do otwierania/edytowania informacji o firmie
+  - Okno dialogowe można zamknąć za pomocą przycisku X, kliknięcia w tło lub klawisza Escape
+  - Lepsze UX z animowanymi przejściami modalnymi
+  - Wszystkie pola informacji o firmie dostępne w zorganizowanym interfejsie okna dialogowego
+
+### v1.3.11 (2025) - 🎨 Ulepszenia panelu widgetów
+
+- 📊 **Ulepszenia panelu widgetów** - Ulepszona funkcjonalność panelu widgetów:
+  - Naprawione wypełnienie i marginesy kontenera widgetów dla lepszego układu od krawędzi do krawędzi
+  - Ulepszone zachowanie przewijania - widgety teraz prawidłowo się przewijają, gdy zawartość przekracza widok
+  - Naprawiony problem kurczenia się widgetów przy zmianie rozmiaru okna - widgety zachowują rozmiar we wszystkich punktach przerwania
+  - Spójny układ 12 kolumn na wszystkich rozmiarach ekranu
+  - Lepsze pozycjonowanie i odstępy widgetów
+- 🔧 **Poprawki układu**:
+  - Usunięte stałe wypełnienie kontenera, które uniemożliwiało widgetom dotarcie do krawędzi aplikacji
+  - Naprawione obliczanie wysokości ResponsiveGridLayout dla prawidłowego przewijania
+  - Ulepszona obsługa przepełnienia kontenera
+  - Lepsza spójność układu grupy widgetów
+
 ### v1.2.1 (2025) - 🎨 Spójność interfejsu i zarządzanie kolumnami
 
 - 📊 **Zarządzanie kolumnami filamentów** - Dodano widoczność i sortowanie kolumn do komponentu Filamenty:
@@ -765,7 +815,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 1.2.1
+**Wersja**: 1.4.33
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

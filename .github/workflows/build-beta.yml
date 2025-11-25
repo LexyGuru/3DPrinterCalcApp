@@ -179,68 +179,134 @@ jobs:
         run: |
           mkdir -p ./release-files
           
-          # macOS files (filter by version)
+          echo "Looking for artifacts in:"
+          ls -la ./artifacts/ || echo "No artifacts directory found"
+          
+          # macOS files - try multiple patterns
           if [ -d "./artifacts/macos-latest-beta" ]; then
-            find ./artifacts/macos-latest-beta -type f -name "*${VERSION}*.dmg" -exec cp {} ./release-files/ \;
-            find ./artifacts/macos-latest-beta -type f -name "*${VERSION}*.app" -exec cp {} ./release-files/ \;
+            echo "Found macos-latest-beta directory"
+            find ./artifacts/macos-latest-beta -type f \( -name "*${VERSION}*.dmg" -o -name "*.dmg" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/macos-latest-beta -type f \( -name "*${VERSION}*.app" -o -name "*.app" \) -exec cp -r {} ./release-files/ \; 2>/dev/null || true
           fi
           
-          # Linux files (filter by version)
+          # Linux files - try multiple patterns
           if [ -d "./artifacts/ubuntu-latest-beta" ]; then
-            find ./artifacts/ubuntu-latest-beta -type f -name "*${VERSION}*.deb" -exec cp {} ./release-files/ \;
-            find ./artifacts/ubuntu-latest-beta -type f -name "*${VERSION}*.AppImage" -exec cp {} ./release-files/ \;
-            find ./artifacts/ubuntu-latest-beta -type f -name "*-${VERSION}-*.rpm" -exec cp {} ./release-files/ \;
+            echo "Found ubuntu-latest-beta directory"
+            find ./artifacts/ubuntu-latest-beta -type f \( -name "*${VERSION}*.deb" -o -name "*.deb" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/ubuntu-latest-beta -type f \( -name "*${VERSION}*.AppImage" -o -name "*.AppImage" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/ubuntu-latest-beta -type f \( -name "*-${VERSION}-*.rpm" -o -name "*.rpm" \) -exec cp {} ./release-files/ \;
           fi
           
-          # Windows files (filter by version)
+          # Windows files - try multiple patterns
           if [ -d "./artifacts/windows-latest-beta" ]; then
-            find ./artifacts/windows-latest-beta -type f -name "*${VERSION}*.msi" -exec cp {} ./release-files/ \;
-            find ./artifacts/windows-latest-beta -type f -name "*${VERSION}*.exe" -exec cp {} ./release-files/ \;
+            echo "Found windows-latest-beta directory"
+            find ./artifacts/windows-latest-beta -type f \( -name "*${VERSION}*.msi" -o -name "*.msi" \) -exec cp {} ./release-files/ \;
+            find ./artifacts/windows-latest-beta -type f \( -name "*${VERSION}*.exe" -o -name "*.exe" \) -exec cp {} ./release-files/ \;
           fi
           
           echo "Release files prepared (version ${VERSION}):"
-          ls -lh ./release-files/
+          ls -lh ./release-files/ || echo "No release files found"
+          
+          # Count files
+          FILE_COUNT=$(find ./release-files -type f | wc -l)
+          echo "Total files found: ${FILE_COUNT}"
+          
+          if [ "$FILE_COUNT" -eq 0 ]; then
+            echo "WARNING: No release files found! Listing all artifacts:"
+            find ./artifacts -type f | head -20
+          fi
       
-      - name: Generate release notes from commits
-        id: release-notes
+      - name: Extract changelog from README files
+        id: extract-changelog
         shell: bash
         env:
           VERSION: ${{ steps.get-version.outputs.version }}
         run: |
-          # Fetch all tags to ensure we have the latest
-          git fetch --tags --force
+          # Function to extract changelog for a version
+          extract_changelog() {
+            local file=$1
+            local version=$2
+            local result=""
+            
+            # Try pattern: "v1.3.12 (2025)" or "v1.3.12"
+            result=$(python3 <<EOF
+          import re
+          import sys
           
-          # Get all tags sorted by version
-          ALL_TAGS=$(git tag -l "v*" | sort -V)
+          version = "${version}"
+          patterns = [
+              rf"^### v{re.escape(version)} ",
+              rf"^### v{re.escape(version)}$",
+              rf"^### {re.escape(version)} "
+          ]
           
-          # Get the previous tag (second to last if current tag exists, or last if not)
-          CURRENT_TAG="v${VERSION}"
-          PREV_TAG=$(echo "$ALL_TAGS" | grep -v "^${CURRENT_TAG}$" | tail -1 || echo "")
+          try:
+              with open("${file}", "r", encoding="utf-8") as f:
+                  lines = f.readlines()
+              
+              for pattern in patterns:
+                  start_idx = None
+                  for i, line in enumerate(lines):
+                      if re.match(pattern, line):
+                          start_idx = i
+                          break
+                  
+                  if start_idx is not None:
+                      # Find the end (next version header)
+                      end_idx = len(lines)
+                      for i in range(start_idx + 1, len(lines)):
+                          if re.match(r"^### v[0-9]", lines[i]):
+                              end_idx = i
+                              break
+                      
+                      # Extract the changelog (excluding the last line if it's the next version header)
+                      changelog_lines = lines[start_idx:end_idx]
+                      if changelog_lines and re.match(r"^### v[0-9]", changelog_lines[-1]):
+                          changelog_lines = changelog_lines[:-1]
+                      
+                      result = "".join(changelog_lines).strip()
+                      if result:
+                          print(result)
+                          sys.exit(0)
+              
+              print("")
+          except Exception as e:
+              print("")
+          EOF
+          )
+            echo "$result"
+          }
           
-          if [ -z "$PREV_TAG" ]; then
-            # No previous tag, get all commits
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
-            echo "No previous tag found, using all commits"
+          # Extract changelogs
+          CHANGELOG_HU=$(extract_changelog "README.hu.md" "${VERSION}")
+          CHANGELOG_EN=$(extract_changelog "README.en.md" "${VERSION}")
+          
+          echo "Hungarian changelog found: $([ -n "$CHANGELOG_HU" ] && echo "yes" || echo "no")"
+          echo "English changelog found: $([ -n "$CHANGELOG_EN" ] && echo "yes" || echo "no")"
+          echo "Hungarian changelog length: $(echo "$CHANGELOG_HU" | wc -l) lines"
+          echo "English changelog length: $(echo "$CHANGELOG_EN" | wc -l) lines"
+          
+          # Combine both changelogs
+          if [ -n "$CHANGELOG_HU" ] && [ -n "$CHANGELOG_EN" ]; then
+            COMBINED_CHANGELOG="## 🇭🇺 Magyar / 🇬🇧 English"$'\n\n'"### 🇭🇺 Magyar változások"$'\n\n'"${CHANGELOG_HU}"$'\n\n'"---"$'\n\n'"### 🇬🇧 English Changes"$'\n\n'"${CHANGELOG_EN}"
+          elif [ -n "$CHANGELOG_HU" ]; then
+            COMBINED_CHANGELOG="## 🇭🇺 Magyar változások"$'\n\n'"${CHANGELOG_HU}"
+          elif [ -n "$CHANGELOG_EN" ]; then
+            COMBINED_CHANGELOG="## 🇬🇧 English Changes"$'\n\n'"${CHANGELOG_EN}"
           else
-            # Get commits between previous tag and current commit
-            CHANGELOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
-            echo "Comparing ${PREV_TAG}..HEAD"
-          fi
-          
-          # If no changelog, add a note
-          if [ -z "$CHANGELOG" ]; then
-            CHANGELOG="- No changes detected"
+            COMBINED_CHANGELOG="## Beta Release v${VERSION}"$'\n\n'"No changelog found in README files for this version."
           fi
           
           # Save to output (escape newlines for GitHub Actions)
           {
             echo "changelog<<EOF"
-            echo "$CHANGELOG"
+            echo "$COMBINED_CHANGELOG"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
           
-          echo "Previous tag: ${PREV_TAG:-none}"
-          echo "Changelog generated with $(echo "$CHANGELOG" | grep -c "^-" || echo "0") commits"
+          echo "Changelog extracted for version ${VERSION}"
+          echo "Hungarian changelog length: $(echo "$CHANGELOG_HU" | wc -l) lines"
+          echo "English changelog length: $(echo "$CHANGELOG_EN" | wc -l) lines"
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -248,27 +314,36 @@ jobs:
           tag_name: v${{ steps.get-version.outputs.version }}
           name: Beta v${{ steps.get-version.outputs.version }}
           body: |
-            ## Beta Release v${{ steps.get-version.outputs.version }}
+            ## 🧪 Beta Release v${{ steps.get-version.outputs.version }}
             
             This is an automated beta release built from the `beta` branch.
             
-            ### Changes since last release
+            ---
             
-            ${{ steps.release-notes.outputs.changelog }}
+            ${{ steps.extract-changelog.outputs.changelog }}
             
-            ### Download
+            ---
+            
+            ### 📥 Download
             Download the appropriate file for your platform:
             - **macOS**: `.dmg` file
             - **Linux**: `.deb`, `.AppImage`, or `.rpm` file
             - **Windows**: `.msi` file
             
-            ### Build Info
+            ### 🔧 Build Info
             - Branch: `beta`
             - Commit: ${{ github.sha }}
             - Workflow: ${{ github.workflow }}
           prerelease: true
-          files: ./release-files/*
+          files: |
+            ./release-files/*.dmg
+            ./release-files/*.deb
+            ./release-files/*.AppImage
+            ./release-files/*.rpm
+            ./release-files/*.msi
+            ./release-files/*.exe
           generate_release_notes: false
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

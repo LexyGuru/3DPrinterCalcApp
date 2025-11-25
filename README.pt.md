@@ -25,7 +25,7 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 - 👥 **Base de dados de clientes** - Gestão de clientes com informações de contato, detalhes da empresa e estatísticas de ofertas
 - 📊 **Histórico e tendências de preços** - Rastreamento de mudanças de preços de filamento com gráficos e estatísticas
 - 🌍 **Multilíngue** - Tradução completa em húngaro, inglês, alemão, francês, chinês simplificado, tcheco, espanhol, italiano, polonês, português, eslovaco, ucraniano e russo (14 idiomas, 850+ chaves de tradução por idioma)
-- 💱 **Múltiplas moedas** - EUR, HUF, USD
+- 💱 **Múltiplas moedas** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 moedas)
 - 🔄 **Atualizações automáticas** - Verifica GitHub Releases para novas versões
 - 🧪 **Versões beta** - Suporte para branch beta e build beta
 - ⚙️ **Verificação beta** - Verificação configurável de versões beta
@@ -39,6 +39,56 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 - 📱 **Menus contextuais** - Menus de botão direito para ações rápidas (editar, excluir, duplicar, exportar)
 
 ## 📋 Registro de alterações (Changelog)
+
+### v1.4.33 (2025) - 🔧 Melhorias de Layout e Arrasto de Widgets
+
+- 📊 **Correções de Layout de Widgets** - Corrigido o posicionamento e funcionalidade de arrasto de widgets:
+  - Corrigido o posicionamento automático de 6 widgets pequenos de tamanho "S" para alinhá-los lado a lado
+  - Os widgets agora mantêm suas posições após arrastar e soltar manualmente
+  - Corrigida a persistência do layout - os widgets não voltam mais às suas posições originais
+  - Funcionalidade melhorada da alça de arrasto - os widgets podem ser arrastados do cabeçalho ou da barra de alça
+  - Corrigidos problemas de espaço vazio abaixo dos widgets após reposicionamento
+  - Gerenciamento melhorado de mudanças de layout para evitar sobrescrever mudanças manuais
+
+### v1.3.12 (2025) - 🎨 Melhorias do Sistema de Widgets e Moedas
+
+- 📊 **Melhorias do Sistema de Widgets** - Funcionalidade de widgets aprimorada e localização:
+  - Novos widgets adicionados: Gráfico de Tempo de Impressão, Gráfico de Estatísticas de Clientes, Gráfico de Status de Ofertas
+  - Funcionalidade de exportação de widgets corrigida - todos os widgets de gráficos agora exportáveis como SVG
+  - Tradução dinâmica de títulos de widgets baseada no idioma selecionado
+  - Nomes de arquivo de exportação localizados com nomenclatura compatível com OS (sublinhados, sem caracteres especiais)
+  - Idiomas de widgets atualizados imediatamente após mudança de idioma
+  - Notificações toast para exportações de gráficos bem-sucedidas
+  - Todos os elementos de widgets e estados de carregamento totalmente traduzidos em todos os 14 idiomas
+- 💱 **Expansão de Suporte de Moedas** - Suporte de moedas estendido:
+  - Moedas adicionadas: GBP (Libra Esterlina), PLN (Zloty Polonês), CZK (Coroa Tcheca), CNY (Yuan Chinês), UAH (Hryvnia Ucraniana), RUB (Rublo Russo)
+  - Símbolos e etiquetas de moedas para todas as novas moedas
+  - Conversão e exibição correta de moedas em todos os componentes
+  - Menu suspenso de seleção de moeda atualizado com todas as moedas suportadas
+- 💰 **Correção de Precisão de Cálculo de Custos** - Problemas de precisão de ponto flutuante corrigidos:
+  - Todos os cálculos de custos (filamento, eletricidade, secagem, uso, total) agora arredondados para 2 casas decimais
+  - Eliminadas exibições decimais longas (ex. `0.17500000000000002` → `0.18`)
+  - Formatação de números consistente em toda a aplicação
+- 🏢 **Diálogo de Informações da Empresa** - Gerenciamento melhorado de informações da empresa:
+  - Formulário de informações da empresa movido para diálogo modal (similar a Bens/Filamentos)
+  - Botão "Detalhes da Empresa" para abrir/editar informações da empresa
+  - Diálogo pode ser fechado via botão X, clique no fundo ou tecla Escape
+  - Melhor UX com transições modais animadas
+  - Todos os campos de informações da empresa acessíveis em interface de diálogo organizada
+
+### v1.3.11 (2025) - 🎨 Melhorias do Dashboard de Widgets
+
+- 📊 **Melhorias do Dashboard de Widgets** - Funcionalidade aprimorada do dashboard de widgets:
+  - Padding e margens do contêiner de widgets corrigidos para melhor layout de borda a borda
+  - Comportamento de rolagem melhorado - os widgets agora rolam corretamente quando o conteúdo excede a viewport
+  - Problema de encolhimento de widgets corrigido ao redimensionar a janela - os widgets mantêm o tamanho em todos os breakpoints
+  - Layout consistente de 12 colunas em todos os tamanhos de tela
+  - Melhor posicionamento e espaçamento de widgets
+- 🔧 **Correções de layout**:
+  - Removido o padding fixo do contêiner que impedia os widgets de alcançarem as bordas do aplicativo
+  - Corrigido o cálculo de altura do ResponsiveGridLayout para rolagem adequada
+  - Melhor tratamento de overflow do contêiner
+  - Melhor consistência do layout do grupo de widgets
 
 ### v1.2.1 (2025) - 🎨 Consistência UI e gerenciamento de colunas
 
@@ -765,7 +815,7 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ---
 
-**Versão**: 1.2.1
+**Versão**: 1.4.33
 
 Se você tiver alguma dúvida ou encontrar um bug, por favor abra uma issue no repositório GitHub!
 

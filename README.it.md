@@ -25,7 +25,7 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 - 👥 **Database clienti** - Gestione clienti con informazioni di contatto, dettagli aziendali e statistiche delle offerte
 - 📊 **Storico e tendenze dei prezzi** - Tracciamento delle variazioni di prezzo del filamento con grafici e statistiche
 - 🌍 **Multilingue** - Traduzione completa in ungherese, inglese, tedesco, francese, cinese semplificato, ceco, spagnolo, italiano, polacco, portoghese, slovacco, ucraino e russo (14 lingue, 850+ chiavi di traduzione per lingua)
-- 💱 **Valute multiple** - EUR, HUF, USD
+- 💱 **Valute multiple** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 valute)
 - 🔄 **Aggiornamenti automatici** - Controlla GitHub Releases per nuove versioni
 - 🧪 **Versioni beta** - Supporto branch beta e build beta
 - ⚙️ **Controllo beta** - Controllo configurabile versioni beta
@@ -40,6 +40,32 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 - 🍎 **Funzionalità specifiche della piattaforma** - Badge Dock macOS, notifiche native, integrazione system tray
 
 ## 📋 Registro delle modifiche (Changelog)
+
+### v1.4.33 (2025) - 🔧 Miglioramenti del Layout e Trascinamento dei Widget
+
+- 📊 **Correzioni del Layout dei Widget** - Corretto il posizionamento e la funzionalità di trascinamento dei widget:
+  - Corretto il posizionamento automatico di 6 widget piccoli di dimensione "S" per allinearli uno accanto all'altro
+  - I widget ora mantengono le loro posizioni dopo il trascinamento manuale
+  - Corretta la persistenza del layout - i widget non tornano più alle loro posizioni originali
+  - Migliorata la funzionalità della maniglia di trascinamento - i widget possono essere trascinati dall'intestazione o dalla barra della maniglia
+  - Corretti i problemi di spazio vuoto sotto i widget dopo il riposizionamento
+  - Gestione migliorata delle modifiche del layout per evitare di sovrascrivere le modifiche manuali
+
+### v1.3.12 (2025) - 🎨 Miglioramenti del Sistema Widget e Valute
+
+### v1.3.11 (2025) - 🎨 Miglioramenti del Dashboard Widget
+
+- 📊 **Miglioramenti del Dashboard Widget** - Funzionalità migliorata del dashboard widget:
+  - Padding e margini del contenitore widget corretti per un layout migliore da bordo a bordo
+  - Comportamento di scorrimento migliorato - i widget ora scorrono correttamente quando il contenuto supera la finestra
+  - Problema di restringimento dei widget risolto durante il ridimensionamento della finestra - i widget mantengono la dimensione su tutti i breakpoint
+  - Layout coerente a 12 colonne su tutte le dimensioni dello schermo
+  - Miglior posizionamento e spaziatura dei widget
+- 🔧 **Correzioni del layout**:
+  - Rimosso il padding fisso del contenitore che impediva ai widget di raggiungere i bordi dell'app
+  - Corretto il calcolo dell'altezza di ResponsiveGridLayout per uno scorrimento appropriato
+  - Gestione migliorata dell'overflow del contenitore
+  - Migliore coerenza del layout del gruppo widget
 
 ### v1.2.1 (2025) - 🎨 Coerenza UI e gestione colonne
 
@@ -766,7 +792,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 1.2.1
+**Versione**: 1.4.33
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 
