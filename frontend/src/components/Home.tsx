@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { ErrorInfo } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
-import type { Settings, Offer } from "../types";
+import type { Settings, Offer, Filament, Printer } from "../types";
 import { defaultAnimationSettings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
@@ -61,14 +61,75 @@ const LANGUAGE_LOCALES: Record<string, string> = {
   en: "en-US",
 };
 
+type ScheduledTask = {
+  id: number;
+  title: string;
+  description?: string;
+  dueDate: string;
+  priority: "high" | "medium" | "low";
+  status: "pending" | "in-progress" | "completed";
+  relatedOfferId?: number;
+};
+
+const buildScheduledTasksFromOffers = (
+  offers: Offer[],
+  t: (key: import("../utils/languages/types").TranslationKey) => string
+): ScheduledTask[] => {
+  const now = new Date();
+
+  return offers
+    .filter((offer) => {
+      if (!offer.printDueDate) return false;
+      const due = new Date(offer.printDueDate);
+      return due > now;
+    })
+    .map<ScheduledTask>((offer) => {
+      const customerName = offer.customerName || t("common.unknown") || "Unknown";
+      const baseTitle = t("offers.title") || "Offer";
+      const title =
+        offer.description && offer.description.trim().length > 0
+          ? `${customerName} - ${offer.description}`
+          : `${customerName} - ${baseTitle}`;
+
+      const due = new Date(offer.printDueDate!);
+      const diffMs = due.getTime() - now.getTime();
+      const daysUntilDue = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+      let priority: ScheduledTask["priority"] = "low";
+      if (daysUntilDue <= 3) {
+        priority = "high";
+      } else if (daysUntilDue <= 7) {
+        priority = "medium";
+      }
+
+      const status: ScheduledTask["status"] =
+        offer.status === "accepted" ? "in-progress" : "pending";
+
+      return {
+        id: offer.id,
+        title,
+        description: offer.description,
+        dueDate: offer.printDueDate!,
+        priority,
+        status,
+        relatedOfferId: offer.id,
+      };
+    })
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .slice(0, 5);
+};
+
 interface Props {
   settings: Settings;
   offers: Offer[];
+  filaments?: Filament[];
+  printers?: Printer[];
   theme: Theme;
   onSettingsChange?: (newSettings: Settings) => void;
+  onNavigate?: (page: string) => void;
 }
 
-export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChange }) => {
+export const Home: React.FC<Props> = ({ settings, offers, filaments = [], theme, onSettingsChange, onNavigate }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [exportFormat, setExportFormat] = useState<"json" | "csv">("json");
@@ -140,6 +201,75 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
     averageProfit: t("home.summary.averageProfit"),
     profitMargin: t("home.summary.profitMargin"),
   };
+  
+  // Árajánlat-határidő emlékeztetők – egyszerű értesítés induláskor / váltáskor
+  const lastDeadlineReminderRef = useRef<string | null>(null);
+  useEffect(() => {
+    try {
+      const tasks = buildScheduledTasksFromOffers(offers, t);
+      if (!tasks.length) return;
+
+      const now = new Date();
+      const startOfToday = new Date(now);
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const dueSoon = tasks.filter((task) => {
+        const due = new Date(task.dueDate);
+        const startOfDue = new Date(due);
+        startOfDue.setHours(0, 0, 0, 0);
+
+        const diffDays = Math.floor(
+          (startOfDue.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        return diffDays <= 1; // ma vagy holnap esedékes
+      });
+
+      if (!dueSoon.length) return;
+
+      // Készítünk egy egyszerű „aláírást” az aktuális figyelmeztetendő feladatokról,
+      // hogy ugyanarra a listára ne küldjünk duplikált értesítést.
+      const signature = JSON.stringify(
+        dueSoon.map((t) => ({ id: t.id, dueDate: t.dueDate, priority: t.priority }))
+      );
+
+      // Először lokális ref alapján szűrünk (komponensen belüli duplikáció ellen)
+      if (lastDeadlineReminderRef.current === signature) {
+        return;
+      }
+
+      // Majd localStorage-ban is elmentjük, hogy navigáció / újramount után se
+      // dobjuk fel újra ugyanarra a feladathalmazra az értesítést.
+      const storageKey = "deadlineReminderSignature";
+      try {
+        if (typeof window !== "undefined" && window.localStorage) {
+          const stored = window.localStorage.getItem(storageKey);
+          if (stored === signature) {
+            lastDeadlineReminderRef.current = signature;
+            return;
+          }
+          window.localStorage.setItem(storageKey, signature);
+        }
+      } catch (e) {
+        console.warn("[Home] Unable to use localStorage for deadline reminder:", e);
+      }
+
+      lastDeadlineReminderRef.current = signature;
+
+      const first = dueSoon[0];
+      const extraCount = dueSoon.length - 1;
+
+      // Ezekhez még nincs típusos fordítási kulcs, ezért plain fallback szöveget használunk
+      const baseMessage = "Közelgő nyomtatási határidő";
+      const title = `${baseMessage}: ${first.title}`;
+      const suffix =
+        extraCount > 0 ? ` (+${extraCount} további feladat)` : "";
+
+      showToast(`${title}${suffix}`, "info");
+    } catch (error) {
+      console.warn("[Home] Failed to show print deadline reminders:", error);
+    }
+  }, [offers, settings.language]);
   
   // Helper függvény az időszak szűréséhez
   const filterOffersByPeriod = (offers: Offer[], period: "all" | "week" | "month" | "year") => {
@@ -1566,34 +1696,34 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
                     },
                     // 6. Nyomtatási idő grafikon
                     {
-                      id: "print-time-chart-1",
-                      type: "print-time-chart",
-                      title: "Nyomtatási idő",
-                      size: "medium",
-                      visible: false,
-                      layout: { i: "print-time-chart-1", x: 0, y: 18, w: 12, h: 4, minW: 6, minH: 3 },
-                    },
-                    // 7. Ügyfél statisztikák grafikon
-                    {
-                      id: "customer-stats-chart-1",
-                      type: "customer-stats-chart",
-                      title: "Ügyfél statisztikák",
-                      size: "medium",
-                      visible: false,
-                      layout: { i: "customer-stats-chart-1", x: 0, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
-                    },
-                    // 8. Árajánlat státusz eloszlás
-                    {
-                      id: "offer-status-chart-1",
-                      type: "offer-status-chart",
-                      title: "Árajánlat státusz",
-                      size: "medium",
-                      visible: false,
-                      layout: { i: "offer-status-chart-1", x: 6, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
-                    },
-                  ],
-                  version: 1,
-                };
+                  id: "print-time-chart-1",
+                  type: "print-time-chart",
+                  title: "Nyomtatási idő",
+                  size: "medium",
+                  visible: true,
+                  layout: { i: "print-time-chart-1", x: 0, y: 18, w: 12, h: 4, minW: 6, minH: 3 },
+                },
+                // 7. Ügyfél statisztikák grafikon
+                {
+                  id: "customer-stats-chart-1",
+                  type: "customer-stats-chart",
+                  title: "Ügyfél statisztikák",
+                  size: "medium",
+                  visible: true,
+                  layout: { i: "customer-stats-chart-1", x: 0, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
+                },
+                // 8. Árajánlat státusz eloszlás
+                {
+                  id: "offer-status-chart-1",
+                  type: "offer-status-chart",
+                  title: "Árajánlat státusz",
+                  size: "medium",
+                  visible: true,
+                  layout: { i: "offer-status-chart-1", x: 6, y: 22, w: 6, h: 4, minW: 4, minH: 3 },
+                },
+              ],
+              version: 1,
+            };
               }
               
               // Mentés a beállításokba
@@ -1617,7 +1747,7 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
               transition: "all 0.2s",
             }}
           >
-            {useWidgetDashboard ? `📊 ${t("widget.view.dashboard")}` : `📋 ${t("widget.view.classic")}`}
+            {useWidgetDashboard ? `📋 ${t("widget.view.classic")}` : `📊 ${t("widget.view.dashboard")}`}
           </button>
         </div>
         </div>
@@ -1716,6 +1846,77 @@ export const Home: React.FC<Props> = ({ settings, offers, theme, onSettingsChang
                   errorObject: error,
                 });
                 setWidgetError(error);
+              }}
+              quickActions={[
+                {
+                  id: "add-offer",
+                  label: t("header.quickActions.newOffer") || "Új árajánlat",
+                  icon: "📋",
+                  onClick: () => onNavigate?.("calculator"),
+                },
+                {
+                  id: "add-filament",
+                  label: t("header.quickActions.addFilament") || "Új filament",
+                  icon: "➕",
+                  onClick: () => onNavigate?.("filaments"),
+                },
+                {
+                  id: "add-printer",
+                  label: t("header.quickActions.addPrinter") || "Új nyomtató",
+                  icon: "🖨️",
+                  onClick: () => onNavigate?.("printers"),
+                },
+                {
+                  id: "add-customer",
+                  label: t("header.quickActions.addCustomer") || "Új ügyfél",
+                  icon: "👥",
+                  onClick: () => onNavigate?.("customers"),
+                },
+              ]}
+              recentOffers={offers.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10)}
+              filaments={filaments}
+              financialTrendsData={{
+                period: selectedPeriod === "all" ? "month" : selectedPeriod,
+                data: trendData.map(point => ({
+                  date: point.date.toISOString(),
+                  revenue: point.revenue,
+                  costs: point.costs,
+                  profit: point.profit,
+                  margin: point.revenue > 0 ? (point.profit / point.revenue) * 100 : 0,
+                })),
+              }}
+              activeProjects={offers
+                .filter(offer => offer.status === "accepted" || offer.status === "sent")
+                .map((offer) => ({
+                  id: offer.id,
+                  name: offer.customerName || t("common.unknown") || "Unknown",
+                  status: offer.status === "accepted" ? "active" as const : "on-hold" as const,
+                  progress: offer.status === "accepted" ? 75 : offer.status === "sent" ? 50 : 25,
+                  deadline: offer.printDueDate,
+                  offerCount: 1,
+                  totalRevenue: offer.costs?.totalCost ? offer.costs.totalCost * (1 + (offer.profitPercentage || 30) / 100) : 0,
+                }))
+                .slice(0, 5)}
+              scheduledTasks={buildScheduledTasksFromOffers(offers, t)}
+              onNavigate={onNavigate}
+              onOfferClick={() => {
+                onNavigate?.("offers");
+                // TODO: Navigate to specific offer
+              }}
+              onFilamentClick={() => {
+                onNavigate?.("filaments");
+                // TODO: Navigate to specific filament
+              }}
+              onProjectClick={() => {
+                onNavigate?.("offers");
+                // TODO: Navigate to specific offer/project
+              }}
+              onTaskClick={() => {
+                onNavigate?.("offers");
+                // TODO: Navigate to specific offer/task
+              }}
+              onPeriodChange={(period) => {
+                setSelectedPeriod(period === "week" ? "week" : period === "month" ? "month" : period === "year" ? "year" : "all");
               }}
             />
           </ErrorBoundary>

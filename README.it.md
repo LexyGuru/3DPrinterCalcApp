@@ -41,6 +41,26 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.5.0 (2025) - 🧠 Dashboard Intelligente e Promemoria Scadenze
+
+- ⏱️ **Promemoria scadenze di stampa** – Nuovo sistema di promemoria per i preventivi accettati:
+  - Il widget Attività Pianificate riceve automaticamente attività dai preventivi con prossime scadenze di stampa
+  - L’header mostra a rotazione promemoria in stile “Oggi / Domani / Dopodomani” per i lavori di stampa imminenti
+  - Un toast informativo persistente avvisa delle scadenze urgenti finché l’utente non lo chiude manualmente
+- 🧵 **Gestione magazzino filamenti** – Nuova vista dedicata all’inventario dei filamenti:
+  - Ricerca per marca / tipo / colore, con filtri di stato (critico / basso / OK)
+  - Soglie di stock critico e basso configurabili, modifica in linea dello stock e pulsanti rapidi +100g / −100g
+  - Il widget di Avviso Stock Filamenti ora legge direttamente queste soglie e i livelli di magazzino reali
+- 📊 **Miglioramenti al Dashboard** – Tutti i widget abilitati di default nella vista dashboard:
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - La vista Home classica e il Dashboard dei widget condividono ora un set di statistiche e grafici più coerente
+- 🧱 **Miglioramenti UX delle Offerte** – Modifica e selezione più fluide:
+  - Risolti i casi in cui il salvataggio di un preventivo modificato non aggiornava subito la lista principale
+  - La casella di selezione multipla è stata spostata fuori dal titolo, così il nome del cliente rimane leggibile
+- 🧭 **Affinamenti di Header e Layout**:
+  - La barra breadcrumb è stata rimossa dall’header per un’interfaccia più pulita
+  - La dimensione minima della finestra (1280x720) è ora applicata a livello Tauri senza introdurre barre di scorrimento orizzontali
+
 ### v1.4.33 (2025) - 🔧 Miglioramenti del Layout e Trascinamento dei Widget + Dati Demo Tutorial
 
 - 📊 **Correzioni del Layout dei Widget** - Corretto il posizionamento e la funzionalità di trascinamento dei widget:
@@ -803,7 +823,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 1.4.33
+**Versione**: 1.5.0
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

@@ -10,6 +10,7 @@ import { AppSkeleton } from "./components/AppSkeleton";
 // Lazy loading komponensek (code splitting)
 const Home = lazy(() => import("./components/Home").then(module => ({ default: module.Home })));
 const Filaments = lazy(() => import("./components/Filaments").then(module => ({ default: module.Filaments })));
+const FilamentStockManagement = lazy(() => import("./components/FilamentStockManagement").then(module => ({ default: module.FilamentStockManagement })));
 const Printers = lazy(() => import("./components/Printers").then(module => ({ default: module.Printers })));
 const Calculator = lazy(() => import("./components/Calculator").then(module => ({ default: module.Calculator })));
 const Offers = lazy(() => import("./components/Offers").then(module => ({ default: module.Offers })));
@@ -508,6 +509,16 @@ export default function App() {
           setSettings(newSettings);
           debouncedSaveSettings();
         }} />; 
+      case "filament-stock":
+        return (
+          <FilamentStockManagement
+            filaments={filaments}
+            setFilaments={setFilaments}
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+          />
+        );
       case "printers":
         return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-printer'} onSettingsChange={(newSettings) => {
           setSettings(newSettings);
@@ -525,6 +536,7 @@ export default function App() {
             themeStyles={themeStyles}
             printers={printers}
             filaments={filaments}
+            setFilaments={setFilaments}
             customers={customers}
           />
         );
@@ -574,10 +586,18 @@ export default function App() {
       case "console":
         return <Console settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
       default: 
-        return <Home settings={settings} offers={offers} theme={currentTheme} onSettingsChange={(newSettings) => {
-          setSettings(newSettings);
-          // A Home komponensben az onLayoutChange már meghívja a saveSettings-t
-        }} />;
+        return <Home 
+          settings={settings} 
+          offers={offers} 
+          filaments={filaments}
+          printers={printers}
+          theme={currentTheme} 
+          onSettingsChange={(newSettings) => {
+            setSettings(newSettings);
+            // A Home komponensben az onLayoutChange már meghívja a saveSettings-t
+          }}
+          onNavigate={setActivePage}
+        />;
     }
   }, [activePage, filaments, printers, offers, customers, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers, quickActionTrigger]);
 
@@ -648,6 +668,7 @@ export default function App() {
             activePage={activePage}
             onPageChange={setActivePage}
             themeStyles={themeStyles}
+            offers={offers}
             onQuickAction={(action) => {
               // Navigate to the appropriate page if needed
               if (action === 'add-filament' && activePage !== 'filaments') {

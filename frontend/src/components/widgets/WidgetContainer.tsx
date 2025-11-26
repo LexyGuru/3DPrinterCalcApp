@@ -10,6 +10,7 @@ interface WidgetContainerProps {
   theme: Theme;
   settings: Settings;
   children: ReactNode;
+  allowedSizes?: WidgetSize[];
   onRemove?: (widgetId: string) => void;
   onToggleVisibility?: (widgetId: string) => void;
   onResize?: (widgetId: string, size: WidgetSize) => void;
@@ -26,6 +27,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
   theme,
   settings,
   children,
+  allowedSizes = ["small", "medium", "large"],
   onRemove,
   onToggleVisibility,
   onResize,
@@ -273,22 +275,24 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               {/* Size selector */}
-              <select
-                value={widget.size}
-                onChange={(e) => onResize?.(widget.id, e.target.value as WidgetSize)}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  ...themeStyles.select,
-                  padding: "4px 8px",
-                  fontSize: "12px",
-                  marginRight: "4px",
-                }}
-              >
-                <option value="small">S</option>
-                <option value="medium">M</option>
-                <option value="large">L</option>
-              </select>
+              {allowedSizes.length > 1 && (
+                <select
+                  value={widget.size}
+                  onChange={(e) => onResize?.(widget.id, e.target.value as WidgetSize)}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    ...themeStyles.select,
+                    padding: "4px 8px",
+                    fontSize: "12px",
+                    marginRight: "4px",
+                  }}
+                >
+                  {allowedSizes.includes("small") && <option value="small">S</option>}
+                  {allowedSizes.includes("medium") && <option value="medium">M</option>}
+                  {allowedSizes.includes("large") && <option value="large">L</option>}
+                </select>
+              )}
               
               {/* Hide button */}
               <button

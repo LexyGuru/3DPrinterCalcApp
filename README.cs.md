@@ -38,6 +38,26 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
+### v1.5.0 (2025) - 🧠 Chytrý Dashboard a připomínky termínů
+
+- ⏱️ **Připomínky termínů tisku** – Nový systém připomínek pro přijaté nabídky:
+  - Widget Plánované úlohy nyní automaticky získává úkoly z nabídek s blížícími se termíny tisku
+  - V hlavičce se střídají připomínky ve stylu „Dnes / Zítra / Pozítří“ pro nadcházející tiskové úlohy
+  - Trvalý info toast upozorňuje na urgentní termíny, dokud jej uživatel ručně nezavře
+- 🧵 **Správa skladu filamentů** – Nový, samostatný přehled zásob filamentů:
+  - Hledání podle značky / typu / barvy, se stavovými filtry (kritický / nízký / OK)
+  - Nastavitelné kritické a nízké limity zásob, inline úprava skladu a rychlá tlačítka +100g / −100g
+  - Widget Upozornění na stav filamentu nyní vychází přímo z těchto limitů a aktuálních skladových úrovní
+- 📊 **Vylepšení dashboardu** – Všechna widgety jsou ve výchozím stavu zapnuté v zobrazení dashboardu:
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - Klasické zobrazení Domů a Dashboard widgetů nyní sdílí konzistentnější sadu statistik a grafů
+- 🧱 **UX vylepšení nabídek** – Plynulejší úpravy a výběr:
+  - Opraveny případy, kdy se po uložení upravené nabídky ihned neaktualizoval hlavní seznam
+  - Zaškrtávací políčko pro vícenásobný výběr bylo přesunuto mimo titulek, aby byl název zákazníka dobře čitelný
+- 🧭 **Dolaďování hlavičky a rozložení**:
+  - Z hlavičky byla odstraněna breadcrumb lišta, aby bylo rozhraní čistší
+  - Minimální velikost okna (1280x720) je nyní vynucena na úrovni Tauri bez zavedení horizontálních posuvníků
+
 ### v1.4.33 (2025) - 🔧 Vylepšení rozvržení a přetahování widgetů + Demo Data Tutoriálu
 
 - 📊 **Opravy rozvržení widgetů** - Opraveno umístění a funkčnost přetahování widgetů:
@@ -824,9 +844,7 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 
 ---
 
-**Verze**: 1.1.1
-
-**Verze**: 1.4.33
+**Verze**: 1.5.0
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 

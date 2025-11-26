@@ -42,6 +42,24 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Változások (Changelog)
 
+### v1.5.0 (2025) - 🧠 Okos Dashboard és határidő emlékeztetők
+
+- ⏱️ **Nyomtatási határidő emlékeztetők** – Új rendszer az elfogadott árajánlatok követésére:
+  - A Scheduled Tasks widget automatikusan feladatokat kap a határidős árajánlatokból
+  - A fejlécben váltakozó „Ma / Holnap / Holnapután” stílusú emlékeztetők jelennek meg a közelgő nyomtatásokhoz
+  - Tartós (nem eltűnő) info toast figyelmeztet a közeli határidőkre, amíg manuálisan be nem zárod
+- 📊 **Dashboard fejlesztések** – Minden widget alapból bekapcsolva a dashboard nézetben:
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - A klasszikus Home nézet és a Widget Dashboard sokkal egységesebb statisztikákat és grafikonokat használ
+- 🧱 **Árajánlat UX javítások** – Kényelmesebb szerkesztés és kijelölés:
+  - Javítottuk azokat az eseteket, amikor szerkesztés után nem frissült azonnal a fő árajánlat lista
+  - A többszörös kijelölés jelölőnégyzete kikerült a cím szövegéből, így a vevő neve nem takarásos
+- 🧭 **Fejléc és layout finomhangolás**:
+  - A fejléc közepéről eltávolítottuk a breadcrumb sávot, hogy letisztultabb legyen a felület
+  - Minimum ablakméret (1280x720) most már Tauri szinten van kikényszerítve, görgetősávok erőltetése nélkül
+
+
+
 ### v1.4.33 (2025) - 🔧 Widget elrendezés és húzás fejlesztések + Tutorial Demo Adatok
 
 - 📊 **Widget elrendezés javítások** - Javított widget pozicionálás és húzás funkcionalitás:

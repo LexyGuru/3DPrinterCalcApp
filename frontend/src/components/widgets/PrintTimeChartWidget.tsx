@@ -76,6 +76,7 @@ export const PrintTimeChartWidget: React.FC<PrintTimeChartWidgetProps> = ({
           height="100%"
           showLegend={false}
           exportFileName={t("home.chart.printTime").toLowerCase().replace(/\s+/g, "-")}
+          valueFormatter={(_, value) => formatTime(value)}
         />
       </div>
       {/* Összesítés */}

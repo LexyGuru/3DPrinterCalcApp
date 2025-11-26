@@ -6,7 +6,7 @@ import "react-resizable/css/styles.css";
 import { getCurrencyLabel } from "../../utils/currency";
 import type { WidgetConfig, WidgetSize, DashboardLayout } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
-import type { Settings } from "../../types";
+import type { Settings, Offer, Filament } from "../../types";
 import { useTranslation } from "../../utils/translations";
 import { WidgetContainer } from "./WidgetContainer";
 import { StatisticsWidget } from "./StatisticsWidget";
@@ -20,8 +20,79 @@ import { WidgetGroup } from "./WidgetGroup";
 import { PrintTimeChartWidget } from "./PrintTimeChartWidget";
 import { CustomerStatsChartWidget } from "./CustomerStatsChartWidget";
 import { OfferStatusChartWidget } from "./OfferStatusChartWidget";
+import { QuickActionsWidget } from "./QuickActionsWidget";
+import { RecentOffersWidget } from "./RecentOffersWidget";
+import { FilamentStockAlertWidget } from "./FilamentStockAlertWidget";
+import { FinancialTrendsWidget } from "./FinancialTrendsWidget";
+import { ActiveProjectsWidget } from "./ActiveProjectsWidget";
+import { ScheduledTasksWidget } from "./ScheduledTasksWidget";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
+
+const SIZE_DIMENSIONS: Record<WidgetSize, { w: number; h: number }> = {
+  small: { w: 2, h: 2 },
+  medium: { w: 4, h: 3 },
+  large: { w: 6, h: 4 },
+};
+
+const getAllowedSizesForWidget = (widget: WidgetConfig): WidgetSize[] => {
+  switch (widget.type) {
+    // Kis stat kártyák: S és M értelmes, L opcionális
+    case "stat-card-filament":
+    case "stat-card-revenue":
+    case "stat-card-electricity":
+    case "stat-card-cost":
+    case "stat-card-profit":
+    case "stat-card-print-time":
+      return ["small", "medium"];
+
+    // Nagy, összetett tartalmú widgetek: minimum M
+    case "trend-chart":
+    case "print-time-chart":
+    case "customer-stats-chart":
+    case "offer-status-chart":
+    case "filament-breakdown":
+    case "printer-breakdown":
+    case "quick-actions":
+    case "recent-offers":
+    case "filament-stock-alert":
+    case "active-projects":
+    case "scheduled-tasks":
+      return ["medium", "large"];
+
+    // Csak nagyban értelmes: komplex layout / több soros tartalom
+    case "period-comparison":
+    case "summary":
+    case "financial-trends":
+    case "statistics":
+    case "widget-group":
+      return ["large"];
+
+    default:
+      return ["small", "medium", "large"];
+  }
+};
+
+const normalizeWidgetSize = (widget: WidgetConfig): WidgetConfig => {
+  const allowed = getAllowedSizesForWidget(widget);
+  const currentSize = widget.size;
+  const normalizedSize = allowed.includes(currentSize) ? currentSize : allowed[allowed.length - 1];
+
+  if (normalizedSize === currentSize) {
+    return widget;
+  }
+
+  const dimensions = SIZE_DIMENSIONS[normalizedSize];
+  return {
+    ...widget,
+    size: normalizedSize,
+    layout: {
+      ...widget.layout,
+      w: dimensions.w,
+      h: dimensions.h,
+    },
+  };
+};
 
 interface DashboardProps {
   settings: Settings;
@@ -99,6 +170,50 @@ interface DashboardProps {
   onWidgetManagerToggle?: () => void;
   showWidgetManager?: boolean;
   onError?: (error: Error) => void;
+  // New widget props
+  quickActions?: Array<{
+    id: string;
+    label: string;
+    icon: string;
+    onClick: () => void;
+    shortcut?: string;
+  }>;
+  recentOffers?: Offer[];
+  filaments?: Filament[];
+  financialTrendsData?: {
+    period: "week" | "month" | "year";
+    data: Array<{
+      date: string;
+      revenue: number;
+      costs: number;
+      profit: number;
+      margin: number;
+    }>;
+  };
+  activeProjects?: Array<{
+    id: number;
+    name: string;
+    status: "active" | "on-hold" | "completed";
+    progress: number;
+    deadline?: string;
+    offerCount: number;
+    totalRevenue: number;
+  }>;
+  scheduledTasks?: Array<{
+    id: number;
+    title: string;
+    description?: string;
+    dueDate: string;
+    priority: "high" | "medium" | "low";
+    status: "pending" | "in-progress" | "completed";
+    relatedOfferId?: number;
+  }>;
+  onNavigate?: (page: string) => void;
+  onOfferClick?: (offerId: number) => void;
+  onFilamentClick?: (filamentIndex: number) => void;
+  onProjectClick?: (projectId: number) => void;
+  onTaskClick?: (taskId: number) => void;
+  onPeriodChange?: (period: "week" | "month" | "year") => void;
 }
 
 // Alapértelmezett widget konfigurációk - klasszikus nézet sorrendje szerint
@@ -203,7 +318,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "print-time-chart",
       title: t("widget.title.printTimeChart"),
       size: "medium",
-      visible: false, // Alapértelmezetten rejtve, hogy ne legyen túl sok widget
+      visible: true,
       layout: { i: "print-time-chart-1", x: 0, y: 18, w: 12, h: 4, minW: 6, minH: 3 },
     },
     // 7. Ügyfél statisztikák grafikon
@@ -212,7 +327,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "customer-stats-chart",
       title: t("widget.title.customerStatsChart"),
       size: "medium",
-      visible: false, // Alapértelmezetten rejtve
+      visible: true,
       layout: { i: "customer-stats-chart-1", x: 0, y: 22, w: 6, h: 4, minW:4, minH: 3 },
     },
     // 8. Árajánlat státusz eloszlás
@@ -221,8 +336,57 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "offer-status-chart",
       title: t("widget.title.offerStatusChart"),
       size: "medium",
-      visible: false, // Alapértelmezetten rejtve
+      visible: true,
       layout: { i: "offer-status-chart-1", x: 6, y: 22, w: 6, h: 4, minW:4, minH: 3 },
+    },
+    // 9. Új widgetek
+    {
+      id: "quick-actions-1",
+      type: "quick-actions",
+      title: t("widget.title.quickActions"),
+      size: "medium",
+      visible: true,
+      layout: { i: "quick-actions-1", x: 0, y: 26, w: 4, h: 3, minW: 3, minH: 2 },
+    },
+    {
+      id: "recent-offers-1",
+      type: "recent-offers",
+      title: t("widget.title.recentOffers"),
+      size: "medium",
+      visible: true,
+      layout: { i: "recent-offers-1", x: 4, y: 26, w: 4, h: 3, minW: 3, minH: 2 },
+    },
+    {
+      id: "filament-stock-alert-1",
+      type: "filament-stock-alert",
+      title: t("widget.title.filamentStockAlert"),
+      size: "medium",
+      visible: true,
+      layout: { i: "filament-stock-alert-1", x: 8, y: 26, w: 4, h: 3, minW: 3, minH: 2 },
+    },
+    {
+      id: "financial-trends-1",
+      type: "financial-trends",
+      title: t("widget.title.financialTrends"),
+      size: "large",
+      visible: true,
+      layout: { i: "financial-trends-1", x: 0, y: 29, w: 12, h: 5, minW: 6, minH: 4 },
+    },
+    {
+      id: "active-projects-1",
+      type: "active-projects",
+      title: t("widget.title.activeProjects"),
+      size: "medium",
+      visible: true,
+      layout: { i: "active-projects-1", x: 0, y: 34, w: 6, h: 4, minW: 4, minH: 3 },
+    },
+    {
+      id: "scheduled-tasks-1",
+      type: "scheduled-tasks",
+      title: t("widget.title.scheduledTasks"),
+      size: "medium",
+      visible: true,
+      layout: { i: "scheduled-tasks-1", x: 6, y: 34, w: 6, h: 4, minW: 4, minH: 3 },
     },
   ];
 };
@@ -249,6 +413,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onWidgetManagerToggle,
   showWidgetManager: externalShowWidgetManager,
   onError,
+  quickActions = [],
+  recentOffers = [],
+  filaments = [],
+  financialTrendsData,
+  activeProjects = [],
+  scheduledTasks = [],
+  onNavigate,
+  onOfferClick,
+  onFilamentClick,
+  onProjectClick,
+  onTaskClick,
+  onPeriodChange,
 }) => {
   const t = useTranslation(settings.language);
 
@@ -265,7 +441,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         const defaultWidgets = createDefaultWidgets(t);
         const savedWidgetIds = new Set(savedWidgets.map(w => w.id));
         const missingWidgets = defaultWidgets.filter(w => !savedWidgetIds.has(w.id));
-        const mergedWidgets = [...savedWidgets, ...missingWidgets];
+        const mergedWidgets = [...savedWidgets, ...missingWidgets].map(normalizeWidgetSize);
         console.log("[Dashboard] Merged widgets:", {
           total: mergedWidgets.length,
           saved: savedWidgets.length,
@@ -274,14 +450,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         return mergedWidgets;
       }
       console.log("[Dashboard] No saved layout found, using default widgets");
-      return createDefaultWidgets(t);
+      return createDefaultWidgets(t).map(normalizeWidgetSize);
     } catch (error) {
       console.error("[Dashboard] Error initializing widgets:", {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
       // Fallback to default widgets on error
-      return createDefaultWidgets(t);
+      return createDefaultWidgets(t).map(normalizeWidgetSize);
     }
   });
 
@@ -307,7 +483,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     
     previousLayoutRef.current = currentLayoutKey;
     
-    if (savedWidgets && savedWidgets.length > 0) {
+      if (savedWidgets && savedWidgets.length > 0) {
       // Ha van mentett layout, de kevés widget van benne, akkor kiegészítjük az alapértelmezettekkel
       const defaultWidgets = createDefaultWidgets(t);
       const savedWidgetIds = new Set(savedWidgets.map(w => w.id));
@@ -325,9 +501,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       } else {
         setWidgets(savedWidgets);
       }
-    } else if (!settings.dashboardLayout?.widgets || settings.dashboardLayout.widgets.length === 0) {
+      } else if (!settings.dashboardLayout?.widgets || settings.dashboardLayout.widgets.length === 0) {
       // Csak akkor állítjuk vissza az alapértelmezettet, ha valóban nincs mentett layout
-      setWidgets(createDefaultWidgets(t));
+      setWidgets(createDefaultWidgets(t).map(normalizeWidgetSize));
     }
   }, [settings.dashboardLayout, onLayoutChange, t]);
 
@@ -378,6 +554,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
         return t("widget.title.customerStatsChart");
       case "offer-status-chart":
         return t("widget.title.offerStatusChart");
+      case "quick-actions":
+        return t("widget.title.quickActions");
+      case "recent-offers":
+        return t("widget.title.recentOffers");
+      case "filament-stock-alert":
+        return t("widget.title.filamentStockAlert");
+      case "financial-trends":
+        return t("widget.title.financialTrends");
+      case "active-projects":
+        return t("widget.title.activeProjects");
+      case "scheduled-tasks":
+        return t("widget.title.scheduledTasks");
       default:
         return widget.title || "";
     }
@@ -660,18 +848,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Widget méretezése
   const handleResize = useCallback(
     (widgetId: string, size: WidgetSize) => {
-      const sizeMap: Record<WidgetSize, { w: number; h: number }> = {
-        small: { w: 2, h: 2 },
-        medium: { w: 4, h: 3 },
-        large: { w: 6, h: 4 },
-      };
-
       const newWidgets = widgets.map((w) => {
         if (w.id === widgetId) {
-          const dimensions = sizeMap[size];
+          const allowed = getAllowedSizesForWidget(w);
+          const targetSize = allowed.includes(size) ? size : allowed[allowed.length - 1];
+          const dimensions = SIZE_DIMENSIONS[targetSize];
           return {
             ...w,
-            size,
+            size: targetSize,
             layout: {
               ...w.layout,
               w: dimensions.w,
@@ -856,6 +1040,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const safeWeeklyStats = weeklyStats || { totalProfit: 0, offerCount: 0 };
       const safeMonthlyStats = monthlyStats || { totalProfit: 0, offerCount: 0 };
       const safeYearlyStats = yearlyStats || { totalProfit: 0, offerCount: 0 };
+      const safeQuickActions = quickActions || [];
+      const safeRecentOffers = recentOffers || [];
+      const safeFilaments = filaments || [];
+      const safeFinancialTrendsData = financialTrendsData || { period: "month" as const, data: [] };
+      const safeActiveProjects = activeProjects || [];
+      const safeScheduledTasks = scheduledTasks || [];
 
     switch (widget.type) {
       case "statistics":
@@ -877,9 +1067,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             formatNumber={formatNumber}
             formatCurrency={formatCurrency}
             currencyLabel={currencyLabel}
-            onDataPointClick={(data, index) => {
-              console.log("Chart point clicked:", data, index);
-            }}
             onExport={undefined}
           />
         );
@@ -922,9 +1109,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             theme={theme}
             settings={settings}
             data={safePrintTimeData}
-            onDataPointClick={(data, index) => {
-              console.log("Print time chart point clicked:", data, index);
-            }}
             onExport={undefined}
           />
         );
@@ -938,9 +1122,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             formatNumber={formatNumber}
             formatCurrency={formatCurrency}
             currencyLabel={currencyLabel}
-            onDataPointClick={(data, index) => {
-              console.log("Customer stats chart point clicked:", data, index);
-            }}
             onExport={undefined}
           />
         );
@@ -951,9 +1132,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             theme={theme}
             settings={settings}
             data={safeOfferStatusData}
-            onDataPointClick={(data, index) => {
-              console.log("Offer status chart point clicked:", data, index);
-            }}
             onExport={undefined}
           />
         );
@@ -1042,6 +1220,65 @@ export const Dashboard: React.FC<DashboardProps> = ({
             unit="óra"
             icon="⏱️"
             color="#6c757d"
+          />
+        );
+      case "quick-actions":
+        return (
+          <QuickActionsWidget
+            widget={widget}
+            theme={theme}
+            actions={safeQuickActions}
+            onNavigate={onNavigate}
+          />
+        );
+      case "recent-offers":
+        return (
+          <RecentOffersWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            offers={safeRecentOffers}
+            onOfferClick={onOfferClick}
+          />
+        );
+      case "filament-stock-alert":
+        return (
+          <FilamentStockAlertWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            filaments={safeFilaments}
+            onFilamentClick={onFilamentClick}
+          />
+        );
+      case "financial-trends":
+        return (
+          <FinancialTrendsWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            data={safeFinancialTrendsData}
+            onPeriodChange={onPeriodChange}
+          />
+        );
+      case "active-projects":
+        return (
+          <ActiveProjectsWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            projects={safeActiveProjects}
+            onProjectClick={onProjectClick}
+          />
+        );
+      case "scheduled-tasks":
+        return (
+          <ScheduledTasksWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            tasks={safeScheduledTasks}
+            onTaskClick={onTaskClick}
           />
         );
       case "widget-group":
@@ -1354,6 +1591,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     widget={widget}
                     theme={theme}
                     settings={settings}
+                    allowedSizes={getAllowedSizesForWidget(widget)}
                     onRemove={handleRemoveWidget}
                     onToggleVisibility={handleToggleVisibility}
                     onResize={handleResize}

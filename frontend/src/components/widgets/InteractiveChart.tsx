@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useRef, useMemo } from "react";
-import { getCurrencyLabel } from "../../utils/currency";
 import {
   LineChart,
   Line,
@@ -51,6 +50,8 @@ interface InteractiveChartProps {
   enableComparison?: boolean; // Összehasonlító mód
   onPeriodFilter?: (startIndex: number, endIndex: number) => void; // Időszak szűrés callback
   exportFileName?: string; // Egyedi fájlnév az export-hoz
+  valueFormatter?: (key: string, value: number) => string; // Érték formázó (tooltip, modal)
+  labelFormatter?: (key: string) => string; // Kulcs/címke formázó (modal sor cím)
 }
 
 const CHART_COLORS = [
@@ -80,6 +81,8 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
   enableComparison = false,
   onPeriodFilter,
   exportFileName,
+  valueFormatter,
+  labelFormatter,
 }) => {
   const themeStyles = getThemeStyles(theme);
   const { showToast } = useToast();
@@ -245,21 +248,40 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
           >
             {label}
           </p>
-          {payload.map((entry: any, index: number) => (
-            <p
-              key={index}
-              style={{
-                margin: "4px 0",
-                color: entry.color,
-                fontSize: "14px",
-              }}
-            >
-              {`${entry.name}: ${entry.value.toLocaleString(settings.language === "hu" ? "hu-HU" : "en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })} ${getCurrencyLabel(settings.currency)}`}
-            </p>
-          ))}
+          {payload.map((entry: any, index: number) => {
+            const rawValue = entry.value as number | undefined;
+            const key = (entry.dataKey as string | undefined) ?? (entry.name as string);
+
+            let formattedValue: string;
+            if (rawValue !== undefined && typeof rawValue === "number") {
+              if (valueFormatter) {
+                formattedValue = valueFormatter(key, rawValue);
+              } else {
+                formattedValue = rawValue.toLocaleString(
+                  settings.language === "hu" ? "hu-HU" : "en-US",
+                  {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }
+                );
+              }
+            } else {
+              formattedValue = String(rawValue ?? "");
+            }
+
+            return (
+              <p
+                key={index}
+                style={{
+                  margin: "4px 0",
+                  color: entry.color,
+                  fontSize: "14px",
+                }}
+              >
+                {`${entry.name}: ${formattedValue}`}
+              </p>
+            );
+          })}
         </div>
       );
     }
@@ -916,14 +938,19 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
                         }}
                       >
                         <span style={{ color: theme.colors.textMuted || theme.colors.text }}>
-                          {key}:
+                          {(labelFormatter ? labelFormatter(key) : key) + ":"}
                         </span>
                         <span style={{ color: colors[index % colors.length], fontWeight: "600" }}>
                           {typeof value === "number"
-                            ? `${value.toLocaleString(settings.language === "hu" ? "hu-HU" : "en-US", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })} ${settings.currency === "HUF" ? "Ft" : settings.currency}`
+                            ? valueFormatter
+                              ? valueFormatter(key, value)
+                              : value.toLocaleString(
+                                  settings.language === "hu" ? "hu-HU" : "en-US",
+                                  {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }
+                                )
                             : String(value)}
                         </span>
                       </div>

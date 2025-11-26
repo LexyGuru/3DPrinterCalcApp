@@ -61,8 +61,8 @@ export const CustomerStatsChartWidget: React.FC<CustomerStatsChartWidgetProps> =
       gap: "8px",
     }}>
       <div style={{ 
-        flex: "1 1 0", 
-        minHeight: "150px",
+        flex: "1 1 0",
+        minHeight: "140px",
         overflow: "hidden",
         position: "relative",
       }}>
@@ -74,9 +74,18 @@ export const CustomerStatsChartWidget: React.FC<CustomerStatsChartWidgetProps> =
           dataKeys={["value"]}
           onDataPointClick={onDataPointClick}
           onExport={onExport}
-          height="100%"
+          height={220}
           showLegend={false}
           exportFileName={t("home.chart.customerStats").toLowerCase().replace(/\s+/g, "-")}
+          valueFormatter={(key, value) => {
+            const locale = settings.language === "hu" ? "hu-HU" : "en-US";
+            if (key === "value") {
+              return value.toLocaleString(locale, {
+                maximumFractionDigits: 0,
+              });
+            }
+            return `${formatNumber(formatCurrency(value), 2)} ${currencyLabel}`;
+          }}
         />
       </div>
       {/* Összesítések */}

@@ -40,6 +40,26 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.5.0 (2025) - 🧠 Dashboard Inteligente e Lembretes de Prazos
+
+- ⏱️ **Lembretes de prazos de impressão** – Novo sistema de lembretes para cotações aceitas:
+  - O widget de Tarefas Agendadas agora recebe automaticamente tarefas de ofertas com prazos de impressão próximos
+  - O cabeçalho exibe alternadamente lembretes no estilo “Hoje / Amanhã / Depois de amanhã” para trabalhos de impressão iminentes
+  - Um toast informativo persistente avisa sobre prazos urgentes até que o usuário o feche manualmente
+- 🧵 **Gestão de estoque de filamento** – Nova visão dedicada ao inventário de filamentos:
+  - Pesquisa por marca / tipo / cor, com filtros de status (crítico / baixo / OK)
+  - Limiares de estoque crítico e baixo configuráveis, edição inline do estoque e botões rápidos de +100g / −100g
+  - O widget de Alerta de Estoque de Filamento agora lê diretamente esses limiares e os níveis reais de estoque
+- 📊 **Melhorias no Dashboard** – Todos os widgets ativados por padrão na vista de painel:
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - A vista Home clássica e o Dashboard de widgets agora partilham um conjunto mais consistente de estatísticas e gráficos
+- 🧱 **Melhorias de UX nas Ofertas** – Edição e seleção mais fluídas:
+  - Corrigidos casos em que salvar uma cotação editada não atualizava imediatamente a lista principal
+  - A caixa de seleção múltipla foi movida para fora do título, de modo que o nome do cliente permaneça totalmente legível
+- 🧭 **Ajustes no cabeçalho e layout**:
+  - A barra de breadcrumb foi removida do cabeçalho para manter o layout mais limpo
+  - O tamanho mínimo da janela (1280x720) agora é imposto ao nível da janela Tauri sem introduzir barras de rolagem horizontais
+
 ### v1.4.33 (2025) - 🔧 Melhorias de Layout e Arrasto de Widgets + Dados Demo do Tutorial
 
 - 📊 **Correções de Layout de Widgets** - Corrigido o posicionamento e funcionalidade de arrasto de widgets:
@@ -826,7 +846,7 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ---
 
-**Versão**: 1.4.33
+**Versão**: 1.5.0
 
 Se você tiver alguma dúvida ou encontrar um bug, por favor abra uma issue no repositório GitHub!
 

@@ -36,6 +36,7 @@ interface Props {
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
   printers: Printer[];
   filaments: Filament[];
+  setFilaments: (filaments: Filament[]) => void;
   customers: Customer[];
 }
 
@@ -47,6 +48,7 @@ export const Offers: React.FC<Props> = ({
   themeStyles,
   printers,
   filaments,
+  setFilaments,
   customers,
 }) => {
   const t = useTranslation(settings.language);
@@ -159,6 +161,7 @@ export const Offers: React.FC<Props> = ({
   const [statusChangeOffer, setStatusChangeOffer] = useState<Offer | null>(null);
   const [statusChangeTarget, setStatusChangeTarget] = useState<OfferStatus | null>(null);
   const [statusChangeNote, setStatusChangeNote] = useState("");
+  const [deductOnComplete, setDeductOnComplete] = useState(false);
   const [statusFilter, setStatusFilter] = useState<OfferStatus | "all">("all");
   const [selectedOfferIds, setSelectedOfferIds] = useState<Set<number>>(new Set());
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
@@ -332,7 +335,46 @@ export const Offers: React.FC<Props> = ({
     }
   };
 
-  const changeOfferStatus = async (offer: Offer, newStatus: OfferStatus, note?: string) => {
+  const deductStockForOffer = async (offer: Offer) => {
+    const updatedFilaments = [...filaments];
+
+    offer.filaments.forEach(offerFilament => {
+      const libraryIndex = findLibraryOptionIndex(offerFilament);
+      if (libraryIndex < 0) {
+        return;
+      }
+      const current = updatedFilaments[libraryIndex];
+      if (!current) return;
+
+      const currentStock = current.weight || 0;
+      const used = offerFilament.usedGrams || 0;
+      const nextStock = Math.max(0, currentStock - used);
+
+      updatedFilaments[libraryIndex] = {
+        ...current,
+        weight: nextStock,
+      };
+    });
+
+    try {
+      // 💾 Készlet mentése tartósan is, ne csak memóriában változzon
+      const { saveFilaments } = await import("../utils/store");
+      await saveFilaments(updatedFilaments);
+      setFilaments(updatedFilaments);
+      showToast(t("filamentStock.success.updated") || "Készlet frissítve", "success");
+    } catch (error) {
+      console.error("❌ Hiba a filament készlet mentésekor (ajánlat):", error);
+      setFilaments(updatedFilaments);
+      showToast(t("common.error") || "Hiba a készlet mentésekor", "error");
+    }
+  };
+
+  const changeOfferStatus = async (
+    offer: Offer,
+    newStatus: OfferStatus,
+    note?: string,
+    options?: { deductOnCompleted?: boolean }
+  ) => {
     const timestamp = new Date().toISOString();
     const historyEntry: OfferStatusHistory = {
       status: newStatus,
@@ -362,6 +404,18 @@ export const Offers: React.FC<Props> = ({
     setStatusChangeOffer(null);
     setStatusChangeTarget(null);
     setStatusChangeNote("");
+    setDeductOnComplete(false);
+
+    // ⚙️ Készlet levonása státusz alapján
+    if (newStatus === "accepted" && offer.status !== "accepted") {
+      // Teszt nyomtatás – automatikus levonás
+      deductStockForOffer(offer);
+    }
+
+    if (newStatus === "completed" && options?.deductOnCompleted) {
+      // Végleges nyomtatás – csak akkor vonjuk le, ha a felhasználó kéri
+      deductStockForOffer(offer);
+    }
 
     showToast(`${t("offers.toast.statusUpdated")} ${getStatusLabel(newStatus)}`, "success");
     // Natív értesítés küldése (ha engedélyezve van)
@@ -524,7 +578,11 @@ export const Offers: React.FC<Props> = ({
     };
 
     const updatedOffers = offersWithHistory.map(o => o.id === editingOffer.id ? updatedOffer : o);
+
+    // Frissítjük a lokális undo/redo állapotot ÉS az App szintű offers state-et is,
+    // így a módosítás azonnal látszik minden nézetben, nem csak az autosave után.
     setOffersWithHistory(updatedOffers);
+    setOffers(updatedOffers);
     setSelectedOffer(updatedOffer);
     cancelEditOffer();
     
@@ -1626,7 +1684,7 @@ export const Offers: React.FC<Props> = ({
               )}
               
               <div data-tutorial="offers-list" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {filteredOffers.map(offer => {
+                {filteredOffers.map((offer) => {
                   const date = new Date(offer.date);
                   const statusEntry =
                     offer.statusHistory && offer.statusHistory.length > 0
@@ -1639,6 +1697,7 @@ export const Offers: React.FC<Props> = ({
                     offer.currency || "EUR",
                     settings.currency
                   ).toFixed(2);
+
                   return (
                     <div
                       key={offer.id}
@@ -1652,15 +1711,19 @@ export const Offers: React.FC<Props> = ({
                       style={{
                         ...themeStyles.card,
                         padding: "18px 20px",
-                        backgroundColor: selectedOffer?.id === offer.id ? theme.colors.primary + "15" : theme.colors.surface,
-                        border: selectedOffer?.id === offer.id ? `2px solid ${theme.colors.primary}` : `1px solid ${theme.colors.border}`,
+                        backgroundColor:
+                          selectedOffer?.id === offer.id ? theme.colors.primary + "15" : theme.colors.surface,
+                        border:
+                          selectedOffer?.id === offer.id
+                            ? `2px solid ${theme.colors.primary}`
+                            : `1px solid ${theme.colors.border}`,
                         cursor: draggedOfferId === offer.id ? "grabbing" : "grab",
                         transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                         opacity: draggedOfferId === offer.id ? 0.5 : 1,
                         transform: draggedOfferId === offer.id ? "scale(0.96)" : "scale(1)",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "14px"
+                        gap: "14px",
                       }}
                       onMouseEnter={(e) => {
                         if (selectedOffer?.id !== offer.id && draggedOfferId !== offer.id) {
@@ -1669,54 +1732,100 @@ export const Offers: React.FC<Props> = ({
                       }}
                       onMouseLeave={(e) => {
                         if (selectedOffer?.id !== offer.id) {
-                          e.currentTarget.style.transform = draggedOfferId === offer.id ? "scale(0.95)" : "translateY(0)";
+                          e.currentTarget.style.transform =
+                            draggedOfferId === offer.id ? "scale(0.95)" : "translateY(0)";
                           e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
                         }
                       }}
                     >
-                      {/* Checkbox a kártya bal felső sarkában */}
-                      <div style={{ position: "absolute", top: "12px", left: "12px" }}>
-                        <input
-                          type="checkbox"
-                          checked={selectedOfferIds.has(offer.id)}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            toggleSelection(offer.id);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{
-                            width: "18px",
-                            height: "18px",
-                            cursor: "pointer",
-                          }}
-                          aria-label={t("offers.bulk.select")}
-                        />
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}>
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                            <strong style={{ fontSize: "16px" }}>
-                            {offer.customerName ? offer.customerName : `${t("offers.label.quote")} #${offer.id}`}
-                            </strong>
-                            {offer.status && (
-                              <span
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          gap: "16px",
+                        }}
+                      >
+                        {/* Bal oldal: checkbox + név + státusz + részletek */}
+                        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+                            <div
+                              style={{
+                                flexShrink: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                marginRight: "4px",
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedOfferIds.has(offer.id)}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  toggleSelection(offer.id);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
                                 style={{
-                                  padding: "4px 12px",
-                                  fontSize: "11px",
-                                  fontWeight: "700",
-                                  borderRadius: "999px",
-                                  backgroundColor: getStatusColor(offer.status) + "18",
-                                  color: getStatusColor(offer.status),
-                                  border: `1px solid ${getStatusColor(offer.status)}`,
-                                  letterSpacing: "0.5px",
-                                  textTransform: "uppercase"
+                                  width: "18px",
+                                  height: "18px",
+                                  cursor: "pointer",
+                                }}
+                                aria-label={t("offers.bulk.select")}
+                              />
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                flexWrap: "wrap",
+                                minWidth: 0,
+                              }}
+                            >
+                              <strong
+                                style={{
+                                  fontSize: "16px",
+                                  whiteSpace: "nowrap",
+                                  textOverflow: "ellipsis",
+                                  overflow: "hidden",
                                 }}
                               >
-                                {getStatusLabel(offer.status)}
-                              </span>
-                            )}
+                                {offer.customerName
+                                  ? offer.customerName
+                                  : `${t("offers.label.quote")} #${offer.id}`}
+                              </strong>
+                              {offer.status && (
+                                <span
+                                  style={{
+                                    padding: "4px 12px",
+                                    fontSize: "11px",
+                                    fontWeight: "700",
+                                    borderRadius: "999px",
+                                    backgroundColor: getStatusColor(offer.status) + "18",
+                                    color: getStatusColor(offer.status),
+                                    border: `1px solid ${getStatusColor(offer.status)}`,
+                                    letterSpacing: "0.5px",
+                                    textTransform: "uppercase",
+                                  }}
+                                >
+                                  {getStatusLabel(offer.status)}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
+
+                          <div
+                            style={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: "12px",
+                              fontSize: "12px",
+                              color: theme.colors.background?.includes("gradient")
+                                ? "#4a5568"
+                                : theme.colors.textMuted,
+                            }}
+                          >
                             <span>🗓️ {date.toLocaleDateString(locale)}</span>
                             {statusUpdatedDate && (
                               <span>
@@ -1730,40 +1839,88 @@ export const Offers: React.FC<Props> = ({
                               </span>
                             )}
                             <span>🖨️ {offer.printerName}</span>
-                            <span>⏳ {offer.totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}</span>
+                            <span>
+                              ⏳ {offer.totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
+                            </span>
                           </div>
+
                           {offer.description && (
-                            <p style={{ margin: 0, fontSize: "13px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
-                              {offer.description.length > 160 ? `${offer.description.slice(0, 160)}…` : offer.description}
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: "13px",
+                                color: theme.colors.background?.includes("gradient")
+                                  ? "#1a202c"
+                                  : theme.colors.textSecondary,
+                              }}
+                            >
+                              {offer.description.length > 160
+                                ? `${offer.description.slice(0, 160)}…`
+                                : offer.description}
                             </p>
                           )}
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px", minWidth: "120px" }}>
-                          <span style={{ fontSize: "18px", fontWeight: "700", color: theme.colors.primary }}>
+
+                        {/* Jobb oldal: összeg + kontakt */}
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-end",
+                            gap: "6px",
+                            minWidth: "120px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "18px",
+                              fontWeight: "700",
+                              color: theme.colors.primary,
+                            }}
+                          >
                             {totalAmount} {getCurrencyLabel(settings.currency)}
                           </span>
                           {offer.customerContact && (
-                            <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.textSecondary }}>
+                            <span
+                              style={{
+                                fontSize: "12px",
+                                color: theme.colors.background?.includes("gradient")
+                                  ? "#1a202c"
+                                  : theme.colors.textSecondary,
+                              }}
+                            >
                               📧 {offer.customerContact}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", flexWrap: "wrap" }}>
+                      {/* Akciógombok (pl. törlés) */}
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          gap: "8px",
+                          flexWrap: "wrap",
+                        }}
+                      >
                         <Tooltip content={t("offers.tooltip.delete")}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               deleteOffer(offer.id);
                             }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                            onMouseEnter={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
+                            }}
                             style={{
                               ...themeStyles.button,
                               ...themeStyles.buttonDanger,
                               padding: "6px 14px",
-                              fontSize: "12px"
+                              fontSize: "12px",
                             }}
                           >
                             {t("offers.delete")}
@@ -2929,12 +3086,85 @@ export const Offers: React.FC<Props> = ({
             <div style={{ textAlign: "right", fontSize: "11px", marginBottom: "12px", color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted }}>
               {statusChangeNote.length}/280
             </div>
+
+            {/* Készlet levonás opció completed státusznál */}
+            {statusChangeTarget === "completed" && (
+              <div
+                style={{
+                  marginBottom: "16px",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  backgroundColor: theme.colors.surfaceHover,
+                  border: `1px solid ${theme.colors.border}`,
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "8px",
+                  fontSize: "12px",
+                  color: theme.colors.text,
+                }}
+              >
+                <input
+                  id="deduct-on-complete"
+                  type="checkbox"
+                  checked={deductOnComplete}
+                  onChange={(e) => setDeductOnComplete(e.target.checked)}
+                  style={{ marginTop: "3px" }}
+                />
+                <label htmlFor="deduct-on-complete" style={{ cursor: "pointer" }}>
+                  <strong>{t("filamentStock.title") || "Filament készlet"}</strong>
+                  <br />
+                  {t("offers.statusModal.deductOnComplete") ||
+                    "Szeretnéd a végleges nyomtatás filament fogyását is levonni a készletből? (Az elfogadott állapotú teszt nyomtatás már levonta a megfelelő mennyiséget.)"}
+                </label>
+              </div>
+            )}
+
+            {/* Státusz előzmények rövid listája */}
+            {statusChangeOffer?.statusHistory && statusChangeOffer.statusHistory.length > 0 && (
+              <div
+                style={{
+                  marginBottom: "16px",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  backgroundColor: theme.colors.surfaceHover,
+                  border: `1px solid ${theme.colors.border}`,
+                  fontSize: "11px",
+                  color: theme.colors.textMuted,
+                }}
+              >
+                <div style={{ marginBottom: "6px", fontWeight: 600, color: theme.colors.text }}>
+                  {t("offers.pdf.section.statusHistory")}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "120px", overflowY: "auto" }}>
+                  {statusChangeOffer.statusHistory.map((entry, idx) => (
+                    <div key={`${entry.status}-${entry.date}-${idx}`} style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                      <span
+                        style={{
+                          padding: "2px 6px",
+                          borderRadius: "6px",
+                          backgroundColor: getStatusColor(entry.status) + "20",
+                          color: getStatusColor(entry.status),
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {getStatusLabel(entry.status)}
+                      </span>
+                      <span>{new Date(entry.date).toLocaleString(locale)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
               <button
                 onClick={() => {
                   setStatusChangeOffer(null);
                   setStatusChangeTarget(null);
                   setStatusChangeNote("");
+                  setDeductOnComplete(false);
                 }}
                 style={{
                   ...themeStyles.button,
@@ -2945,7 +3175,12 @@ export const Offers: React.FC<Props> = ({
                 {t("offers.statusModal.cancel")}
               </button>
               <button
-                onClick={() => statusChangeOffer && changeOfferStatus(statusChangeOffer, statusChangeTarget, statusChangeNote)}
+                onClick={() =>
+                  statusChangeOffer &&
+                  changeOfferStatus(statusChangeOffer, statusChangeTarget, statusChangeNote, {
+                    deductOnCompleted: deductOnComplete,
+                  })
+                }
                 style={{
                   ...themeStyles.button,
                   ...themeStyles.buttonPrimary,
