@@ -48,6 +48,10 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
   - A Scheduled Tasks widget automatikusan feladatokat kap a határidős árajánlatokból
   - A fejlécben váltakozó „Ma / Holnap / Holnapután” stílusú emlékeztetők jelennek meg a közelgő nyomtatásokhoz
   - Tartós (nem eltűnő) info toast figyelmeztet a közeli határidőkre, amíg manuálisan be nem zárod
+- 🧵 **Filament készletkezelés** – Új, dedikált filament készletnyilvántartó nézet:
+  - Keresés márka / típus / szín alapján, státusz szűrők (kritikus / alacsony / rendben)
+  - Állítható kritikus és alacsony küszöbértékek, inline készletszerkesztés és gyors +100g / −100g gombok
+  - A Filament Stock Alert widget közvetlenül ezekre a küszöbökre és a valós készletszintekre épül
 - 📊 **Dashboard fejlesztések** – Minden widget alapból bekapcsolva a dashboard nézetben:
   - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
   - A klasszikus Home nézet és a Widget Dashboard sokkal egységesebb statisztikákat és grafikonokat használ
@@ -828,7 +832,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 1.4.33
+**Verzió**: 1.5.0
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 
