@@ -41,6 +41,24 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 
 ## 📋 Registro de cambios (Changelog)
 
+### v1.6.0 (2025) - 📊 Widgets Interactivos y Rendimiento de Tablas Grandes
+
+- 🧠 **Gráficos Interactivos y Modales de Detalle**
+  - Todos los gráficos principales del dashboard ahora usan un componente unificado `InteractiveChart` con puntos de datos clicables y modales de detalle animados.
+  - Los tooltips y modales muestran etiquetas localizadas y legibles para ingresos, costos, ganancias y cantidad de ofertas.
+  - Los gráficos de tendencias admiten filtrado de período directo desde el brush (segmentos semanales / mensuales / anuales enviados al dashboard).
+
+- 🧵 **Desplazamiento Virtual para Listas Grandes**
+  - Desplazamiento virtual personalizado para la lista de Ofertas y la tabla de Filamentos – solo se renderizan las filas visibles, manteniendo el desplazamiento suave incluso con 10k+ elementos.
+  - Configuración → Biblioteca de Filamentos usa el mismo patrón de desplazamiento virtual, por lo que las 12,000+ entradas de colores completas permanecen responsivas.
+  - La posición y altura de la barra de desplazamiento permanecen precisas gracias a los elementos espaciadores arriba y abajo de la ventana visible.
+
+- 📋 **Ordenamiento y Filtrado Avanzado de Tablas**
+  - Ordenamiento multi-columna para Filamentos y Ofertas (clic para ascendente/descendente, Shift+clic para construir cadenas de ordenamiento como "Marca ↑, luego Precio/kg ↓").
+  - La configuración de ordenamiento se persiste en la configuración, por lo que el orden preferido se restaura en el siguiente inicio.
+  - Filamentos: filtros por columna para marca, material/tipo y color/HEX.
+  - Ofertas: filtros de rango numérico para cantidad total (min/max) y filtros de rango de fecha (desde/hasta).
+
 ### v1.5.0 (2025) - 🧠 Dashboard Inteligente y Recordatorios de Plazos
 
 - ⏱️ **Recordatorios de plazos de impresión** – Nuevo sistema de avisos para cotizaciones aceptadas:
@@ -847,7 +865,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ---
 
-**Versión**: 1.5.0
+**Versión**: 1.6.0
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 

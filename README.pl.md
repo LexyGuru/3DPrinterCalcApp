@@ -40,6 +40,24 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.6.0 (2025) - 📊 Interaktywne Widgety i Wydajność Dużych Tabel
+
+- 🧠 **Interaktywne Wykresy i Modale Szczegółów**
+  - Wszystkie główne wykresy panelu używają teraz ujednoliconego komponentu `InteractiveChart` z klikalnymi punktami danych i animowanymi modalami szczegółów.
+  - Tooltips i modale wyświetlają zlokalizowane, czytelne etykiety dla przychodów, kosztów, zysku i liczby ofert.
+  - Wykresy trendów obsługują bezpośrednie filtrowanie okresów z pędzla (tygodniowe / miesięczne / roczne wycinki wysyłane do panelu).
+
+- 🧵 **Wirtualne Przewijanie dla Dużych List**
+  - Niestandardowe wirtualne przewijanie dla listy Ofert i tabeli Filamentów – renderowane są tylko widoczne wiersze, zachowując płynne przewijanie nawet przy 10k+ elementach.
+  - Ustawienia → Biblioteka Filamentów używa tego samego wzorca wirtualnego przewijania, więc wszystkie 12 000+ wpisów kolorów pozostają responsywne.
+  - Pozycja i wysokość paska przewijania pozostają dokładne dzięki elementom separatora powyżej i poniżej widocznego okna.
+
+- 📋 **Zaawansowane Sortowanie i Filtrowanie Tabel**
+  - Sortowanie wielokolumnowe dla Filamentów i Ofert (kliknięcie dla rosnącego/malejącego, Shift+kliknięcie, aby zbudować łańcuchy sortowania jak „Marka ↑, następnie Cena/kg ↓").
+  - Konfiguracja sortowania jest zapisywana w ustawieniach, więc preferowana kolejność jest przywracana przy następnym uruchomieniu.
+  - Filamenty: filtry na kolumnę dla marki, materiału/typu i koloru/HEX.
+  - Oferty: filtry zakresu numerycznego dla łącznej kwoty (min/max) i filtry zakresu dat (od/do).
+
 ### v1.5.0 (2025) - 🧠 Inteligentny Dashboard i Przypomnienia Terminów
 
 - ⏱️ **Przypomnienia terminów druku** – Nowy system przypomnień dla zaakceptowanych ofert:
@@ -846,7 +864,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 1.5.0
+**Wersja**: 1.6.0
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

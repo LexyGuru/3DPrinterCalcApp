@@ -42,6 +42,24 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.6.0 (2025) - 📊 Interaktive Widgets & Leistung großer Tabellen
+
+- 🧠 **Interaktive Diagramme & Detail-Modals**
+  - Alle Haupt-Dashboard-Diagramme verwenden jetzt eine einheitliche `InteractiveChart`-Komponente mit klickbaren Datenpunkten und animierten Detail-Modals.
+  - Tooltips und Modals zeigen lokalisierte, menschenlesbare Beschriftungen für Umsatz, Kosten, Gewinn und Anzahl der Angebote.
+  - Trend-Diagramme unterstützen direktes Perioden-Filtering über den Brush (wöchentliche / monatliche / jährliche Segmente werden an das Dashboard gesendet).
+
+- 🧵 **Virtuelles Scrollen für große Listen**
+  - Benutzerdefiniertes virtuelles Scrollen für die Angebotsliste und die Filament-Tabelle – nur sichtbare Zeilen werden gerendert, wodurch das Scrollen auch bei 10k+ Elementen flüssig bleibt.
+  - Einstellungen → Filament-Bibliothek verwendet dasselbe virtuelle Scroll-Muster, sodass die vollständigen 12.000+ Farbeinträge reaktionsfähig bleiben.
+  - Scrollbar-Position und -Höhe bleiben genau, dank Spacer-Elementen oberhalb und unterhalb des sichtbaren Fensters.
+
+- 📋 **Erweiterte Tabellensortierung & -filterung**
+  - Mehrspalten-Sortierung für Filamente und Angebote (Klick für aufsteigend/absteigend, Shift+Klick zum Erstellen von Sortierketten wie "Marke ↑, dann Preis/kg ↓").
+  - Sortierkonfiguration wird in den Einstellungen gespeichert, sodass die bevorzugte Reihenfolge beim nächsten Start wiederhergestellt wird.
+  - Filamente: spaltenspezifische Filter für Marke, Material/Typ und Farbe/HEX.
+  - Angebote: numerische Bereichsfilter für Gesamtbetrag (min/max) und Datumsbereichsfilter (von/bis).
+
 ### v1.5.0 (2025) - 🧠 Intelligentes Dashboard & Frist-Erinnerungen
 
 - ⏱️ **Druckfrist-Erinnerungen** – Neues Erinnerungssystem für angenommene Angebote:
@@ -848,7 +866,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 1.5.0
+**Version**: 1.6.0
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

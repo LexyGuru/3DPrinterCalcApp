@@ -25,7 +25,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 📈 **Statistics** - Summary dashboard for filament consumption, revenue, profit
 - 👥 **Customer Database** - Manage customers with contact information, company details, and offer statistics
 - 📊 **Price History & Trends** - Track filament price changes over time with charts and statistics
-- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (14 languages, 850+ translation keys per language)
+- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (13 languages, 850+ translation keys per language)
 - 💱 **Multiple Currencies** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 currencies)
 - 🔄 **Auto Updates** - Checks GitHub Releases for new versions
 - 🧪 **Beta Versions** - Beta branch and beta build support
@@ -72,7 +72,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
   - Localized export filenames with proper OS-compatible naming (underscores, no special chars)
   - Widget language updates immediately after language change
   - Toast notifications for successful chart exports
-  - All widget elements and loading states fully translated in all 14 languages
+  - All widget elements and loading states fully translated in all 13 languages
 - 💱 **Currency Support Expansion** - Extended currency support:
   - Added currencies: GBP (British Pound), PLN (Polish Zloty), CZK (Czech Koruna), CNY (Chinese Yuan), UAH (Ukrainian Hryvnia), RUB (Russian Ruble)
   - Currency symbols and labels for all new currencies
@@ -509,6 +509,24 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.6.0 (2025) - 📊 Interactive Widgets & Large Table Performance
+
+- 🧠 **Interactive Charts & Detail Modals**
+  - All main dashboard charts now use a unified `InteractiveChart` with clickable data points and animated detail modals.
+  - Tooltips and modals show localized, human‑readable labels for revenue, costs, profit and offer count.
+  - Trend charts support direct period filtering from the brush (weekly / monthly / yearly slices sent to the dashboard).
+
+- 🧵 **Virtual Scrolling for Large Lists**
+  - Custom virtual scrolling for Offers list and Filaments table – only visible rows are rendered, keeping scrolling smooth even with 10k+ items.
+  - Settings → Filament Library uses the same virtual scrolling pattern, so the full 12,000+ color entries remain responsive.
+  - Scrollbar position and height remain accurate thanks to spacer elements above and below the visible window.
+
+- 📋 **Advanced Table Sorting & Filtering**
+  - Multi‑column sorting for Filaments and Offers (click for ascending/descending, Shift+click to build sort chains like “Brand ↑, then Price/kg ↓”).
+  - Sort configuration is persisted in settings, so the preferred order is restored on next launch.
+  - Filaments: per‑column filters for brand, material/type, and color/HEX.
+  - Offers: numeric range filters for total amount (min/max) and date range filters (from/to).
+
 ### v1.5.0 (2025) - 🧠 Smart Dashboard & Deadline Reminders
 
 - ⏱️ **Print Deadline Reminders** – New reminder system for accepted quotes:
@@ -595,7 +613,7 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
   - Ukrainian locale support (uk-UA) for date/time formatting
   - Russian locale support (ru-RU) for date/time formatting
   - Updated all README files with new languages in language menu
-  - Language count updated from 12 to 14 languages
+  - Language count updated from 11 to 13 languages
   - Created README.uk.md and README.ru.md documentation files
 
 ### v0.5.57 (2025)
@@ -848,7 +866,7 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.5.0
+**Version**: 1.6.0
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
 
