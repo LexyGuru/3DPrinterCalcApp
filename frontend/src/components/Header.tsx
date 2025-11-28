@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import type { Settings } from "../types";
+import type { Settings, Offer } from "../types";
 import type { Theme } from "../utils/themes";
 import { Breadcrumb } from "./Breadcrumb";
 import { useTranslation } from "../utils/translations";
@@ -16,9 +16,22 @@ interface Props {
   onPageChange?: (page: string) => void;
   themeStyles?: ReturnType<typeof import("../utils/themes").getThemeStyles>;
   onQuickAction?: (action: string) => void;
+  offers?: Offer[];
 }
 
-export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSidebarOpen, lastSaved, autosaveInterval = 30, activePage, onPageChange, themeStyles, onQuickAction }) => {
+export const Header: React.FC<Props> = ({
+  settings,
+  theme,
+  onMenuToggle,
+  isSidebarOpen,
+  lastSaved,
+  autosaveInterval = 30,
+  activePage,
+  onPageChange,
+  themeStyles,
+  onQuickAction,
+  offers = [],
+}) => {
   const t = useTranslation(settings.language);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -155,11 +168,130 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
   const hoverBg = theme.colors.surfaceHover || theme.colors.surface;
 
   // Responsive breakpoints - dinamikus elrejtés kisebb méreteknél
-  // A breakpoint-ok úgy vannak beállítva, hogy mielőtt levágásra kerülnének az elemek, elrejtődjön a kevésbé fontos
-  const showBreadcrumb = windowWidth > 1000; // Breadcrumb csak 1000px felett
+  // A breadcrumb sáv a headerben zavaró volt, ezért egyelőre kikapcsoljuk (showBreadcrumb = false)
+  const showBreadcrumb = false;
   const showDate = windowWidth > 900; // Dátum csak 900px felett
   const showLastSaved = windowWidth > 800; // Következő mentés csak 800px felett
   const compactQuickActions = windowWidth < 700; // Kompakt gombok 700px alatt
+
+  // Közelgő / esedékes nyomtatási feladatok – elfogadott, nem completed, határidő ma–holnap–holnapután
+  const upcomingPrintReminders = useMemo(() => {
+    if (!offers || offers.length === 0) return [];
+
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const maxDiffDays = 2; // 0 = ma, 1 = holnap, 2 = holnapután
+
+    const offersWithDiff = offers
+      .filter((offer) => {
+        if (!offer.printDueDate) return false;
+        if (offer.status === "completed" || offer.status === "rejected") return false;
+        if (offer.status !== "accepted" && offer.status !== "sent") return false;
+
+        const due = new Date(offer.printDueDate);
+        const startOfDue = new Date(due);
+        startOfDue.setHours(0, 0, 0, 0);
+
+        const diffDays = Math.round(
+          (startOfDue.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        return diffDays >= 0 && diffDays <= maxDiffDays;
+      })
+      .sort((a, b) => {
+        const da = new Date(a.printDueDate || a.date).getTime();
+        const db = new Date(b.printDueDate || b.date).getTime();
+        return da - db;
+      })
+      .map((offer) => {
+        const due = new Date(offer.printDueDate || offer.date);
+        const startOfDue = new Date(due);
+        startOfDue.setHours(0, 0, 0, 0);
+        const diffDays = Math.round(
+          (startOfDue.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        return { offer, diffDays };
+      });
+
+    if (!offersWithDiff.length) return [];
+
+    // Csoportosítás diffDays szerint (0 = ma, 1 = holnap, 2 = holnapután)
+    const dayBuckets: Record<number, typeof offersWithDiff> = {};
+    for (const item of offersWithDiff) {
+      if (!dayBuckets[item.diffDays]) dayBuckets[item.diffDays] = [];
+      dayBuckets[item.diffDays].push(item);
+    }
+
+    const dayOrder = [0, 1, 2];
+
+    return dayOrder
+      .filter((d) => dayBuckets[d] && dayBuckets[d].length > 0)
+      .map((diffDays) => {
+        const bucket = dayBuckets[diffDays];
+        // Már idő szerint rendezett, így az első az, amit kiemelünk
+        const first = bucket[0].offer;
+        const extraCount = bucket.length - 1;
+
+        let dayLabel: string;
+        if (diffDays === 0) {
+          dayLabel = settings.language === "hu" ? "Ma" : "Today";
+        } else if (diffDays === 1) {
+          dayLabel = settings.language === "hu" ? "Holnap" : "Tomorrow";
+        } else {
+          dayLabel =
+            settings.language === "hu"
+              ? "Holnapután"
+              : "In 2 days";
+        }
+
+        const customer =
+          first.customerName && first.customerName.trim().length > 0
+            ? first.customerName
+            : `${t("offers.label.quote")} #${first.id}`;
+
+        const description =
+          first.description && first.description.trim().length > 0
+            ? first.description.trim()
+            : "";
+
+        const baseTextParts = [
+          `${dayLabel}:`,
+          customer,
+          description ? `– ${description}` : "",
+        ].filter(Boolean);
+
+        const baseText = baseTextParts.join(" ");
+
+        if (extraCount > 0) {
+          const extraLabel =
+            settings.language === "hu"
+              ? `(+${extraCount} további)`
+              : `(+${extraCount} more)`;
+          return `${baseText} ${extraLabel}`;
+        }
+
+        return baseText;
+      });
+  }, [offers, settings.language, t]);
+
+  const [currentReminderIndex, setCurrentReminderIndex] = useState(0);
+
+  // Váltakozó üzenet 30 másodpercenként, ha több feladat van
+  useEffect(() => {
+    if (!upcomingPrintReminders.length) {
+      return;
+    }
+
+    setCurrentReminderIndex(0);
+
+    const interval = setInterval(() => {
+      setCurrentReminderIndex((prev) => (prev + 1) % upcomingPrintReminders.length);
+    }, 30000); // 30 másodperc
+
+    return () => clearInterval(interval);
+  }, [upcomingPrintReminders.length]);
 
   // Breadcrumb items generálása - stabil referencia az onClick-hez
   const breadcrumbItems = useMemo(() => {
@@ -388,17 +520,52 @@ export const Header: React.FC<Props> = ({ settings, theme, onMenuToggle, isSideb
             3D
           </div>
           {windowWidth > 400 && (
-            <span
-              style={{
-                fontSize: "20px",
-                fontWeight: "700",
-                color: headerText,
-                textShadow: isNeon ? `0 0 8px ${headerText}` : "none",
-                whiteSpace: "nowrap",
-              }}
-            >
-              3DPrinterCalcApp
-            </span>
+            upcomingPrintReminders.length > 0 ? (
+              // Responsív figyelmeztető badge – a rendelkezésre álló szélességhez igazítjuk
+              <div
+                style={{
+                  marginLeft: "4px",
+                  padding: "6px 14px",
+                  borderRadius: "999px",
+                  backgroundColor: theme.colors.primary + "20",
+                  border: `1px solid ${theme.colors.primary}`,
+                  color: theme.colors.primary,
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  maxWidth: Math.max(160, windowWidth - 420),
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  boxShadow: `0 0 10px ${theme.colors.shadow}`,
+                }}
+              >
+                <span>⏱️</span>
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {upcomingPrintReminders[currentReminderIndex] || upcomingPrintReminders[0]}
+                </span>
+              </div>
+            ) : (
+              <span
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "700",
+                  color: headerText,
+                  textShadow: isNeon ? `0 0 8px ${headerText}` : "none",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                3DPrinterCalcApp
+              </span>
+            )
           )}
         </div>
       </div>

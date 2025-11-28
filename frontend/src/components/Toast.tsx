@@ -7,7 +7,7 @@ interface ToastProps {
   message: string;
   type: "success" | "error" | "info" | "warning";
   onClose: () => void;
-  duration?: number;
+  duration?: number; // ha <= 0, akkor csak manuálisan záródik be
   animationSettings?: AnimationSettings;
 }
 
@@ -19,12 +19,18 @@ export const Toast: React.FC<ToastProps> = ({
   animationSettings,
 }) => {
   useEffect(() => {
+    // Ha a duration <= 0, vagy info típusú toast, nem indítunk automatikus időzítőt –
+    // ilyenkor mindig kézzel kell bezárni (pl. fontos emlékeztetők esetén).
+    if (duration <= 0 || type === "info") {
+      return;
+    }
+
     const timer = setTimeout(() => {
       onClose();
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [duration, onClose]);
+  }, [duration, onClose, type]);
 
   const colors = {
     success: { bg: "#28a745", icon: "✅" },

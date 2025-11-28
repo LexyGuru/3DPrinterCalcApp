@@ -694,6 +694,18 @@ export const Tutorial: React.FC<Props> = ({
     // Kihagyáskor csak bezárjuk, de NEM állítjuk be a completed-et
     // Bezárjuk a GlobalSearch-et, ha nyitva van
     onCloseGlobalSearch?.();
+
+    // Skip esetén is mentsük el, hogy indításkor NE induljon el automatikusan újra a tutorial
+    try {
+      const updatedSettings = {
+        ...settings,
+        showTutorialOnStartup: false,
+      };
+      await saveSettings(updatedSettings);
+      console.log("⏭️ Tutorial kihagyva - showTutorialOnStartup false-ra állítva");
+    } catch (error) {
+      console.error("❌ Hiba a tutorial skip beállítás mentésekor:", error);
+    }
     
     // Demo adatok törlése, ha generáltuk őket
     if (demoDataGeneratedRef.current) {
@@ -828,12 +840,6 @@ export const Tutorial: React.FC<Props> = ({
               zIndex: 99998, // Magas zIndex, de alacsonyabb mint a tooltip
               cursor: "pointer",
               opacity: 1, // Fix opacity, hogy ne halványodjon el
-            }}
-            onClick={(e) => {
-              // Csak akkor zárjuk be, ha az overlay-re kattintunk (nem a tooltip-re)
-              if (e.target === overlayRef.current) {
-                handleSkip();
-              }
             }}
           />
 

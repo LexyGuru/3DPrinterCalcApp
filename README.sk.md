@@ -40,6 +40,26 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.5.0 (2025) - 🧠 Inteligentný Dashboard a Pripomienky Termínov
+
+- ⏱️ **Pripomienky termínov tlače** – Nový systém pripomienok pre prijaté ponuky:
+  - Widget Plánované úlohy automaticky dostáva úlohy z ponúk s blížiacimi sa termínmi tlače
+  - V hlavičke sa striedajú pripomienky v štýle „Dnes / Zajtra / Pozajtra“ pre nadchádzajúce tlačové úlohy
+  - Trvalý info toast upozorňuje na urgentné termíny, kým ho používateľ ručne nezavrie
+- 🧵 **Správa skladu filamentov** – Nové, samostatné zobrazenie zásob filamentov:
+  - Hľadanie podľa značky / typu / farby so stavovými filtrami (kritický / nízky / OK)
+  - Konfigurovateľné kritické a nízke prahy zásob, inline úprava skladu a rýchle tlačidlá +100g / −100g
+  - Widget Upozornenie na stav filamentu teraz priamo využíva tieto prahy a reálne skladové úrovne
+- 📊 **Vylepšenia dashboardu** – Všetky widgety sú štandardne zapnuté v zobrazení dashboardu:
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - Klasické zobrazenie Domov a Dashboard widgetov teraz používajú konzistentnejšiu sadu štatistík a grafov
+- 🧱 **UX vylepšenia ponúk** – Plynulejšia úprava a výber:
+  - Opravené prípady, keď sa po uložení upravenej ponuky okamžite neaktualizoval hlavný zoznam
+  - Zaškrtávacie políčko pre viacnásobný výber bolo presunuté mimo titulku, aby bol názov zákazníka dobre čitateľný
+- 🧭 **Dolaďovanie hlavičky a rozloženia**:
+  - Z hlavičky bola odstránená breadcrumb lišta pre čistejšie rozhranie
+  - Minimálna veľkosť okna (1280x720) je teraz vynucovaná na úrovni Tauri bez horizontálnych posuvníkov
+
 ### v1.4.33 (2025) - 🔧 Vylepšenia rozloženia a pretiahnutia widgetov + Demo Dáta Tutoriálu
 
 - 📊 **Opravy rozloženia widgetov** - Opravené umiestnenie a funkčnosť pretiahnutia widgetov:
@@ -826,7 +846,7 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ---
 
-**Verzia**: 1.4.33
+**Verzia**: 1.5.0
 
 Ak máte nejaké otázky alebo nájdete chybu, prosím otvorte issue v repozitári GitHub!
 

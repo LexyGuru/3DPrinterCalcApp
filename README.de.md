@@ -42,6 +42,26 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.5.0 (2025) - 🧠 Intelligentes Dashboard & Frist-Erinnerungen
+
+- ⏱️ **Druckfrist-Erinnerungen** – Neues Erinnerungssystem für angenommene Angebote:
+  - Das Widget „Geplante Aufgaben“ erhält automatisch Aufgaben aus Angeboten mit anstehenden Druckfristen
+  - Im Header werden abwechselnd Hinweise im Stil „Heute / Morgen / Übermorgen“ für bevorstehende Druckaufträge angezeigt
+  - Eine persistente Info-Toast warnt vor dringenden Fristen, bis der Benutzer sie manuell schließt
+- 🧵 **Filament-Lagerverwaltung** – Neue, dedizierte Ansicht für den Filamentbestand:
+  - Suche nach Marke / Typ / Farbe mit Statusfiltern (kritisch / niedrig / OK)
+  - Einstellbare kritische und niedrige Schwellenwerte, Inline-Bestandsbearbeitung und schnelle +100g / −100g-Schaltflächen
+  - Das „Filament Stock Alert“-Widget liest direkt aus diesen Schwellenwerten und den aktuellen Lagerständen
+- 📊 **Dashboard-Verbesserungen** – Alle Widgets standardmäßig im Dashboard aktiviert:
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - Klassische Home-Ansicht und Widget-Dashboard verwenden jetzt ein konsistenteres Set an Statistiken und Diagrammen
+- 🧱 **Angebots-UX-Verbesserungen** – Komfortablere Bearbeitung und Mehrfachauswahl:
+  - Fälle behoben, in denen ein bearbeitetes Angebot nicht sofort in der Hauptliste aktualisiert wurde
+  - Das Mehrfachauswahl-Kontrollkästchen wurde aus dem Titeltext heraus verschoben, sodass Kundennamen vollständig lesbar bleiben
+- 🧭 **Header- & Layout-Feintuning**:
+  - Die Breadcrumb-Leiste wurde aus der Kopfzeile entfernt, um die Oberfläche aufgeräumter zu machen
+  - Minimale Fenstergröße (1280x720) wird nun auf Tauri-Ebene erzwungen, ohne horizontale Scrollbalken zu erzwingen
+
 ### v1.4.33 (2025) - 🔧 Widget-Layout & Drag-Verbesserungen + Tutorial Demo-Daten
 
 - 📊 **Widget-Layout-Fixes** - Behobene Widget-Positionierung und Drag-Funktionalität:
@@ -828,7 +848,7 @@ Beim Pushen zum `beta`-Branch läuft automatisch der GitHub Actions Workflow, de
 
 ---
 
-**Version**: 1.4.33
+**Version**: 1.5.0
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

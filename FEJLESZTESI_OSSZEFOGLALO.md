@@ -94,16 +94,275 @@
 
 ---
 
-## ❌ Hiányzó Widgetek (Definiálva, de nincs implementáció)
+## ✅ / ❌ Widgetek Állapota (eredetileg hiányzóként tervezve)
 
-A következő widget típusok definiálva vannak a `types/widgets.ts`-ben, de még nincs implementáció:
+A következő widget típusok korábban csak a `types/widgets.ts`-ben voltak definiálva, de időközben **implementálva lettek** és be vannak kötve a `Dashboard.tsx`-be is. Az alábbi leírások már a **kész állapotot** dokumentálják.
 
-1. ❌ **financial-trends** - Pénzügyi trendek widget
-2. ❌ **quick-actions** - Gyors műveletek panel
-3. ❌ **recent-offers** - Legutóbbi árajánlatok lista
-4. ❌ **active-projects** - Aktív projektek widget
-5. ❌ **filament-stock-alert** - Filament készlet figyelmeztetés
-6. ❌ **scheduled-tasks** - Ütemezett feladatok widget
+### 1. ✅ **financial-trends** - Pénzügyi trendek widget
+
+**Leírás**: Részletes pénzügyi trendek grafikon widget, amely több pénzügyi metrikát mutat egyszerre.
+
+**Funkciók**:
+- Bevétel, költség, profit trendek egy grafikonon
+- Időszak választó (heti/havi/éves)
+- Kattintható adatpontok (részletes nézet)
+- Export lehetőség (PNG, SVG, PDF)
+- Tooltip-ek részletes információkkal
+
+**Szükséges adatok**:
+```typescript
+interface FinancialTrendsData {
+  period: "week" | "month" | "year";
+  data: Array<{
+    date: string;
+    revenue: number;
+    costs: number;
+    profit: number;
+    margin: number; // profit margin %
+  }>;
+}
+```
+
+**Megvalósítás / Fájlok**:
+- `frontend/src/components/widgets/FinancialTrendsWidget.tsx` - **Létezik**
+- `frontend/src/components/widgets/Dashboard.tsx` - `financial-trends` case **bekötve**
+- `frontend/src/utils/languages/*.ts` - `widget.title.financialTrends` fordítási kulcsok **hozzáadva**
+
+**Komplexitás**: ⭐⭐⭐ Magas  
+**Becsült idő**: 6-8 óra
+
+---
+
+### 2. ✅ **quick-actions** - Gyors műveletek panel
+
+**Leírás**: Gyors hozzáférés a leggyakrabban használt műveletekhez.
+
+**Funkciók**:
+- Új árajánlat létrehozása
+- Új filament hozzáadása
+- Új nyomtató hozzáadása
+- Új ügyfél hozzáadása
+- Gyors kalkuláció megnyitása
+- Testreszabható műveletek sorrendje
+- Gyorsbillentyű támogatás minden művelethez
+
+**Szükséges adatok**:
+```typescript
+interface QuickActionsData {
+  actions: Array<{
+    id: string;
+    label: string;
+    icon: string;
+    action: () => void;
+    shortcut?: string;
+  }>;
+}
+```
+
+**Megvalósítás / Fájlok**:
+- `frontend/src/components/widgets/QuickActionsWidget.tsx` - **Létezik**
+- `frontend/src/components/widgets/Dashboard.tsx` - `quick-actions` case **bekötve**
+- `frontend/src/utils/languages/*.ts` - `widget.title.quickActions` fordítási kulcsok **hozzáadva**
+
+**Komplexitás**: ⭐⭐ Közepes  
+**Becsült idő**: 4-6 óra
+
+---
+
+### 3. ✅ **recent-offers** - Legutóbbi árajánlatok lista
+
+**Leírás**: Az utolsó 5-10 árajánlat listája gyors hozzáféréssel.
+
+**Funkciók**:
+- Legutóbbi árajánlatok listázása (5-10 db)
+- Kattintás → árajánlat részletes nézet
+- Státusz megjelenítés (színkódolt)
+- Gyors műveletek (szerkesztés, PDF export, törlés)
+- Scrollozható lista
+- Üres állapot kezelés
+
+**Szükséges adatok**:
+```typescript
+interface RecentOffersData {
+  offers: Array<{
+    id: number;
+    customerName: string;
+    date: string;
+    status: string;
+    totalCost: number;
+    currency: string;
+    description?: string;
+  }>;
+  maxItems?: number; // Default: 5
+}
+```
+
+**Megvalósítás / Fájlok**:
+- `frontend/src/components/widgets/RecentOffersWidget.tsx` - **Létezik**
+- `frontend/src/components/widgets/Dashboard.tsx` - `recent-offers` case **bekötve**
+- `frontend/src/utils/languages/*.ts` - `widget.title.recentOffers` fordítási kulcsok **hozzáadva**
+
+**Komplexitás**: ⭐⭐ Közepes  
+**Becsült idő**: 4-6 óra
+
+---
+
+### 4. ✅ **active-projects** - Aktív projektek widget
+
+**Leírás**: Aktív projektek követése és kezelése.
+
+**Funkciók**:
+- Aktív projektek listázása
+- Projekt státusz követés
+- Projekt haladás megjelenítés (progress bar)
+- Határidők megjelenítése
+- Projekt részletek megnyitása
+- Projekt státusz változtatás
+
+**Megjegyzés**: A widget **UI szinten implementálva van** (`ActiveProjectsWidget.tsx`, `Dashboard.tsx`), de a teljes értelmű használathoz továbbra is szükség lesz egy külön projektkezelő modulra. Jelenleg mock / egyszerűsített adatokkal használható.
+
+**Szükséges adatok**:
+```typescript
+interface ActiveProjectsData {
+  projects: Array<{
+    id: number;
+    name: string;
+    status: "active" | "on-hold" | "completed";
+    progress: number; // 0-100
+    deadline?: string;
+    offerCount: number;
+    totalRevenue: number;
+  }>;
+}
+```
+
+**Megvalósítás / Fájlok**:
+- `frontend/src/components/widgets/ActiveProjectsWidget.tsx` - **Létezik**
+- `frontend/src/components/widgets/Dashboard.tsx` - `active-projects` case **bekötve**
+- `frontend/src/utils/languages/*.ts` - `widget.title.activeProjects` fordítási kulcsok **hozzáadva**
+
+**Komplexitás**: ⭐⭐⭐ Magas (projekt kezelés függőség)  
+**Becsült idő**: 6-8 óra (projekt kezelés nélkül: 2-3 óra placeholder)
+
+**Prioritás**: 🟢 Alacsony (projekt kezelés implementálása után)
+
+---
+
+### 5. ✅ **filament-stock-alert** - Filament készlet figyelmeztetés
+
+**Leírás**: Alacsony filament készlet figyelmeztetések megjelenítése.
+
+**Funkciók**:
+- Alacsony készletű filamentek listázása
+- Készlet szint megjelenítés (színkódolt: kritikus/alacsony/normál)
+- Gyors hozzáadás gomb (új filament vásárlás)
+- Figyelmeztető színek (piros/sárga/zöld)
+- Kattintás → filament részletes nézet
+- Készlet küszöbértékek beállítása
+
+**Szükséges adatok**:
+```typescript
+interface FilamentStockAlertData {
+  alerts: Array<{
+    filamentId: string;
+    brand: string;
+    type: string;
+    color: string;
+    currentStock: number; // gramm vagy kg
+    minStock: number;
+    alertLevel: "critical" | "low" | "normal";
+  }>;
+  settings: {
+    criticalThreshold: number; // gramm vagy kg
+    lowThreshold: number;
+  };
+}
+```
+
+**Megvalósítás / Fájlok**:
+- `frontend/src/components/widgets/FilamentStockAlertWidget.tsx` - **Létezik**
+- `frontend/src/components/widgets/Dashboard.tsx` - `filament-stock-alert` case **bekötve**
+- `frontend/src/utils/languages/*.ts` - `widget.title.filamentStockAlert` fordítási kulcsok **hozzáadva**
+- `frontend/src/types.ts` - Filament típus `weight`/stock mezővel **kibővítve**
+
+**Komplexitás**: ⭐⭐ Közepes  
+**Becsült idő**: 4-6 óra
+
+---
+
+### 6. ✅ **scheduled-tasks** - Ütemezett feladatok widget
+
+**Leírás**: Ütemezett feladatok és emlékeztetők megjelenítése.
+
+**Funkciók**:
+- Közelgő feladatok listázása
+- Határidők megjelenítése
+- Feladat státusz követés
+- Emlékeztetők megjelenítése
+- Feladat részletek megnyitása
+- Feladat státusz változtatás
+
+**Megjegyzés**: A widget **UI szinten implementálva van** (`ScheduledTasksWidget.tsx`, `Dashboard.tsx`), de a teljes értelmű használathoz továbbra is szükség lesz egy dedikált feladatkezelő modulra. Jelenleg mock / egyszerűsített adatokkal használható.
+
+**Szükséges adatok**:
+```typescript
+interface ScheduledTasksData {
+  tasks: Array<{
+    id: number;
+    title: string;
+    description?: string;
+    dueDate: string;
+    priority: "high" | "medium" | "low";
+    status: "pending" | "in-progress" | "completed";
+    relatedOfferId?: number;
+  }>;
+}
+```
+
+**Megvalósítás / Fájlok**:
+- `frontend/src/components/widgets/ScheduledTasksWidget.tsx` - **Létezik**
+- `frontend/src/components/widgets/Dashboard.tsx` - `scheduled-tasks` case **bekötve**
+- `frontend/src/utils/languages/*.ts` - `widget.title.scheduledTasks` fordítási kulcsok **hozzáadva**
+
+**Komplexitás**: ⭐⭐⭐ Magas (feladatkezelés függőség)  
+**Becsült idő**: 6-8 óra (feladatkezelés nélkül: 2-3 óra placeholder)
+
+**Prioritás**: 🟢 Alacsony (feladatkezelés implementálása után)
+
+---
+
+## 📋 Implementációs Útmutató
+
+### Általános Lépések Minden Widgethez
+
+1. **Widget komponens létrehozása**
+   - Fájl: `frontend/src/components/widgets/[WidgetName]Widget.tsx`
+   - Alap struktúra másolása egy meglévő widgetből (pl. `SummaryWidget.tsx`)
+   - Props interface definiálása
+   - Téma integráció
+   - Responsive design (small/medium/large méretek)
+
+2. **Dashboard integráció**
+   - `frontend/src/components/widgets/Dashboard.tsx` fájlban:
+     - Case hozzáadása a `renderWidget` függvényben
+     - Widget title fordítása a `getWidgetTitle` függvényben
+     - Szükséges adatok átadása a `Home.tsx`-ből
+
+3. **Fordítási kulcsok hozzáadása**
+   - Minden nyelvi fájlban (`frontend/src/utils/languages/language_*.ts`):
+     - `widget.title.[widgetType]` kulcs hozzáadása
+     - Opcionális: widget-specifikus fordítások
+
+4. **Adat előkészítés**
+   - `frontend/src/components/Home.tsx` fájlban:
+     - Adatok számítása/preparálása a widget számára
+     - Props átadása a Dashboard komponensnek
+
+5. **Tesztelés**
+   - Widget megjelenítés ellenőrzése
+   - Téma váltás tesztelése
+   - Méret változtatás tesztelése
+   - Adatok helyességének ellenőrzése
 
 ---
 
@@ -466,13 +725,13 @@ A következő widget típusok definiálva vannak a `types/widgets.ts`-ben, de m�
 ## 📊 Összefoglaló Statisztikák
 
 ### Implementált
-- **Widgetek**: 13/19 (68%)
+- **Widgetek**: 19/19 (100%)
 - **Modulok**: 30+ (teljes funkcionalitás)
 - **Komponensek**: 30+ (teljes UI)
 
 ### Hiányzó Widgetek
-- **Definiált, de nincs implementáció**: 6 widget
-- **Javasolt új widgetek**: 0 (minden definiált widget implementálva lesz)
+- **Definiált, de nincs implementáció**: 0 widget (minden jelenleg definiált widget implementálva)
+- **Javasolt új widgetek**: 0
 
 ### Fejlesztési Prioritások
 - **🔴 Magas prioritás**: 3 fő fejlesztés

@@ -67,7 +67,7 @@ export const TrendChartWidget: React.FC<TrendChartWidgetProps> = ({
     }}>
       <div style={{ 
         flex: "1 1 0", 
-        minHeight: "100px",
+        minHeight: "140px",
         overflow: "hidden",
         position: "relative",
       }}>
@@ -79,11 +79,14 @@ export const TrendChartWidget: React.FC<TrendChartWidgetProps> = ({
           dataKeys={["revenue", "costs", "profit"]}
           onDataPointClick={onDataPointClick}
           onExport={onExport}
-          height="100%"
+          height={220}
           enableZoom={true}
           enableComparison={true}
           showLegend={false}
           exportFileName={t("home.chart.financialTrends").toLowerCase().replace(/\s+/g, "-")}
+          valueFormatter={(_key, value) =>
+            `${formatNumber(formatCurrency(value), 2)} ${currencyLabel}`
+          }
         />
       </div>
       {/* Összesítések - egymás mellett, mint a klasszikus nézetben */}

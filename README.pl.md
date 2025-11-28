@@ -40,6 +40,26 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.5.0 (2025) - 🧠 Inteligentny Dashboard i Przypomnienia Terminów
+
+- ⏱️ **Przypomnienia terminów druku** – Nowy system przypomnień dla zaakceptowanych ofert:
+  - Widget Zaplanowane Zadania automatycznie otrzymuje zadania z ofert z nadchodzącymi terminami druku
+  - W nagłówku wyświetlane są naprzemiennie przypomnienia w stylu „Dzisiaj / Jutro / Pojutrze” dla zbliżających się zleceń
+  - Trwały toast informacyjny ostrzega o pilnych terminach, dopóki użytkownik nie zamknie go ręcznie
+- 🧵 **Zarządzanie stanem magazynowym filamentu** – Nowy, dedykowany widok magazynu filamentów:
+  - Wyszukiwanie po marce / typie / kolorze z filtrami stanu (krytyczny / niski / OK)
+  - Konfigurowalne progi krytycznego i niskiego stanu, edycja stanu „w miejscu” oraz szybkie przyciski +100g / −100g
+  - Widget Alert Stanu Filamentu korzysta teraz bezpośrednio z tych progów i rzeczywistych poziomów magazynowych
+- 📊 **Ulepszenia Dashboardu** – Wszystkie widgety domyślnie włączone w widoku dashboardu:
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - Klasyczny widok Strony Głównej i Dashboard Widgetów korzystają teraz z bardziej spójnego zestawu statystyk i wykresów
+- 🧱 **Usprawnienia UX w Ofertach** – Wygodniejsza edycja i zaznaczanie:
+  - Naprawiono przypadki, gdy zapis edytowanej oferty nie odświeżał natychmiast głównej listy
+  - Pole wyboru do zaznaczania wielu pozycji zostało przeniesione poza tytuł, dzięki czemu nazwy klientów są w pełni czytelne
+- 🧭 **Dopieszczony nagłówek i układ**:
+  - Pasek breadcrumb został usunięty z nagłówka, aby interfejs był bardziej przejrzysty
+  - Minimalny rozmiar okna (1280x720) jest teraz wymuszany na poziomie Tauri bez wprowadzania poziomych pasków przewijania
+
 ### v1.4.33 (2025) - 🔧 Ulepszenia układu i przeciągania widgetów + Dane Demo Tutorialu
 
 - 📊 **Poprawki układu widgetów** - Naprawione pozycjonowanie i funkcjonalność przeciągania widgetów:
@@ -826,7 +846,7 @@ Po wypchnięciu do gałęzi `beta` automatycznie uruchamia się workflow GitHub 
 
 ---
 
-**Wersja**: 1.4.33
+**Wersja**: 1.5.0
 
 Jeśli masz pytania lub znajdziesz błąd, proszę otwórz issue w repozytorium GitHub!
 

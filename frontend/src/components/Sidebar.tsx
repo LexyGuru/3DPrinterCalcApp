@@ -95,6 +95,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
       items: [
         { key: "printers", label: t("sidebar.printers"), icon: "🖨️" },
         { key: "filaments", label: t("sidebar.filaments"), icon: "🧵" },
+        { key: "filament-stock", label: t("sidebar.filamentStock") || "Készletnyilvántartás", icon: "📦" },
         { key: "customers", label: t("sidebar.customers"), icon: "👥" },
         { key: "offers", label: t("sidebar.offers"), icon: "📋" },
       ],

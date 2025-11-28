@@ -509,6 +509,26 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.5.0 (2025) - 🧠 Smart Dashboard & Deadline Reminders
+
+- ⏱️ **Print Deadline Reminders** – New reminder system for accepted quotes:
+  - Scheduled Tasks widget now automatically receives tasks from offers with upcoming print deadlines
+  - Header shows rotating "Today / Tomorrow / Day after tomorrow" style reminders for near-term print jobs
+  - Persistent info toast warns about urgent deadlines until the user manually closes it
+- 🧵 **Filament Stock Management** – New, dedicated filament inventory view:
+  - Search by brand / type / color, with status filters (critical / low / OK)
+  - Adjustable critical and low stock thresholds, inline stock editing and quick +100g / −100g buttons
+  - Filament Stock Alert widget now reads directly from these thresholds and live stock levels
+- 📊 **Dashboard Enhancements** – All widgets enabled by default in the dashboard view:
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - Classic Home view and Widget Dashboard now share a more consistent set of statistics and charts
+- 🧱 **Offers UX Improvements** – Smoother editing and selection:
+  - Fixed cases where saving an edited quote didn't immediately update the main offers list
+  - Multi-select checkbox moved out of the title area so customer names remain fully readable
+- 🧭 **Header & Layout Refinements**:
+  - Breadcrumb bar removed from the header to keep the layout cleaner
+  - Minimum window size (1280x720) now enforced at the Tauri window level without introducing horizontal scrollbars
+
 ### v1.1.1 (2025) - 🎨 Header Layout Improvements
 
 - 🎨 **Header Redesign** - Complete header layout overhaul:
@@ -828,7 +848,7 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ---
 
-**Version**: 1.4.33
+**Version**: 1.5.0
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
 

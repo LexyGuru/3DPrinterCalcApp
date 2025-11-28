@@ -67,6 +67,15 @@ export const OfferStatusChartWidget: React.FC<OfferStatusChartWidgetProps> = ({
           height="100%"
           showLegend={false}
           exportFileName={t("home.chart.offerStatus").toLowerCase().replace(/\s+/g, "-")}
+          valueFormatter={(_, value) => {
+            const locale = settings.language === "hu" ? "hu-HU" : "en-US";
+            const countText = value.toLocaleString(locale, {
+              maximumFractionDigits: 0,
+            });
+            const percentage =
+              totalOffers > 0 ? (value / totalOffers) * 100 : 0;
+            return `${countText} · ${percentage.toFixed(1)}%`;
+          }}
         />
       </div>
       {/* Státusz lista */}

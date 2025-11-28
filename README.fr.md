@@ -41,6 +41,26 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
+### v1.5.0 (2025) - 🧠 Dashboard Intelligent & Rappels d’Échéances
+
+- ⏱️ **Rappels d’échéances d’impression** – Nouveau système de rappel pour les devis acceptés :
+  - Le widget Tâches Planifiées reçoit automatiquement des tâches à partir des offres avec des dates d’échéance proches
+  - L’en-tête affiche en rotation des rappels de type « Aujourd’hui / Demain / Après-demain » pour les impressions à venir
+  - Un toast d’information persistant avertit des échéances urgentes jusqu’à ce que l’utilisateur le ferme manuellement
+- 🧵 **Gestion de stock de filament** – Nouvelle vue dédiée à l’inventaire des filaments :
+  - Recherche par marque / type / couleur, avec filtres de statut (critique / bas / OK)
+  - Seuils de stock critique et bas configurables, édition en ligne du stock et boutons rapides +100g / −100g
+  - Le widget Alerte Stock Filament s’appuie désormais directement sur ces seuils et les niveaux de stock réels
+- 📊 **Améliorations du Dashboard** – Tous les widgets activés par défaut dans la vue tableau de bord :
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - La vue Accueil classique et le Dashboard de widgets partagent maintenant un ensemble plus cohérent de statistiques et de graphiques
+- 🧱 **Améliorations UX des offres** – Édition et sélection plus confortables :
+  - Correction de cas où les offres modifiées n’étaient pas immédiatement mises à jour dans la liste principale
+  - La case à cocher de sélection multiple a été déplacée hors du titre afin que le nom du client reste lisible
+- 🧭 **Ajustements de l’en-tête et de la mise en page** :
+  - Suppression de la barre de breadcrumb dans l’en-tête pour une interface plus épurée
+  - Taille minimale de fenêtre (1280x720) désormais appliquée au niveau Tauri sans introduire de barres de défilement horizontales
+
 ### v1.4.33 (2025) - 🔧 Améliorations de la mise en page et du glissement des widgets + Données Demo du Tutoriel
 
 - 📊 **Corrections de la mise en page des widgets** - Correction du positionnement et de la fonctionnalité de glissement des widgets:
@@ -827,7 +847,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 1.4.33
+**Version**: 1.5.0
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

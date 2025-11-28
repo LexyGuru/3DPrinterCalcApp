@@ -41,6 +41,26 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 
 ## 📋 Registro de cambios (Changelog)
 
+### v1.5.0 (2025) - 🧠 Dashboard Inteligente y Recordatorios de Plazos
+
+- ⏱️ **Recordatorios de plazos de impresión** – Nuevo sistema de avisos para cotizaciones aceptadas:
+  - El widget de Tareas Programadas recibe automáticamente tareas de ofertas con fechas límite de impresión próximas
+  - El encabezado muestra de forma rotativa recordatorios del tipo “Hoy / Mañana / Pasado mañana” para trabajos de impresión cercanos
+  - Un toast informativo persistente avisa sobre plazos urgentes hasta que el usuario lo cierre manualmente
+- 🧵 **Gestión de stock de filamentos** – Nueva vista dedicada al inventario de filamentos:
+  - Búsqueda por marca / tipo / color, con filtros de estado (crítico / bajo / OK)
+  - Umbrales de stock crítico y bajo configurables, edición en línea del stock y botones rápidos de +100g / −100g
+  - El widget de Alerta de Stock de Filamentos ahora se basa directamente en estos umbrales y en los niveles reales de stock
+- 📊 **Mejoras del Dashboard** – Todos los widgets activados por defecto en la vista de panel:
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - La vista clásica de Inicio y el Dashboard de Widgets comparten ahora un conjunto más coherente de estadísticas y gráficos
+- 🧱 **Mejoras de UX en Ofertas** – Edición y selección más cómodas:
+  - Corregidos casos donde las cotizaciones editadas no se actualizaban inmediatamente en la lista principal
+  - La casilla de selección múltiple se ha movido fuera del título para que el nombre del cliente sea totalmente legible
+- 🧭 **Ajustes del encabezado y del diseño**:
+  - Se eliminó la barra de breadcrumb del encabezado para reducir el ruido visual
+  - El tamaño mínimo de ventana (1280x720) ahora se aplica a nivel de Tauri sin introducir barras de desplazamiento horizontales
+
 ### v1.4.33 (2025) - 🔧 Mejoras de Diseño y Arrastre de Widgets + Datos Demo del Tutorial
 
 - 📊 **Correcciones de Diseño de Widgets** - Corregida la posicionamiento y funcionalidad de arrastre de widgets:
@@ -827,7 +847,7 @@ Al hacer push a la rama `beta`, el workflow de GitHub Actions se ejecuta automá
 
 ---
 
-**Versión**: 1.4.33
+**Versión**: 1.5.0
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 
