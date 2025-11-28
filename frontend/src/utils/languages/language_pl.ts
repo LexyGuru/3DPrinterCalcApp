@@ -850,6 +850,10 @@ export const languagePl: TranslationMap = {
   "offers.pdf.history.profit": "Zysk",
   "offers.pdf.history.totalCost": "Całkowity koszt",
   "offers.pdf.statusHistory.none": "Brak dostępnej historii statusu.",
+  "offers.filters.minAmount": "Kwota min.",
+  "offers.filters.maxAmount": "Kwota maks.",
+  "offers.filters.fromDate": "Data od",
+  "offers.filters.toDate": "Data do",
   // Common
   "common.delete": "Usuń",
   "common.add": "Dodaj",
@@ -892,6 +896,7 @@ export const languagePl: TranslationMap = {
   "common.yesterday": "Wczoraj",
   "common.daysAgo": "dni temu",
   "common.deadline": "Termin",
+  "common.all": "Wszystkie",
   "common.tomorrow": "Jutro",
   "common.days": "dni",
   "common.overdue": "Przeterminowane",

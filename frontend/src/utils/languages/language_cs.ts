@@ -850,6 +850,10 @@ export const languageCs: TranslationMap = {
   "offers.pdf.history.profit": "Zisk",
   "offers.pdf.history.totalCost": "Celkové náklady",
   "offers.pdf.statusHistory.none": "Žádná historie statusu k dispozici.",
+  "offers.filters.minAmount": "Min. částka",
+  "offers.filters.maxAmount": "Max. částka",
+  "offers.filters.fromDate": "Datum od",
+  "offers.filters.toDate": "Datum do",
   // Common
   "common.delete": "Smazat",
   "common.add": "Přidat",
@@ -892,6 +896,7 @@ export const languageCs: TranslationMap = {
   "common.yesterday": "Včera",
   "common.daysAgo": "dní",
   "common.deadline": "Termín",
+  "common.all": "Vše",
   "common.tomorrow": "Zítra",
   "common.days": "dní",
   "common.overdue": "Po termínu",

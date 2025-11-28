@@ -538,6 +538,10 @@ export default function App() {
             filaments={filaments}
             setFilaments={setFilaments}
             customers={customers}
+            onSettingsChange={(newSettings) => {
+              setSettings(newSettings);
+              debouncedSaveSettings();
+            }}
           />
         );
       case "customers":
@@ -571,18 +575,26 @@ export default function App() {
           />
         );
       case "settings": 
-        return <SettingsPage 
-          settings={settings} 
-          onChange={setSettings}
-          printers={printers}
-          setPrinters={setPrinters}
-          filaments={filaments}
-          setFilaments={setFilaments}
-          offers={offers}
-          setOffers={setOffers}
-          theme={currentTheme}
-          themeStyles={themeStyles}
-        />; 
+        return (
+          <SettingsPage 
+            settings={settings} 
+            onChange={(newSettings) => {
+              setSettings(newSettings);
+              // Beállítások módosításainak azonnali mentése (nem várunk az autosave-re)
+              saveSettings(newSettings).catch((error) => {
+                console.error("❌ Hiba a beállítások mentésekor (SettingsPage):", error);
+              });
+            }}
+            printers={printers}
+            setPrinters={setPrinters}
+            filaments={filaments}
+            setFilaments={setFilaments}
+            offers={offers}
+            setOffers={setOffers}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+          />
+        );
       case "console":
         return <Console settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
       default: 

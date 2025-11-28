@@ -18,6 +18,7 @@ interface TrendChartWidgetProps {
   }>;
   onDataPointClick?: (data: any, index: number) => void;
   onExport?: () => void;
+  onPeriodFilter?: (startIndex: number, endIndex: number) => void;
   formatNumber?: (value: number, decimals: number) => string;
   formatCurrency?: (value: number) => number;
   currencyLabel?: string;
@@ -29,6 +30,7 @@ export const TrendChartWidget: React.FC<TrendChartWidgetProps> = ({
   data,
   onDataPointClick,
   onExport,
+  onPeriodFilter,
   formatNumber = (v, d) => v.toFixed(d),
   formatCurrency = (v) => v,
   currencyLabel = getCurrencyLabel(settings.currency),
@@ -87,6 +89,19 @@ export const TrendChartWidget: React.FC<TrendChartWidgetProps> = ({
           valueFormatter={(_key, value) =>
             `${formatNumber(formatCurrency(value), 2)} ${currencyLabel}`
           }
+          onPeriodFilter={onPeriodFilter}
+          labelFormatter={(key) => {
+            switch (key) {
+              case "revenue":
+                return t("home.stats.totalRevenue");
+              case "costs":
+                return t("home.stats.totalCost");
+              case "profit":
+                return t("home.stats.netProfit");
+              default:
+                return key;
+            }
+          }}
         />
       </div>
       {/* Összesítések - egymás mellett, mint a klasszikus nézetben */}

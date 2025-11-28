@@ -86,6 +86,18 @@ export const CustomerStatsChartWidget: React.FC<CustomerStatsChartWidgetProps> =
             }
             return `${formatNumber(formatCurrency(value), 2)} ${currencyLabel}`;
           }}
+          labelFormatter={(key) => {
+            switch (key) {
+              case "value":
+                return t("home.summary.offerCount");
+              case "revenue":
+                return t("home.stats.totalRevenue");
+              case "profit":
+                return t("home.stats.netProfit");
+              default:
+                return key;
+            }
+          }}
         />
       </div>
       {/* Összesítések */}

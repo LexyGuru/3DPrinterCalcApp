@@ -146,8 +146,31 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const [selectedFinish, setSelectedFinish] = useState<string>("all");
   const [showColumnMenu, setShowColumnMenu] = useState(false);
-  const [sortColumn, setSortColumn] = useState<keyof Filament | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortConfig, setSortConfig] = useState<Array<{ column: keyof Filament; direction: "asc" | "desc" }>>(
+    (settings as Settings & { filamentSortConfig?: Array<{ column: keyof Filament; direction: "asc" | "desc" }> }).filamentSortConfig || []
+  );
+  const [tableBrandFilter, setTableBrandFilter] = useState<string>("all");
+  const [tableTypeFilter, setTableTypeFilter] = useState<string>("all");
+  const [tableColorFilter, setTableColorFilter] = useState<string>("all");
+
+  // Egyszerű virtuális scroll a filament táblázathoz (12k+ sorhoz)
+  const filamentsListContainerRef = useRef<HTMLDivElement | null>(null);
+  const FILAMENT_VIRTUAL_THRESHOLD = 400;
+  const FILAMENT_ROW_HEIGHT = 56; // átlagos sor + padding
+  const FILAMENT_OVERSCAN = 5;
+  const [visibleFilamentRange, setVisibleFilamentRange] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: FILAMENT_VIRTUAL_THRESHOLD,
+  });
+
+  // Egyszerű virtuális scroll a filament szín könyvtárhoz (sok palette elemhez)
+  const PALETTE_VIRTUAL_THRESHOLD = 150;
+  const PALETTE_ITEM_HEIGHT = 40; // px, átlagos button magasság
+  const PALETTE_OVERSCAN = 10;
+  const [visiblePaletteRange, setVisiblePaletteRange] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: PALETTE_VIRTUAL_THRESHOLD,
+  });
 
   // Oszlop láthatóság beállítások
   const defaultColumnVisibility = {
@@ -1022,7 +1045,19 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     return filamentsWithHistory.filter(f => {
       // Kedvenc szűrés
       if (showFavoritesOnly && !f.favorite) return false;
-      
+
+      // Oszlop szűrők: márka / típus / szín
+      if (tableBrandFilter !== "all" && f.brand !== tableBrandFilter) return false;
+      if (tableTypeFilter !== "all" && f.type !== tableTypeFilter) return false;
+      if (tableColorFilter !== "all") {
+        const colorName = (f.color || "").toLowerCase();
+        const hex = (f.colorHex || "").toLowerCase();
+        const filterValue = tableColorFilter.toLowerCase();
+        if (!colorName.includes(filterValue) && !hex.includes(filterValue)) {
+          return false;
+        }
+      }
+
       // Keresési kifejezés szűrés
       if (!searchTerm) return true;
       const term = searchTerm.toLowerCase();
@@ -1030,49 +1065,120 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         f.brand.toLowerCase().includes(term) ||
         f.type.toLowerCase().includes(term) ||
         (f.color && f.color.toLowerCase().includes(term)) ||
-      (f.colorHex && f.colorHex.toLowerCase().includes(term))
-    );
+        (f.colorHex && f.colorHex.toLowerCase().includes(term))
+      );
     });
-  }, [filamentsWithHistory, showFavoritesOnly, searchTerm]);
+  }, [filamentsWithHistory, showFavoritesOnly, searchTerm, tableBrandFilter, tableTypeFilter, tableColorFilter]);
 
-  // Rendezés logika
+  const tableBrandOptions = useMemo(() => {
+    const set = new Set<string>();
+    filamentsWithHistory.forEach(f => {
+      if (f.brand) set.add(f.brand);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [filamentsWithHistory]);
+
+  const tableTypeOptions = useMemo(() => {
+    const set = new Set<string>();
+    filamentsWithHistory.forEach(f => {
+      if (f.type) set.add(f.type);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [filamentsWithHistory]);
+
+  // Rendezés logika (többszörös rendezés támogatása)
   const sortedFilaments = useMemo(() => {
-    if (!sortColumn) return filteredFilaments;
-    
+    if (sortConfig.length === 0) return filteredFilaments;
+
     const sorted = [...filteredFilaments].sort((a: Filament, b: Filament) => {
-      let aValue: any = a[sortColumn];
-      let bValue: any = b[sortColumn];
-      
-      // Szöveges értékek esetén
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
+      for (const { column, direction } of sortConfig) {
+        let aValue: any = a[column];
+        let bValue: any = b[column];
+
+        // Szöveges értékek esetén
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
+        let cmp = 0;
+
+        // Számértékek esetén
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          cmp = aValue - bValue;
+        } else if (aValue < bValue) {
+          cmp = -1;
+        } else if (aValue > bValue) {
+          cmp = 1;
+        }
+
+        if (cmp !== 0) {
+          return direction === "asc" ? cmp : -cmp;
+        }
       }
-      
-      // Számértékek esetén
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
-      }
-      
-      // Szöveges értékek esetén
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
-    
-    return sorted;
-  }, [filteredFilaments, sortColumn, sortDirection]);
 
-  // Rendezés váltása
-  const handleSort = (column: keyof Filament) => {
-    if (sortColumn === column) {
-      // Ha ugyanaz az oszlop, váltjuk az irányt
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      // Ha más oszlop, új rendezés növekvő irányban
-      setSortColumn(column);
-      setSortDirection("asc");
-    }
+    return sorted;
+  }, [filteredFilaments, sortConfig]);
+
+  // Rendezés váltása (Shift+click = többszörös rendezés)
+  const handleSort = (column: keyof Filament, event?: React.MouseEvent<HTMLTableHeaderCellElement>) => {
+    const isShiftClick = event?.shiftKey;
+
+    setSortConfig(prev => {
+      const existingIndex = prev.findIndex(cfg => cfg.column === column);
+      const existing = existingIndex >= 0 ? prev[existingIndex] : null;
+
+      // Nincs Shift: single-column mód
+      if (!isShiftClick) {
+        let next: Array<{ column: keyof Filament; direction: "asc" | "desc" }>;
+        if (!existing) {
+          // új oszlop, növekvő rendezés
+          next = [{ column, direction: "asc" }];
+        } else if (existing.direction === "asc") {
+          // ugyanaz az oszlop: asc -> desc
+          next = [{ column, direction: "desc" }];
+        } else {
+          // desc -> töröljük a rendezést teljesen
+          next = [];
+        }
+
+        if (onSettingsChange) {
+          onSettingsChange({
+            ...settings,
+            filamentSortConfig: next,
+          } as Settings);
+        }
+
+        return next;
+      }
+
+      // Shift+click: többszörös rendezés
+      let next: Array<{ column: keyof Filament; direction: "asc" | "desc" }>;
+
+      if (!existing) {
+        // hozzáadjuk a lánc végére asc irányban
+        next = [...prev, { column, direction: "asc" as const }];
+      } else if (existing.direction === "asc") {
+        // már benne van: asc -> desc
+        next = prev.map(cfg =>
+          cfg.column === column ? { ...cfg, direction: "desc" as const } : cfg
+        );
+      } else {
+        // desc -> eltávolítjuk ebből a láncból
+        next = prev.filter(cfg => cfg.column !== column);
+      }
+
+      if (onSettingsChange) {
+        onSettingsChange({
+          ...settings,
+          filamentSortConfig: next,
+        } as Settings);
+      }
+
+      return next;
+    });
   };
 
   // Oszlop menü bezárása kattintásra kívülre
@@ -1290,6 +1396,39 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     lineHeight: "32px",
   };
 
+  // Virtuális scrollhoz kapcsolódó származtatott értékek
+  const shouldVirtualizeFilaments = sortedFilaments.length > FILAMENT_VIRTUAL_THRESHOLD;
+  const filamentVisibleStart = shouldVirtualizeFilaments ? Math.max(0, visibleFilamentRange.start) : 0;
+  const filamentVisibleEnd = shouldVirtualizeFilaments
+    ? Math.min(sortedFilaments.length - 1, visibleFilamentRange.end)
+    : sortedFilaments.length - 1;
+  const visibleFilaments = sortedFilaments.slice(filamentVisibleStart, filamentVisibleEnd + 1);
+  const topFilamentSpacerHeight = shouldVirtualizeFilaments ? filamentVisibleStart * FILAMENT_ROW_HEIGHT : 0;
+  const bottomFilamentSpacerHeight = shouldVirtualizeFilaments
+    ? (sortedFilaments.length - (filamentVisibleEnd + 1)) * FILAMENT_ROW_HEIGHT
+    : 0;
+  const visibleFilamentColumnCount =
+    1 + // checkbox oszlop
+    (columnVisibility.image ? 1 : 0) +
+    (columnVisibility.brand ? 1 : 0) +
+    (columnVisibility.type ? 1 : 0) +
+    (columnVisibility.color ? 1 : 0) +
+    (columnVisibility.weight ? 1 : 0) +
+    (columnVisibility.pricePerKg ? 1 : 0) +
+    (columnVisibility.action ? 1 : 0);
+
+  // Virtuális scroll a színpaletta (filament library) listához
+  const shouldVirtualizePalette = filteredPaletteOptions.length > PALETTE_VIRTUAL_THRESHOLD;
+  const paletteVisibleStart = shouldVirtualizePalette ? Math.max(0, visiblePaletteRange.start) : 0;
+  const paletteVisibleEnd = shouldVirtualizePalette
+    ? Math.min(filteredPaletteOptions.length - 1, visiblePaletteRange.end)
+    : filteredPaletteOptions.length - 1;
+  const visiblePaletteOptions = filteredPaletteOptions.slice(paletteVisibleStart, paletteVisibleEnd + 1);
+  const topPaletteSpacerHeight = shouldVirtualizePalette ? paletteVisibleStart * PALETTE_ITEM_HEIGHT : 0;
+  const bottomPaletteSpacerHeight = shouldVirtualizePalette
+    ? (filteredPaletteOptions.length - (paletteVisibleEnd + 1)) * PALETTE_ITEM_HEIGHT
+    : 0;
+
   return (
     <div>
       <h2 style={themeStyles.pageTitle}>{t("filaments.title")}</h2>
@@ -1414,6 +1553,107 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 </button>
               </Tooltip>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Oszlop szűrők a táblázathoz */}
+      {!showAddForm && editingIndex === null && (
+        <div
+          style={{
+            marginBottom: "16px",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "12px",
+            alignItems: "flex-end",
+          }}
+        >
+          {/* Márka szűrő */}
+          <div style={{ minWidth: "180px" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "4px",
+                fontSize: "12px",
+                fontWeight: 600,
+                color: theme.colors.textMuted,
+              }}
+            >
+              {t("filaments.brand")}
+            </label>
+            <select
+              value={tableBrandFilter}
+              onChange={(e) => setTableBrandFilter(e.target.value)}
+              style={{
+                ...themeStyles.input,
+                padding: "6px 10px",
+                fontSize: "13px",
+              }}
+            >
+              <option value="all">{t("common.all" as any)}</option>
+              {tableBrandOptions.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Típus / anyag szűrő */}
+          <div style={{ minWidth: "180px" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "4px",
+                fontSize: "12px",
+                fontWeight: 600,
+                color: theme.colors.textMuted,
+              }}
+            >
+              {t("filaments.type")}
+            </label>
+            <select
+              value={tableTypeFilter}
+              onChange={(e) => setTableTypeFilter(e.target.value)}
+              style={{
+                ...themeStyles.input,
+                padding: "6px 10px",
+                fontSize: "13px",
+              }}
+            >
+              <option value="all">{t("common.all" as any)}</option>
+              {tableTypeOptions.map((mt) => (
+                <option key={mt} value={mt}>
+                  {mt}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Szín / HEX szűrő (szabad szöveg) */}
+          <div style={{ minWidth: "180px" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "4px",
+                fontSize: "12px",
+                fontWeight: 600,
+                color: theme.colors.textMuted,
+              }}
+            >
+              {t("filaments.color")}
+            </label>
+            <input
+              type="text"
+              value={tableColorFilter === "all" ? "" : tableColorFilter}
+              onChange={(e) => setTableColorFilter(e.target.value || "all")}
+              placeholder={t("filaments.color")}
+              style={{
+                ...themeStyles.input,
+                padding: "6px 10px",
+                fontSize: "13px",
+              }}
+            />
           </div>
         </div>
       )}
@@ -2473,8 +2713,40 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                             })}
                           </div>
                         )}
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", maxHeight: "200px", overflowY: "auto", padding: "4px" }}>
-                  {filteredPaletteOptions.map(option => {
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                            maxHeight: "200px",
+                            overflowY: "auto",
+                            padding: "4px",
+                          }}
+                          onScroll={(e) => {
+                            if (!shouldVirtualizePalette) return;
+                            const target = e.currentTarget;
+                            const scrollTop = target.scrollTop;
+                            const clientHeight = target.clientHeight;
+                            const start = Math.max(
+                              0,
+                              Math.floor(scrollTop / PALETTE_ITEM_HEIGHT) - PALETTE_OVERSCAN
+                            );
+                            const end = Math.min(
+                              filteredPaletteOptions.length - 1,
+                              Math.ceil((scrollTop + clientHeight) / PALETTE_ITEM_HEIGHT) + PALETTE_OVERSCAN
+                            );
+                            setVisiblePaletteRange((prev) => {
+                              if (prev.start === start && prev.end === end) {
+                                return prev;
+                              }
+                              return { start, end };
+                            });
+                          }}
+                        >
+                  {shouldVirtualizePalette && topPaletteSpacerHeight > 0 && (
+                    <div style={{ height: `${topPaletteSpacerHeight}px`, flexShrink: 0 }} />
+                  )}
+                  {visiblePaletteOptions.map(option => {
                     const optionHex = getOptionHex(option);
                     const optionIsMulticolor = option.colorMode === "multicolor";
                     const optionGradient = "linear-gradient(135deg, #F97316 0%, #EC4899 33%, #6366F1 66%, #22D3EE 100%)";
@@ -2521,6 +2793,9 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                       </button>
                     );
                   })}
+                  {shouldVirtualizePalette && bottomPaletteSpacerHeight > 0 && (
+                    <div style={{ height: `${bottomPaletteSpacerHeight}px`, flexShrink: 0 }} />
+                  )}
                         </div>
                       </div>
                     )}
@@ -2641,6 +2916,37 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               </div>
             </div>
           )}
+          <div
+            ref={filamentsListContainerRef}
+            style={{
+              maxHeight: shouldVirtualizeFilaments ? "600px" : "auto",
+              overflowY: shouldVirtualizeFilaments ? "auto" : "visible",
+            }}
+            onScroll={() => {
+              if (!filamentsListContainerRef.current) return;
+              if (!shouldVirtualizeFilaments) return;
+
+              const container = filamentsListContainerRef.current;
+              const scrollTop = container.scrollTop;
+              const clientHeight = container.clientHeight;
+
+              const start = Math.max(
+                0,
+                Math.floor(scrollTop / FILAMENT_ROW_HEIGHT) - FILAMENT_OVERSCAN
+              );
+              const end = Math.min(
+                sortedFilaments.length - 1,
+                Math.ceil((scrollTop + clientHeight) / FILAMENT_ROW_HEIGHT) + FILAMENT_OVERSCAN
+              );
+
+              setVisibleFilamentRange((prev) => {
+                if (prev.start === start && prev.end === end) {
+                  return prev;
+                }
+                return { start, end };
+              });
+            }}
+          >
           <table style={themeStyles.table}>
             <thead>
               <tr>
@@ -2676,9 +2982,10 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                       cursor: "pointer",
                       userSelect: "none",
                       position: "relative",
-                      paddingRight: "24px"
+                      paddingRight: "28px",
+                      whiteSpace: "nowrap",
                     }}
-                    onClick={() => handleSort("brand")}
+                    onClick={(e) => handleSort("brand", e)}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
                     }}
@@ -2687,11 +2994,30 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     }}
                   >
                     {t("filaments.brand")}
-                    {sortColumn === "brand" && (
-                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
-                        {sortDirection === "asc" ? "↑" : "↓"}
-                      </span>
-                    )}
+                    {(() => {
+                      const idx = sortConfig.findIndex(cfg => cfg.column === "brand");
+                      if (idx === -1) return null;
+                      const cfg = sortConfig[idx];
+                      const isPrimary = idx === 0;
+                      return (
+                        <span style={{ marginLeft: "6px", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                          <span>{cfg.direction === "asc" ? "↑" : "↓"}</span>
+                          {!isPrimary && (
+                            <span
+                              style={{
+                                fontSize: "10px",
+                                padding: "0 4px",
+                                borderRadius: "999px",
+                                backgroundColor: theme.colors.surfaceHover,
+                                color: theme.colors.textMuted,
+                              }}
+                            >
+                              {idx + 1}
+                            </span>
+                          )}
+                        </span>
+                      );
+                    })()}
                   </th>
                 )}
                 {columnVisibility.type && (
@@ -2701,9 +3027,10 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                       cursor: "pointer",
                       userSelect: "none",
                       position: "relative",
-                      paddingRight: "24px"
+                      paddingRight: "28px",
+                      whiteSpace: "nowrap",
                     }}
-                    onClick={() => handleSort("type")}
+                    onClick={(e) => handleSort("type", e)}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
                     }}
@@ -2712,11 +3039,30 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     }}
                   >
                     {t("filaments.type")}
-                    {sortColumn === "type" && (
-                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
-                        {sortDirection === "asc" ? "↑" : "↓"}
-                      </span>
-                    )}
+                    {(() => {
+                      const idx = sortConfig.findIndex(cfg => cfg.column === "type");
+                      if (idx === -1) return null;
+                      const cfg = sortConfig[idx];
+                      const isPrimary = idx === 0;
+                      return (
+                        <span style={{ marginLeft: "6px", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                          <span>{cfg.direction === "asc" ? "↑" : "↓"}</span>
+                          {!isPrimary && (
+                            <span
+                              style={{
+                                fontSize: "10px",
+                                padding: "0 4px",
+                                borderRadius: "999px",
+                                backgroundColor: theme.colors.surfaceHover,
+                                color: theme.colors.textMuted,
+                              }}
+                            >
+                              {idx + 1}
+                            </span>
+                          )}
+                        </span>
+                      );
+                    })()}
                   </th>
                 )}
                 {columnVisibility.color && (
@@ -2729,9 +3075,10 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                       cursor: "pointer",
                       userSelect: "none",
                       position: "relative",
-                      paddingRight: "24px"
+                      paddingRight: "28px",
+                      whiteSpace: "nowrap",
                     }}
-                    onClick={() => handleSort("weight")}
+                    onClick={(e) => handleSort("weight", e)}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
                     }}
@@ -2740,11 +3087,30 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     }}
                   >
                     {t("filaments.weight")}
-                    {sortColumn === "weight" && (
-                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
-                        {sortDirection === "asc" ? "↑" : "↓"}
-                      </span>
-                    )}
+                    {(() => {
+                      const idx = sortConfig.findIndex(cfg => cfg.column === "weight");
+                      if (idx === -1) return null;
+                      const cfg = sortConfig[idx];
+                      const isPrimary = idx === 0;
+                      return (
+                        <span style={{ marginLeft: "6px", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                          <span>{cfg.direction === "asc" ? "↑" : "↓"}</span>
+                          {!isPrimary && (
+                            <span
+                              style={{
+                                fontSize: "10px",
+                                padding: "0 4px",
+                                borderRadius: "999px",
+                                backgroundColor: theme.colors.surfaceHover,
+                                color: theme.colors.textMuted,
+                              }}
+                            >
+                              {idx + 1}
+                            </span>
+                          )}
+                        </span>
+                      );
+                    })()}
                   </th>
                 )}
                 {columnVisibility.pricePerKg && (
@@ -2754,9 +3120,10 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                       cursor: "pointer",
                       userSelect: "none",
                       position: "relative",
-                      paddingRight: "24px"
+                      paddingRight: "28px",
+                      whiteSpace: "nowrap",
                     }}
-                    onClick={() => handleSort("pricePerKg")}
+                    onClick={(e) => handleSort("pricePerKg", e)}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
                     }}
@@ -2765,11 +3132,30 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                     }}
                   >
                     {t("filaments.pricePerKg").replace("€", settings.currency)}
-                    {sortColumn === "pricePerKg" && (
-                      <span style={{ marginLeft: "8px", fontSize: "12px" }}>
-                        {sortDirection === "asc" ? "↑" : "↓"}
-                      </span>
-                    )}
+                    {(() => {
+                      const idx = sortConfig.findIndex(cfg => cfg.column === "pricePerKg");
+                      if (idx === -1) return null;
+                      const cfg = sortConfig[idx];
+                      const isPrimary = idx === 0;
+                      return (
+                        <span style={{ marginLeft: "6px", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                          <span>{cfg.direction === "asc" ? "↑" : "↓"}</span>
+                          {!isPrimary && (
+                            <span
+                              style={{
+                                fontSize: "10px",
+                                padding: "0 4px",
+                                borderRadius: "999px",
+                                backgroundColor: theme.colors.surfaceHover,
+                                color: theme.colors.textMuted,
+                              }}
+                            >
+                              {idx + 1}
+                            </span>
+                          )}
+                        </span>
+                      );
+                    })()}
                   </th>
                 )}
                 {columnVisibility.action && (
@@ -2778,7 +3164,15 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
               </tr>
             </thead>
             <tbody>
-              {sortedFilaments.map((f, i) => {
+              {shouldVirtualizeFilaments && topFilamentSpacerHeight > 0 && (
+                <tr style={{ height: `${topFilamentSpacerHeight}px` }}>
+                  <td
+                    colSpan={visibleFilamentColumnCount}
+                    style={{ padding: 0, border: "none" }}
+                  />
+                </tr>
+              )}
+              {visibleFilaments.map((f) => {
                 const originalIndex = filamentsWithHistory.findIndex(orig => orig === f);
                 const storedHex = normalizeHex(f.colorHex) || "";
                 const nameBasedHex = resolveLibraryHexFromName(f.color, f.brand, f.type) || resolveColorHexFromName(f.color);
@@ -2820,7 +3214,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 
                 return (
                   <tr 
-                    key={i} 
+                    key={filamentId} 
                     draggable
                     onDragStart={(e) => handleDragStart(e, originalIndex)}
                     onDragOver={handleDragOver}
@@ -2862,174 +3256,183 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                         aria-label={t("filaments.bulk.select").replace("{{brand}}", f.brand).replace("{{type}}", f.type)}
                       />
                     </td>
-                {columnVisibility.image && (
-                  <td style={{ ...themeStyles.tableCell, padding: "8px", textAlign: "center" }}>
-                    <img
-                      src={previewSrc}
-                      alt={hasUploadedImage ? `${f.brand} ${f.type}` : t("filaments.placeholderAlt")}
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        objectFit: "cover",
-                        borderRadius: "6px",
-                        border: `1px solid ${theme.colors.border}`,
-                        cursor: hasUploadedImage ? "pointer" : "default",
-                        boxShadow: hasUploadedImage ? `0 2px 6px ${theme.colors.shadow}` : "none"
-                      }}
-                      onClick={handleThumbnailClick}
-                      title={hasUploadedImage ? t("filaments.tooltip.viewImage") : undefined}
-                    />
-                  </td>
-                )}
-                {columnVisibility.brand && (
-                  <td style={themeStyles.tableCell}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(originalIndex);
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!interactionsEnabled) return;
-                          e.currentTarget.style.transform = "scale(1.2)";
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!interactionsEnabled) return;
-                          e.currentTarget.style.transform = "scale(1)";
-                        }}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          padding: "4px",
-                          fontSize: "18px",
-                          color: f.favorite ? "#fbbf24" : theme.colors.textMuted,
-                          transition: "all 0.2s",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        aria-label={f.favorite ? t("filaments.favorite.remove") : t("filaments.favorite.add")}
-                        title={f.favorite ? t("filaments.favorite.remove") : t("filaments.favorite.add")}
-                      >
-                        {f.favorite ? "⭐" : "☆"}
-                      </button>
-                      <span>{f.brand}</span>
-                    </div>
-                  </td>
-                )}
-                {columnVisibility.type && (
-                  <td style={themeStyles.tableCell}>{f.type}</td>
-                )}
-                {columnVisibility.color && (
-                  <td style={themeStyles.tableCell}>
-                    {displayName ? (
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span
+                    {columnVisibility.image && (
+                      <td style={{ ...themeStyles.tableCell, padding: "8px", textAlign: "center" }}>
+                        <img
+                          src={previewSrc}
+                          alt={hasUploadedImage ? `${f.brand} ${f.type}` : t("filaments.placeholderAlt")}
                           style={{
-                            width: "18px",
-                            height: "18px",
-                            borderRadius: "50%",
-                            backgroundColor: isMulticolor ? "transparent" : displayHex,
-                            backgroundImage: isMulticolor ? swatchGradient : "none",
-                            border: "1px solid rgba(0,0,0,0.15)",
-                          }}
-                        />
-                        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                          <span>{displayName}</span>
-                          <span style={{ fontSize: "11px", color: theme.colors.textMuted }}>
-                            {secondaryText}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                )}
-                {columnVisibility.weight && (
-                  <td style={themeStyles.tableCell}>{f.weight}g</td>
-                )}
-                {columnVisibility.pricePerKg && (
-                  <td style={themeStyles.tableCell}>
-                    <strong style={{ color: theme.colors.success }}>
-                      {filamentPrice(f, settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}/kg
-                    </strong>
-                  </td>
-                )}
-                {columnVisibility.action && (
-                  <td style={themeStyles.tableCell}>
-                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                      <Tooltip content={t("filaments.priceSearch")}>
-                        <button
-                          data-tutorial="online-price-button"
-                          onClick={() => void handleOpenPriceSearch(f)}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = "translateY(-1px)";
-                            e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = "translateY(0)";
-                            e.currentTarget.style.backgroundColor = theme.colors.surface;
-                          }}
-                          style={{
-                            ...themeStyles.button,
-                            padding: "8px 12px",
-                            fontSize: "14px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: theme.colors.surface,
-                            color: theme.colors.text,
+                            width: "60px",
+                            height: "60px",
+                            objectFit: "cover",
+                            borderRadius: "6px",
                             border: `1px solid ${theme.colors.border}`,
-                            minWidth: "40px"
+                            cursor: hasUploadedImage ? "pointer" : "default",
+                            boxShadow: hasUploadedImage ? `0 2px 6px ${theme.colors.shadow}` : "none"
                           }}
-                          aria-label={t("filaments.priceSearch")}
-                        >
-                          🔍
-                        </button>
-                      </Tooltip>
-                      <Tooltip content={t("filaments.tooltip.edit")}>
-                        <button 
-                          onClick={() => startEdit(originalIndex)}
-                          disabled={editingIndex !== null && editingIndex !== originalIndex}
-                          onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.transform = "translateY(-1px)"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
-                          style={{ 
-                            ...themeStyles.button,
-                            ...themeStyles.buttonPrimary,
-                            padding: "8px 16px",
-                            fontSize: "12px",
-                            opacity: editingIndex !== null && editingIndex !== originalIndex ? 0.5 : 1,
-                            cursor: editingIndex !== null && editingIndex !== originalIndex ? "not-allowed" : "pointer"
-                          }}
-                        >
-                          {t("filaments.edit")}
-                        </button>
-                      </Tooltip>
-                      <Tooltip content={t("filaments.tooltip.delete")}>
-                        <button 
-                          onClick={() => deleteFilament(originalIndex)}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
-                          style={{ 
-                            ...themeStyles.button,
-                            ...themeStyles.buttonDanger,
-                            padding: "8px 16px",
-                            fontSize: "12px"
-                          }}
-                        >
-                          {t("filaments.delete")}
-                        </button>
-                      </Tooltip>
-                    </div>
-                  </td>
-                )}
-              </tr>
+                          onClick={handleThumbnailClick}
+                          title={hasUploadedImage ? t("filaments.tooltip.viewImage") : undefined}
+                        />
+                      </td>
+                    )}
+                    {columnVisibility.brand && (
+                      <td style={themeStyles.tableCell}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(originalIndex);
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!interactionsEnabled) return;
+                              e.currentTarget.style.transform = "scale(1.2)";
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!interactionsEnabled) return;
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: "4px",
+                              fontSize: "18px",
+                              color: f.favorite ? "#fbbf24" : theme.colors.textMuted,
+                              transition: "all 0.2s",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                            aria-label={f.favorite ? t("filaments.favorite.remove") : t("filaments.favorite.add")}
+                            title={f.favorite ? t("filaments.favorite.remove") : t("filaments.favorite.add")}
+                          >
+                            {f.favorite ? "⭐" : "☆"}
+                          </button>
+                          <span>{f.brand}</span>
+                        </div>
+                      </td>
+                    )}
+                    {columnVisibility.type && (
+                      <td style={themeStyles.tableCell}>{f.type}</td>
+                    )}
+                    {columnVisibility.color && (
+                      <td style={themeStyles.tableCell}>
+                        {displayName ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span
+                              style={{
+                                width: "18px",
+                                height: "18px",
+                                borderRadius: "50%",
+                                backgroundColor: isMulticolor ? "transparent" : displayHex,
+                                backgroundImage: isMulticolor ? swatchGradient : "none",
+                                border: "1px solid rgba(0,0,0,0.15)",
+                              }}
+                            />
+                            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                              <span>{displayName}</span>
+                              <span style={{ fontSize: "11px", color: theme.colors.textMuted }}>
+                                {secondaryText}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                    )}
+                    {columnVisibility.weight && (
+                      <td style={themeStyles.tableCell}>{f.weight}g</td>
+                    )}
+                    {columnVisibility.pricePerKg && (
+                      <td style={themeStyles.tableCell}>
+                        <strong style={{ color: theme.colors.success }}>
+                          {filamentPrice(f, settings.currency).toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}/kg
+                        </strong>
+                      </td>
+                    )}
+                    {columnVisibility.action && (
+                      <td style={themeStyles.tableCell}>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          <Tooltip content={t("filaments.priceSearch")}>
+                            <button
+                              data-tutorial="online-price-button"
+                              onClick={() => void handleOpenPriceSearch(f)}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "translateY(-1px)";
+                                e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "translateY(0)";
+                                e.currentTarget.style.backgroundColor = theme.colors.surface;
+                              }}
+                              style={{
+                                ...themeStyles.button,
+                                padding: "8px 12px",
+                                fontSize: "14px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                backgroundColor: theme.colors.surface,
+                                color: theme.colors.text,
+                                border: `1px solid ${theme.colors.border}`,
+                                minWidth: "40px"
+                              }}
+                              aria-label={t("filaments.priceSearch")}
+                            >
+                              🔍
+                            </button>
+                          </Tooltip>
+                          <Tooltip content={t("filaments.tooltip.edit")}>
+                            <button 
+                              onClick={() => startEdit(originalIndex)}
+                              disabled={editingIndex !== null && editingIndex !== originalIndex}
+                              onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.transform = "translateY(-1px)"; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+                              style={{ 
+                                ...themeStyles.button,
+                                ...themeStyles.buttonPrimary,
+                                padding: "8px 16px",
+                                fontSize: "12px",
+                                opacity: editingIndex !== null && editingIndex !== originalIndex ? 0.5 : 1,
+                                cursor: editingIndex !== null && editingIndex !== originalIndex ? "not-allowed" : "pointer"
+                              }}
+                            >
+                              {t("filaments.edit")}
+                            </button>
+                          </Tooltip>
+                          <Tooltip content={t("filaments.tooltip.delete")}>
+                            <button 
+                              onClick={() => deleteFilament(originalIndex)}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
+                              style={{ 
+                                ...themeStyles.button,
+                                ...themeStyles.buttonDanger,
+                                padding: "8px 16px",
+                                fontSize: "12px"
+                              }}
+                            >
+                              {t("filaments.delete")}
+                            </button>
+                          </Tooltip>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
                 );
               })}
+              {shouldVirtualizeFilaments && bottomFilamentSpacerHeight > 0 && (
+                <tr style={{ height: `${bottomFilamentSpacerHeight}px` }}>
+                  <td
+                    colSpan={visibleFilamentColumnCount}
+                    style={{ padding: 0, border: "none" }}
+                  />
+                </tr>
+              )}
             </tbody>
           </table>
+          </div>
         </div>
       ) : filamentsWithHistory.length > 0 && searchTerm ? (
         <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>

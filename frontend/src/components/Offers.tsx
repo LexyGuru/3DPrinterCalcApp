@@ -38,6 +38,7 @@ interface Props {
   filaments: Filament[];
   setFilaments: (filaments: Filament[]) => void;
   customers: Customer[];
+  onSettingsChange?: (newSettings: Settings) => void;
 }
 
 export const Offers: React.FC<Props> = ({
@@ -50,6 +51,7 @@ export const Offers: React.FC<Props> = ({
   filaments,
   setFilaments,
   customers,
+  onSettingsChange,
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
@@ -129,6 +131,16 @@ export const Offers: React.FC<Props> = ({
       showToast(t("common.redo") || "Újra", "info");
     }
   }, { meta: true, shift: true });
+
+  // Egyszerű virtuális scroll az árajánlat listához
+  const offersListContainerRef = useRef<HTMLDivElement | null>(null);
+  const VIRTUAL_SCROLL_THRESHOLD = 80;
+  const VIRTUAL_ROW_HEIGHT = 190; // px, átlagos kártya magasság + gap
+  const VIRTUAL_OVERSCAN = 5;
+  const [visibleOfferRange, setVisibleOfferRange] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: VIRTUAL_SCROLL_THRESHOLD,
+  });
 
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
@@ -1134,8 +1146,13 @@ export const Offers: React.FC<Props> = ({
     return parsed.toLocaleString(locale, { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
   };
 
+  const [minAmountFilter, setMinAmountFilter] = useState<string>("");
+  const [maxAmountFilter, setMaxAmountFilter] = useState<string>("");
+  const [fromDateFilter, setFromDateFilter] = useState<string>("");
+  const [toDateFilter, setToDateFilter] = useState<string>("");
+
   const filteredOffers = offersWithHistory.filter(o => {
-    if (!searchTerm && statusFilter === "all") return true;
+    if (!searchTerm && statusFilter === "all" && !minAmountFilter && !maxAmountFilter && !fromDateFilter && !toDateFilter) return true;
     const term = searchTerm.toLowerCase();
     const date = new Date(o.date).toLocaleDateString();
     const matchesSearch = !searchTerm ||
@@ -1151,11 +1168,214 @@ export const Offers: React.FC<Props> = ({
 
     if (statusFilter !== "all") {
       const currentStatus = o.status ?? "draft";
-      return currentStatus === statusFilter;
+      if (currentStatus !== statusFilter) return false;
+    }
+
+    // Összeg szűrők – mindig HUF-ból konvertáljuk a beállított pénznemre összehasonlításhoz
+    const totalInDisplayCurrency = convertCurrencyFromTo(
+      o.costs.totalCost,
+      o.currency || "EUR",
+      settings.currency
+    );
+
+    if (minAmountFilter) {
+      const min = Number(minAmountFilter.replace(",", "."));
+      if (!Number.isNaN(min) && totalInDisplayCurrency < min) return false;
+    }
+
+    if (maxAmountFilter) {
+      const max = Number(maxAmountFilter.replace(",", "."));
+      if (!Number.isNaN(max) && totalInDisplayCurrency > max) return false;
+    }
+
+    // Dátum szűrők
+    const offerDate = new Date(o.date);
+    if (!Number.isNaN(offerDate.getTime())) {
+      if (fromDateFilter) {
+        const from = new Date(fromDateFilter);
+        if (!Number.isNaN(from.getTime()) && offerDate < from) return false;
+      }
+      if (toDateFilter) {
+        const to = new Date(toDateFilter);
+        if (!Number.isNaN(to.getTime()) && offerDate > to) return false;
+      }
     }
 
     return true;
   });
+
+  type OfferSortKey = "date" | "amount" | "status" | "customer" | "id";
+
+  const [offerSortConfig, setOfferSortConfig] = useState<Array<{ key: OfferSortKey; direction: "asc" | "desc" }>>(
+    settings.offerSortConfig || []
+  );
+
+  const sortedOffers = useMemo(() => {
+    if (offerSortConfig.length === 0) return filteredOffers;
+
+    const getStatusIndex = (status: OfferStatus | undefined | null): number => {
+      if (!status) return STATUS_ORDER.length;
+      const idx = STATUS_ORDER.indexOf(status);
+      return idx === -1 ? STATUS_ORDER.length : idx;
+    };
+
+    return [...filteredOffers].sort((a, b) => {
+      for (const { key, direction } of offerSortConfig) {
+        let aValue: any;
+        let bValue: any;
+
+        switch (key) {
+          case "date":
+            aValue = new Date(a.date).getTime();
+            bValue = new Date(b.date).getTime();
+            break;
+          case "amount":
+            aValue = a.costs?.totalCost ?? 0;
+            bValue = b.costs?.totalCost ?? 0;
+            break;
+          case "status":
+            aValue = getStatusIndex(a.status ?? "draft");
+            bValue = getStatusIndex(b.status ?? "draft");
+            break;
+          case "customer":
+            aValue = (a.customerName || "").toLowerCase();
+            bValue = (b.customerName || "").toLowerCase();
+            break;
+          case "id":
+          default:
+            aValue = a.id;
+            bValue = b.id;
+            break;
+        }
+
+        let cmp = 0;
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          cmp = aValue - bValue;
+        } else if (aValue < bValue) {
+          cmp = -1;
+        } else if (aValue > bValue) {
+          cmp = 1;
+        }
+
+        if (cmp !== 0) {
+          return direction === "asc" ? cmp : -cmp;
+        }
+      }
+      return 0;
+    });
+  }, [filteredOffers, offerSortConfig]);
+
+  const handleOfferSort = (key: OfferSortKey, event?: React.MouseEvent<HTMLButtonElement>) => {
+    const isShiftClick = event?.shiftKey;
+
+    setOfferSortConfig(prev => {
+      const existingIndex = prev.findIndex(cfg => cfg.key === key);
+      const existing = existingIndex >= 0 ? prev[existingIndex] : null;
+
+      if (!isShiftClick) {
+        // Single-column mód: csak egy kulcs aktív
+        let next: Array<{ key: OfferSortKey; direction: "asc" | "desc" }>;
+        if (!existing) {
+          next = [{ key, direction: "asc" }];
+        } else if (existing.direction === "asc") {
+          next = [{ key, direction: "desc" }];
+        } else {
+          // desc -> kikapcsoljuk a rendezést
+          next = [];
+        }
+
+        if (onSettingsChange) {
+          onSettingsChange({
+            ...settings,
+            offerSortConfig: next,
+          });
+        }
+
+        return next;
+      }
+
+      // Shift+click: többszörös rendezés
+      let next: Array<{ key: OfferSortKey; direction: "asc" | "desc" }>;
+
+      if (!existing) {
+        next = [...prev, { key, direction: "asc" as const }];
+      } else if (existing.direction === "asc") {
+        next = prev.map(cfg =>
+          cfg.key === key ? { ...cfg, direction: "desc" as const } : cfg
+        );
+      } else {
+        // desc -> eltávolítjuk ezt a kulcsot a láncból
+        next = prev.filter(cfg => cfg.key !== key);
+      }
+
+      if (onSettingsChange) {
+        onSettingsChange({
+          ...settings,
+          offerSortConfig: next,
+        });
+      }
+
+      return next;
+    });
+  };
+
+  const renderSortChip = (label: string, key: OfferSortKey) => {
+    const idx = offerSortConfig.findIndex(cfg => cfg.key === key);
+    const isActive = idx !== -1;
+    const cfg = isActive ? offerSortConfig[idx] : null;
+    const isPrimary = idx === 0;
+
+    const baseStyle: React.CSSProperties = {
+      padding: "6px 10px",
+      borderRadius: "999px",
+      border: `1px solid ${theme.colors.border}`,
+      fontSize: "12px",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "4px",
+      cursor: "pointer",
+      backgroundColor: theme.colors.surface,
+      color: theme.colors.text,
+      transition: "background-color 0.15s, color 0.15s, border-color 0.15s",
+    };
+
+    const activeStyle: React.CSSProperties = isActive
+      ? {
+          backgroundColor: theme.colors.primary + "15",
+          borderColor: theme.colors.primary,
+          color: theme.colors.primary,
+        }
+      : {};
+
+    return (
+      <button
+        key={key}
+        type="button"
+        onClick={(e) => handleOfferSort(key, e)}
+        style={{ ...baseStyle, ...activeStyle }}
+      >
+        <span>{label}</span>
+        {isActive && cfg && (
+          <>
+            <span>{cfg.direction === "asc" ? "↑" : "↓"}</span>
+            {!isPrimary && (
+              <span
+                style={{
+                  fontSize: "10px",
+                  padding: "0 4px",
+                  borderRadius: "999px",
+                  backgroundColor: theme.colors.surfaceHover,
+                  color: theme.colors.textMuted,
+                }}
+              >
+                {idx + 1}
+              </span>
+            )}
+          </>
+        )}
+      </button>
+    );
+  };
 
   // Bulk műveletek
   const toggleSelection = (offerId: number) => {
@@ -1338,6 +1558,86 @@ export const Offers: React.FC<Props> = ({
               </span>
             </div>
             
+            {/* Összeg + dátum szűrők */}
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <div style={{ minWidth: "140px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "4px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: theme.colors.textMuted,
+                  }}
+                >
+                  {t("offers.filters.minAmount" as TranslationKey)}
+                </label>
+                <input
+                  type="number"
+                  value={minAmountFilter}
+                  onChange={(e) => setMinAmountFilter(e.target.value)}
+                  style={{ ...themeStyles.input, padding: "6px 10px", fontSize: "13px", width: "100%" }}
+                />
+              </div>
+              <div style={{ minWidth: "140px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "4px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: theme.colors.textMuted,
+                  }}
+                >
+                  {t("offers.filters.maxAmount" as TranslationKey)}
+                </label>
+                <input
+                  type="number"
+                  value={maxAmountFilter}
+                  onChange={(e) => setMaxAmountFilter(e.target.value)}
+                  style={{ ...themeStyles.input, padding: "6px 10px", fontSize: "13px", width: "100%" }}
+                />
+              </div>
+              <div style={{ minWidth: "150px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "4px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: theme.colors.textMuted,
+                  }}
+                >
+                  {t("offers.filters.fromDate" as TranslationKey)}
+                </label>
+                <input
+                  type="date"
+                  value={fromDateFilter}
+                  onChange={(e) => setFromDateFilter(e.target.value)}
+                  style={{ ...themeStyles.input, padding: "6px 10px", fontSize: "13px", width: "100%" }}
+                />
+              </div>
+              <div style={{ minWidth: "150px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "4px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: theme.colors.textMuted,
+                  }}
+                >
+                  {t("offers.filters.toDate" as TranslationKey)}
+                </label>
+                <input
+                  type="date"
+                  value={toDateFilter}
+                  onChange={(e) => setToDateFilter(e.target.value)}
+                  style={{ ...themeStyles.input, padding: "6px 10px", fontSize: "13px", width: "100%" }}
+                />
+              </div>
+            </div>
+
             {/* Undo/Redo gombok */}
             <div style={{ display: "flex", gap: "8px" }}>
               <Tooltip content={`${t("common.undo")} (Ctrl/Cmd+Z)`}>
@@ -1381,6 +1681,21 @@ export const Offers: React.FC<Props> = ({
                 </button>
               </Tooltip>
             </div>
+          </div>
+          
+          {/* Rendezés – több kulcs, Shift+kattintással láncolható */}
+          <div style={{ marginTop: "12px", display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <span style={{ fontSize: "12px", color: theme.colors.textMuted, marginRight: "4px" }}>
+              Rendezés:
+            </span>
+            {renderSortChip("Dátum", "date")}
+            {renderSortChip("Összeg", "amount")}
+            {renderSortChip("Státusz", "status")}
+            {renderSortChip("Ügyfél", "customer")}
+            {renderSortChip("ID", "id")}
+            <span style={{ fontSize: "11px", color: theme.colors.textMuted, marginLeft: "4px" }}>
+              (Shift + kattintás: több szintű rendezés)
+            </span>
           </div>
         </div>
       )}
@@ -1683,8 +1998,64 @@ export const Offers: React.FC<Props> = ({
                 </div>
               )}
               
-              <div data-tutorial="offers-list" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {filteredOffers.map((offer) => {
+              <div
+                data-tutorial="offers-list"
+                ref={offersListContainerRef}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                  maxHeight: sortedOffers.length > VIRTUAL_SCROLL_THRESHOLD ? "620px" : "none",
+                  overflowY: sortedOffers.length > VIRTUAL_SCROLL_THRESHOLD ? "auto" : "visible",
+                }}
+                onScroll={() => {
+                  if (!offersListContainerRef.current) return;
+                  if (sortedOffers.length <= VIRTUAL_SCROLL_THRESHOLD) return;
+                  const container = offersListContainerRef.current;
+                  const scrollTop = container.scrollTop;
+                  const clientHeight = container.clientHeight;
+                  const start = Math.max(0, Math.floor(scrollTop / VIRTUAL_ROW_HEIGHT) - VIRTUAL_OVERSCAN);
+                  const end = Math.min(
+                    sortedOffers.length - 1,
+                    Math.ceil((scrollTop + clientHeight) / VIRTUAL_ROW_HEIGHT) + VIRTUAL_OVERSCAN
+                  );
+                  setVisibleOfferRange((prev) => {
+                    if (prev.start === start && prev.end === end) {
+                      return prev;
+                    }
+                    return { start, end };
+                  });
+                }}
+              >
+                {(() => {
+                  const shouldVirtualize = sortedOffers.length > VIRTUAL_SCROLL_THRESHOLD;
+                  const offersToRender = shouldVirtualize
+                    ? sortedOffers.slice(
+                        Math.max(0, visibleOfferRange.start),
+                        Math.min(sortedOffers.length, visibleOfferRange.end + 1)
+                      )
+                    : sortedOffers;
+                  const topSpacer = shouldVirtualize
+                    ? Math.max(0, visibleOfferRange.start) * VIRTUAL_ROW_HEIGHT
+                    : 0;
+                  const bottomSpacer = shouldVirtualize
+                    ? Math.max(
+                        0,
+                        (sortedOffers.length - (visibleOfferRange.end + 1)) * VIRTUAL_ROW_HEIGHT
+                      )
+                    : 0;
+
+                  return (
+                    <>
+                      {topSpacer > 0 && (
+                        <div
+                          style={{
+                            height: `${topSpacer}px`,
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
+                      {offersToRender.map((offer) => {
                   const date = new Date(offer.date);
                   const statusEntry =
                     offer.statusHistory && offer.statusHistory.length > 0
@@ -1930,14 +2301,25 @@ export const Offers: React.FC<Props> = ({
                     </div>
                   );
                 })}
-                {filteredOffers.length === 0 && offersWithHistory.length > 0 && (
-                  <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
-                    <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
-                    <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>
-                      {t("offers.search.noResults")}
-                    </p>
-                  </div>
-                )}
+                      {bottomSpacer > 0 && (
+                        <div
+                          style={{
+                            height: `${bottomSpacer}px`,
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
+                      {filteredOffers.length === 0 && offersWithHistory.length > 0 && (
+                        <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>
+                          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
+                          <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>
+                            {t("offers.search.noResults")}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
@@ -2640,9 +3022,9 @@ export const Offers: React.FC<Props> = ({
                                         </>
                                       )}
                                     </div>
-                                  </div>
-                                );
-                              })}
+                    </div>
+                  );
+                })}
                             </div>
                             {filamentOptions.length > 0 && (
                               <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", marginTop: "12px" }}>
