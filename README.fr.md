@@ -41,6 +41,24 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
+### v1.7.0 (2025) - 💾 Optimisation du système de sauvegarde et améliorations des performances
+
+- 🔧 **Optimisation backend du système de sauvegarde**
+  - Commandes backend ajoutées pour supprimer les anciennes sauvegardes (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Fonctions de nettoyage frontend mises à jour pour utiliser les commandes backend, éliminant les erreurs "chemin interdit"
+  - Toutes les opérations de fichiers (créer, supprimer, lister) se font maintenant depuis le backend, évitant les problèmes de permissions Tauri
+- ⚡ **Optimisation des performances du système de sauvegarde**
+  - `hasTodayBackup()` optimisé : utilise la commande backend `list_backup_files`, pas besoin de lire tous les fichiers
+  - Mécanisme de verrouillage ajouté pour empêcher la création parallèle de sauvegardes
+  - Fonctionnement plus rapide même avec un grand nombre de fichiers de sauvegarde
+- 📁 **Ouvrir le répertoire de sauvegarde**
+  - Bouton ajouté dans Paramètres → Historique de sauvegarde pour ouvrir le dossier de sauvegarde
+  - Support multiplateforme (macOS, Windows, Linux)
+- 📝 **Fonction d'historique des journaux**
+  - Nouvelle section d'historique des journaux dans Paramètres
+  - Lister et ouvrir les fichiers journaux
+  - Suppression automatique des fichiers journaux configurable par jours
+
 ### v1.6.0 (2025) - 📊 Widgets Interactifs & Performance des Grandes Tableaux
 
 - 🧠 **Graphiques Interactifs & Modales de Détail**

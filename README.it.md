@@ -41,6 +41,24 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.7.0 (2025) - 💾 Ottimizzazione del sistema di backup e miglioramenti delle prestazioni
+
+- 🔧 **Ottimizzazione backend del sistema di backup**
+  - Comandi backend aggiunti per eliminare i backup vecchi (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Funzioni di pulizia frontend aggiornate per utilizzare i comandi backend, eliminando gli errori "percorso vietato"
+  - Tutte le operazioni sui file (creare, eliminare, elencare) ora avvengono dal backend, evitando problemi di permessi Tauri
+- ⚡ **Ottimizzazione delle prestazioni del sistema di backup**
+  - `hasTodayBackup()` ottimizzato: utilizza il comando backend `list_backup_files`, non è necessario leggere tutti i file
+  - Meccanismo di blocco aggiunto per prevenire la creazione parallela di backup
+  - Funzionamento più veloce anche con grandi quantità di file di backup
+- 📁 **Aprire la directory di backup**
+  - Pulsante aggiunto in Impostazioni → Cronologia backup per aprire la cartella di backup
+  - Supporto multipiattaforma (macOS, Windows, Linux)
+- 📝 **Funzione cronologia log**
+  - Nuova sezione cronologia log in Impostazioni
+  - Elencare e aprire i file di log
+  - Eliminazione automatica dei file di log configurabile per giorni
+
 ### v1.6.0 (2025) - 📊 Widget Interattivi & Prestazioni di Tabelle Grandi
 
 - 🧠 **Grafici Interattivi & Modali di Dettaglio**

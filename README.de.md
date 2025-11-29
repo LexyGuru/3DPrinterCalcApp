@@ -42,6 +42,24 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.7.0 (2025) - 💾 Backup-System-Optimierung und Leistungsverbesserungen
+
+- 🔧 **Backup-System-Backend-Optimierung**
+  - Backend-Befehle zum Löschen alter Backups hinzugefügt (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Frontend-Cleanup-Funktionen aktualisiert, um Backend-Befehle zu verwenden, wodurch "forbidden path"-Fehler eliminiert werden
+  - Alle Dateioperationen (Erstellen, Löschen, Auflisten) erfolgen jetzt vom Backend aus, wodurch Tauri-Berechtigungsprobleme vermieden werden
+- ⚡ **Backup-System-Leistungsoptimierung**
+  - `hasTodayBackup()` optimiert: verwendet `list_backup_files` Backend-Befehl, keine Notwendigkeit, alle Dateien zu lesen
+  - Sperrmechanismus hinzugefügt, um parallele Backup-Erstellung zu verhindern
+  - Schnellere Bedienung auch bei großen Mengen von Backup-Dateien
+- 📁 **Backup-Verzeichnis öffnen**
+  - Button in Einstellungen → Backup-Verlauf hinzugefügt, um den Backup-Ordner zu öffnen
+  - Plattformübergreifende Unterstützung (macOS, Windows, Linux)
+- 📝 **Log-Verlauf-Funktion**
+  - Neuer Log-Verlauf-Bereich in den Einstellungen
+  - Log-Dateien auflisten und öffnen
+  - Automatisches Löschen von Log-Dateien nach Tagen konfigurierbar
+
 ### v1.6.0 (2025) - 📊 Interaktive Widgets & Leistung großer Tabellen
 
 - 🧠 **Interaktive Diagramme & Detail-Modals**

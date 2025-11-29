@@ -509,6 +509,24 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.7.0 (2025) - 💾 Backup system optimization and performance improvements
+
+- 🔧 **Backup system backend optimization**
+  - Backend commands added for deleting old backups (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Frontend cleanup functions updated to use backend commands, eliminating "forbidden path" errors
+  - All file operations (create, delete, list) now happen from the backend, avoiding Tauri permissions issues
+- ⚡ **Backup system performance optimization**
+  - `hasTodayBackup()` optimized: uses `list_backup_files` backend command, no need to read all files
+  - Lock mechanism added to prevent parallel backup creation
+  - Faster operation even with large numbers of backup files
+- 📁 **Open backup directory**
+  - Button added in Settings → Backup History section to open the backup folder
+  - Cross-platform support (macOS, Windows, Linux)
+- 📝 **Log history feature**
+  - New log history section in Settings
+  - List and open log files
+  - Automatic log file deletion configurable by days
+
 ### v1.6.0 (2025) - 📊 Interactive Widgets & Large Table Performance
 
 - 🧠 **Interactive Charts & Detail Modals**

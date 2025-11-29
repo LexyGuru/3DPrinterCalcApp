@@ -41,6 +41,24 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 
 ## 📋 Registro de cambios (Changelog)
 
+### v1.7.0 (2025) - 💾 Optimización del sistema de respaldo y mejoras de rendimiento
+
+- 🔧 **Optimización del backend del sistema de respaldo**
+  - Comandos backend agregados para eliminar respaldos antiguos (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Funciones de limpieza del frontend actualizadas para usar comandos backend, eliminando errores de "ruta prohibida"
+  - Todas las operaciones de archivos (crear, eliminar, listar) ahora ocurren desde el backend, evitando problemas de permisos de Tauri
+- ⚡ **Optimización del rendimiento del sistema de respaldo**
+  - `hasTodayBackup()` optimizado: usa el comando backend `list_backup_files`, no es necesario leer todos los archivos
+  - Mecanismo de bloqueo agregado para prevenir la creación paralela de respaldos
+  - Operación más rápida incluso con grandes cantidades de archivos de respaldo
+- 📁 **Abrir directorio de respaldo**
+  - Botón agregado en Configuración → Historial de respaldo para abrir la carpeta de respaldo
+  - Soporte multiplataforma (macOS, Windows, Linux)
+- 📝 **Función de historial de registro**
+  - Nueva sección de historial de registro en Configuración
+  - Listar y abrir archivos de registro
+  - Eliminación automática de archivos de registro configurable por días
+
 ### v1.6.0 (2025) - 📊 Widgets Interactivos y Rendimiento de Tablas Grandes
 
 - 🧠 **Gráficos Interactivos y Modales de Detalle**

@@ -42,6 +42,24 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Verziótörténet
 
+### v1.7.0 (2025) - 💾 Backup rendszer optimalizációja és performance javítások
+
+- 🔧 **Backup rendszer backend optimalizációja**
+  - Backend commands hozzáadása régi backupok törléséhez (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Frontend cleanup függvények backend command használatára frissítve, így nincs többé "forbidden path" hiba
+  - Minden fájl művelet (létrehozás, törlés, listázás) most backend-ről történik, elkerülve a Tauri permissions problémákat
+- ⚡ **Backup rendszer performance optimalizációja**
+  - `hasTodayBackup()` optimalizálva: `list_backup_files` backend command használata, nem kell minden fájlt beolvasni
+  - Lock mechanizmus hozzáadva párhuzamos backupok megelőzésére
+  - Gyorsabb működés nagy számú backup fájl esetén is
+- 📁 **Backup directory megnyitása**
+  - Gomb hozzáadva a Settings → Backup History szekcióban a backup mappa megnyitásához
+  - Cross-platform támogatás (macOS, Windows, Linux)
+- 📝 **Log history funkció**
+  - Új log history szekció a Settings-ben
+  - Log fájlok listázása és megnyitása
+  - Automatikus log fájl törlés beállítható napok alapján
+
 ### v1.6.0 (2025) - 📊 Interaktív widgetek & nagy táblázatok teljesítmény-tuning
 
 - 🧠 **Interaktív grafikonok és részletes modál nézetek**

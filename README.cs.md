@@ -40,6 +40,26 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ### v1.6.0 (2025) - 📊 Interaktivní widgety a výkon velkých tabulek
 
+### v1.7.0 (2025) - 💾 Optimalizace systému zálohování a vylepšení výkonu
+
+- 🔧 **Optimalizace backendu systému zálohování**
+  - Přidány backend příkazy pro mazání starých záloh (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Aktualizovány frontend funkce čištění pro použití backend příkazů, eliminující chyby "zakázaná cesta"
+  - Všechny operace se soubory (vytváření, mazání, výpis) nyní probíhají z backendu, čímž se vyhneme problémům s oprávněními Tauri
+- ⚡ **Optimalizace výkonu systému zálohování**
+  - `hasTodayBackup()` optimalizováno: používá backend příkaz `list_backup_files`, není třeba číst všechny soubory
+  - Přidán mechanismus zámku pro prevenci paralelního vytváření záloh
+  - Rychlejší provoz i při velkém množství zálohovacích souborů
+- 📁 **Otevřít adresář záloh**
+  - Přidáno tlačítko v Nastavení → Historie záloh pro otevření složky záloh
+  - Multiplatformní podpora (macOS, Windows, Linux)
+- 📝 **Funkce historie protokolů**
+  - Nová sekce historie protokolů v Nastavení
+  - Výpis a otevření souborů protokolů
+  - Automatické mazání souborů protokolů konfigurovatelné podle dnů
+
+### v1.6.0 (2025) - 📊 Interaktivní widgety a výkon velkých tabulek
+
 - 🧠 **Interaktivní grafy a detailní modály**
   - Všechny hlavní grafy dashboardu nyní používají sjednocený komponent `InteractiveChart` s klikacími datovými body a animovanými detailními modálními okny.
   - Tooltippy a modály zobrazují lokalizované, lidsky čitelné popisky pro příjmy, náklady, zisk a počet nabídek.

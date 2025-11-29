@@ -40,6 +40,24 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.7.0 (2025) - 💾 Optymalizacja systemu kopii zapasowych i ulepszenia wydajności
+
+- 🔧 **Optymalizacja backendu systemu kopii zapasowych**
+  - Dodano polecenia backend do usuwania starych kopii zapasowych (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Zaktualizowano funkcje czyszczenia frontendu, aby używały poleceń backend, eliminując błędy "zabroniona ścieżka"
+  - Wszystkie operacje na plikach (tworzenie, usuwanie, listowanie) odbywają się teraz z backendu, unikając problemów z uprawnieniami Tauri
+- ⚡ **Optymalizacja wydajności systemu kopii zapasowych**
+  - `hasTodayBackup()` zoptymalizowane: używa polecenia backend `list_backup_files`, nie trzeba czytać wszystkich plików
+  - Dodano mechanizm blokady, aby zapobiec równoległemu tworzeniu kopii zapasowych
+  - Szybsza praca nawet przy dużej liczbie plików kopii zapasowych
+- 📁 **Otwórz katalog kopii zapasowych**
+  - Dodano przycisk w Ustawienia → Historia kopii zapasowych, aby otworzyć folder kopii zapasowych
+  - Wsparcie wieloplatformowe (macOS, Windows, Linux)
+- 📝 **Funkcja historii logów**
+  - Nowa sekcja historii logów w Ustawieniach
+  - Listowanie i otwieranie plików logów
+  - Automatyczne usuwanie plików logów konfigurowalne według dni
+
 ### v1.6.0 (2025) - 📊 Interaktywne Widgety i Wydajność Dużych Tabel
 
 - 🧠 **Interaktywne Wykresy i Modale Szczegółów**

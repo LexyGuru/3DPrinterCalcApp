@@ -40,6 +40,24 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.7.0 (2025) - 💾 Optimalizácia systému zálohovania a vylepšenia výkonu
+
+- 🔧 **Optimalizácia backendu systému zálohovania**
+  - Pridané backend príkazy na mazanie starých záloh (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Aktualizované frontend funkcie čistenia na použitie backend príkazov, eliminujúce chyby "zakázaná cesta"
+  - Všetky operácie so súbormi (vytváranie, mazanie, výpis) sa teraz vykonávajú z backendu, čím sa vyhneme problémom s oprávneniami Tauri
+- ⚡ **Optimalizácia výkonu systému zálohovania**
+  - `hasTodayBackup()` optimalizované: používa backend príkaz `list_backup_files`, nie je potrebné čítať všetky súbory
+  - Pridaný mechanizmus zámku na prevenciu paralelného vytvárania záloh
+  - Rýchlejší prevádzka aj pri veľkom množstve zálohovacích súborov
+- 📁 **Otvoriť adresár záloh**
+  - Pridané tlačidlo v Nastavení → História záloh na otvorenie priečinka záloh
+  - Multiplatformná podpora (macOS, Windows, Linux)
+- 📝 **Funkcia histórie protokolov**
+  - Nová sekcia histórie protokolov v Nastavení
+  - Výpis a otvorenie súborov protokolov
+  - Automatické mazanie súborov protokolov konfigurovateľné podľa dní
+
 ### v1.6.0 (2025) - 📊 Interaktívne widgety a výkon veľkých tabuliek
 
 - 🧠 **Interaktívne grafy a detailné modály**

@@ -40,6 +40,24 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.7.0 (2025) - 💾 Otimização do sistema de backup e melhorias de desempenho
+
+- 🔧 **Otimização do backend do sistema de backup**
+  - Comandos backend adicionados para excluir backups antigos (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Funções de limpeza do frontend atualizadas para usar comandos backend, eliminando erros de "caminho proibido"
+  - Todas as operações de arquivos (criar, excluir, listar) agora ocorrem do backend, evitando problemas de permissões do Tauri
+- ⚡ **Otimização de desempenho do sistema de backup**
+  - `hasTodayBackup()` otimizado: usa o comando backend `list_backup_files`, não é necessário ler todos os arquivos
+  - Mecanismo de bloqueio adicionado para prevenir criação paralela de backups
+  - Operação mais rápida mesmo com grandes quantidades de arquivos de backup
+- 📁 **Abrir diretório de backup**
+  - Botão adicionado em Configurações → Histórico de backup para abrir a pasta de backup
+  - Suporte multiplataforma (macOS, Windows, Linux)
+- 📝 **Função de histórico de log**
+  - Nova seção de histórico de log em Configurações
+  - Listar e abrir arquivos de log
+  - Exclusão automática de arquivos de log configurável por dias
+
 ### v1.6.0 (2025) - 📊 Widgets Interativos e Performance de Tabelas Grandes
 
 - 🧠 **Gráficos Interativos e Modais de Detalhe**
