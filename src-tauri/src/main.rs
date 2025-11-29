@@ -23,7 +23,13 @@ fn main() {
             get_backend_log_path,
             delete_old_logs,
             get_log_directory_path,
+            get_backup_directory_path,
             open_directory,
+            list_log_files,
+            list_backup_files,
+            create_automatic_backup_file,
+            cleanup_old_backups_by_days,
+            cleanup_old_backups_by_count,
             #[cfg(target_os = "macos")]
             set_dock_badge,
             #[cfg(target_os = "windows")]

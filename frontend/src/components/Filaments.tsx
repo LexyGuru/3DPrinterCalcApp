@@ -37,6 +37,7 @@ import {
   subscribeToLibraryChanges,
   ensureLibraryOverridesLoaded,
   ensureLibraryEntry,
+  getLocalizedLibraryColorLabel,
 } from "../utils/filamentLibrary";
 import { logWithLanguage } from "../utils/languages/global_console";
 import { addPriceHistory, isSignificantPriceChange, getFilamentPriceHistory } from "../utils/priceHistory";
@@ -219,8 +220,6 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
   const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([]);
   const [showPriceHistory, setShowPriceHistory] = useState(false);
   const LIBRARY_FINISHES: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
-  const resolveBaseLanguage = (language: Settings["language"]): "hu" | "en" | "de" =>
-    language === "hu" || language === "de" ? language : "en";
   const brandSelectPlaceholder = t("filaments.brandSelect.placeholder");
   const brandCustomOptionLabel = t("filaments.brandSelect.addNew");
   const brandBackToListLabel = t("filaments.brandSelect.backToList");
@@ -385,8 +384,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       }
       const nextMode = (libraryMatch.colorMode as ColorMode) ?? "solid";
       setColorMode(nextMode);
-      const localized =
-        libraryMatch.labels?.[resolveBaseLanguage(settings.language)] ?? libraryMatch.rawColor ?? color;
+      const localized = getLocalizedLibraryColorLabel(libraryMatch, settings.language) || libraryMatch.rawColor || color;
       setMultiColorHint(nextMode === "multicolor" ? libraryMatch.multiColorHint ?? localized ?? "" : "");
       return;
     }

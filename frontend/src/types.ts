@@ -208,6 +208,13 @@ export interface Settings {
   hideMacOSNotificationWarning?: boolean; // macOS értesítési figyelmeztetés elrejtése
   dashboardLayout?: import("./types/widgets").DashboardLayout; // Dashboard widget layout
   useWidgetDashboard?: boolean; // Widget dashboard használata (true) vagy klasszikus nézet (false)
+  // Backup és emlékeztető beállítások (v1.7.0)
+  backupReminderEnabled?: boolean; // Backup emlékeztető bekapcsolása
+  backupReminderIntervalDays?: number; // Backup emlékeztető intervallum (napokban)
+  automaticBackupEnabled?: boolean; // Automatikus backup bekapcsolása
+  automaticBackupIntervalHours?: number; // Automatikus backup intervallum (órákban)
+  maxAutomaticBackups?: number; // Maximum automatikus backup-ok száma (régi törlése)
+  lastBackupDate?: string; // Utolsó backup dátuma (ISO string)
 }
 
 export const defaultSettings: Settings = {
@@ -216,7 +223,7 @@ export const defaultSettings: Settings = {
   language: "hu",
   checkForBetaUpdates: false, // Alapértelmezetten nem ellenőrzi a beta release-eket
   theme: "light", // Alapértelmezett téma
-  autosave: true, // Alapértelmezetten engedélyezve
+  autosave: false, // Alapértelmezetten ki van kapcsolva
   autosaveInterval: 30, // Alapértelmezett 30 másodperc
   notificationEnabled: true, // Alapértelmezetten engedélyezve
   notificationDuration: 3000, // Alapértelmezett 3 másodperc

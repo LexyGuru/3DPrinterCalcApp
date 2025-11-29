@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { save, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
@@ -25,7 +25,8 @@ import {
   themeToCustomDefinition,
   DEFAULT_THEME_NAME,
 } from "../utils/themes";
-import { createBackup, restoreBackup } from "../utils/backup";
+import { createBackup, restoreBackup, getAutomaticBackupHistory, getDeletionCountdown, type BackupHistoryItem } from "../utils/backup";
+import { getLogHistory, type LogHistoryItem } from "../utils/logHistory";
 import { ShortcutHelp } from "./ShortcutHelp";
 import { Tooltip } from "./Tooltip";
 import { VersionHistory } from "./VersionHistory";
@@ -38,6 +39,7 @@ import {
   resetLibraryToDefaults,
   subscribeToLibraryChanges,
   ensureLibraryOverridesLoaded,
+  getLocalizedLibraryColorLabel,
 } from "../utils/filamentLibrary";
 import type { FilamentFinish } from "../utils/filamentColors";
 import { getFinishLabel } from "../utils/filamentColors";
@@ -61,6 +63,7 @@ interface Props {
   setOffers: React.Dispatch<React.SetStateAction<Offer[]>>;
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
+  onFactoryReset?: () => void; // Callback a Factory Reset után
 }
 
 export const SettingsPage: React.FC<Props> = ({ 
@@ -73,7 +76,8 @@ export const SettingsPage: React.FC<Props> = ({
   offers,
   setOffers,
   theme,
-  themeStyles
+  themeStyles,
+  onFactoryReset
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
@@ -90,6 +94,10 @@ export const SettingsPage: React.FC<Props> = ({
   const [activeTab, setActiveTab] = useState<"general" | "display" | "advanced" | "data" | "library">("general");
   const [notificationPermissionGranted, setNotificationPermissionGranted] = useState<boolean | null>(null);
   const [hideMacOSWarningTemporarily, setHideMacOSWarningTemporarily] = useState(false); // Csak az aktuális session-re
+  const [showAutosaveModal, setShowAutosaveModal] = useState(false);
+  const [backupHistory, setBackupHistory] = useState<BackupHistoryItem[]>([]);
+  const [logHistory, setLogHistory] = useState<LogHistoryItem[]>([]);
+  const [previousAutosaveState, setPreviousAutosaveState] = useState<boolean | undefined>(settings.autosave);
   type LibraryDraft = {
     manufacturer: string;
     material: string;
@@ -258,6 +266,46 @@ export const SettingsPage: React.FC<Props> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showCompanyInfoDialog]);
 
+  // Helper függvény a backup history betöltéséhez
+  // Mindig betöltjük, függetlenül az autosave állapotától
+  const loadBackupHistory = useCallback(async () => {
+    try {
+      const history = await getAutomaticBackupHistory();
+      setBackupHistory(history);
+    } catch (error) {
+      console.error("❌ Hiba a backup history betöltésekor:", error);
+      setBackupHistory([]);
+    }
+  }, []);
+
+  // Backup history betöltése - mindig látható, függetlenül az autosave állapotától
+  useEffect(() => {
+    // Azonnal betöltjük
+    loadBackupHistory();
+    // Frissítjük 10 másodpercenként, hogy a countdown frissüljön
+    const interval = setInterval(loadBackupHistory, 10000);
+    return () => clearInterval(interval);
+  }, [loadBackupHistory]);
+
+  // Helper függvény a log history betöltéséhez
+  const loadLogHistory = useCallback(async () => {
+    try {
+      const history = await getLogHistory();
+      setLogHistory(history);
+    } catch (error) {
+      console.error("❌ Hiba a log history betöltésekor:", error);
+      setLogHistory([]);
+    }
+  }, []);
+
+  // Log history betöltése - betöltéskor és 30 másodpercenkénti frissítés
+  useEffect(() => {
+    loadLogHistory();
+    // Frissítjük 30 másodpercenként
+    const interval = setInterval(loadLogHistory, 30000);
+    return () => clearInterval(interval);
+  }, [loadLogHistory]);
+
   const ensureThemeSettings = (overrides?: Partial<ThemeSettings>): ThemeSettings => {
     const base: ThemeSettings = {
       customThemes,
@@ -294,16 +342,26 @@ export const SettingsPage: React.FC<Props> = ({
     });
   };
 
-  const handleThemeSelect = (themeName: ThemeName) => {
+  const handleThemeSelect = async (themeName: ThemeName) => {
     const isCustom = themeName.startsWith(CUSTOM_THEME_PREFIX);
     const nextThemeSettings = ensureThemeSettings({
       activeCustomThemeId: isCustom ? themeName.replace(CUSTOM_THEME_PREFIX, "") : undefined,
     });
-    onChange({
+    const newSettings = {
       ...settings,
       theme: themeName,
       themeSettings: nextThemeSettings,
-    });
+    };
+    onChange(newSettings);
+    // Azonnal mentjük a téma változást, hogy ne veszítse el az autosave backup során
+    try {
+      await saveSettings(newSettings);
+      if (import.meta.env.DEV) {
+        console.log("✅ Téma változtatva és azonnal mentve:", themeName);
+      }
+    } catch (error) {
+      console.error("❌ Hiba a téma mentésekor:", error);
+    }
   };
 
   // Értesítési engedély ellenőrzése betöltéskor
@@ -949,9 +1007,7 @@ export const SettingsPage: React.FC<Props> = ({
     const entry = libraryEntriesState.find(item => item.id === id);
     const descriptor =
       entry
-        ? `${entry.manufacturer ?? "?"} / ${entry.material ?? "?"} – ${
-            entry.labels?.[resolveBaseLanguage(settings.language)] ?? entry.color ?? entry.name ?? entry.labels?.en ?? id
-          }`
+        ? `${entry.manufacturer ?? "?"} / ${entry.material ?? "?"} – ${getLocalizedLibraryColorLabel(entry, settings.language) || id}`
         : id;
 
     openConfirmDialog({
@@ -1500,7 +1556,7 @@ export const SettingsPage: React.FC<Props> = ({
 
   const handleImport = async () => {
     if (!importFilaments && !importPrinters && !importOffers) {
-      showToast(t("settings.importError") + ": " + (settings.language === "hu" ? "Válassz ki legalább egy elemet!" : settings.language === "de" ? "Wählen Sie mindestens ein Element aus!" : "Select at least one item!"), "error");
+      showToast(t("settings.importError") + ": " + t("settings.data.selectOneItem"), "error");
       return;
     }
 
@@ -1582,7 +1638,7 @@ export const SettingsPage: React.FC<Props> = ({
       setImportOffers(false);
     } catch (error) {
       logWithLanguage(settings.language, "error", "settings.dataImport.error", { error });
-      showToast(t("settings.importError") + ": " + (settings.language === "hu" ? "Érvénytelen fájl formátum!" : settings.language === "de" ? "Ungültiges Dateiformat!" : "Invalid file format!"), "error");
+      showToast(t("settings.importError") + ": " + t("settings.data.invalidFileFormat"), "error");
     }
   };
 
@@ -1665,13 +1721,9 @@ export const SettingsPage: React.FC<Props> = ({
 
   const handleFactoryReset = () => {
     openConfirmDialog({
-      title: settings.language === "hu" ? "Visszaállítás alaphelyzetbe" : settings.language === "de" ? "Auf Werkseinstellungen zurücksetzen" : "Factory Reset",
-      message: settings.language === "hu" 
-        ? "⚠️ FIGYELEM! Ez a művelet törli az ÖSSZES tárolt adatot:\n\n• Nyomtatók\n• Filamentek\n• Árajánlatok\n• Ügyfelek\n• Beállítások\n• Template-ek\n• Ár előzmények\n\nEz a művelet VISSZAVONHATATLAN! Biztosan folytatja?"
-        : settings.language === "de"
-        ? "⚠️ WARNUNG! Diese Aktion löscht ALLE gespeicherten Daten:\n\n• Drucker\n• Filamente\n• Angebote\n• Kunden\n• Einstellungen\n• Vorlagen\n• Preisverlauf\n\nDiese Aktion ist UNWIDERRUFLICH! Möchten Sie wirklich fortfahren?"
-        : "⚠️ WARNING! This action will delete ALL stored data:\n\n• Printers\n• Filaments\n• Offers\n• Customers\n• Settings\n• Templates\n• Price History\n\nThis action is IRREVERSIBLE! Are you sure you want to continue?",
-      confirmText: settings.language === "hu" ? "Igen, törölj mindent" : settings.language === "de" ? "Ja, alles löschen" : "Yes, delete everything",
+      title: t("settings.backup.factoryResetTitle"),
+      message: t("settings.backup.factoryResetMessage"),
+      confirmText: t("settings.backup.factoryResetConfirm"),
       cancelText: t("common.cancel"),
       type: "danger",
       onConfirm: async () => {
@@ -1682,8 +1734,14 @@ export const SettingsPage: React.FC<Props> = ({
           setFilaments([]);
           setOffers([]);
           onChange(defaultSettings);
-          // Újraindítjuk az oldalt, hogy az app újra betöltődjön (mint első indítás)
-          window.location.reload();
+          
+          // Ha van callback, hívjuk meg (így az App.tsx manuálisan reseteli az állapotot)
+          if (onFactoryReset) {
+            onFactoryReset();
+          } else {
+            // Fallback: ha nincs callback, akkor reload (régi viselkedés)
+            window.location.reload();
+          }
         } catch (error) {
           console.error("Hiba a factory reset során:", error);
           showToast(
@@ -3059,7 +3117,7 @@ export const SettingsPage: React.FC<Props> = ({
         {activeTab === "advanced" && (
           <div>
         {/* Automatikus mentés */}
-        <div style={{ marginBottom: "24px" }}>
+        <div data-tutorial="autosave-section" style={{ marginBottom: "24px" }}>
           <Tooltip content={t("settings.autosaveDescription")}>
             <label style={{ 
               display: "flex", 
@@ -3072,8 +3130,23 @@ export const SettingsPage: React.FC<Props> = ({
             }}>
               <input
                 type="checkbox"
-                checked={settings.autosave !== false}
-                onChange={e => onChange({ ...settings, autosave: e.target.checked })}
+                checked={settings.autosave === true}
+                onChange={async (e) => {
+                  const newValue = e.target.checked;
+                  // Ha bekapcsoljuk az autosave-t, mutassuk a modal-t
+                  if (newValue && !previousAutosaveState) {
+                    setShowAutosaveModal(true);
+                  } else {
+                    onChange({ ...settings, autosave: newValue });
+                    // Ha bekapcsoljuk az autosave-t, azonnal betöltjük a backup history-t
+                  // Mindig betöltjük a backup history-t, függetlenül az autosave állapotától
+                  // Kis késleltetés, hogy biztosan betöltődjön
+                  setTimeout(() => {
+                    loadBackupHistory();
+                  }, 500);
+                  }
+                  setPreviousAutosaveState(newValue);
+                }}
                 style={{ width: "20px", height: "20px", cursor: "pointer" }}
               />
               <span>💾 {t("settings.autosave")}</span>
@@ -3082,7 +3155,7 @@ export const SettingsPage: React.FC<Props> = ({
           <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
             {t("settings.autosaveDescription")}
           </p>
-          {settings.autosave !== false && (
+          {settings.autosave === true && (
             <div style={{ marginTop: "12px", marginLeft: "32px" }}>
               <Tooltip content={t("settings.autosaveIntervalDescription")}>
                 <label style={{ 
@@ -3114,6 +3187,238 @@ export const SettingsPage: React.FC<Props> = ({
               </p>
             </div>
           )}
+
+          {/* Backup History - mindig látható, hasonlóan a log history-hoz */}
+          <div data-tutorial="backup-history-section" style={{ marginTop: "24px", marginLeft: "32px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <h3 style={{ 
+                fontSize: "16px", 
+                fontWeight: 600, 
+                color: theme.colors.text,
+                margin: 0
+              }}>
+                📋 {t("settings.backup.history.title")}
+              </h3>
+              <Tooltip content={settings.language === "hu" 
+                ? "Backup mappa megnyitása a fájlkezelőben" 
+                : settings.language === "de"
+                ? "Backup-Ordner im Datei-Explorer öffnen"
+                : "Open backup folder in file manager"}>
+                <button
+                  onClick={async () => {
+                    try {
+                      const backupDirPath = await invoke<string>("get_backup_directory_path");
+                      await invoke("open_directory", { path: backupDirPath });
+                    } catch (error) {
+                      console.error("Backup mappa megnyitási hiba:", error);
+                      showToast(
+                        settings.language === "hu" 
+                          ? "Hiba a backup mappa megnyitásakor"
+                          : settings.language === "de"
+                          ? "Fehler beim Öffnen des Backup-Ordners"
+                          : "Error opening backup folder",
+                        "error"
+                      );
+                    }
+                  }}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    padding: "6px 14px",
+                    fontSize: "12px",
+                  }}
+                >
+                  📁 {t("settings.backup.history.openFolder")}
+                </button>
+              </Tooltip>
+            </div>
+            
+            {/* Információs szöveg - megjelenítés, színezés, törlés magyarázata */}
+            <Tooltip content={t("settings.backup.history.clickToOpen")}>
+              <p style={{ 
+                marginBottom: "12px", 
+                fontSize: "12px", 
+                color: theme.colors.textMuted,
+                lineHeight: "1.5"
+              }}>
+                {t("settings.backup.history.description")}
+              </p>
+            </Tooltip>
+            
+            {/* Színezés magyarázata */}
+            <div style={{
+              marginBottom: "12px",
+              padding: "10px",
+              backgroundColor: `${theme.colors.primary}10`,
+              borderRadius: "8px",
+              border: `1px solid ${theme.colors.primary}30`,
+              fontSize: "11px",
+            }}>
+              <div style={{ 
+                fontWeight: 600, 
+                color: theme.colors.text,
+                marginBottom: "6px"
+              }}>
+                {t("settings.backup.history.colorExplanation")}
+              </div>
+              <div style={{ 
+                display: "flex", 
+                flexDirection: "column", 
+                gap: "4px",
+                color: theme.colors.textMuted 
+              }}>
+                <div>{t("settings.backup.history.colorGreen")}</div>
+                <div>{t("settings.backup.history.colorYellow")}</div>
+                <div>{t("settings.backup.history.colorRed")}</div>
+                <div>{t("settings.backup.history.colorGray")}</div>
+              </div>
+              <div style={{ 
+                marginTop: "8px", 
+                paddingTop: "8px",
+                borderTop: `1px solid ${theme.colors.border}40`,
+                fontSize: "10px",
+                fontStyle: "italic",
+                color: theme.colors.textMuted 
+              }}>
+                {t("settings.backup.history.deletionInfo")}
+              </div>
+            </div>
+            
+            {backupHistory.length > 0 ? (
+              <div style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                maxHeight: "300px",
+                overflowY: "auto",
+                padding: "8px",
+                backgroundColor: theme.colors.surface,
+                borderRadius: "8px",
+                border: `1px solid ${theme.colors.border}`,
+              }}>
+                {backupHistory.map((item, index) => {
+                  const getStatusColor = () => {
+                    if (item.daysOld === 0) return "#22c55e"; // Zöld - mai
+                    if (item.daysOld === 1) return "#eab308"; // Sárga - tegnap
+                    if (item.daysOld >= 2 && item.daysOld < 5) return "#ef4444"; // Piros - 2-4 nap
+                    return "#6b7280"; // Szürke - 5+ nap (hamarosan törlődik)
+                  };
+
+                  const getStatusText = () => {
+                    if (item.daysOld === 0) {
+                      return t("settings.backup.history.today");
+                    }
+                    if (item.daysOld === 1) {
+                      return t("settings.backup.history.yesterday");
+                    }
+                    if (item.daysOld >= 2 && item.daysOld < 5) {
+                      return t("settings.backup.history.daysAgo", { days: item.daysOld });
+                    }
+                    return t("settings.backup.history.daysAgoWillDelete", { days: item.daysOld });
+                  };
+
+                  const statusColor = getStatusColor();
+                  const dateStr = item.date.toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+
+                  return (
+                    <div
+                      key={index}
+                      onClick={async () => {
+                        try {
+                          await invoke("open_file", { path: item.filePath });
+                        } catch (error) {
+                          console.error("❌ Hiba a backup fájl megnyitásakor:", error);
+                          showToast(
+                            settings.language === "hu"
+                              ? "Hiba a backup fájl megnyitásakor"
+                              : settings.language === "de"
+                              ? "Fehler beim Öffnen der Backup-Datei"
+                              : "Error opening backup file",
+                            "error"
+                          );
+                        }
+                      }}
+                      style={{
+                        padding: "12px",
+                        borderRadius: "6px",
+                        backgroundColor: theme.colors.background,
+                        border: `2px solid ${statusColor}40`,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.colors.surface;
+                        e.currentTarget.style.transform = "translateX(4px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.colors.background;
+                        e.currentTarget.style.transform = "translateX(0)";
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ 
+                          fontSize: "13px", 
+                          fontWeight: 600, 
+                          color: statusColor,
+                          marginBottom: "4px"
+                        }}>
+                          {getStatusText()}
+                        </div>
+                        <div style={{ 
+                          fontSize: "11px", 
+                          color: theme.colors.textMuted 
+                        }}>
+                          {dateStr}
+                        </div>
+                        {item.willBeDeletedIn > 0 && item.willBeDeletedIn < 5 && (
+                          <div style={{ 
+                            fontSize: "10px", 
+                            color: "#ef4444",
+                            marginTop: "4px",
+                            fontStyle: "italic"
+                          }}>
+                            {t("settings.backup.history.willBeDeletedIn", { countdown: getDeletionCountdown(item.willBeDeletedIn) })}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ 
+                        fontSize: "16px", 
+                        color: theme.colors.textMuted,
+                        marginLeft: "8px"
+                      }}>
+                        📂
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{
+                padding: "16px",
+                backgroundColor: theme.colors.surface,
+                borderRadius: "8px",
+                border: `1px solid ${theme.colors.border}`,
+                textAlign: "center",
+                color: theme.colors.textMuted,
+                fontSize: "14px",
+              }}>
+                {settings.language === "hu" 
+                  ? "Még nincsenek automatikus backup fájlok. Az automatikus backup fájlok akkor jönnek létre, amikor az autosave be van kapcsolva és az alkalmazás mentést végez." 
+                  : settings.language === "de"
+                  ? "Noch keine automatischen Backup-Dateien vorhanden. Automatische Backup-Dateien werden erstellt, wenn Autosave aktiviert ist und die Anwendung speichert."
+                  : "No automatic backup files yet. Automatic backup files will be created when autosave is enabled and the application saves."}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Tutorial beállítások */}
@@ -3248,7 +3553,7 @@ export const SettingsPage: React.FC<Props> = ({
               {getPlatform() === "macos" && notificationPermissionGranted === false && (
                 <div style={{ marginTop: "12px", padding: "12px", borderRadius: "6px", backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}` }}>
                   <p style={{ marginBottom: "8px", fontSize: "14px", color: theme.colors.text, fontWeight: "500" }}>
-                    ⚠️ {settings.language === "hu" ? "Értesítési engedély szükséges" : "Notification permission required"}
+                    ⚠️ {t("settings.notifications.permissionRequired")}
                   </p>
                   <p style={{ marginBottom: "12px", fontSize: "12px", color: theme.colors.textMuted }}>
                     {settings.language === "hu" 
@@ -3268,42 +3573,32 @@ export const SettingsPage: React.FC<Props> = ({
                             await new Promise(resolve => setTimeout(resolve, 500));
                             
                             await sendNativeNotification(
-                              settings.language === "hu" ? "Engedély megadva" : "Permission granted",
-                              settings.language === "hu" 
-                                ? "Az alkalmazás most már megjelenik az Értesítések beállításokban."
-                                : "The app will now appear in Notification Settings."
+                              t("settings.notifications.permissionGrantedTitle"),
+                              t("settings.notifications.permissionGrantedBody")
                             );
                             
                             showToast(
-                              settings.language === "hu" 
-                                ? "Értesítési engedély megadva! Teszt értesítés elküldve. Ha nem látod, próbáld meg az alkalmazást háttérbe küldeni (Cmd+H)."
-                                : "Notification permission granted! Test notification sent. If you don't see it, try hiding the app (Cmd+H).",
+                              t("settings.notifications.permissionGrantedToast"),
                               "success"
                             );
                           } catch (notifError) {
                             // Ha az értesítés küldése sikertelen, az nem baj, az engedély mégis megadva
                             console.error("Teszt értesítés küldése sikertelen:", notifError);
                             showToast(
-                              settings.language === "hu" 
-                                ? "Értesítési engedély megadva, de az értesítés küldése sikertelen. Próbáld meg az alkalmazást háttérbe küldeni (Cmd+H) és újra küldeni az értesítést."
-                                : "Notification permission granted, but sending notification failed. Try hiding the app (Cmd+H) and sending notification again.",
+                              t("settings.notifications.permissionGrantedButFailed"),
                               "warning"
                             );
                           }
                         } else {
                           showToast(
-                            settings.language === "hu" 
-                              ? "Értesítési engedély megtagadva. Engedélyezd a Rendszerbeállításokban."
-                              : "Notification permission denied. Enable it in System Settings.",
+                            t("settings.notifications.permissionDenied"),
                             "error"
                           );
                         }
                       } catch (error) {
                         console.error("Engedély kérése sikertelen:", error);
                         showToast(
-                          settings.language === "hu" 
-                            ? "Engedély kérése sikertelen"
-                            : "Failed to request permission",
+                          t("settings.notifications.requestFailed"),
                           "error"
                         );
                       }
@@ -3319,7 +3614,7 @@ export const SettingsPage: React.FC<Props> = ({
                       fontWeight: "500",
                     }}
                   >
-                    🔐 {settings.language === "hu" ? "Engedély kérése" : "Request Permission"}
+                    🔐 {t("settings.notifications.requestPermission")}
                   </button>
                 </div>
               )}
@@ -3328,7 +3623,7 @@ export const SettingsPage: React.FC<Props> = ({
               {getPlatform() === "macos" && notificationPermissionGranted === true && (
                 <div style={{ marginTop: "12px", padding: "8px 12px", borderRadius: "6px", backgroundColor: theme.colors.success + "20", border: `1px solid ${theme.colors.success}` }}>
                   <p style={{ fontSize: "12px", color: theme.colors.success, fontWeight: "500", marginBottom: "4px" }}>
-                    ✅ {settings.language === "hu" ? "Értesítési engedély megadva" : "Notification permission granted"}
+                    ✅ {t("settings.notifications.permissionGrantedMessage")}
                   </p>
                   <p style={{ fontSize: "11px", color: theme.colors.textMuted, fontStyle: "italic" }}>
                     💡 {settings.language === "hu" 
@@ -3390,7 +3685,7 @@ export const SettingsPage: React.FC<Props> = ({
                     fontWeight: "500",
                   }}
                 >
-                  🔔 {settings.language === "hu" ? "Értesítés tesztelése" : "Test Notification"}
+                  🔔 {t("settings.notifications.testNotification")}
                 </button>
                 
                 {getPlatform() === "macos" && (
@@ -3419,7 +3714,7 @@ export const SettingsPage: React.FC<Props> = ({
                       fontWeight: "500",
                     }}
                   >
-                    🏷️ {settings.language === "hu" ? "Dock badge tesztelése" : "Test Dock Badge"}
+                    🏷️ {t("settings.notifications.testDockBadge")}
                   </button>
                 )}
               </div>
@@ -3454,26 +3749,18 @@ export const SettingsPage: React.FC<Props> = ({
                       e.currentTarget.style.backgroundColor = "transparent";
                       e.currentTarget.style.color = theme.colors.textMuted;
                     }}
-                    title={settings.language === "hu" ? "Bezárás (újraindítás után újra megjelenik)" : settings.language === "de" ? "Schließen (erscheint nach Neustart wieder)" : "Close (will reappear after restart)"}
+                    title={t("settings.notifications.closeWillReappear")}
                   >
                     ✕
                   </button>
                   <p style={{ fontSize: "12px", color: theme.colors.textMuted, marginBottom: "8px", fontWeight: "500", paddingRight: "35px" }}>
-                    ⚠️ {settings.language === "hu" ? "macOS értesítések korlátozásai:" : "macOS notifications limitations:"}
+                    ⚠️ {t("settings.notifications.macOSLimitations")}
                   </p>
                   <ul style={{ fontSize: "11px", color: theme.colors.textMuted, marginLeft: "16px", lineHeight: "1.6", marginBottom: "12px" }}>
-                    <li>{settings.language === "hu" 
-                      ? "Dev módban az értesítések nem mindig jelennek meg natív módon (code signing hiánya miatt)."
-                      : "In dev mode, notifications may not always appear natively (due to missing code signing)."}</li>
-                    <li>{settings.language === "hu" 
-                      ? "Production build-ben az értesítések megfelelően működnek, ha az alkalmazás code signing-al van aláírva."
-                      : "In production build, notifications work properly if the app is code signed."}</li>
-                    <li>{settings.language === "hu" 
-                      ? "Az értesítések csak akkor jelennek meg natív módon, ha az alkalmazás nem aktív (háttérben van)."
-                      : "Notifications only appear natively when the app is inactive (in background)."}</li>
-                    <li>{settings.language === "hu" 
-                      ? "Az alkalmazás megjelenik a Rendszerbeállítások > Értesítések és fókusz menüben production build után."
-                      : "The app will appear in System Settings > Notifications & Focus after production build."}</li>
+                    <li>{t("settings.notifications.devModeWarning")}</li>
+                    <li>{t("settings.notifications.productionBuildInfo")}</li>
+                    <li>{t("settings.notifications.backgroundOnly")}</li>
+                    <li>{t("settings.notifications.systemSettingsInfo")}</li>
                   </ul>
                   <button
                     onClick={async () => {
@@ -3503,7 +3790,7 @@ export const SettingsPage: React.FC<Props> = ({
                       marginTop: "8px",
                     }}
                   >
-                    {settings.language === "hu" ? "Bezárás és ne mutasd többet" : settings.language === "de" ? "Schließen und nicht mehr anzeigen" : "Close and don't show again"}
+                    {t("settings.notifications.closeAndDontShow")}
                   </button>
                 </div>
               )}
@@ -3520,10 +3807,10 @@ export const SettingsPage: React.FC<Props> = ({
             fontSize: "16px", 
             color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
           }}>
-            ⚙️ {settings.language === "hu" ? "Egyéb beállítások" : settings.language === "de" ? "Sonstige Einstellungen" : "Other Settings"}
+            ⚙️ {t("settings.otherSettings")}
           </label>
           <p style={{ marginBottom: "16px", fontSize: "12px", color: theme.colors.textMuted }}>
-            {settings.language === "hu" ? "Gyorsbillentyűk megtekintése és verzió előzmények" : settings.language === "de" ? "Tastaturkürzel anzeigen und Versionsverlauf" : "View keyboard shortcuts and version history"}
+            {t("settings.otherSettingsDescription")}
           </p>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             <Tooltip content={t("settings.shortcutsDescription")}>
@@ -3538,7 +3825,7 @@ export const SettingsPage: React.FC<Props> = ({
                 ⌨️ {t("shortcuts.title")}
               </button>
             </Tooltip>
-            <Tooltip content={settings.language === "hu" ? "Verzió előzmények megjelenítése" : settings.language === "de" ? "Versionsverlauf anzeigen" : "Show version history"}>
+            <Tooltip content={t("settings.versionHistoryTooltip")}>
               <button
                 onClick={() => setShowVersionHistory(true)}
                 style={{
@@ -3547,7 +3834,7 @@ export const SettingsPage: React.FC<Props> = ({
                   minWidth: "180px",
                 }}
               >
-                📋 {settings.language === "hu" ? "Verzió előzmények" : settings.language === "de" ? "Versionsverlauf" : "Version History"}
+                📋 {t("settings.versionHistory")}
               </button>
             </Tooltip>
           </div>
@@ -3570,15 +3857,22 @@ export const SettingsPage: React.FC<Props> = ({
             💾 {t("settings.backup")}
           </label>
           <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
-            {settings.language === "hu" ? "Készíts biztonsági mentést az összes adatról vagy állítsd vissza egy korábbi állapotot" : settings.language === "de" ? "Erstellen Sie eine Sicherungskopie aller Daten oder stellen Sie einen früheren Zustand wieder her" : "Create a backup of all data or restore a previous state"}
+            {t("settings.backup.description")}
           </p>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            <Tooltip content={settings.language === "hu" ? "Mentés az összes adatot egy JSON fájlba" : settings.language === "de" ? "Speichern Sie alle Daten in einer JSON-Datei" : "Save all data to a JSON file"}>
+            <Tooltip content={t("settings.backup.exportTooltip")}>
               <button
                 onClick={async () => {
                   try {
-                    const filePath = await createBackup(printers, filaments, offers, settings);
-                    if (filePath) {
+                    const result = await createBackup(printers, filaments, offers, settings);
+                    if (result) {
+                      // Frissítjük a lastBackupDate-et
+                      const updatedSettings = {
+                        ...settings,
+                        lastBackupDate: result.timestamp,
+                      };
+                      await saveSettings(updatedSettings);
+                      onChange(updatedSettings);
                       showToast(t("backup.createSuccess"), "success");
                     }
                   } catch (error) {
@@ -3595,7 +3889,7 @@ export const SettingsPage: React.FC<Props> = ({
                 💾 {t("settings.backupCreate")}
               </button>
             </Tooltip>
-            <Tooltip content={settings.language === "hu" ? "Visszaállítás egy korábbi backup fájlból" : settings.language === "de" ? "Wiederherstellen aus einer früheren Backup-Datei" : "Restore from a previous backup file"}>
+            <Tooltip content={t("settings.backup.importTooltip")}>
               <button
                 onClick={handleRestoreBackupClick}
                 style={{
@@ -3627,20 +3921,12 @@ export const SettingsPage: React.FC<Props> = ({
             fontSize: "18px", 
             color: theme.colors.danger || "#e74c3c"
           }}>
-            ⚠️ {settings.language === "hu" ? "Visszaállítás alaphelyzetbe" : settings.language === "de" ? "Auf Werkseinstellungen zurücksetzen" : "Factory Reset"}
+            ⚠️ {t("settings.backup.factoryReset")}
           </label>
           <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
-            {settings.language === "hu" 
-              ? "Ez a művelet törli az ÖSSZES tárolt adatot és visszaállítja az alkalmazást az alapértelmezett beállításokra. Az alkalmazás újraindul, mintha most indítanád először."
-              : settings.language === "de"
-              ? "Diese Aktion löscht ALLE gespeicherten Daten und setzt die Anwendung auf die Standardeinstellungen zurück. Die Anwendung startet neu, als ob Sie sie zum ersten Mal starten würden."
-              : "This action will delete ALL stored data and reset the application to default settings. The application will restart as if you were starting it for the first time."}
+            {t("settings.backup.factoryResetDescription")}
           </p>
-          <Tooltip content={settings.language === "hu" 
-            ? "Visszaállítás alaphelyzetbe - törli az összes adatot" 
-            : settings.language === "de"
-            ? "Auf Werkseinstellungen zurücksetzen - löscht alle Daten"
-            : "Factory reset - deletes all data"}>
+          <Tooltip content={t("settings.backup.factoryResetTooltip")}>
             <button
               onClick={handleFactoryReset}
               style={{
@@ -3661,7 +3947,7 @@ export const SettingsPage: React.FC<Props> = ({
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
-              🔄 {settings.language === "hu" ? "Visszaállítás alaphelyzetbe" : settings.language === "de" ? "Auf Werkseinstellungen zurücksetzen" : "Factory Reset"}
+              🔄 {t("settings.backup.factoryReset")}
             </button>
           </Tooltip>
         </div>
@@ -3678,14 +3964,10 @@ export const SettingsPage: React.FC<Props> = ({
             fontSize: "18px", 
             color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
           }}>
-            📋 {settings.language === "hu" ? "Log fájlok kezelése" : settings.language === "de" ? "Log-Dateien verwalten" : "Log Files Management"}
+            📋 {t("settings.logs.title")}
           </label>
           <p style={{ marginBottom: "20px", fontSize: "14px", color: theme.colors.textMuted }}>
-            {settings.language === "hu" 
-              ? "Beállíthatod, hogy hány napnál régebbi log fájlokat töröljön automatikusan az alkalmazás."
-              : settings.language === "de"
-              ? "Sie können festlegen, wie viele Tage alte Log-Dateien die Anwendung automatisch löschen soll."
-              : "You can set how many days old log files the application should automatically delete."}
+            {t("settings.logs.description")}
           </p>
           
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -3698,7 +3980,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontSize: "14px", 
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
               }}>
-                {settings.language === "hu" ? "Törlés régebbi log fájlok" : settings.language === "de" ? "Löschen alter Log-Dateien" : "Delete old log files"}
+                {t("settings.logs.deleteOld")}
               </label>
               <select
                 value={settings.logRetentionDays ?? 0}
@@ -3743,13 +4025,13 @@ export const SettingsPage: React.FC<Props> = ({
                   maxWidth: "300px",
                 }}
               >
-                <option value="0">{settings.language === "hu" ? "Soha ne törölje" : settings.language === "de" ? "Niemals löschen" : "Never delete"}</option>
-                <option value="5">5 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
-                <option value="10">10 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
-                <option value="15">15 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
-                <option value="30">30 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
-                <option value="60">60 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
-                <option value="90">90 {settings.language === "hu" ? "napnál régebbiek" : settings.language === "de" ? "Tage oder älter" : "days or older"}</option>
+                <option value="0">{t("settings.logs.neverDelete")}</option>
+                <option value="5">5 {t("settings.logs.daysOrOlder")}</option>
+                <option value="10">10 {t("settings.logs.daysOrOlder")}</option>
+                <option value="15">15 {t("settings.logs.daysOrOlder")}</option>
+                <option value="30">30 {t("settings.logs.daysOrOlder")}</option>
+                <option value="60">60 {t("settings.logs.daysOrOlder")}</option>
+                <option value="90">90 {t("settings.logs.daysOrOlder")}</option>
               </select>
             </div>
             
@@ -3762,7 +4044,7 @@ export const SettingsPage: React.FC<Props> = ({
                 fontSize: "14px", 
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
               }}>
-                {settings.language === "hu" ? "Log fájlok helye" : settings.language === "de" ? "Log-Dateien Speicherort" : "Log files location"}
+                {t("settings.logs.location")}
               </label>
               <Tooltip content={settings.language === "hu" 
                 ? "Log mappa megnyitása a fájlkezelőben" 
@@ -3793,10 +4075,125 @@ export const SettingsPage: React.FC<Props> = ({
                     fontSize: "14px",
                   }}
                 >
-                  📁 {settings.language === "hu" ? "Log mappa megnyitása" : settings.language === "de" ? "Log-Ordner öffnen" : "Open Log Folder"}
+                  📁 {t("settings.logs.openFolder")}
                 </button>
               </Tooltip>
             </div>
+          </div>
+
+          {/* Log History - log fájlok listája */}
+          <div style={{ marginTop: "24px" }}>
+            <h3 style={{ 
+              fontSize: "16px", 
+              fontWeight: 600, 
+              color: theme.colors.text,
+              marginBottom: "12px"
+            }}>
+              📋 {settings.language === "hu" ? "Log történet" : settings.language === "de" ? "Log-Verlauf" : "Log History"}
+            </h3>
+            {logHistory.length > 0 ? (
+              <div style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                maxHeight: "300px",
+                overflowY: "auto",
+                padding: "8px",
+                backgroundColor: theme.colors.surface,
+                borderRadius: "8px",
+                border: `1px solid ${theme.colors.border}`,
+              }}>
+                {logHistory.map((item, index) => {
+                  const dateStr = item.date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                  });
+
+                  return (
+                    <div
+                      key={index}
+                      onClick={async () => {
+                        try {
+                          await invoke("open_file", { path: item.filePath });
+                        } catch (error) {
+                          console.error("❌ Hiba a log fájl megnyitásakor:", error);
+                          showToast(
+                            settings.language === "hu"
+                              ? "Hiba a log fájl megnyitásakor"
+                              : settings.language === "de"
+                              ? "Fehler beim Öffnen der Log-Datei"
+                              : "Error opening log file",
+                            "error"
+                          );
+                        }
+                      }}
+                      style={{
+                        padding: "12px",
+                        borderRadius: "6px",
+                        backgroundColor: theme.colors.background,
+                        border: `1px solid ${theme.colors.border}`,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.colors.surface;
+                        e.currentTarget.style.transform = "translateX(4px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.colors.background;
+                        e.currentTarget.style.transform = "translateX(0)";
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ 
+                          fontSize: "13px", 
+                          fontWeight: 600, 
+                          color: theme.colors.text,
+                          marginBottom: "4px"
+                        }}>
+                          {item.type === "frontend" 
+                            ? (settings.language === "hu" ? "Frontend log" : settings.language === "de" ? "Frontend-Log" : "Frontend log")
+                            : (settings.language === "hu" ? "Backend log" : settings.language === "de" ? "Backend-Log" : "Backend log")}
+                        </div>
+                        <div style={{ 
+                          fontSize: "11px", 
+                          color: theme.colors.textMuted 
+                        }}>
+                          {dateStr} • {item.fileName}
+                        </div>
+                      </div>
+                      <div style={{ 
+                        fontSize: "16px", 
+                        color: theme.colors.textMuted,
+                        marginLeft: "8px"
+                      }}>
+                        📂
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{
+                padding: "16px",
+                backgroundColor: theme.colors.surface,
+                borderRadius: "8px",
+                border: `1px solid ${theme.colors.border}`,
+                textAlign: "center",
+                color: theme.colors.textMuted,
+                fontSize: "14px",
+              }}>
+                {settings.language === "hu" 
+                  ? "Még nincsenek log fájlok. A log fájlok automatikusan létrejönnek, amikor az alkalmazás használatban van." 
+                  : settings.language === "de"
+                  ? "Noch keine Log-Dateien vorhanden. Log-Dateien werden automatisch erstellt, wenn die Anwendung verwendet wird."
+                  : "No log files yet. Log files will be created automatically when the application is in use."}
+              </div>
+            )}
           </div>
         </div>
 
@@ -3882,7 +4279,7 @@ export const SettingsPage: React.FC<Props> = ({
             </label>
           </div>
 
-          <Tooltip content={settings.language === "hu" ? "Adatok exportálása JSON fájlba" : settings.language === "de" ? "Daten in JSON-Datei exportieren" : "Export data to JSON file"}>
+          <Tooltip content={t("settings.data.exportTooltip")}>
             <button
               onClick={handleExport}
               onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
@@ -3915,7 +4312,7 @@ export const SettingsPage: React.FC<Props> = ({
             {t("settings.importDescription")}
           </p>
           <p style={{ marginBottom: "16px", fontSize: "12px", color: "#dc3545", fontWeight: "600" }}>
-            ⚠️ {settings.language === "hu" ? "Figyelem: Az importálás felülírja a jelenlegi adatokat!" : settings.language === "de" ? "Warnung: Der Import überschreibt die aktuellen Daten!" : "Warning: Import will overwrite current data!"}
+            ⚠️ {t("settings.data.importWarning")}
           </p>
           
           <div style={{ marginBottom: "20px" }}>
@@ -4287,13 +4684,10 @@ export const SettingsPage: React.FC<Props> = ({
                           }} />
                           <div style={{ flex: "1", minWidth: "180px" }}>
                             <div style={{ fontWeight: 600, color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                              {entry.color || entry.name}
+                              {getLocalizedLibraryColorLabel(entry, settings.language) || entry.color || entry.name}
                             </div>
                             <div style={{ fontSize: "12px", color: theme.colors.textMuted }}>
-                              {[entry.labels?.hu, entry.labels?.en, entry.labels?.de]
-                                .map(label => label?.trim())
-                                .filter((label, index, array) => label && array.indexOf(label) === index)
-                                .join(" • ")}
+                              {entry.manufacturer || ""} / {entry.material || ""}
                             </div>
                           </div>
                           <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
@@ -4646,6 +5040,141 @@ export const SettingsPage: React.FC<Props> = ({
         </motion.div>
         )}
       </AnimatePresence>
+      {/* Autosave Info Modal */}
+      <AnimatePresence>
+        {showAutosaveModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 10000,
+            }}
+            onClick={() => {
+              setShowAutosaveModal(false);
+              // Visszaállítjuk a checkbox-ot
+              setPreviousAutosaveState(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 24 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              style={{
+                backgroundColor: theme.colors.surface,
+                borderRadius: "16px",
+                padding: "28px",
+                maxWidth: "500px",
+                width: "90%",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+                border: `1px solid ${theme.colors.border}`,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 style={{ 
+                margin: "0 0 16px 0", 
+                color: theme.colors.text, 
+                fontSize: "20px", 
+                fontWeight: "700" 
+              }}>
+                {settings.language === "hu" 
+                  ? "ℹ️ Automatikus mentés információ"
+                  : settings.language === "de"
+                  ? "ℹ️ Automatische Speicherung Information"
+                  : "ℹ️ Autosave Information"}
+              </h3>
+              <div style={{ marginBottom: "20px" }}>
+                <p style={{ 
+                  margin: "0 0 12px 0", 
+                  color: theme.colors.text, 
+                  fontSize: "14px", 
+                  lineHeight: "1.6" 
+                }}>
+                  {settings.language === "hu"
+                    ? "Az automatikus mentés menti a beállításokat és készít egy auto_backup fájlt mindig az aktuális állapotról."
+                    : settings.language === "de"
+                    ? "Die automatische Speicherung speichert die Einstellungen und erstellt eine auto_backup-Datei immer vom aktuellen Zustand."
+                    : "Autosave saves your settings and creates an auto_backup file of the current state."}
+                </p>
+                <div style={{
+                  padding: "12px",
+                  backgroundColor: "#ffc10720",
+                  borderRadius: "8px",
+                  border: "1px solid #ffc107",
+                  marginTop: "12px",
+                }}>
+                  <p style={{ 
+                    margin: 0, 
+                    color: "#ffc107", 
+                    fontSize: "13px", 
+                    fontWeight: 600,
+                    lineHeight: "1.5"
+                  }}>
+                    ⚠️ {settings.language === "hu"
+                      ? "Ez nem helyettesíti a rendszeres mentést!"
+                      : settings.language === "de"
+                      ? "Dies ersetzt nicht die regelmäßige Sicherung!"
+                      : "This does not replace regular backups!"}
+                  </p>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+                <button
+                  onClick={() => {
+                    setShowAutosaveModal(false);
+                    setPreviousAutosaveState(false);
+                  }}
+                  style={{
+                    padding: "10px 20px",
+                    borderRadius: "8px",
+                    border: `1px solid ${theme.colors.border}`,
+                    backgroundColor: theme.colors.surface,
+                    color: theme.colors.text,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {t("settings.autosave.modal.cancel")}
+                </button>
+                <button
+                  onClick={async () => {
+                    onChange({ ...settings, autosave: true });
+                    setShowAutosaveModal(false);
+                    // Azonnal betöltjük a backup history-t (kis késleltetéssel, hogy biztosan betöltődjön)
+                    setTimeout(() => {
+                      loadBackupHistory();
+                    }, 500);
+                  }}
+                  style={{
+                    padding: "10px 20px",
+                    borderRadius: "8px",
+                    border: "none",
+                    backgroundColor: theme.colors.primary,
+                    color: "#fff",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {t("settings.autosave.modal.ok")}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <ConfirmDialog
         isOpen={confirmDialogConfig !== null}
         title={confirmDialogConfig?.title ?? ""}

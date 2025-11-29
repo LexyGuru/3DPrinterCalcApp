@@ -955,6 +955,15 @@ export const languageEn: TranslationMap = {
   "backup.restoreError": "Error restoring backup",
   "backup.invalidFile": "Invalid backup file",
   "backup.confirmRestore": "Are you sure you want to restore the backup? This will overwrite current data.",
+  "backup.reminder.never": "💾 You haven't created a backup yet! It's recommended to regularly back up your data.",
+  "backup.reminder.oneDay": "💾 You haven't created a backup in 1 day. It's recommended to back up your data.",
+  "backup.reminder.multipleDays": "💾 You haven't created a backup in {{days}} days. It's recommended to back up your data.",
+  "backup.reminder.minutes": "💾 You haven't created a backup in {{minutes}} minutes. It's recommended to back up your data.",
+  "backup.reminder.hours": "💾 You haven't created a backup in {{hours}} hours. It's recommended to back up your data.",
+  "backup.reminder.weeks": "💾 You haven't created a backup in {{weeks}} weeks. It's recommended to back up your data.",
+  "backup.reminder.months": "💾 You haven't created a backup in {{months}} months. It's recommended to back up your data.",
+  "backup.reminder.years": "💾 You haven't created a backup in {{years}} years. It's recommended to back up your data.",
+  "backup.reminder.today": "💾 You haven't created a backup today! It's recommended to back up your data.",
   // Filament stock management
   "filamentStock.title": "Filament Stock Management",
   "filamentStock.subtitle": "Monitor and manage filament stock levels",
@@ -1119,6 +1128,14 @@ export const languageEn: TranslationMap = {
   "tutorial.previous": "Previous",
   "tutorial.skip": "Skip",
   "tutorial.finish": "Finish",
+  "tutorial.widgetInteractivity.title": "Chart interactivity",
+  "tutorial.widgetInteractivity.description": "You can click on charts to get detailed views. You can use period filtering directly from the chart (weekly/monthly/yearly switch) and export them in SVG format.",
+  "tutorial.filamentLibraryMultilang.title": "Multilingual color names",
+  "tutorial.filamentLibraryMultilang.description": "Filament color names automatically appear in your selected language! The application supports color names in 14 languages, making it easy to navigate the library.",
+  "tutorial.tableSorting.title": "Table filtering and sorting",
+  "tutorial.tableSorting.description": "In tables, you can sort and filter by columns. You can sort by multiple columns at once, and sorting settings are saved. Virtual scrolling is also available for large lists.",
+  "tutorial.autosaveBackup.title": "Automatic save and backup",
+  "tutorial.autosaveBackup.description": "The automatic save feature creates a backup file once a day of all your data. In the backup history, you can see previous backups with color-coded indicators (green=today, yellow=yesterday, red=2-4 days, gray=5+ days, will be deleted soon).",
   
   // Widget elements
   "widget.manager.title": "Widget Manager",
@@ -1179,5 +1196,116 @@ export const languageEn: TranslationMap = {
   "loading.offers": "Loading offers...",
   "loading.customers": "Loading customers...",
   "loading.initialization": "Initializing...",
+  "loading.info": "The application is loading your saved data (printers, filaments, offers, customers) from storage.",
+  
+  // Settings - Backup History
+  "settings.backup.history.title": "Automatic Backup History",
+  "settings.backup.history.today": "Today",
+  "settings.backup.history.yesterday": "Yesterday",
+  "settings.backup.history.daysAgo": "{days} days ago",
+  "settings.backup.history.daysAgoWillDelete": "{days} days ago (will be deleted soon)",
+  "settings.backup.history.willBeDeletedIn": "Will be deleted in: {countdown}",
+  "settings.backup.history.description": "Automatic backup files are created once per day when autosave is enabled. Files are automatically deleted after 5 days.",
+  "settings.backup.history.colorExplanation": "Color coding explanation:",
+  "settings.backup.history.colorGreen": "🟢 Green - Today's backup",
+  "settings.backup.history.colorYellow": "🟡 Yellow - Yesterday's backup",
+  "settings.backup.history.colorRed": "🔴 Red - 2-4 days old backup",
+  "settings.backup.history.colorGray": "⚪ Gray - 5+ days old backup (will be deleted soon)",
+  "settings.backup.history.deletionInfo": "Backup files are automatically deleted after 5 days. Click on a file to open it.",
+  "settings.backup.history.clickToOpen": "Click on a backup file to open it",
+  "settings.backup.history.openFolder": "Open Backup Folder",
+  
+  // Settings - Notifications
+  "settings.notifications.permissionRequired": "Notification permission required",
+  "settings.notifications.permissionGranted": "Permission granted",
+  "settings.notifications.requestPermission": "Request Permission",
+  "settings.notifications.permissionGrantedMessage": "Notification permission granted",
+  "settings.notifications.testNotification": "Test Notification",
+  "settings.notifications.testDockBadge": "Test Dock Badge",
+  "settings.notifications.macOSLimitations": "macOS notifications limitations:",
+  "settings.notifications.closeAndDontShow": "Close and don't show again",
+  "settings.notifications.closeWillReappear": "Close (will reappear after restart)",
+  
+  // Settings - Other Settings
+  "settings.otherSettings": "Other Settings",
+  "settings.otherSettingsDescription": "View keyboard shortcuts and version history",
+  "settings.versionHistory": "Version History",
+  "settings.versionHistoryTooltip": "Show version history",
+  
+  // Settings - Backup & Restore
+  "settings.backup.description": "Create a backup of all data or restore a previous state",
+  "settings.backup.exportTooltip": "Save all data to a JSON file",
+  "settings.backup.importTooltip": "Restore from a previous backup file",
+  "settings.backup.factoryReset": "Factory Reset",
+  "settings.backup.factoryResetTitle": "Factory Reset",
+  "settings.backup.factoryResetMessage": "⚠️ WARNING! This action will delete ALL stored data:\n\n• Printers\n• Filaments\n• Offers\n• Customers\n• Settings\n• Templates\n• Price History\n• Automatic backup files\n\nThis action is IRREVERSIBLE! Are you sure you want to continue?",
+  "settings.backup.factoryResetConfirm": "Yes, delete everything",
+  
+  // Settings - Log Management
+  "settings.logs.title": "Log Files Management",
+  "settings.logs.description": "You can set how many days old log files the application should automatically delete.",
+  "settings.logs.deleteOld": "Delete old log files",
+  "settings.logs.neverDelete": "Never delete",
+  "settings.logs.daysOrOlder": "days or older",
+  "settings.logs.location": "Log files location",
+  "settings.logs.openFolder": "Open Log Folder",
+  
+  // Settings - Data Export/Import
+  "settings.data.exportTooltip": "Export data to JSON file",
+  "settings.data.importWarning": "Warning: Import will overwrite current data!",
+  "settings.data.selectOneItem": "Select at least one item!",
+  "settings.data.invalidFileFormat": "Invalid file format!",
+  
+  // Settings - Autosave Modal
+  "settings.autosave.modal.cancel": "Cancel",
+  "settings.autosave.modal.ok": "OK",
+  
+  // Settings - Notification Messages
+  "settings.notifications.permissionGrantedTitle": "Permission granted",
+  "settings.notifications.permissionGrantedBody": "The app will now appear in Notification Settings.",
+  "settings.notifications.permissionGrantedToast": "Notification permission granted! Test notification sent. If you don't see it, try hiding the app (Cmd+H).",
+  "settings.notifications.permissionGrantedButFailed": "Notification permission granted, but sending notification failed. Try hiding the app (Cmd+H) and sending notification again.",
+  "settings.notifications.permissionDenied": "Notification permission denied. Enable it in System Settings.",
+  "settings.notifications.requestFailed": "Failed to request permission",
+  "settings.notifications.devModeWarning": "In dev mode, notifications may not always appear natively (due to missing code signing).",
+  "settings.notifications.productionBuildInfo": "In production build, notifications work properly if the app is code signed.",
+  "settings.notifications.backgroundOnly": "Notifications only appear natively when the app is inactive (in background).",
+  "settings.notifications.systemSettingsInfo": "The app will appear in System Settings > Notifications & Focus after production build.",
+  
+  // Settings - Factory Reset
+  "settings.backup.factoryResetDescription": "This action will delete ALL stored data and reset the application to default settings. The application will restart as if you were starting it for the first time.",
+  "settings.backup.factoryResetTooltip": "Factory reset - deletes all data",
+  
+  // Common - Header
+  "common.nextSave": "Next save",
+  "common.lastSaved": "Last saved",
+  "common.currentDate": "Current date",
+  "common.noBackupYet": "No backup yet",
+  "common.justSaved": "Just saved",
+  
+  // Common - Time Ago
+  "common.timeAgo.years": "{count} years ago",
+  "common.timeAgo.months": "{count} months ago",
+  "common.timeAgo.weeks": "{count} weeks ago",
+  "common.timeAgo.days": "{count} days ago",
+  "common.timeAgo.hours": "{count} hours ago",
+  "common.timeAgo.minutes": "{count} minutes ago",
+  
+  // Header - Autosave
+  "header.autosave.notSavedYet": "Not saved yet",
+  "header.autosave.justSaved": "Just saved",
+  "header.autosave.saveInSeconds": "Save in {seconds}s",
+  "header.autosave.saveInMinutes": "Save in {minutes}m",
+  "header.autosave.saveInMinutesSeconds": "Save in {minutes}:{seconds}",
+  
+  // Header - Menu
+  "header.menu.hide": "Hide menu",
+  "header.menu.show": "Show menu",
+  
+  // Header - Reminder
+  "header.reminder.today": "Today",
+  "header.reminder.tomorrow": "Tomorrow",
+  "header.reminder.in2Days": "In 2 days",
+  "header.reminder.more": "(+{count} more)",
 };
 

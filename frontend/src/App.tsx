@@ -6,6 +6,7 @@ import { UpdateChecker } from "./components/UpdateChecker";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
 import { AppSkeleton } from "./components/AppSkeleton";
+import { BackupReminder } from "./components/BackupReminder";
 
 // Lazy loading komponensek (code splitting)
 const Home = lazy(() => import("./components/Home").then(module => ({ default: module.Home })));
@@ -21,7 +22,8 @@ const SettingsPage = lazy(() => import("./components/Settings").then(module => (
 const Console = lazy(() => import("./components/Console").then(module => ({ default: module.Console })));
 import type { Printer, Settings, Filament, Offer, Customer, ThemeName } from "./types";
 import { defaultSettings } from "./types";
-import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers } from "./utils/store";
+import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers, resetStoreInstance } from "./utils/store";
+import { createAutomaticBackup, cleanupOldBackups } from "./utils/backup";
 import { getThemeStyles, resolveTheme } from "./utils/themes";
 import { defaultAnimationSettings } from "./types";
 import { debounce } from "./utils/debounce";
@@ -33,7 +35,7 @@ import { LoadingSpinner } from "./components/LoadingSpinner";
 import { LanguageSelector } from "./components/LanguageSelector";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
-import { initFrontendLog } from "./utils/fileLogger"; // Initialize file logger
+import { initFrontendLog, frontendLogger } from "./utils/fileLogger"; // Initialize file logger
 import { logWithLanguage } from "./utils/languages/global_console";
 import { useTranslation } from "./utils/translations";
 
@@ -50,9 +52,11 @@ export default function App() {
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(new Date()); // Kezdeti érték, hogy azonnal látható legyen
+  const [previousAutosaveState, setPreviousAutosaveState] = useState<boolean | undefined>(settings.autosave); // Előző autosave állapot követése
   const [quickActionTrigger, setQuickActionTrigger] = useState<string | null>(null);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialWillOpen, setTutorialWillOpen] = useState(false); // Jelzi, hogy a tutorial meg fog nyílni (még mielőtt megnyílik)
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const [languageSelected, setLanguageSelected] = useState(false);
   const t = useTranslation(settings.language);
@@ -101,9 +105,41 @@ export default function App() {
     setShowLanguageSelector(false);
   };
 
+  // 🔹 Factory Reset callback - az összes állapot resetelése
+  const handleFactoryReset = useCallback(() => {
+    // Reseteljük a Store instance-t, hogy ne hozza létre automatikusan a fájlt
+    resetStoreInstance();
+    
+    // Reseteljük az összes state-et
+    setPrinters([]);
+    setFilaments([]);
+    setOffers([]);
+    setCustomers([]);
+    setSettings(defaultSettings);
+    setIsInitialized(false);
+    setLoadingProgress(0);
+    setLoadingStep(0);
+    setLastSaved(null);
+    setActivePage("home");
+    
+    // Megjelenítjük a nyelvválasztót (mint első indításnál)
+    setShowLanguageSelector(true);
+    setLanguageSelected(false);
+    
+    if (import.meta.env.DEV) {
+      console.log("🔄 Factory Reset - összes állapot resetelve, nyelvválasztó megjelenítve");
+    }
+  }, []);
+
   // 🔹 Adatok újratöltése (demo adatok generálása után)
   const reloadData = useCallback(async () => {
     try {
+      // Betöltjük a settings-et is, hogy a lastBackupDate frissüljön
+      const loadedSettings = await loadSettings();
+      if (loadedSettings) {
+        setSettings(loadedSettings);
+      }
+      
       const loadedPrinters = await loadPrinters();
       if (loadedPrinters.length > 0) {
         setPrinters(loadedPrinters);
@@ -132,89 +168,190 @@ export default function App() {
     
     const loadData = async () => {
       // Minimális késleltetés, hogy látható legyen a skeleton
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      frontendLogger.info("🚀 Alkalmazás betöltés indítása...");
+      
+      let loadedSettings: Settings | null = null;
+      let loadedPrintersCount = 0;
+      let loadedFilamentsCount = 0;
+      let loadedOffersCount = 0;
+      let loadedCustomersCount = 0;
       
       try {
-        // 1. Beállítások
+        // 1. Beállítások betöltése
         setLoadingStep(0);
         setLoadingProgress(10);
-        await new Promise(resolve => setTimeout(resolve, 100)); // Smooth progress update
-        const loadedSettings = await loadSettings();
-        if (loadedSettings) {
-          // Ellenőrizzük hogy az electricityPrice érvényes érték-e
-          if (!loadedSettings.electricityPrice || loadedSettings.electricityPrice <= 0) {
-            if (import.meta.env.DEV) {
+        frontendLogger.info("📥 [MODUL: Beállítások] Betöltés indítása...");
+        
+        await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb, hogy olvasható legyen
+        
+        try {
+          loadedSettings = await loadSettings();
+          
+          if (loadedSettings) {
+            frontendLogger.info(`✅ [MODUL: Beállítások] Betöltve - Valuta: ${loadedSettings.currency || "N/A"}, Nyelv: ${loadedSettings.language || "N/A"}`);
+            
+            // Ellenőrizzük hogy az electricityPrice érvényes érték-e
+            if (!loadedSettings.electricityPrice || loadedSettings.electricityPrice <= 0) {
+              const warnMsg = `⚠️ [MODUL: Beállítások] Érvénytelen áram ár (${loadedSettings.electricityPrice}), alapértelmezett érték használata`;
+              frontendLogger.warn(warnMsg);
               logWithLanguage(settings.language, "warn", "settings.invalidElectricityPrice");
+              loadedSettings.electricityPrice = defaultSettings.electricityPrice;
             }
-            loadedSettings.electricityPrice = defaultSettings.electricityPrice;
-          }
-          // Ha nincs téma, használjuk az alapértelmezettet
-          if (!loadedSettings.theme) {
-            loadedSettings.theme = defaultSettings.theme;
-          }
-          if (!loadedSettings.companyInfo) {
-            loadedSettings.companyInfo = { ...defaultSettings.companyInfo };
+            
+            // Ha nincs téma, használjuk az alapértelmezettet
+            if (!loadedSettings.theme) {
+              frontendLogger.warn("⚠️ [MODUL: Beállítások] Nincs téma beállítva, alapértelmezett használata");
+              loadedSettings.theme = defaultSettings.theme;
+            }
+            
+            if (!loadedSettings.companyInfo) {
+              loadedSettings.companyInfo = { ...defaultSettings.companyInfo };
+            } else {
+              loadedSettings.companyInfo = {
+                ...defaultSettings.companyInfo,
+                ...loadedSettings.companyInfo,
+              };
+            }
+            
+            if (!loadedSettings.pdfTemplate) {
+              loadedSettings.pdfTemplate = defaultSettings.pdfTemplate;
+            }
+            
+            setSettings(loadedSettings);
           } else {
-            loadedSettings.companyInfo = {
-              ...defaultSettings.companyInfo,
-              ...loadedSettings.companyInfo,
-            };
+            frontendLogger.warn("⚠️ [MODUL: Beállítások] Nincs mentett beállítás, alapértelmezett használata");
+            setSettings(defaultSettings);
+            loadedSettings = defaultSettings;
           }
-          if (!loadedSettings.pdfTemplate) {
-            loadedSettings.pdfTemplate = defaultSettings.pdfTemplate;
-          }
-          setSettings(loadedSettings);
-        } else {
+        } catch (error) {
+          const errorMsg = `❌ [MODUL: Beállítások] Hiba a betöltés során: ${error instanceof Error ? error.message : String(error)}`;
+          frontendLogger.error(errorMsg);
+          console.error("❌ Hiba a beállítások betöltésekor:", error);
           setSettings(defaultSettings);
+          loadedSettings = defaultSettings;
         }
+        
         setLoadingProgress(20);
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
 
-        // 2. Nyomtatók
+        // 2. Nyomtatók betöltése
         setLoadingStep(1);
         setLoadingProgress(35);
-        await new Promise(resolve => setTimeout(resolve, 100));
-        const loadedPrinters = await loadPrinters();
-        if (loadedPrinters.length > 0) {
-          setPrinters(loadedPrinters);
+        frontendLogger.info("📥 [MODUL: Nyomtatók] Betöltés indítása...");
+        
+        await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
+        
+        try {
+          const loadedPrinters = await loadPrinters();
+          loadedPrintersCount = loadedPrinters.length;
+          
+          if (loadedPrinters.length > 0) {
+            setPrinters(loadedPrinters);
+            frontendLogger.info(`✅ [MODUL: Nyomtatók] Betöltve - ${loadedPrinters.length} nyomtató`);
+          } else {
+            frontendLogger.info("ℹ️ [MODUL: Nyomtatók] Nincs mentett nyomtató");
+          }
+        } catch (error) {
+          const errorMsg = `❌ [MODUL: Nyomtatók] Hiba a betöltés során: ${error instanceof Error ? error.message : String(error)}`;
+          frontendLogger.error(errorMsg);
+          console.error("❌ Hiba a nyomtatók betöltésekor:", error);
+          setPrinters([]);
+          loadedPrintersCount = 0;
         }
 
-        // 3. Filamentek
+        // 3. Filamentek betöltése
         setLoadingStep(2);
         setLoadingProgress(50);
-        await new Promise(resolve => setTimeout(resolve, 100));
-        const loadedFilaments = await loadFilaments();
-        if (loadedFilaments.length > 0) {
-          setFilaments(loadedFilaments);
+        frontendLogger.info("📥 [MODUL: Filamentek] Betöltés indítása...");
+        
+        await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
+        
+        try {
+          const loadedFilaments = await loadFilaments();
+          loadedFilamentsCount = loadedFilaments.length;
+          
+          if (loadedFilaments.length > 0) {
+            setFilaments(loadedFilaments);
+            frontendLogger.info(`✅ [MODUL: Filamentek] Betöltve - ${loadedFilaments.length} filament`);
+          } else {
+            frontendLogger.info("ℹ️ [MODUL: Filamentek] Nincs mentett filament");
+          }
+        } catch (error) {
+          const errorMsg = `❌ [MODUL: Filamentek] Hiba a betöltés során: ${error instanceof Error ? error.message : String(error)}`;
+          frontendLogger.error(errorMsg);
+          console.error("❌ Hiba a filamentek betöltésekor:", error);
+          setFilaments([]);
+          loadedFilamentsCount = 0;
         }
 
-        // 4. Árajánlatok
+        // 4. Árajánlatok betöltése
         setLoadingStep(3);
         setLoadingProgress(70);
-        await new Promise(resolve => setTimeout(resolve, 100));
-        const loadedOffers = await loadOffers();
-        if (loadedOffers.length > 0) {
-          setOffers(loadedOffers);
+        frontendLogger.info("📥 [MODUL: Árajánlatok] Betöltés indítása...");
+        
+        await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
+        
+        try {
+          const loadedOffers = await loadOffers();
+          loadedOffersCount = loadedOffers.length;
+          
+          if (loadedOffers.length > 0) {
+            setOffers(loadedOffers);
+            frontendLogger.info(`✅ [MODUL: Árajánlatok] Betöltve - ${loadedOffers.length} árajánlat`);
+          } else {
+            frontendLogger.info("ℹ️ [MODUL: Árajánlatok] Nincs mentett árajánlat");
+          }
+        } catch (error) {
+          const errorMsg = `❌ [MODUL: Árajánlatok] Hiba a betöltés során: ${error instanceof Error ? error.message : String(error)}`;
+          frontendLogger.error(errorMsg);
+          console.error("❌ Hiba az árajánlatok betöltésekor:", error);
+          setOffers([]);
+          loadedOffersCount = 0;
         }
 
-        // 5. Ügyfelek
+        // 5. Ügyfelek betöltése
         setLoadingStep(4);
         setLoadingProgress(85);
-        await new Promise(resolve => setTimeout(resolve, 100));
-        const loadedCustomers = await loadCustomers();
-        if (loadedCustomers.length > 0) {
-          setCustomers(loadedCustomers);
+        frontendLogger.info("📥 [MODUL: Ügyfelek] Betöltés indítása...");
+        
+        await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
+        
+        try {
+          const loadedCustomers = await loadCustomers();
+          loadedCustomersCount = loadedCustomers.length;
+          
+          if (loadedCustomers.length > 0) {
+            setCustomers(loadedCustomers);
+            frontendLogger.info(`✅ [MODUL: Ügyfelek] Betöltve - ${loadedCustomers.length} ügyfél`);
+          } else {
+            frontendLogger.info("ℹ️ [MODUL: Ügyfelek] Nincs mentett ügyfél");
+          }
+        } catch (error) {
+          const errorMsg = `❌ [MODUL: Ügyfelek] Hiba a betöltés során: ${error instanceof Error ? error.message : String(error)}`;
+          frontendLogger.error(errorMsg);
+          console.error("❌ Hiba az ügyfelek betöltésekor:", error);
+          setCustomers([]);
+          loadedCustomersCount = 0;
         }
 
-        // 6. Befejezés
+        // 6. Inicializálás
         setLoadingStep(5);
         setLoadingProgress(100);
+        frontendLogger.info("📥 [MODUL: Inicializálás] Alkalmazás inicializálása...");
+        
+        await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb, hogy olvasható legyen
+        
+        // Betöltési összefoglaló
+        frontendLogger.info(`✅ Alkalmazás betöltés befejezve - Nyomtatók: ${loadedPrintersCount}, Filamentek: ${loadedFilamentsCount}, Árajánlatok: ${loadedOffersCount}, Ügyfelek: ${loadedCustomersCount}, Beállítások: ${loadedSettings ? "✅" : "⚠️ Alapértelmezett"}`);
         
         // Kis késleltetés a smooth átmenethez
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Lassabb, hogy látható legyen a 100%
         
         setIsInitialized(true);
         setLastSaved(new Date());
+        frontendLogger.info("✅ Alkalmazás inicializálva és kész a használatra");
         
         // Tutorial indítás, ha be van állítva és még nem nézték meg
         // Csak akkor mutassuk, ha:
@@ -236,6 +373,22 @@ export default function App() {
         }
         
         if (shouldShowTutorial) {
+          // 🔹 Jelöljük, hogy a tutorial meg fog nyílni - így a BackupReminder komponens nem jelenik meg
+          setTutorialWillOpen(true);
+          
+          // 🔹 Azonnal beállítjuk a lastBackupDate-et, hogy ne jelenjen meg a backup emlékeztető tutorial alatt
+          if (!loadedSettings?.lastBackupDate) {
+            const updatedSettingsForTutorial: Settings = {
+              ...(loadedSettings || defaultSettings),
+              lastBackupDate: new Date().toISOString(),
+            };
+            await saveSettings(updatedSettingsForTutorial);
+            setSettings(updatedSettingsForTutorial);
+            if (import.meta.env.DEV) {
+              console.log("✅ lastBackupDate beállítva tutorial indításához - backup emlékeztető letiltva");
+            }
+          }
+          
           // Kis késleltetés, hogy az app betöltődjön
           setTimeout(() => {
             setShowTutorial(true);
@@ -243,9 +396,13 @@ export default function App() {
               console.log("✅ Tutorial elindítva");
             }
           }, 800);
+        } else {
+          setTutorialWillOpen(false);
         }
       } catch (error) {
-        console.error("Hiba az adatok betöltésekor:", error);
+        const errorMsg = `❌ [KRITIKUS HIBA] Alkalmazás betöltés során váratlan hiba: ${error instanceof Error ? error.message : String(error)}`;
+        frontendLogger.error(errorMsg);
+        console.error("❌ Hiba az adatok betöltésekor:", error);
         setIsInitialized(true); // Mégis inicializáljuk, hogy ne ragadjon be
       }
     };
@@ -253,7 +410,7 @@ export default function App() {
   }, [languageSelected, settings.language]);
 
   // 🔹 Automatikus mentés debounce-szal (csak inicializálás után)
-  const autosaveEnabled = settings.autosave !== false; // Alapértelmezetten true
+  const autosaveEnabled = settings.autosave === true; // Csak akkor engedélyezett, ha explicit true
   const autosaveInterval = (settings.autosaveInterval || 30) * 1000; // Másodperc -> milliszekundum
 
   // Helper function to update last saved timestamp
@@ -265,11 +422,71 @@ export default function App() {
     }
   };
 
+  // 🔹 Automatikus backup létrehozása (vészbackup)
+  const createAutomaticBackupIfEnabled = useCallback(async () => {
+    // Csak akkor hozzuk létre a backup-ot, ha az autosave be van kapcsolva
+    if (!autosaveEnabled || !isInitialized) {
+      return;
+    }
+
+    try {
+      // Használjuk a settings state-et (ne a loadSettings()-et), hogy ne írjuk felül a friss értékeket
+      // A settings state mindig tartalmazza a legfrissebb értékeket (pl. téma változás)
+      const settingsToUse = settings;
+      
+      // Létrehozzuk az automatikus backup-ot a legfrissebb adatokkal
+      const backupResult = await createAutomaticBackup(printers, filaments, offers, settingsToUse);
+      
+      if (backupResult) {
+        // Csak akkor frissítjük a beállításokat, ha valóban új backup jött létre
+        // Ha már létezett mai backup, akkor NEM írjuk felül a beállításokat (hogy ne veszítsük el a friss értékeket)
+        if (backupResult.isNew) {
+          // Új backup jött létre - frissítjük a lastBackupDate-et
+          // Betöltjük a legfrissebb beállításokat, hogy ne veszítsük el a friss értékeket (pl. téma)
+          const currentSettings = await loadSettings();
+          const latestSettings = currentSettings || settingsToUse;
+          
+          // Csak a lastBackupDate-et frissítjük, a többi beállítást megtartjuk
+          const updatedSettings = {
+            ...latestSettings,
+            lastBackupDate: backupResult.timestamp,
+          };
+          await saveSettings(updatedSettings);
+          // Frissítjük a settings state-et a legfrissebb beállításokkal
+          setSettings(updatedSettings);
+          
+          // Töröljük a régi backupokat (max 10 db)
+          const maxBackups = latestSettings.maxAutomaticBackups || 10;
+          await cleanupOldBackups(maxBackups);
+        } else {
+          // Már létezett mai backup - NEM írjuk felül a beállításokat, hogy ne veszítsük el a friss értékeket (pl. téma)
+          // NE mentjük a beállításokat, ha már létezett mai backup - ez elkerüli, hogy a régi értékek írják felül a friss értékeket
+          if (import.meta.env.DEV) {
+            console.log("ℹ️ Mai backup már létezett, beállítások nem lettek frissítve (hogy ne veszítsük el a friss értékeket)");
+          }
+        }
+
+        if (import.meta.env.DEV) {
+          console.log("✅ Automatikus vészbackup létrehozva:", backupResult.timestamp, backupResult.isNew ? "(új)" : "(már létezett)");
+        }
+      }
+    } catch (error) {
+      console.error("❌ Hiba az automatikus backup létrehozásakor:", error);
+    }
+  }, [autosaveEnabled, isInitialized, printers, filaments, offers, settings]);
+
+  // Debounced automatikus backup - nem minden save után, hanem csak az autosave intervallum szerint
+  const debouncedAutomaticBackup = debounce(() => {
+    createAutomaticBackupIfEnabled();
+  }, autosaveInterval);
+
   // Debounced save functions
   const debouncedSavePrinters = debounce(() => {
     if (isInitialized && autosaveEnabled) {
       savePrinters(printers).then(() => {
         updateLastSaved();
+        // 🔹 Autosave mentés után automatikus vészbackup létrehozása
+        debouncedAutomaticBackup();
       }).catch((error) => {
         console.error("Hiba a nyomtatók mentésekor:", error);
       });
@@ -280,6 +497,8 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       saveFilaments(filaments).then(() => {
         updateLastSaved();
+        // 🔹 Autosave mentés után automatikus vészbackup létrehozása
+        debouncedAutomaticBackup();
       }).catch((error) => {
         console.error("Hiba a filamentek mentésekor:", error);
       });
@@ -290,6 +509,8 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       saveSettings(settings).then(() => {
         updateLastSaved();
+        // 🔹 Autosave mentés után automatikus vészbackup létrehozása
+        debouncedAutomaticBackup();
       }).catch((error) => {
         console.error("Hiba a beállítások mentésekor:", error);
       });
@@ -300,6 +521,8 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       saveOffers(offers).then(() => {
         updateLastSaved();
+        // 🔹 Autosave mentés után automatikus vészbackup létrehozása
+        debouncedAutomaticBackup();
       }).catch((error) => {
         console.error("Hiba az árajánlatok mentésekor:", error);
       });
@@ -310,6 +533,8 @@ export default function App() {
     if (isInitialized && autosaveEnabled) {
       saveCustomers(customers).then(() => {
         updateLastSaved();
+        // 🔹 Autosave mentés után automatikus vészbackup létrehozása
+        debouncedAutomaticBackup();
       }).catch((error) => {
         console.error("Hiba az ügyfelek mentésekor:", error);
       });
@@ -333,13 +558,10 @@ export default function App() {
     }
   }, [filaments, isInitialized, autosaveEnabled]);
 
-  useEffect(() => {
-    if (isInitialized && autosaveEnabled) {
-      debouncedSaveSettings();
-    } else if (isInitialized && !autosaveEnabled) {
-      saveSettings(settings).then(() => updateLastSaved());
-    }
-  }, [settings, isInitialized, autosaveEnabled]);
+  // Settings módosításakor azonnal mentjük a data.json-ba az onChange-ben
+  // Itt NEM mentjük, mert az onChange-ben már mentjük, hogy ne legyen duplikáció
+  // Az autosave csak a printers, filaments, offers, customers adatoknál debounce-ol
+  // A settings mindig azonnal mentésre kerül az onChange-ben, hogy ne legyen konfliktus az auto_backup fájlokkal
 
   useEffect(() => {
     if (isInitialized && autosaveEnabled) {
@@ -356,6 +578,79 @@ export default function App() {
       saveCustomers(customers).then(() => updateLastSaved());
     }
   }, [customers, isInitialized, autosaveEnabled]);
+
+  // 🔹 Autosave újraindítása, amikor be van kapcsolva
+  useEffect(() => {
+    if (!isInitialized) {
+      // Inicializálás előtt még ne csináljunk semmit
+      setPreviousAutosaveState(autosaveEnabled);
+      return;
+    }
+
+    // Ha az autosave be van kapcsolva
+    if (autosaveEnabled) {
+      // Ha az előző állapot explicit false volt, akkor újraindítjuk a számlálót
+      if (previousAutosaveState === false) {
+        // Újraindítjuk a lastSaved dátumot, hogy a számláló a teljes intervallumtól kezdjen
+        updateLastSaved();
+        
+        // 🔹 Amikor az autosave bekapcsol, azonnal létrehozzuk az első vészbackup-ot
+        createAutomaticBackupIfEnabled();
+        
+        if (import.meta.env.DEV) {
+          console.log("🔄 Autosave újraindítva - számláló resetálva és első vészbackup létrehozva");
+        }
+      }
+      // Frissítjük az előző állapotot
+      setPreviousAutosaveState(true);
+    } else {
+      // Ha ki van kapcsolva, csak frissítjük az állapotot
+      setPreviousAutosaveState(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autosaveEnabled, isInitialized, previousAutosaveState, createAutomaticBackupIfEnabled]);
+
+  // 🔹 Naponta egyszer automatikus backup ellenőrzés - még akkor is, ha nincs változás
+  // Ez biztosítja, hogy naponta egyszer létrejöjjön a backup, még akkor is, ha nincs változás
+  useEffect(() => {
+    if (!autosaveEnabled || !isInitialized) {
+      return;
+    }
+
+    // Ellenőrizzük, hogy van-e már mai backup, és ha nincs, hozzuk létre
+    const checkAndCreateDailyBackup = async () => {
+      try {
+        if (import.meta.env.DEV) {
+          console.log("🔍 Napi automatikus backup ellenőrzés...");
+        }
+        
+        // A createAutomaticBackupIfEnabled már ellenőrzi, hogy van-e mai backup
+        // Ha nincs, létrehozza, ha van, nem csinál semmit
+        await createAutomaticBackupIfEnabled();
+        
+        if (import.meta.env.DEV) {
+          console.log("✅ Napi automatikus backup ellenőrzés elvégezve");
+        }
+      } catch (error) {
+        console.error("❌ Hiba a napi automatikus backup ellenőrzéskor:", error);
+      }
+    };
+
+    // Azonnal ellenőrizzük az indításkor (késleltetett, hogy ne zavarja a betöltést)
+    const initialTimeout = setTimeout(() => {
+      checkAndCreateDailyBackup();
+    }, 5000); // 5 másodperc késleltetés az indítás után
+
+    // Utána minden órában ellenőrizzük (hogy biztosan naponta egyszer legyen backup)
+    const intervalId = setInterval(() => {
+      checkAndCreateDailyBackup();
+    }, 60 * 60 * 1000); // 1 óra
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(intervalId);
+    };
+  }, [autosaveEnabled, isInitialized, createAutomaticBackupIfEnabled]);
 
   const handleSaveOffer = useCallback((offer: Offer) => {
     setOffers(prevOffers => [...prevOffers, offer]);
@@ -578,12 +873,19 @@ export default function App() {
         return (
           <SettingsPage 
             settings={settings} 
-            onChange={(newSettings) => {
+            onChange={async (newSettings) => {
               setSettings(newSettings);
-              // Beállítások módosításainak azonnali mentése (nem várunk az autosave-re)
-              saveSettings(newSettings).catch((error) => {
+              // Beállítások módosításainak azonnali mentése a data.json-ba (nem várunk az autosave-re)
+              // Az auto_backup csak naponta egyszer jön létre, és nem befolyásolja a settings betöltését
+              try {
+                await saveSettings(newSettings);
+                updateLastSaved();
+                if (import.meta.env.DEV) {
+                  console.log("✅ Settings azonnal mentve a data.json-ba:", { theme: newSettings.theme, autosave: newSettings.autosave });
+                }
+              } catch (error) {
                 console.error("❌ Hiba a beállítások mentésekor (SettingsPage):", error);
-              });
+              }
             }}
             printers={printers}
             setPrinters={setPrinters}
@@ -593,6 +895,7 @@ export default function App() {
             setOffers={setOffers}
             theme={currentTheme}
             themeStyles={themeStyles}
+            onFactoryReset={handleFactoryReset}
           />
         );
       case "console":
@@ -833,6 +1136,7 @@ export default function App() {
             onDataReload={reloadData}
             onComplete={async () => {
               setShowTutorial(false);
+              setTutorialWillOpen(false); // Reset, hogy a BackupReminder komponens újra működjön
               const updatedSettings = { 
                 ...settings, 
                 tutorialCompleted: true,
@@ -852,6 +1156,7 @@ export default function App() {
             onSkip={() => {
               // Skip esetén csak bezárjuk, de NEM állítjuk be a completed-et
               setShowTutorial(false);
+              setTutorialWillOpen(false); // Reset, hogy a BackupReminder komponens újra működjön
               if (import.meta.env.DEV) {
                 console.log("⏭️ Tutorial kihagyva (nincs completed beállítva)");
               }
@@ -861,6 +1166,9 @@ export default function App() {
               setActivePage(page);
             }}
           />
+
+          {/* Backup Reminder - automatikus emlékeztető régi backup-okhoz - NE mutassa, ha a tutorial aktív vagy meg fog nyílni */}
+          {isInitialized && !showTutorial && !tutorialWillOpen && <BackupReminder settings={settings} showTutorial={showTutorial} />}
         </div>
       </ToastProvider>
     </ErrorBoundary>

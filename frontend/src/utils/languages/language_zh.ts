@@ -876,6 +876,15 @@ export const languageZh: TranslationMap = {
   "backup.restoreError": "恢复备份时出错",
   "backup.invalidFile": "备份文件无效",
   "backup.confirmRestore": "您确定要恢复备份吗？这将覆盖当前数据。",
+  "backup.reminder.never": "💾 您还没有创建备份！建议定期备份您的数据。",
+  "backup.reminder.oneDay": "💾 您已经1天没有创建备份了。建议备份您的数据。",
+  "backup.reminder.multipleDays": "💾 您已经{{days}}天没有创建备份了。建议备份您的数据。",
+  "backup.reminder.minutes": "💾 您已经{{minutes}}分钟没有创建备份了。建议备份您的数据。",
+  "backup.reminder.hours": "💾 您已经{{hours}}小时没有创建备份了。建议备份您的数据。",
+  "backup.reminder.weeks": "💾 您已经{{weeks}}周没有创建备份了。建议备份您的数据。",
+  "backup.reminder.months": "💾 您已经{{months}}个月没有创建备份了。建议备份您的数据。",
+  "backup.reminder.years": "💾 您已经{{years}}年没有创建备份了。建议备份您的数据。",
+  "backup.reminder.today": "💾 您今天还没有创建备份！建议备份您的数据。",
   // 灯丝库存管理
   "filamentStock.title": "灯丝库存管理",
   "filamentStock.subtitle": "监控和管理灯丝库存水平",
@@ -1065,6 +1074,14 @@ export const languageZh: TranslationMap = {
   "tutorial.previous": "上一步",
   "tutorial.skip": "跳过",
   "tutorial.finish": "完成",
+  "tutorial.widgetInteractivity.title": "图表交互性",
+  "tutorial.widgetInteractivity.description": "您可以点击图表以获取详细视图。您可以直接从图表使用时间段过滤（每周/每月/每年切换）并以 SVG 格式导出。",
+  "tutorial.filamentLibraryMultilang.title": "多语言颜色名称",
+  "tutorial.filamentLibraryMultilang.description": "灯丝颜色名称会自动显示为您选择的语言！应用程序支持 14 种语言的颜色名称，使浏览库变得容易。",
+  "tutorial.tableSorting.title": "表格筛选和排序",
+  "tutorial.tableSorting.description": "在表格中，您可以按列排序和筛选。您可以同时按多个列排序，排序设置会被保存。虚拟滚动也可用于大列表。",
+  "tutorial.autosaveBackup.title": "自动保存和备份",
+  "tutorial.autosaveBackup.description": "自动保存功能每天创建一次所有数据的备份文件。在备份历史记录中，您可以看到带有颜色编码指示器的先前备份（绿色=今天，黄色=昨天，红色=2-4 天，灰色=5+ 天，将很快删除）。",
   
   // 小部件元素
   "widget.manager.title": "小部件管理器",
@@ -1124,4 +1141,115 @@ export const languageZh: TranslationMap = {
   "loading.offers": "加载报价...",
   "loading.customers": "加载客户...",
   "loading.initialization": "初始化...",
+  "loading.info": "应用程序正在从存储中加载您保存的数据（打印机、线材、报价、客户）。",
+  
+  // Settings - Backup History
+  "settings.backup.history.title": "自动备份历史",
+  "settings.backup.history.today": "今天",
+  "settings.backup.history.yesterday": "昨天",
+  "settings.backup.history.daysAgo": "{days} 天前",
+  "settings.backup.history.daysAgoWillDelete": "{days} 天前（即将删除）",
+  "settings.backup.history.willBeDeletedIn": "将在以下时间删除: {countdown}",
+  "settings.backup.history.description": "当启用自动保存时，自动备份文件每天创建一次。文件会在5天后自动删除。",
+  "settings.backup.history.colorExplanation": "颜色编码说明:",
+  "settings.backup.history.colorGreen": "🟢 绿色 - 今天的备份",
+  "settings.backup.history.colorYellow": "🟡 黄色 - 昨天的备份",
+  "settings.backup.history.colorRed": "🔴 红色 - 2-4天前的备份",
+  "settings.backup.history.colorGray": "⚪ 灰色 - 5天以上的备份（即将删除）",
+  "settings.backup.history.deletionInfo": "备份文件会在5天后自动删除。单击文件以打开它。",
+  "settings.backup.history.clickToOpen": "单击备份文件以打开它",
+  "settings.backup.history.openFolder": "打开备份文件夹",
+  
+  // Settings - Notifications
+  "settings.notifications.permissionRequired": "需要通知权限",
+  "settings.notifications.permissionGranted": "权限已授予",
+  "settings.notifications.requestPermission": "请求权限",
+  "settings.notifications.permissionGrantedMessage": "通知权限已授予",
+  "settings.notifications.testNotification": "测试通知",
+  "settings.notifications.testDockBadge": "测试 Dock 徽章",
+  "settings.notifications.macOSLimitations": "macOS 通知限制:",
+  "settings.notifications.closeAndDontShow": "关闭且不再显示",
+  "settings.notifications.closeWillReappear": "关闭（重启后将重新出现）",
+  
+  // Settings - Other Settings
+  "settings.otherSettings": "其他设置",
+  "settings.otherSettingsDescription": "查看键盘快捷键和版本历史",
+  "settings.versionHistory": "版本历史",
+  "settings.versionHistoryTooltip": "显示版本历史",
+  
+  // Settings - Backup & Restore
+  "settings.backup.description": "创建所有数据的备份或恢复以前的状态",
+  "settings.backup.exportTooltip": "将所有数据保存到 JSON 文件",
+  "settings.backup.importTooltip": "从以前的备份文件恢复",
+  "settings.backup.factoryReset": "恢复出厂设置",
+  "settings.backup.factoryResetTitle": "恢复出厂设置",
+  "settings.backup.factoryResetMessage": "⚠️ 警告！此操作将删除所有存储的数据：\n\n• 打印机\n• 线材\n• 报价\n• 客户\n• 设置\n• 模板\n• 价格历史\n• 自动备份文件\n\n此操作不可逆！您确定要继续吗？",
+  "settings.backup.factoryResetConfirm": "是的，删除所有内容",
+  
+  // Settings - Log Management
+  "settings.logs.title": "日志文件管理",
+  "settings.logs.description": "您可以设置应用程序应自动删除多少天旧的日志文件。",
+  "settings.logs.deleteOld": "删除旧日志文件",
+  "settings.logs.neverDelete": "永不删除",
+  "settings.logs.daysOrOlder": "天或更早",
+  "settings.logs.location": "日志文件位置",
+  "settings.logs.openFolder": "打开日志文件夹",
+  
+  // Settings - Data Export/Import
+  "settings.data.exportTooltip": "将数据导出到 JSON 文件",
+  "settings.data.importWarning": "警告：导入将覆盖当前数据！",
+  "settings.data.selectOneItem": "请至少选择一个项目！",
+  "settings.data.invalidFileFormat": "无效的文件格式！",
+  
+  // Settings - Autosave Modal
+  "settings.autosave.modal.cancel": "取消",
+  "settings.autosave.modal.ok": "确定",
+  
+  // Settings - Notification Messages
+  "settings.notifications.permissionGrantedTitle": "权限已授予",
+  "settings.notifications.permissionGrantedBody": "应用程序现在将出现在通知设置中。",
+  "settings.notifications.permissionGrantedToast": "通知权限已授予！测试通知已发送。如果您看不到它，请尝试隐藏应用程序（Cmd+H）。",
+  "settings.notifications.permissionGrantedButFailed": "通知权限已授予，但发送通知失败。请尝试隐藏应用程序（Cmd+H）并再次发送通知。",
+  "settings.notifications.permissionDenied": "通知权限被拒绝。请在系统设置中启用它。",
+  "settings.notifications.requestFailed": "请求权限失败",
+  "settings.notifications.devModeWarning": "在开发模式下，通知可能不会总是原生显示（由于缺少代码签名）。",
+  "settings.notifications.productionBuildInfo": "在生产版本中，如果应用程序已签名，通知将正常工作。",
+  "settings.notifications.backgroundOnly": "通知只在应用程序处于非活动状态（后台）时才原生显示。",
+  "settings.notifications.systemSettingsInfo": "应用程序将在生产版本后出现在系统设置 > 通知和专注模式中。",
+  
+  // Settings - Factory Reset
+  "settings.backup.factoryResetDescription": "此操作将删除所有存储的数据并将应用程序重置为默认设置。应用程序将重新启动，就像您第一次启动它一样。",
+  "settings.backup.factoryResetTooltip": "恢复出厂设置 - 删除所有数据",
+  
+  // Common - Header
+  "common.nextSave": "下次保存",
+  "common.lastSaved": "最后保存",
+  "common.currentDate": "当前日期",
+  "common.noBackupYet": "还没有备份",
+  "common.justSaved": "刚刚保存",
+  
+  // Common - Time Ago
+  "common.timeAgo.years": "{count} 年前",
+  "common.timeAgo.months": "{count} 个月前",
+  "common.timeAgo.weeks": "{count} 周前",
+  "common.timeAgo.days": "{count} 天前",
+  "common.timeAgo.hours": "{count} 小时前",
+  "common.timeAgo.minutes": "{count} 分钟前",
+  
+  // Header - Autosave
+  "header.autosave.notSavedYet": "尚未保存",
+  "header.autosave.justSaved": "刚刚保存",
+  "header.autosave.saveInSeconds": "{seconds} 秒后保存",
+  "header.autosave.saveInMinutes": "{minutes} 分钟后保存",
+  "header.autosave.saveInMinutesSeconds": "{minutes}:{seconds} 后保存",
+  
+  // Header - Menu
+  "header.menu.hide": "隐藏菜单",
+  "header.menu.show": "显示菜单",
+  
+  // Header - Reminder
+  "header.reminder.today": "今天",
+  "header.reminder.tomorrow": "明天",
+  "header.reminder.in2Days": "后天",
+  "header.reminder.more": "(+{count} 更多)",
 };

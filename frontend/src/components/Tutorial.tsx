@@ -5,7 +5,7 @@ import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import type { getThemeStyles } from "../utils/themes";
 import { generateTutorialDemoData, clearTutorialDemoData, hasExistingData } from "../utils/tutorialDemoData";
-import { saveSettings } from "../utils/store";
+import { saveSettings, loadSettings } from "../utils/store";
 
 interface Props {
   settings: Settings;
@@ -62,6 +62,19 @@ export const Tutorial: React.FC<Props> = ({
     if (isOpen && !demoDataGeneratedRef.current) {
       const initializeDemoData = async () => {
         try {
+          // 🔹 ELŐSZÖR beállítjuk a lastBackupDate-et, hogy ne jelenjen meg a backup emlékeztető tutorial alatt
+          const currentSettings = await loadSettings();
+          if (currentSettings && !currentSettings.lastBackupDate) {
+            const updatedSettings: Settings = {
+              ...currentSettings,
+              lastBackupDate: new Date().toISOString(),
+            };
+            await saveSettings(updatedSettings);
+            if (import.meta.env.DEV) {
+              console.log("✅ Settings frissítve - lastBackupDate beállítva tutorial kezdéshez");
+            }
+          }
+          
           // Ellenőrizzük, hogy van-e már adat
           const hasData = await hasExistingData();
           if (!hasData) {
@@ -112,6 +125,16 @@ export const Tutorial: React.FC<Props> = ({
         t("tutorial.home.description") ||
         "A kezdőlapon láthatod a statisztikákat és összefoglalókat az árajánlataidról. Ide kerülnek a számított adatok.",
       position: "bottom",
+      page: "home",
+    },
+    {
+      id: "widget-interactivity",
+      target: "[data-tutorial='home-content']",
+      title: t("tutorial.widgetInteractivity.title") || "Grafikon interaktivitás",
+      description:
+        t("tutorial.widgetInteractivity.description") ||
+        "A grafikonokon kattinthatasz, hogy részletes nézetet kapj. Használhatod az időszak szűrést közvetlenül a grafikonról (heti/havi/éves váltó) és exportálhatod SVG formátumban.",
+      position: "bottom-right",
       page: "home",
     },
     {
@@ -168,6 +191,26 @@ export const Tutorial: React.FC<Props> = ({
       page: "filaments",
     },
     {
+      id: "filament-library-multilang",
+      target: "[data-page='filaments']",
+      title: t("tutorial.filamentLibraryMultilang.title") || "Többnyelvű színnevek",
+      description:
+        t("tutorial.filamentLibraryMultilang.description") ||
+        "A filament színeinek nevei automatikusan megjelennek az Ön által választott nyelven! Az alkalmazás 14 nyelven támogatja a színneveket, így könnyen navigálhatsz a könyvtárban.",
+      position: "bottom-right",
+      page: "filaments",
+    },
+    {
+      id: "table-sorting",
+      target: "[data-page='filaments']",
+      title: t("tutorial.tableSorting.title") || "Táblázat szűrés és rendezés",
+      description:
+        t("tutorial.tableSorting.description") ||
+        "A táblázatokban oszlopok szerint rendezhetsz és szűrhetsz. Több oszlop szerint is rendezhetsz egyszerre, és a rendezési beállítások mentésre kerülnek. A nagy listákhoz virtuális scrollozás is használható.",
+      position: "bottom-right",
+      page: "filaments",
+    },
+    {
       id: "customers",
       target: "[data-page='customers']",
       title: t("tutorial.customers.title") || "Ügyfelek kezelése",
@@ -220,6 +263,16 @@ export const Tutorial: React.FC<Props> = ({
       position: "bottom-right",
       page: "settings",
       action: () => onNavigate?.("settings"),
+    },
+    {
+      id: "autosave-backup",
+      target: "[data-tutorial='autosave-section']",
+      title: t("tutorial.autosaveBackup.title") || "Automatikus mentés és backup",
+      description:
+        t("tutorial.autosaveBackup.description") ||
+        "Az automatikus mentés funkció naponta egyszer készít backup fájlt az összes adatodról. A backup történetben láthatod a korábbi backupokat színes jelölésekkel (zöld=ma, sárga=tegnap, piros=2-4 nap, szürke=5+ nap, hamarosan törlődik).",
+      position: "bottom-right",
+      page: "settings",
     },
     {
       id: "complete",

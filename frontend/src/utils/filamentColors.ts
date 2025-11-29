@@ -132,8 +132,33 @@ export function getColorOptionsForType(type: string): FilamentColorOption[] {
   return COLOR_PRESETS.DEFAULT;
 }
 
+/**
+ * Visszaadja a szín címkéjét a kívánt nyelven, fallback logikával
+ * Ha nincs fordítás a nyelvhez, akkor angol, magyar vagy német fallback-tel
+ */
 export function getLocalizedColorLabel(option: FilamentColorOption, language: Settings["language"]): string {
-  return option.labels[language] ?? option.labels.en;
+  // Először próbáljuk meg a kívánt nyelvet
+  if (option.labels[language]) {
+    return option.labels[language];
+  }
+  
+  // Ha nincs, akkor angol fallback
+  if (option.labels.en) {
+    return option.labels.en;
+  }
+  
+  // Ha nincs angol sem, akkor magyar
+  if (option.labels.hu) {
+    return option.labels.hu;
+  }
+  
+  // Végül német
+  if (option.labels.de) {
+    return option.labels.de;
+  }
+  
+  // Ha semmi nincs, akkor üres string
+  return "";
 }
 
 export function getFinishLabel(finish: FilamentFinish, language: Settings["language"]): string {

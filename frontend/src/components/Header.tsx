@@ -4,6 +4,7 @@ import type { Theme } from "../utils/themes";
 import { Breadcrumb } from "./Breadcrumb";
 import { useTranslation } from "../utils/translations";
 import { Tooltip } from "./Tooltip";
+import { getTimeSinceBackup } from "../utils/backup";
 
 interface Props {
   settings: Settings;
@@ -70,50 +71,81 @@ export const Header: React.FC<Props> = ({
     });
   };
 
-  const formatLastSaved = (date: Date | null): string => {
-    if (!date) {
-      return settings.language === "hu" ? "Még nem mentve" : settings.language === "de" ? "Noch nicht gespeichert" : "Not saved yet";
-    }
-    
-    // Használjuk a currentDate-et a relatív idő számításához, hogy frissüljön
-    const diffMs = currentDate.getTime() - date.getTime();
-    const diffSeconds = Math.floor(diffMs / 1000);
-    
-    // Visszafelé számolunk: a következő mentésig hátralévő idő
-    // Ha eltelt az autosave intervallum, akkor újraindítjuk a számlálót (modulo)
-    const timeUntilNextSave = ((autosaveInterval - (diffSeconds % autosaveInterval)) % autosaveInterval) || autosaveInterval;
-    
-    // Ha éppen most mentettünk (0-2 másodperc), akkor "Most mentve"
-    if (diffSeconds < 2) {
-      return settings.language === "hu" ? "Most mentve" : settings.language === "de" ? "Gerade gespeichert" : "Just saved";
-    }
-    
-    // Visszafelé számolás: hátralévő idő a következő mentésig
-    if (timeUntilNextSave < 60) {
-      // Másodpercek - ne használjunk padStart-ot, hogy ne legyen mindig 2 jegyű
-      return settings.language === "hu" 
-        ? `${timeUntilNextSave} mp múlva mentés` 
-        : settings.language === "de" 
-        ? `Speichern in ${timeUntilNextSave} s` 
-        : `Save in ${timeUntilNextSave}s`;
-    } else {
-      // Percek
-      const minutes = Math.floor(timeUntilNextSave / 60);
-      const seconds = timeUntilNextSave % 60;
-      if (seconds === 0) {
-        return settings.language === "hu" 
-          ? `${minutes} perc múlva mentés` 
-          : settings.language === "de" 
-          ? `Speichern in ${minutes} min` 
-          : `Save in ${minutes}m`;
+  const formatLastSaved = (date: Date | null, autosaveEnabled: boolean, lastBackupDate?: string | null): string => {
+    // Ha az autosave be van kapcsolva, mutatjuk a következő mentésig hátralévő időt
+    if (autosaveEnabled) {
+      if (!date) {
+        return t("header.autosave.notSavedYet");
+      }
+      // Használjuk a currentDate-et a relatív idő számításához, hogy frissüljön
+      const diffMs = currentDate.getTime() - date.getTime();
+      const diffSeconds = Math.floor(diffMs / 1000);
+      
+      // Visszafelé számolunk: a következő mentésig hátralévő idő
+      // Ha eltelt az autosave intervallum, akkor újraindítjuk a számlálót (modulo)
+      const timeUntilNextSave = ((autosaveInterval - (diffSeconds % autosaveInterval)) % autosaveInterval) || autosaveInterval;
+      
+      // Ha éppen most mentettünk (0-2 másodperc), akkor "Most mentve"
+      if (diffSeconds < 2) {
+        return t("header.autosave.justSaved");
+      }
+      
+      // Visszafelé számolás: hátralévő idő a következő mentésig
+      if (timeUntilNextSave < 60) {
+        // Másodpercek - ne használjunk padStart-ot, hogy ne legyen mindig 2 jegyű
+        return t("header.autosave.saveInSeconds", { seconds: timeUntilNextSave });
       } else {
-        // Csak akkor használjunk padStart-ot, ha a másodpercek 2 jegyűek (10-59)
-        const secondsStr = seconds < 10 ? seconds.toString() : seconds.toString().padStart(2, '0');
-        return settings.language === "hu" 
-          ? `${minutes}:${secondsStr} múlva mentés` 
-          : settings.language === "de" 
-          ? `Speichern in ${minutes}:${secondsStr}` 
-          : `Save in ${minutes}:${secondsStr}`;
+        // Percek
+        const minutes = Math.floor(timeUntilNextSave / 60);
+        const seconds = timeUntilNextSave % 60;
+        if (seconds === 0) {
+          return t("header.autosave.saveInMinutes", { minutes });
+        } else {
+          // Csak akkor használjunk padStart-ot, ha a másodpercek 2 jegyűek (10-59)
+          const secondsStr = seconds < 10 ? seconds.toString() : seconds.toString().padStart(2, '0');
+          return t("header.autosave.saveInMinutesSeconds", { minutes, seconds: secondsStr });
+        }
+      }
+    } else {
+      // Ha az autosave ki van kapcsolva, mutatjuk az utolsó mentés óta eltelt időt
+      // Csak a lastBackupDate-et használjuk (settings-ből), nem a lastSaved Date objektumot,
+      // mert a lastSaved az alkalmazás indításakor lett beállítva, nem az utolsó mentés ideje
+      if (!lastBackupDate) {
+        return t("common.noBackupYet");
+      }
+      
+      const timeSince = getTimeSinceBackup(lastBackupDate);
+      
+      // Ha nincs timeSince vagy kevesebb mint 1 perc telt el, ellenőrizzük, hogy valóban friss-e
+      // Ha a backup dátum nagyon új (alkalmazás indítása körül), akkor valószínűleg nincs valós backup
+      if (!timeSince || timeSince.totalMinutes < 1) {
+        // Ellenőrizzük, hogy a lastBackupDate valóban régi-e (pl. több mint 5 perc)
+        // Ha nagyon új, akkor valószínűleg csak az alkalmazás indításakor lett beállítva
+        const backupDate = new Date(lastBackupDate);
+        const now = new Date();
+        const diffMinutes = Math.floor((now.getTime() - backupDate.getTime()) / (1000 * 60));
+        
+        // Ha a backup dátum kevesebb mint 5 perc, akkor valószínűleg nincs valós backup
+        if (diffMinutes < 5) {
+          return t("common.noBackupYet");
+        }
+        
+        return t("common.justSaved");
+      }
+      
+      // Priorítás: évek > hónapok > hetek > napok > órák > percek
+      if (timeSince.years > 0) {
+        return t("common.timeAgo.years", { count: timeSince.years });
+      } else if (timeSince.months > 0) {
+        return t("common.timeAgo.months", { count: timeSince.months });
+      } else if (timeSince.weeks > 0) {
+        return t("common.timeAgo.weeks", { count: timeSince.weeks });
+      } else if (timeSince.days > 0) {
+        return t("common.timeAgo.days", { count: timeSince.days });
+      } else if (timeSince.hours > 0) {
+        return t("common.timeAgo.hours", { count: timeSince.hours });
+      } else {
+        return t("common.timeAgo.minutes", { count: timeSince.totalMinutes });
       }
     }
   };
@@ -236,14 +268,11 @@ export const Header: React.FC<Props> = ({
 
         let dayLabel: string;
         if (diffDays === 0) {
-          dayLabel = settings.language === "hu" ? "Ma" : "Today";
+          dayLabel = t("header.reminder.today");
         } else if (diffDays === 1) {
-          dayLabel = settings.language === "hu" ? "Holnap" : "Tomorrow";
+          dayLabel = t("header.reminder.tomorrow");
         } else {
-          dayLabel =
-            settings.language === "hu"
-              ? "Holnapután"
-              : "In 2 days";
+          dayLabel = t("header.reminder.in2Days");
         }
 
         const customer =
@@ -265,10 +294,7 @@ export const Header: React.FC<Props> = ({
         const baseText = baseTextParts.join(" ");
 
         if (extraCount > 0) {
-          const extraLabel =
-            settings.language === "hu"
-              ? `(+${extraCount} további)`
-              : `(+${extraCount} more)`;
+          const extraLabel = t("header.reminder.more", { count: extraCount });
           return `${baseText} ${extraLabel}`;
         }
 
@@ -454,8 +480,8 @@ export const Header: React.FC<Props> = ({
       }}>
         <Tooltip 
           content={isSidebarOpen 
-            ? (settings.language === "hu" ? "Menü elrejtése" : settings.language === "de" ? "Menü ausblenden" : "Hide menu")
-            : (settings.language === "hu" ? "Menü megjelenítése" : settings.language === "de" ? "Menü anzeigen" : "Show menu")
+            ? t("header.menu.hide")
+            : t("header.menu.show")
           }
           position="bottom"
           theme={theme}
@@ -482,8 +508,8 @@ export const Header: React.FC<Props> = ({
               e.currentTarget.style.backgroundColor = "transparent";
             }}
             aria-label={isSidebarOpen 
-              ? (settings.language === "hu" ? "Menü elrejtése" : settings.language === "de" ? "Menü ausblenden" : "Hide menu")
-              : (settings.language === "hu" ? "Menü megjelenítése" : settings.language === "de" ? "Menü anzeigen" : "Show menu")
+              ? t("header.menu.hide")
+              : t("header.menu.show")
             }
           >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -661,8 +687,8 @@ export const Header: React.FC<Props> = ({
               marginLeft: "auto", // Mindig jobbra tolja
             }}
           >
-            {/* Last Saved */}
-            {showLastSaved && lastSaved && (
+            {/* Last Saved - mindig mutatjuk, ha showLastSaved true */}
+            {showLastSaved && (
               <div style={{ 
                 display: "flex",
                 flexDirection: "column",
@@ -679,16 +705,19 @@ export const Header: React.FC<Props> = ({
                   whiteSpace: "nowrap",
                   opacity: 0.8,
                 }}>
-                  {settings.language === "hu" ? "Következő mentés" : settings.language === "de" ? "Nächste Speicherung" : "Next save"}
+                  {settings.autosave === true
+                    ? t("common.nextSave")
+                    : t("common.lastSaved")
+                  }
                 </span>
                 <span style={{ 
                   fontSize: "11px", 
-                  color: theme.colors.success || "#4ade80",
+                  color: settings.autosave === true ? (theme.colors.success || "#4ade80") : mutedText,
                   fontWeight: "600",
-                  textShadow: isNeon ? `0 0 4px ${theme.colors.success || "#4ade80"}` : "none",
+                  textShadow: isNeon ? `0 0 4px ${settings.autosave === true ? (theme.colors.success || "#4ade80") : mutedText}` : "none",
                   whiteSpace: "nowrap",
                 }}>
-                  {formatLastSaved(lastSaved)}
+                  {formatLastSaved(lastSaved, settings.autosave === true, settings.lastBackupDate)}
                 </span>
               </div>
             )}

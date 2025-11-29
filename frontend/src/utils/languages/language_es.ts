@@ -929,6 +929,15 @@ export const languageEs: TranslationMap = {
   "backup.restoreError": "Error al restaurar copia de seguridad",
   "backup.invalidFile": "Archivo de copia de seguridad inválido",
   "backup.confirmRestore": "¿Estás seguro de que quieres restaurar la copia de seguridad? Esto sobrescribirá los datos actuales.",
+  "backup.reminder.never": "💾 ¡Aún no has creado una copia de seguridad! Se recomienda hacer copias de seguridad de tus datos regularmente.",
+  "backup.reminder.oneDay": "💾 No has creado una copia de seguridad en 1 día. Se recomienda hacer una copia de seguridad de tus datos.",
+  "backup.reminder.multipleDays": "💾 No has creado una copia de seguridad en {{days}} días. Se recomienda hacer una copia de seguridad de tus datos.",
+  "backup.reminder.minutes": "💾 No has creado una copia de seguridad en {{minutes}} minutos. Se recomienda hacer una copia de seguridad de tus datos.",
+  "backup.reminder.hours": "💾 No has creado una copia de seguridad en {{hours}} horas. Se recomienda hacer una copia de seguridad de tus datos.",
+  "backup.reminder.weeks": "💾 No has creado una copia de seguridad en {{weeks}} semanas. Se recomienda hacer una copia de seguridad de tus datos.",
+  "backup.reminder.months": "💾 No has creado una copia de seguridad en {{months}} meses. Se recomienda hacer una copia de seguridad de tus datos.",
+  "backup.reminder.years": "💾 No has creado una copia de seguridad en {{years}} años. Se recomienda hacer una copia de seguridad de tus datos.",
+  "backup.reminder.today": "💾 ¡Aún no has creado una copia de seguridad hoy! Se recomienda hacer una copia de seguridad de tus datos.",
   // Gestión de stock de filamento
   "filamentStock.title": "Gestión de stock de filamento",
   "filamentStock.subtitle": "Supervisar y gestionar los niveles de stock de filamento",
@@ -1119,6 +1128,14 @@ export const languageEs: TranslationMap = {
   "tutorial.previous": "Anterior",
   "tutorial.skip": "Omitir",
   "tutorial.finish": "Finalizar",
+  "tutorial.widgetInteractivity.title": "Interactividad de gráficos",
+  "tutorial.widgetInteractivity.description": "Puedes hacer clic en los gráficos para obtener vistas detalladas. Puedes usar el filtrado por período directamente desde el gráfico (cambio semanal/mensual/anual) y exportarlos en formato SVG.",
+  "tutorial.filamentLibraryMultilang.title": "Nombres de colores multilingües",
+  "tutorial.filamentLibraryMultilang.description": "¡Los nombres de colores de filamento aparecen automáticamente en tu idioma seleccionado! La aplicación admite nombres de colores en 14 idiomas, lo que facilita la navegación en la biblioteca.",
+  "tutorial.tableSorting.title": "Filtrado y ordenación de tablas",
+  "tutorial.tableSorting.description": "En las tablas, puedes ordenar y filtrar por columnas. Puedes ordenar por varias columnas a la vez y la configuración de ordenación se guarda. El desplazamiento virtual también está disponible para listas grandes.",
+  "tutorial.autosaveBackup.title": "Guardado automático y copia de seguridad",
+  "tutorial.autosaveBackup.description": "La función de guardado automático crea un archivo de copia de seguridad una vez al día de todos tus datos. En el historial de copias de seguridad, puedes ver copias de seguridad anteriores con indicadores codificados por colores (verde=hoy, amarillo=ayer, rojo=2-4 días, gris=5+ días, se eliminará pronto).",
   
   // Elementos de widget
   "widget.manager.title": "Administrador de widgets",
@@ -1179,4 +1196,109 @@ export const languageEs: TranslationMap = {
   "loading.offers": "Cargando ofertas...",
   "loading.customers": "Cargando clientes...",
   "loading.initialization": "Inicializando...",
+  "loading.info": "La aplicación está cargando sus datos guardados (impresoras, filamentos, ofertas, clientes) del almacenamiento.",
+  
+  // Settings - Backup History
+  "settings.backup.history.title": "Historial de copias de seguridad automáticas",
+  "settings.backup.history.today": "Hoy",
+  "settings.backup.history.yesterday": "Ayer",
+  "settings.backup.history.daysAgo": "hace {days} días",
+  "settings.backup.history.daysAgoWillDelete": "hace {days} días (se eliminará pronto)",
+  "settings.backup.history.willBeDeletedIn": "Se eliminará en: {countdown}",
+  "settings.backup.history.description": "Los archivos de respaldo automático se crean una vez al día cuando el guardado automático está habilitado. Los archivos se eliminan automáticamente después de 5 días.",
+  "settings.backup.history.colorExplanation": "Explicación del código de colores:",
+  "settings.backup.history.colorGreen": "🟢 Verde - Respaldo de hoy",
+  "settings.backup.history.colorYellow": "🟡 Amarillo - Respaldo de ayer",
+  "settings.backup.history.colorRed": "🔴 Rojo - Respaldo de 2-4 días",
+  "settings.backup.history.colorGray": "⚪ Gris - Respaldo de 5+ días (se eliminará pronto)",
+  "settings.backup.history.deletionInfo": "Los archivos de respaldo se eliminan automáticamente después de 5 días. Haz clic en un archivo para abrirlo.",
+  "settings.backup.history.clickToOpen": "Haz clic en un archivo de respaldo para abrirlo",
+  "settings.backup.history.openFolder": "Abrir carpeta de respaldo",
+  
+  // Settings - Notifications
+  "settings.notifications.permissionRequired": "Se requiere permiso de notificaciones",
+  "settings.notifications.permissionGranted": "Permiso concedido",
+  "settings.notifications.requestPermission": "Solicitar permiso",
+  "settings.notifications.permissionGrantedMessage": "Permiso de notificaciones concedido",
+  "settings.notifications.testNotification": "Probar notificación",
+  "settings.notifications.testDockBadge": "Probar Dock badge",
+  "settings.notifications.macOSLimitations": "Limitaciones de notificaciones de macOS:",
+  "settings.notifications.closeAndDontShow": "Cerrar y no mostrar de nuevo",
+  "settings.notifications.closeWillReappear": "Cerrar (volverá a aparecer después del reinicio)",
+  
+  // Settings - Other Settings
+  "settings.otherSettings": "Otras configuraciones",
+  "settings.otherSettingsDescription": "Ver atajos de teclado e historial de versiones",
+  "settings.versionHistory": "Historial de versiones",
+  "settings.versionHistoryTooltip": "Mostrar historial de versiones",
+  
+  // Settings - Backup & Restore
+  "settings.backup.description": "Crear una copia de seguridad de todos los datos o restaurar un estado anterior",
+  "settings.backup.exportTooltip": "Guardar todos los datos en un archivo JSON",
+  "settings.backup.importTooltip": "Restaurar desde un archivo de copia de seguridad anterior",
+  "settings.backup.factoryReset": "Restablecer de fábrica",
+  "settings.backup.factoryResetTitle": "Restablecer de fábrica",
+  "settings.backup.factoryResetMessage": "⚠️ ¡ADVERTENCIA! Esta acción eliminará TODOS los datos almacenados:\n\n• Impresoras\n• Filamentos\n• Ofertas\n• Clientes\n• Configuraciones\n• Plantillas\n• Historial de precios\n• Archivos de copia de seguridad automática\n\n¡Esta acción es IRREVERSIBLE! ¿Está seguro de que desea continuar?",
+  "settings.backup.factoryResetConfirm": "Sí, eliminar todo",
+  
+  // Settings - Log Management
+  "settings.logs.title": "Gestión de archivos de registro",
+  "settings.logs.description": "Puedes configurar cuántos días de antigüedad deben tener los archivos de registro para que la aplicación los elimine automáticamente.",
+  "settings.logs.deleteOld": "Eliminar archivos de registro antiguos",
+  "settings.logs.neverDelete": "Nunca eliminar",
+  "settings.logs.daysOrOlder": "días o más antiguos",
+  "settings.logs.location": "Ubicación de archivos de registro",
+  "settings.logs.openFolder": "Abrir carpeta de registros",
+  
+  // Settings - Data Export/Import
+  "settings.data.exportTooltip": "Exportar datos a archivo JSON",
+  "settings.data.importWarning": "¡Advertencia: La importación sobrescribirá los datos actuales!",
+  "settings.data.selectOneItem": "¡Seleccione al menos un elemento!",
+  "settings.data.invalidFileFormat": "¡Formato de archivo no válido!",
+  
+  // Settings - Autosave Modal
+  "settings.autosave.modal.cancel": "Cancelar",
+  "settings.autosave.modal.ok": "OK",
+  
+  // Settings - Notification Messages
+  "settings.notifications.permissionGrantedTitle": "Permiso concedido",
+  "settings.notifications.permissionGrantedBody": "La aplicación ahora aparecerá en la configuración de notificaciones.",
+  "settings.notifications.permissionGrantedToast": "¡Permiso de notificación concedido! Notificación de prueba enviada. Si no la ve, intente ocultar la aplicación (Cmd+H).",
+  "settings.notifications.permissionGrantedButFailed": "Permiso de notificación concedido, pero el envío de notificación falló. Intente ocultar la aplicación (Cmd+H) y enviar la notificación nuevamente.",
+  "settings.notifications.permissionDenied": "Permiso de notificación denegado. Habilítelo en la configuración del sistema.",
+  "settings.notifications.requestFailed": "Error al solicitar permiso",
+  "settings.notifications.devModeWarning": "En modo desarrollo, las notificaciones pueden no aparecer siempre de forma nativa (debido a la falta de firma de código).",
+  "settings.notifications.productionBuildInfo": "En compilación de producción, las notificaciones funcionan correctamente si la aplicación está firmada.",
+  "settings.notifications.backgroundOnly": "Las notificaciones solo aparecen de forma nativa cuando la aplicación está inactiva (en segundo plano).",
+  "settings.notifications.systemSettingsInfo": "La aplicación aparecerá en Configuración del sistema > Notificaciones y enfoque después de la compilación de producción.",
+  "settings.backup.factoryResetDescription": "Esta acción eliminará TODOS los datos almacenados y restablecerá la aplicación a la configuración predeterminada. La aplicación se reiniciará como si la estuviera iniciando por primera vez.",
+  "settings.backup.factoryResetTooltip": "Restablecer de fábrica - elimina todos los datos",
+  "common.nextSave": "Próximo guardado",
+  "common.lastSaved": "Último guardado",
+  "common.currentDate": "Fecha actual",
+  "common.noBackupYet": "Aún no hay copia de seguridad",
+  "common.justSaved": "Recién guardado",
+  "common.timeAgo.years": "hace {count} años",
+  "common.timeAgo.months": "hace {count} meses",
+  "common.timeAgo.weeks": "hace {count} semanas",
+  "common.timeAgo.days": "hace {count} días",
+  "common.timeAgo.hours": "hace {count} horas",
+  "common.timeAgo.minutes": "hace {count} minutos",
+  
+  // Header - Autosave
+  "header.autosave.notSavedYet": "Aún no guardado",
+  "header.autosave.justSaved": "Recién guardado",
+  "header.autosave.saveInSeconds": "Guardar en {seconds} s",
+  "header.autosave.saveInMinutes": "Guardar en {minutes} min",
+  "header.autosave.saveInMinutesSeconds": "Guardar en {minutes}:{seconds}",
+  
+  // Header - Menu
+  "header.menu.hide": "Ocultar menú",
+  "header.menu.show": "Mostrar menú",
+  
+  // Header - Reminder
+  "header.reminder.today": "Hoy",
+  "header.reminder.tomorrow": "Mañana",
+  "header.reminder.in2Days": "Pasado mañana",
+  "header.reminder.more": "(+{count} más)",
 };

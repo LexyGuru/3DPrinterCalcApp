@@ -4,7 +4,7 @@ import type { Theme } from '../utils/themes';
 import type { Settings, Offer } from '../types';
 import { useTranslation } from '../utils/translations';
 import type { LibraryColorOption } from '../utils/filamentLibrary';
-import { getAllLibraryEntries } from '../utils/filamentLibrary';
+import { getAllLibraryEntries, getLocalizedLibraryColorLabel } from '../utils/filamentLibrary';
 
 interface SearchResult {
   id: string;
@@ -176,13 +176,14 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
         ].join(' ').toLowerCase();
 
         if (searchableText.includes(term)) {
-          const filamentLabel = `${entry.manufacturer || ''} ${entry.material || ''} ${entry.rawColor || entry.labels.hu || entry.labels.en || ''}`.trim();
+          const colorLabel = getLocalizedLibraryColorLabel(entry, settings.language);
+          const filamentLabel = `${entry.manufacturer || ''} ${entry.material || ''} ${colorLabel || entry.rawColor || ''}`.trim();
           results.push({
             id: `library-filament-${entry.id}`,
             type: 'filament',
             label: filamentLabel || t('filaments.title') || 'Filament',
             icon: '🧵',
-            description: `${entry.manufacturer || ''} ${entry.material || ''} - ${entry.rawColor || entry.labels.hu || entry.labels.en || ''} (${entry.finish || 'standard'})`,
+            description: `${entry.manufacturer || ''} ${entry.material || ''} - ${colorLabel || entry.rawColor || ''} (${entry.finish || 'standard'})`,
             action: () => {
               if (onAddFilamentFromLibrary) {
                 onAddFilamentFromLibrary(entry);

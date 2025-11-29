@@ -911,6 +911,15 @@ export const languageHu: TranslationMap = {
   "backup.restoreError": "Hiba a backup visszaállításakor",
   "backup.invalidFile": "Érvénytelen backup fájl",
   "backup.confirmRestore": "Biztosan vissza szeretnéd állítani a backup-ot? Ez felülírja az aktuális adatokat.",
+  "backup.reminder.never": "💾 Még nem készítettél backup-ot! Ajánlott rendszeresen menteni az adataidat.",
+  "backup.reminder.oneDay": "💾 1 napja nem készítettél backup-ot. Ajánlott menteni az adataidat.",
+  "backup.reminder.multipleDays": "💾 {{days}} napja nem készítettél backup-ot. Ajánlott menteni az adataidat.",
+  "backup.reminder.minutes": "💾 {{minutes}} perce nem készítettél backup-ot. Ajánlott menteni az adataidat.",
+  "backup.reminder.hours": "💾 {{hours}} órája nem készítettél backup-ot. Ajánlott menteni az adataidat.",
+  "backup.reminder.weeks": "💾 {{weeks}} hete nem készítettél backup-ot. Ajánlott menteni az adataidat.",
+  "backup.reminder.months": "💾 {{months}} hónapja nem készítettél backup-ot. Ajánlott menteni az adataidat.",
+  "backup.reminder.years": "💾 {{years}} éve nem készítettél backup-ot. Ajánlott menteni az adataidat.",
+  "backup.reminder.today": "💾 Ma még nem készítettél backup-ot! Ajánlott menteni az adataidat.",
   "updateChecker.updateAvailable": "Új verzió elérhető!",
   "updateChecker.currentVersion": "Jelenlegi verzió",
   "updateChecker.latestVersion": "Legújabb verzió",
@@ -1119,6 +1128,14 @@ export const languageHu: TranslationMap = {
   "tutorial.previous": "Előző",
   "tutorial.skip": "Kihagyás",
   "tutorial.finish": "Befejezés",
+  "tutorial.widgetInteractivity.title": "Grafikon interaktivitás",
+  "tutorial.widgetInteractivity.description": "A grafikonokon kattinthatasz, hogy részletes nézetet kapj. Használhatod az időszak szűrést közvetlenül a grafikonról (heti/havi/éves váltó) és exportálhatod SVG formátumban.",
+  "tutorial.filamentLibraryMultilang.title": "Többnyelvű színnevek",
+  "tutorial.filamentLibraryMultilang.description": "A filament színeinek nevei automatikusan megjelennek az Ön által választott nyelven! Az alkalmazás 14 nyelven támogatja a színneveket, így könnyen navigálhatsz a könyvtárban.",
+  "tutorial.tableSorting.title": "Táblázat szűrés és rendezés",
+  "tutorial.tableSorting.description": "A táblázatokban oszlopok szerint rendezhetsz és szűrhetsz. Több oszlop szerint is rendezhetsz egyszerre, és a rendezési beállítások mentésre kerülnek. A nagy listákhoz virtuális scrollozás is használható.",
+  "tutorial.autosaveBackup.title": "Automatikus mentés és backup",
+  "tutorial.autosaveBackup.description": "Az automatikus mentés funkció naponta egyszer készít backup fájlt az összes adatodról. A backup történetben láthatod a korábbi backupokat színes jelölésekkel (zöld=ma, sárga=tegnap, piros=2-4 nap, szürke=5+ nap, hamarosan törlődik).",
   
   // Widget elemek
   "widget.manager.title": "Widget kezelő",
@@ -1179,5 +1196,116 @@ export const languageHu: TranslationMap = {
   "loading.offers": "Árajánlatok betöltése...",
   "loading.customers": "Ügyfelek betöltése...",
   "loading.initialization": "Inicializálás...",
+  "loading.info": "Az alkalmazás betölti a mentett adataidat (nyomtatók, filamentek, árajánlatok, ügyfelek) a tárolóból.",
+  
+  // Settings - Backup History
+  "settings.backup.history.title": "Automatikus backup történet",
+  "settings.backup.history.today": "Ma",
+  "settings.backup.history.yesterday": "Tegnap",
+  "settings.backup.history.daysAgo": "{days} napja",
+  "settings.backup.history.daysAgoWillDelete": "{days} napja (hamarosan törlődik)",
+  "settings.backup.history.willBeDeletedIn": "Törlésre kerül: {countdown}",
+  "settings.backup.history.description": "Az automatikus backup fájlok naponta egyszer jönnek létre, amikor az autosave be van kapcsolva. A fájlok 5 nap után automatikusan törlődnek.",
+  "settings.backup.history.colorExplanation": "Színezés magyarázata:",
+  "settings.backup.history.colorGreen": "🟢 Zöld - Mai nap backup",
+  "settings.backup.history.colorYellow": "🟡 Sárga - Tegnapi backup",
+  "settings.backup.history.colorRed": "🔴 Piros - 2-4 napos backup",
+  "settings.backup.history.colorGray": "⚪ Szürke - 5+ napos backup (hamarosan törlődik)",
+  "settings.backup.history.deletionInfo": "A backup fájlok automatikusan törlődnek 5 nap után. Kattints a fájlra a megnyitásához.",
+  "settings.backup.history.clickToOpen": "Kattints a backup fájlra a megnyitásához",
+  "settings.backup.history.openFolder": "Backup mappa megnyitása",
+  
+  // Settings - Notifications
+  "settings.notifications.permissionRequired": "Értesítési engedély szükséges",
+  "settings.notifications.permissionGranted": "Engedély megadva",
+  "settings.notifications.requestPermission": "Engedély kérése",
+  "settings.notifications.permissionGrantedMessage": "Értesítési engedély megadva",
+  "settings.notifications.testNotification": "Értesítés tesztelése",
+  "settings.notifications.testDockBadge": "Dock badge tesztelése",
+  "settings.notifications.macOSLimitations": "macOS értesítések korlátozásai:",
+  "settings.notifications.closeAndDontShow": "Bezárás és ne mutasd többet",
+  "settings.notifications.closeWillReappear": "Bezárás (újraindítás után újra megjelenik)",
+  
+  // Settings - Other Settings
+  "settings.otherSettings": "Egyéb beállítások",
+  "settings.otherSettingsDescription": "Gyorsbillentyűk megtekintése és verzió előzmények",
+  "settings.versionHistory": "Verzió előzmények",
+  "settings.versionHistoryTooltip": "Verzió előzmények megjelenítése",
+  
+  // Settings - Backup & Restore
+  "settings.backup.description": "Készíts biztonsági mentést az összes adatról vagy állítsd vissza egy korábbi állapotot",
+  "settings.backup.exportTooltip": "Mentés az összes adatot egy JSON fájlba",
+  "settings.backup.importTooltip": "Visszaállítás egy korábbi backup fájlból",
+  "settings.backup.factoryReset": "Visszaállítás alaphelyzetbe",
+  "settings.backup.factoryResetTitle": "Visszaállítás alaphelyzetbe",
+  "settings.backup.factoryResetMessage": "⚠️ FIGYELEM! Ez a művelet törli az ÖSSZES tárolt adatot:\n\n• Nyomtatók\n• Filamentek\n• Árajánlatok\n• Ügyfelek\n• Beállítások\n• Template-ek\n• Ár előzmények\n• Automatikus vészbackup fájlok\n\nEz a művelet VISSZAVONHATATLAN! Biztosan folytatja?",
+  "settings.backup.factoryResetConfirm": "Igen, törölj mindent",
+  
+  // Settings - Log Management
+  "settings.logs.title": "Log fájlok kezelése",
+  "settings.logs.description": "Beállíthatod, hogy hány napnál régebbi log fájlokat töröljön automatikusan az alkalmazás.",
+  "settings.logs.deleteOld": "Törlés régebbi log fájlok",
+  "settings.logs.neverDelete": "Soha ne törölje",
+  "settings.logs.daysOrOlder": "napnál régebbiek",
+  "settings.logs.location": "Log fájlok helye",
+  "settings.logs.openFolder": "Log mappa megnyitása",
+  
+  // Settings - Data Export/Import
+  "settings.data.exportTooltip": "Adatok exportálása JSON fájlba",
+  "settings.data.importWarning": "Figyelem: Az importálás felülírja a jelenlegi adatokat!",
+  "settings.data.selectOneItem": "Válassz ki legalább egy elemet!",
+  "settings.data.invalidFileFormat": "Érvénytelen fájl formátum!",
+  
+  // Settings - Autosave Modal
+  "settings.autosave.modal.cancel": "Mégse",
+  "settings.autosave.modal.ok": "Rendben",
+  
+  // Settings - Notification Messages
+  "settings.notifications.permissionGrantedTitle": "Engedély megadva",
+  "settings.notifications.permissionGrantedBody": "Az alkalmazás most már megjelenik az Értesítések beállításokban.",
+  "settings.notifications.permissionGrantedToast": "Értesítési engedély megadva! Teszt értesítés elküldve. Ha nem látod, próbáld meg az alkalmazást háttérbe küldeni (Cmd+H).",
+  "settings.notifications.permissionGrantedButFailed": "Értesítési engedély megadva, de az értesítés küldése sikertelen. Próbáld meg az alkalmazást háttérbe küldeni (Cmd+H) és újra küldeni az értesítést.",
+  "settings.notifications.permissionDenied": "Értesítési engedély megtagadva. Engedélyezd a Rendszerbeállításokban.",
+  "settings.notifications.requestFailed": "Engedély kérése sikertelen",
+  "settings.notifications.devModeWarning": "Dev módban az értesítések nem mindig jelennek meg natív módon (code signing hiánya miatt).",
+  "settings.notifications.productionBuildInfo": "Production build-ben az értesítések megfelelően működnek, ha az alkalmazás code signing-al van aláírva.",
+  "settings.notifications.backgroundOnly": "Az értesítések csak akkor jelennek meg natív módon, ha az alkalmazás nem aktív (háttérben van).",
+  "settings.notifications.systemSettingsInfo": "Az alkalmazás megjelenik a Rendszerbeállítások > Értesítések és fókusz menüben production build után.",
+  
+  // Settings - Factory Reset
+  "settings.backup.factoryResetDescription": "Ez a művelet törli az ÖSSZES tárolt adatot és visszaállítja az alkalmazást az alapértelmezett beállításokra. Az alkalmazás újraindul, mintha most indítanád először.",
+  "settings.backup.factoryResetTooltip": "Visszaállítás alaphelyzetbe - törli az összes adatot",
+  
+  // Common - Header
+  "common.nextSave": "Következő mentés",
+  "common.lastSaved": "Utolsó mentés",
+  "common.currentDate": "Jelenlegi dátum",
+  "common.noBackupYet": "Még nem volt mentés",
+  "common.justSaved": "Most mentve",
+  
+  // Common - Time Ago
+  "common.timeAgo.years": "{count} éve",
+  "common.timeAgo.months": "{count} hónapja",
+  "common.timeAgo.weeks": "{count} hete",
+  "common.timeAgo.days": "{count} napja",
+  "common.timeAgo.hours": "{count} órája",
+  "common.timeAgo.minutes": "{count} perce",
+  
+  // Header - Autosave
+  "header.autosave.notSavedYet": "Még nem mentve",
+  "header.autosave.justSaved": "Most mentve",
+  "header.autosave.saveInSeconds": "{seconds} mp múlva mentés",
+  "header.autosave.saveInMinutes": "{minutes} perc múlva mentés",
+  "header.autosave.saveInMinutesSeconds": "{minutes}:{seconds} múlva mentés",
+  
+  // Header - Menu
+  "header.menu.hide": "Menü elrejtése",
+  "header.menu.show": "Menü megjelenítése",
+  
+  // Header - Reminder
+  "header.reminder.today": "Ma",
+  "header.reminder.tomorrow": "Holnap",
+  "header.reminder.in2Days": "Holnapután",
+  "header.reminder.more": "(+{count} további)",
 };
 

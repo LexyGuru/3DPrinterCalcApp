@@ -929,6 +929,15 @@ export const languageSk: TranslationMap = {
   "backup.restoreError": "Chyba pri obnovovaní zálohy",
   "backup.invalidFile": "Neplatný záložný súbor",
   "backup.confirmRestore": "Ste si istí, že chcete obnoviť zálohu? Toto prepíše aktuálne dáta.",
+  "backup.reminder.never": "💾 Ešte ste nevytvorili zálohu! Odporúča sa pravidelne zálohovať vaše dáta.",
+  "backup.reminder.oneDay": "💾 Nezálohovali ste už 1 deň. Odporúča sa zálohovať vaše dáta.",
+  "backup.reminder.multipleDays": "💾 Nezálohovali ste už {{days}} dní. Odporúča sa zálohovať vaše dáta.",
+  "backup.reminder.minutes": "💾 Nezálohovali ste už {{minutes}} minút. Odporúča sa zálohovať vaše dáta.",
+  "backup.reminder.hours": "💾 Nezálohovali ste už {{hours}} hodín. Odporúča sa zálohovať vaše dáta.",
+  "backup.reminder.weeks": "💾 Nezálohovali ste už {{weeks}} týždňov. Odporúča sa zálohovať vaše dáta.",
+  "backup.reminder.months": "💾 Nezálohovali ste už {{months}} mesiacov. Odporúča sa zálohovať vaše dáta.",
+  "backup.reminder.years": "💾 Nezálohovali ste už {{years}} rokov. Odporúča sa zálohovať vaše dáta.",
+  "backup.reminder.today": "💾 Dnes ste ešte nezálohovali! Odporúča sa zálohovať vaše dáta.",
   // Správa zásob filamentu
   "filamentStock.title": "Správa zásob filamentu",
   "filamentStock.subtitle": "Sledovanie a správa úrovní zásob filamentu",
@@ -1119,6 +1128,14 @@ export const languageSk: TranslationMap = {
   "tutorial.previous": "Predchádzajúce",
   "tutorial.skip": "Preskočiť",
   "tutorial.finish": "Dokončiť",
+  "tutorial.widgetInteractivity.title": "Interaktivita grafov",
+  "tutorial.widgetInteractivity.description": "Môžete kliknúť na grafy a získať podrobné zobrazenia. Môžete použiť filtrovanie obdobia priamo z grafu (týždenný/mesačný/ročný prepínač) a exportovať ich vo formáte SVG.",
+  "tutorial.filamentLibraryMultilang.title": "Vícejazyčné názvy farieb",
+  "tutorial.filamentLibraryMultilang.description": "Názvy farieb filamentu sa automaticky zobrazujú vo vašom vybranom jazyku! Aplikácia podporuje názvy farieb v 14 jazykoch, čo uľahčuje navigáciu v knižnici.",
+  "tutorial.tableSorting.title": "Filtrovanie a triedenie tabuliek",
+  "tutorial.tableSorting.description": "V tabuľkách môžete triediť a filtrovať podľa stĺpcov. Môžete triediť podľa viacerých stĺpcov naraz a nastavenia triedenia sa ukladajú. Pre veľké zoznamy je k dispozícii aj virtuálne posúvanie.",
+  "tutorial.autosaveBackup.title": "Automatické ukladanie a zálohovanie",
+  "tutorial.autosaveBackup.description": "Funkcia automatického ukladania vytvára raz denne zálohu všetkých vašich dát. V histórii záloh môžete vidieť predchádzajúce zálohy s farebnými indikátormi (zelená=dnes, žltá=včera, červená=2-4 dni, sivá=5+ dní, čoskoro budú vymazané).",
   
   // Widget prvky
   "widget.manager.title": "Správca widgetov",
@@ -1179,4 +1196,117 @@ export const languageSk: TranslationMap = {
   "loading.offers": "Načítanie ponúk...",
   "loading.customers": "Načítanie zákazníkov...",
   "loading.initialization": "Inicializácia...",
+  "loading.info": "Aplikácia načítava vaše uložené dáta (tlačiarne, filamenty, ponuky, zákazníkov) z úložiska.",
+  
+  // Settings - Backup History
+  "settings.backup.history.title": "História automatických záloh",
+  "settings.backup.history.today": "Dnes",
+  "settings.backup.history.yesterday": "Včera",
+  "settings.backup.history.daysAgo": "pred {days} dňami",
+  "settings.backup.history.daysAgoWillDelete": "pred {days} dňami (bude čoskoro vymazané)",
+  "settings.backup.history.willBeDeletedIn": "Bude vymazané za: {countdown}",
+  "settings.backup.history.description": "Automatické zálohovacie súbory sa vytvárajú raz denne, keď je zapnuté automatické ukladanie. Súbory sa automaticky vymažú po 5 dňoch.",
+  "settings.backup.history.colorExplanation": "Vysvetlenie farebného kódovania:",
+  "settings.backup.history.colorGreen": "🟢 Zelená - Dnešná záloha",
+  "settings.backup.history.colorYellow": "🟡 Žltá - Včerajšia záloha",
+  "settings.backup.history.colorRed": "🔴 Červená - 2-4 dni stará záloha",
+  "settings.backup.history.colorGray": "⚪ Sivá - 5+ dní stará záloha (bude čoskoro vymazaná)",
+  "settings.backup.history.deletionInfo": "Zálohovacie súbory sa automaticky vymažú po 5 dňoch. Kliknite na súbor, aby ste ho otvorili.",
+  "settings.backup.history.clickToOpen": "Kliknite na zálohovací súbor, aby ste ho otvorili",
+  "settings.backup.history.openFolder": "Otvoriť priečinok záloh",
+  
+  // Settings - Notifications
+  "settings.notifications.permissionRequired": "Vyžadované oprávnenie na oznámenia",
+  "settings.notifications.permissionGranted": "Oprávnenie udelené",
+  "settings.notifications.requestPermission": "Požiadať o oprávnenie",
+  "settings.notifications.permissionGrantedMessage": "Oprávnenie na oznámenia udelené",
+  "settings.notifications.testNotification": "Testovať oznámenie",
+  "settings.notifications.testDockBadge": "Testovať Dock badge",
+  "settings.notifications.macOSLimitations": "Obmedzenia oznámení macOS:",
+  "settings.notifications.closeAndDontShow": "Zavrieť a znovu nezobrazovať",
+  "settings.notifications.closeWillReappear": "Zavrieť (znovu sa objaví po reštarte)",
+  
+  // Settings - Other Settings
+  "settings.otherSettings": "Ďalšie nastavenia",
+  "settings.otherSettingsDescription": "Zobraziť klávesové skratky a históriu verzií",
+  "settings.versionHistory": "História verzií",
+  "settings.versionHistoryTooltip": "Zobraziť históriu verzií",
+  
+  // Settings - Backup & Restore
+  "settings.backup.description": "Vytvoriť zálohu všetkých dát alebo obnoviť predchádzajúci stav",
+  "settings.backup.exportTooltip": "Uložiť všetky dáta do súboru JSON",
+  "settings.backup.importTooltip": "Obnoviť z predchádzajúceho záložného súboru",
+  "settings.backup.factoryReset": "Obnoviť továrenské nastavenia",
+  "settings.backup.factoryResetTitle": "Obnoviť továrenské nastavenia",
+  "settings.backup.factoryResetConfirm": "Áno, vymazať všetko",
+  
+  // Settings - Log Management
+  "settings.logs.title": "Správa log súborov",
+  "settings.logs.description": "Môžete nastaviť, koľko dní staré log súbory by aplikácia mala automaticky vymazať.",
+  "settings.logs.deleteOld": "Vymazať staré log súbory",
+  "settings.logs.neverDelete": "Nikdy nemazať",
+  "settings.logs.daysOrOlder": "dní alebo staršie",
+  "settings.logs.location": "Umiestnenie log súborov",
+  "settings.logs.openFolder": "Otvoriť priečinok logov",
+  
+  // Settings - Data Export/Import
+  "settings.data.exportTooltip": "Exportovať dáta do súboru JSON",
+  "settings.data.importWarning": "Varovanie: Import prepíše aktuálne dáta!",
+  "settings.data.selectOneItem": "Vyberte aspoň jednu položku!",
+  "settings.data.invalidFileFormat": "Neplatný formát súboru!",
+  
+  // Settings - Autosave Modal
+  "settings.autosave.modal.cancel": "Zrušiť",
+  "settings.autosave.modal.ok": "OK",
+  
+  // Settings - Factory Reset Message
+  "settings.backup.factoryResetMessage": "⚠️ VAROVANIE! Táto akcia vymaže VŠETKY uložené dáta:\n\n• Tlačiarne\n• Filamenty\n• Ponuky\n• Zákazníci\n• Nastavenia\n• Šablóny\n• História cien\n• Automatické záložné súbory\n\nTáto akcia je NEVRÁTNA! Naozaj chcete pokračovať?",
+  
+  // Settings - Notification Messages
+  "settings.notifications.permissionGrantedTitle": "Oprávnenie udelené",
+  "settings.notifications.permissionGrantedBody": "Aplikácia sa teraz zobrazí v nastavení oznámení.",
+  "settings.notifications.permissionGrantedToast": "Oprávnenie na oznámenia udelené! Testovacie oznámenie odoslané. Ak ho nevidíte, skúste aplikáciu skryť (Cmd+H).",
+  "settings.notifications.permissionGrantedButFailed": "Oprávnenie na oznámenia udelené, ale odosielanie oznámenia zlyhalo. Skúste aplikáciu skryť (Cmd+H) a znovu odoslať oznámenie.",
+  "settings.notifications.permissionDenied": "Oprávnenie na oznámenia zamietnuté. Povoľte ho v nastavení systému.",
+  "settings.notifications.requestFailed": "Požiadavka na oprávnenie zlyhala",
+  "settings.notifications.devModeWarning": "V režime vývoja sa oznámenia nemusia vždy zobrazovať natívne (kvôli chýbajúcemu podpisu kódu).",
+  "settings.notifications.productionBuildInfo": "Vo výrobnej verzii oznámenia fungujú správne, ak je aplikácia podpísaná.",
+  "settings.notifications.backgroundOnly": "Oznámenia sa zobrazujú natívne len keď je aplikácia neaktívna (na pozadí).",
+  "settings.notifications.systemSettingsInfo": "Aplikácia sa zobrazí v Nastaveniach systému > Oznámenia a Zameranie po výrobnej verzii.",
+  
+  // Settings - Factory Reset
+  "settings.backup.factoryResetDescription": "Táto akcia vymaže VŠETKY uložené údaje a obnoví aplikáciu na predvolené nastavenia. Aplikácia sa reštartuje, ako keby ste ju spúšťali prvýkrát.",
+  "settings.backup.factoryResetTooltip": "Obnovenie továrenských nastavení - vymaže všetky údaje",
+  
+  // Common - Header
+  "common.nextSave": "Ďalšie uloženie",
+  "common.lastSaved": "Posledné uloženie",
+  "common.currentDate": "Aktuálny dátum",
+  "common.noBackupYet": "Ešte nie je záloha",
+  "common.justSaved": "Práve uložené",
+  
+  // Common - Time Ago
+  "common.timeAgo.years": "pred {count} rokmi",
+  "common.timeAgo.months": "pred {count} mesiacmi",
+  "common.timeAgo.weeks": "pred {count} týždňami",
+  "common.timeAgo.days": "pred {count} dňami",
+  "common.timeAgo.hours": "pred {count} hodinami",
+  "common.timeAgo.minutes": "pred {count} minútami",
+  
+  // Header - Autosave
+  "header.autosave.notSavedYet": "Ešte neuložené",
+  "header.autosave.justSaved": "Práve uložené",
+  "header.autosave.saveInSeconds": "Uložiť za {seconds} s",
+  "header.autosave.saveInMinutes": "Uložiť za {minutes} min",
+  "header.autosave.saveInMinutesSeconds": "Uložiť za {minutes}:{seconds}",
+  
+  // Header - Menu
+  "header.menu.hide": "Skryť ponuku",
+  "header.menu.show": "Zobraziť ponuku",
+  
+  // Header - Reminder
+  "header.reminder.today": "Dnes",
+  "header.reminder.tomorrow": "Zajtra",
+  "header.reminder.in2Days": "Pozajtra",
+  "header.reminder.more": "(+{count} ďalších)",
 };

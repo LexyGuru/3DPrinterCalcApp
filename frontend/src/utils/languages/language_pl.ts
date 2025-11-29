@@ -929,6 +929,15 @@ export const languagePl: TranslationMap = {
   "backup.restoreError": "Błąd podczas przywracania kopii zapasowej",
   "backup.invalidFile": "Nieprawidłowy plik kopii zapasowej",
   "backup.confirmRestore": "Czy na pewno chcesz przywrócić kopię zapasową? Spowoduje to nadpisanie bieżących danych.",
+  "backup.reminder.never": "💾 Nie utworzyłeś jeszcze kopii zapasowej! Zaleca się regularne tworzenie kopii zapasowych danych.",
+  "backup.reminder.oneDay": "💾 Nie utworzyłeś kopii zapasowej od 1 dnia. Zaleca się utworzenie kopii zapasowej danych.",
+  "backup.reminder.multipleDays": "💾 Nie utworzyłeś kopii zapasowej od {{days}} dni. Zaleca się utworzenie kopii zapasowej danych.",
+  "backup.reminder.minutes": "💾 Nie utworzyłeś kopii zapasowej od {{minutes}} minut. Zaleca się utworzenie kopii zapasowej danych.",
+  "backup.reminder.hours": "💾 Nie utworzyłeś kopii zapasowej od {{hours}} godzin. Zaleca się utworzenie kopii zapasowej danych.",
+  "backup.reminder.weeks": "💾 Nie utworzyłeś kopii zapasowej od {{weeks}} tygodni. Zaleca się utworzenie kopii zapasowej danych.",
+  "backup.reminder.months": "💾 Nie utworzyłeś kopii zapasowej od {{months}} miesięcy. Zaleca się utworzenie kopii zapasowej danych.",
+  "backup.reminder.years": "💾 Nie utworzyłeś kopii zapasowej od {{years}} lat. Zaleca się utworzenie kopii zapasowej danych.",
+  "backup.reminder.today": "💾 Nie utworzyłeś jeszcze kopii zapasowej dzisiaj! Zaleca się utworzenie kopii zapasowej danych.",
   // Zarządzanie stanem magazynowym filamentu
   "filamentStock.title": "Zarządzanie stanem magazynowym filamentu",
   "filamentStock.subtitle": "Monitorowanie i zarządzanie poziomami zapasów filamentu",
@@ -1119,6 +1128,14 @@ export const languagePl: TranslationMap = {
   "tutorial.previous": "Wstecz",
   "tutorial.skip": "Pomiń",
   "tutorial.finish": "Zakończ",
+  "tutorial.widgetInteractivity.title": "Interaktywność wykresów",
+  "tutorial.widgetInteractivity.description": "Możesz kliknąć na wykresy, aby uzyskać szczegółowe widoki. Możesz użyć filtrowania okresów bezpośrednio z wykresu (przełącznik tygodniowy/miesięczny/roczny) i eksportować je w formacie SVG.",
+  "tutorial.filamentLibraryMultilang.title": "Wielojęzyczne nazwy kolorów",
+  "tutorial.filamentLibraryMultilang.description": "Nazwy kolorów filamentów automatycznie pojawiają się w wybranym języku! Aplikacja obsługuje nazwy kolorów w 14 językach, co ułatwia nawigację w bibliotece.",
+  "tutorial.tableSorting.title": "Filtrowanie i sortowanie tabel",
+  "tutorial.tableSorting.description": "W tabelach możesz sortować i filtrować według kolumn. Możesz sortować według kilku kolumn jednocześnie, a ustawienia sortowania są zapisywane. Wirtualne przewijanie jest również dostępne dla dużych list.",
+  "tutorial.autosaveBackup.title": "Automatyczne zapisywanie i kopia zapasowa",
+  "tutorial.autosaveBackup.description": "Funkcja automatycznego zapisywania tworzy raz dziennie plik kopii zapasowej wszystkich danych. W historii kopii zapasowych możesz zobaczyć poprzednie kopie zapasowe z kolorowymi wskaźnikami (zielony=dziś, żółty=wczoraj, czerwony=2-4 dni, szary=5+ dni, wkrótce zostanie usunięty).",
   
   // Elementy widgetów
   "widget.manager.title": "Menedżer widgetów",
@@ -1179,4 +1196,117 @@ export const languagePl: TranslationMap = {
   "loading.offers": "Ładowanie ofert...",
   "loading.customers": "Ładowanie klientów...",
   "loading.initialization": "Inicjalizacja...",
+  "loading.info": "Aplikacja ładuje Twoje zapisane dane (drukarki, filamenty, oferty, klientów) z pamięci.",
+  
+  // Settings - Backup History
+  "settings.backup.history.title": "Historia automatycznych kopii zapasowych",
+  "settings.backup.history.today": "Dzisiaj",
+  "settings.backup.history.yesterday": "Wczoraj",
+  "settings.backup.history.daysAgo": "{days} dni temu",
+  "settings.backup.history.daysAgoWillDelete": "{days} dni temu (zostanie wkrótce usunięte)",
+  "settings.backup.history.willBeDeletedIn": "Zostanie usunięte za: {countdown}",
+  "settings.backup.history.description": "Automatyczne pliki kopii zapasowej są tworzone raz dziennie, gdy autosave jest włączony. Pliki są automatycznie usuwane po 5 dniach.",
+  "settings.backup.history.colorExplanation": "Wyjaśnienie kodowania kolorów:",
+  "settings.backup.history.colorGreen": "🟢 Zielony - Dzisiejsza kopia zapasowa",
+  "settings.backup.history.colorYellow": "🟡 Żółty - Wczorajsza kopia zapasowa",
+  "settings.backup.history.colorRed": "🔴 Czerwony - Kopia zapasowa sprzed 2-4 dni",
+  "settings.backup.history.colorGray": "⚪ Szary - Kopia zapasowa sprzed 5+ dni (zostanie wkrótce usunięta)",
+  "settings.backup.history.deletionInfo": "Pliki kopii zapasowej są automatycznie usuwane po 5 dniach. Kliknij plik, aby go otworzyć.",
+  "settings.backup.history.clickToOpen": "Kliknij plik kopii zapasowej, aby go otworzyć",
+  "settings.backup.history.openFolder": "Otwórz folder kopii zapasowej",
+  
+  // Settings - Notifications
+  "settings.notifications.permissionRequired": "Wymagane uprawnienie do powiadomień",
+  "settings.notifications.permissionGranted": "Uprawnienie przyznane",
+  "settings.notifications.requestPermission": "Poproś o uprawnienie",
+  "settings.notifications.permissionGrantedMessage": "Uprawnienie do powiadomień przyznane",
+  "settings.notifications.testNotification": "Testuj powiadomienie",
+  "settings.notifications.testDockBadge": "Testuj badge Dock",
+  "settings.notifications.macOSLimitations": "Ograniczenia powiadomień macOS:",
+  "settings.notifications.closeAndDontShow": "Zamknij i nie pokazuj ponownie",
+  "settings.notifications.closeWillReappear": "Zamknij (ponownie pojawi się po ponownym uruchomieniu)",
+  
+  // Settings - Other Settings
+  "settings.otherSettings": "Inne ustawienia",
+  "settings.otherSettingsDescription": "Zobacz skróty klawiszowe i historię wersji",
+  "settings.versionHistory": "Historia wersji",
+  "settings.versionHistoryTooltip": "Pokaż historię wersji",
+  
+  // Settings - Backup & Restore
+  "settings.backup.description": "Utwórz kopię zapasową wszystkich danych lub przywróć poprzedni stan",
+  "settings.backup.exportTooltip": "Zapisz wszystkie dane do pliku JSON",
+  "settings.backup.importTooltip": "Przywróć z poprzedniego pliku kopii zapasowej",
+  "settings.backup.factoryReset": "Przywracanie ustawień fabrycznych",
+  "settings.backup.factoryResetTitle": "Przywracanie ustawień fabrycznych",
+  "settings.backup.factoryResetConfirm": "Tak, usuń wszystko",
+  
+  // Settings - Log Management
+  "settings.logs.title": "Zarządzanie plikami dziennika",
+  "settings.logs.description": "Możesz ustawić, ile dni stare pliki dziennika powinna automatycznie usuwać aplikacja.",
+  "settings.logs.deleteOld": "Usuń stare pliki dziennika",
+  "settings.logs.neverDelete": "Nigdy nie usuwaj",
+  "settings.logs.daysOrOlder": "dni lub starsze",
+  "settings.logs.location": "Lokalizacja plików dziennika",
+  "settings.logs.openFolder": "Otwórz folder dziennika",
+  
+  // Settings - Data Export/Import
+  "settings.data.exportTooltip": "Eksportuj dane do pliku JSON",
+  "settings.data.importWarning": "Ostrzeżenie: Import zastąpi bieżące dane!",
+  "settings.data.selectOneItem": "Wybierz co najmniej jeden element!",
+  "settings.data.invalidFileFormat": "Nieprawidłowy format pliku!",
+  
+  // Settings - Autosave Modal
+  "settings.autosave.modal.cancel": "Anuluj",
+  "settings.autosave.modal.ok": "OK",
+  
+  // Settings - Factory Reset Message
+  "settings.backup.factoryResetMessage": "⚠️ OSTRZEŻENIE! Ta akcja usunie WSZYSTKIE zapisane dane:\n\n• Drukarki\n• Filamenty\n• Oferty\n• Klienci\n• Ustawienia\n• Szablony\n• Historia cen\n• Automatyczne pliki kopii zapasowych\n\nTa akcja jest NIEODWRACALNA! Czy na pewno chcesz kontynuować?",
+  
+  // Settings - Notification Messages
+  "settings.notifications.permissionGrantedTitle": "Uprawnienie przyznane",
+  "settings.notifications.permissionGrantedBody": "Aplikacja pojawi się teraz w ustawieniach powiadomień.",
+  "settings.notifications.permissionGrantedToast": "Uprawnienie do powiadomień przyznane! Powiadomienie testowe wysłane. Jeśli go nie widzisz, spróbuj ukryć aplikację (Cmd+H).",
+  "settings.notifications.permissionGrantedButFailed": "Uprawnienie do powiadomień przyznane, ale wysłanie powiadomienia nie powiodło się. Spróbuj ukryć aplikację (Cmd+H) i ponownie wysłać powiadomienie.",
+  "settings.notifications.permissionDenied": "Uprawnienie do powiadomień odmówione. Włącz je w ustawieniach systemu.",
+  "settings.notifications.requestFailed": "Nie udało się poprosić o uprawnienie",
+  "settings.notifications.devModeWarning": "W trybie deweloperskim powiadomienia mogą nie zawsze pojawiać się natywnie (z powodu braku podpisu kodu).",
+  "settings.notifications.productionBuildInfo": "W wersji produkcyjnej powiadomienia działają poprawnie, jeśli aplikacja jest podpisana.",
+  "settings.notifications.backgroundOnly": "Powiadomienia pojawiają się natywnie tylko wtedy, gdy aplikacja jest nieaktywna (w tle).",
+  "settings.notifications.systemSettingsInfo": "Aplikacja pojawi się w Ustawieniach systemowych > Powiadomienia i Skupienie po wersji produkcyjnej.",
+  
+  // Settings - Factory Reset
+  "settings.backup.factoryResetDescription": "Ta akcja usunie WSZYSTKIE zapisane dane i zresetuje aplikację do ustawień domyślnych. Aplikacja uruchomi się ponownie, jakbyś uruchamiał ją po raz pierwszy.",
+  "settings.backup.factoryResetTooltip": "Przywracanie ustawień fabrycznych - usuwa wszystkie dane",
+  
+  // Common - Header
+  "common.nextSave": "Następne zapisanie",
+  "common.lastSaved": "Ostatnie zapisanie",
+  "common.currentDate": "Bieżąca data",
+  "common.noBackupYet": "Jeszcze brak kopii zapasowej",
+  "common.justSaved": "Właśnie zapisano",
+  
+  // Common - Time Ago
+  "common.timeAgo.years": "{count} lat temu",
+  "common.timeAgo.months": "{count} miesięcy temu",
+  "common.timeAgo.weeks": "{count} tygodni temu",
+  "common.timeAgo.days": "{count} dni temu",
+  "common.timeAgo.hours": "{count} godzin temu",
+  "common.timeAgo.minutes": "{count} minut temu",
+  
+  // Header - Autosave
+  "header.autosave.notSavedYet": "Jeszcze nie zapisano",
+  "header.autosave.justSaved": "Właśnie zapisano",
+  "header.autosave.saveInSeconds": "Zapisz za {seconds} s",
+  "header.autosave.saveInMinutes": "Zapisz za {minutes} min",
+  "header.autosave.saveInMinutesSeconds": "Zapisz za {minutes}:{seconds}",
+  
+  // Header - Menu
+  "header.menu.hide": "Ukryj menu",
+  "header.menu.show": "Pokaż menu",
+  
+  // Header - Reminder
+  "header.reminder.today": "Dzisiaj",
+  "header.reminder.tomorrow": "Jutro",
+  "header.reminder.in2Days": "Pojutrze",
+  "header.reminder.more": "(+{count} więcej)",
 };

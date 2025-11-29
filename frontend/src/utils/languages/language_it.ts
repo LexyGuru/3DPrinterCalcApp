@@ -929,6 +929,15 @@ export const languageIt: TranslationMap = {
   "backup.restoreError": "Errore nel ripristino del backup",
   "backup.invalidFile": "File di backup non valido",
   "backup.confirmRestore": "Sei sicuro di voler ripristinare il backup? Questo sovrascriverà i dati attuali.",
+  "backup.reminder.never": "💾 Non hai ancora creato un backup! Si consiglia di eseguire il backup regolarmente dei tuoi dati.",
+  "backup.reminder.oneDay": "💾 Non hai creato un backup da 1 giorno. Si consiglia di eseguire il backup dei tuoi dati.",
+  "backup.reminder.multipleDays": "💾 Non hai creato un backup da {{days}} giorni. Si consiglia di eseguire il backup dei tuoi dati.",
+  "backup.reminder.minutes": "💾 Non hai creato un backup da {{minutes}} minuti. Si consiglia di eseguire il backup dei tuoi dati.",
+  "backup.reminder.hours": "💾 Non hai creato un backup da {{hours}} ore. Si consiglia di eseguire il backup dei tuoi dati.",
+  "backup.reminder.weeks": "💾 Non hai creato un backup da {{weeks}} settimane. Si consiglia di eseguire il backup dei tuoi dati.",
+  "backup.reminder.months": "💾 Non hai creato un backup da {{months}} mesi. Si consiglia di eseguire il backup dei tuoi dati.",
+  "backup.reminder.years": "💾 Non hai creato un backup da {{years}} anni. Si consiglia di eseguire il backup dei tuoi dati.",
+  "backup.reminder.today": "💾 Non hai ancora creato un backup oggi! Si consiglia di eseguire il backup dei tuoi dati.",
   // Gestione stock filamento
   "filamentStock.title": "Gestione stock filamento",
   "filamentStock.subtitle": "Monitoraggio e gestione dei livelli di stock del filamento",
@@ -1119,6 +1128,14 @@ export const languageIt: TranslationMap = {
   "tutorial.previous": "Indietro",
   "tutorial.skip": "Salta",
   "tutorial.finish": "Termina",
+  "tutorial.widgetInteractivity.title": "Interattività dei grafici",
+  "tutorial.widgetInteractivity.description": "Puoi fare clic sui grafici per ottenere visualizzazioni dettagliate. Puoi utilizzare il filtro per periodo direttamente dal grafico (cambio settimanale/mensile/annuale) ed esportarli in formato SVG.",
+  "tutorial.filamentLibraryMultilang.title": "Nomi dei colori multilingue",
+  "tutorial.filamentLibraryMultilang.description": "I nomi dei colori del filamento appaiono automaticamente nella lingua selezionata! L'applicazione supporta nomi di colori in 14 lingue, rendendo facile la navigazione nella libreria.",
+  "tutorial.tableSorting.title": "Filtraggio e ordinamento delle tabelle",
+  "tutorial.tableSorting.description": "Nelle tabelle, puoi ordinare e filtrare per colonne. Puoi ordinare per più colonne contemporaneamente e le impostazioni di ordinamento vengono salvate. Lo scorrimento virtuale è disponibile anche per elenchi grandi.",
+  "tutorial.autosaveBackup.title": "Salvataggio automatico e backup",
+  "tutorial.autosaveBackup.description": "La funzione di salvataggio automatico crea un file di backup una volta al giorno di tutti i tuoi dati. Nella cronologia dei backup, puoi vedere i backup precedenti con indicatori codificati per colore (verde=oggi, giallo=ieri, rosso=2-4 giorni, grigio=5+ giorni, verrà eliminato presto).",
   
   // Elementi widget
   "widget.manager.title": "Gestore widget",
@@ -1179,4 +1196,117 @@ export const languageIt: TranslationMap = {
   "loading.offers": "Caricamento offerte...",
   "loading.customers": "Caricamento clienti...",
   "loading.initialization": "Inizializzazione...",
+  "loading.info": "L'applicazione sta caricando i tuoi dati salvati (stampanti, filamenti, offerte, clienti) dall'archivio.",
+  
+  // Settings - Backup History
+  "settings.backup.history.title": "Cronologia backup automatici",
+  "settings.backup.history.today": "Oggi",
+  "settings.backup.history.yesterday": "Ieri",
+  "settings.backup.history.daysAgo": "{days} giorni fa",
+  "settings.backup.history.daysAgoWillDelete": "{days} giorni fa (verrà eliminato presto)",
+  "settings.backup.history.willBeDeletedIn": "Verrà eliminato tra: {countdown}",
+  "settings.backup.history.description": "I file di backup automatico vengono creati una volta al giorno quando il salvataggio automatico è abilitato. I file vengono eliminati automaticamente dopo 5 giorni.",
+  "settings.backup.history.colorExplanation": "Spiegazione del codice colore:",
+  "settings.backup.history.colorGreen": "🟢 Verde - Backup di oggi",
+  "settings.backup.history.colorYellow": "🟡 Giallo - Backup di ieri",
+  "settings.backup.history.colorRed": "🔴 Rosso - Backup di 2-4 giorni",
+  "settings.backup.history.colorGray": "⚪ Grigio - Backup di 5+ giorni (verrà eliminato presto)",
+  "settings.backup.history.deletionInfo": "I file di backup vengono eliminati automaticamente dopo 5 giorni. Fare clic su un file per aprirlo.",
+  "settings.backup.history.clickToOpen": "Fare clic su un file di backup per aprirlo",
+  "settings.backup.history.openFolder": "Apri cartella backup",
+  
+  // Settings - Notifications
+  "settings.notifications.permissionRequired": "Autorizzazione notifiche richiesta",
+  "settings.notifications.permissionGranted": "Autorizzazione concessa",
+  "settings.notifications.requestPermission": "Richiedi autorizzazione",
+  "settings.notifications.permissionGrantedMessage": "Autorizzazione notifiche concessa",
+  "settings.notifications.testNotification": "Testa notifica",
+  "settings.notifications.testDockBadge": "Testa badge Dock",
+  "settings.notifications.macOSLimitations": "Limitazioni notifiche macOS:",
+  "settings.notifications.closeAndDontShow": "Chiudi e non mostrare più",
+  "settings.notifications.closeWillReappear": "Chiudi (riapparirà dopo il riavvio)",
+  
+  // Settings - Other Settings
+  "settings.otherSettings": "Altre impostazioni",
+  "settings.otherSettingsDescription": "Visualizza scorciatoie da tastiera e cronologia versioni",
+  "settings.versionHistory": "Cronologia versioni",
+  "settings.versionHistoryTooltip": "Mostra cronologia versioni",
+  
+  // Settings - Backup & Restore
+  "settings.backup.description": "Crea un backup di tutti i dati o ripristina uno stato precedente",
+  "settings.backup.exportTooltip": "Salva tutti i dati in un file JSON",
+  "settings.backup.importTooltip": "Ripristina da un file di backup precedente",
+  "settings.backup.factoryReset": "Ripristino alle impostazioni di fabbrica",
+  "settings.backup.factoryResetTitle": "Ripristino alle impostazioni di fabbrica",
+  "settings.backup.factoryResetConfirm": "Sì, elimina tutto",
+  
+  // Settings - Log Management
+  "settings.logs.title": "Gestione file di log",
+  "settings.logs.description": "Puoi impostare quanti giorni di età devono avere i file di log per essere eliminati automaticamente dall'applicazione.",
+  "settings.logs.deleteOld": "Elimina vecchi file di log",
+  "settings.logs.neverDelete": "Non eliminare mai",
+  "settings.logs.daysOrOlder": "giorni o più vecchi",
+  "settings.logs.location": "Posizione file di log",
+  "settings.logs.openFolder": "Apri cartella log",
+  
+  // Settings - Data Export/Import
+  "settings.data.exportTooltip": "Esporta dati in file JSON",
+  "settings.data.importWarning": "Attenzione: L'importazione sovrascriverà i dati attuali!",
+  "settings.data.selectOneItem": "Seleziona almeno un elemento!",
+  "settings.data.invalidFileFormat": "Formato file non valido!",
+  
+  // Settings - Autosave Modal
+  "settings.autosave.modal.cancel": "Annulla",
+  "settings.autosave.modal.ok": "OK",
+  
+  // Settings - Factory Reset Message
+  "settings.backup.factoryResetMessage": "⚠️ ATTENZIONE! Questa azione eliminerà TUTTI i dati memorizzati:\n\n• Stampanti\n• Filamenti\n• Offerte\n• Clienti\n• Impostazioni\n• Modelli\n• Cronologia prezzi\n• File di backup automatici\n\nQuesta azione è IRREVERSIBILE! Sei sicuro di voler continuare?",
+  
+  // Settings - Notification Messages
+  "settings.notifications.permissionGrantedTitle": "Autorizzazione concessa",
+  "settings.notifications.permissionGrantedBody": "L'app ora apparirà nelle impostazioni delle notifiche.",
+  "settings.notifications.permissionGrantedToast": "Autorizzazione alle notifiche concessa! Notifica di test inviata. Se non la vedi, prova a nascondere l'app (Cmd+H).",
+  "settings.notifications.permissionGrantedButFailed": "Autorizzazione alle notifiche concessa, ma l'invio della notifica è fallito. Prova a nascondere l'app (Cmd+H) e inviare nuovamente la notifica.",
+  "settings.notifications.permissionDenied": "Autorizzazione alle notifiche negata. Abilitala nelle impostazioni di sistema.",
+  "settings.notifications.requestFailed": "Richiesta di autorizzazione fallita",
+  "settings.notifications.devModeWarning": "In modalità sviluppo, le notifiche potrebbero non apparire sempre in modo nativo (a causa della mancanza di firma del codice).",
+  "settings.notifications.productionBuildInfo": "Nella versione di produzione, le notifiche funzionano correttamente se l'app è firmata.",
+  "settings.notifications.backgroundOnly": "Le notifiche appaiono nativamente solo quando l'app è inattiva (in background).",
+  "settings.notifications.systemSettingsInfo": "L'app apparirà in Impostazioni di sistema > Notifiche e Focus dopo la versione di produzione.",
+  
+  // Settings - Factory Reset
+  "settings.backup.factoryResetDescription": "Questa azione eliminerà TUTTI i dati memorizzati e reimposterà l'applicazione alle impostazioni predefinite. L'applicazione si riavvierà come se la stessi avviando per la prima volta.",
+  "settings.backup.factoryResetTooltip": "Reimpostazione di fabbrica - elimina tutti i dati",
+  
+  // Common - Header
+  "common.nextSave": "Prossimo salvataggio",
+  "common.lastSaved": "Ultimo salvataggio",
+  "common.currentDate": "Data attuale",
+  "common.noBackupYet": "Nessun backup ancora",
+  "common.justSaved": "Appena salvato",
+  
+  // Common - Time Ago
+  "common.timeAgo.years": "{count} anni fa",
+  "common.timeAgo.months": "{count} mesi fa",
+  "common.timeAgo.weeks": "{count} settimane fa",
+  "common.timeAgo.days": "{count} giorni fa",
+  "common.timeAgo.hours": "{count} ore fa",
+  "common.timeAgo.minutes": "{count} minuti fa",
+  
+  // Header - Autosave
+  "header.autosave.notSavedYet": "Non ancora salvato",
+  "header.autosave.justSaved": "Appena salvato",
+  "header.autosave.saveInSeconds": "Salva tra {seconds} s",
+  "header.autosave.saveInMinutes": "Salva tra {minutes} min",
+  "header.autosave.saveInMinutesSeconds": "Salva tra {minutes}:{seconds}",
+  
+  // Header - Menu
+  "header.menu.hide": "Nascondi menu",
+  "header.menu.show": "Mostra menu",
+  
+  // Header - Reminder
+  "header.reminder.today": "Oggi",
+  "header.reminder.tomorrow": "Domani",
+  "header.reminder.in2Days": "Dopodomani",
+  "header.reminder.more": "(+{count} altri)",
 };

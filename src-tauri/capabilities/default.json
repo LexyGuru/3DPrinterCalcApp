@@ -38,6 +38,73 @@
         { "path": "$APPCONFIG/update_filamentLibrary.json" }
       ]
     },
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [
+        { "path": "$APPDATA/**" },
+        { "path": "$APPCONFIG/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/logs/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/backups/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-dir",
+      "allow": [
+        { "path": "$APPDATA/**" },
+        { "path": "$APPCONFIG/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/logs/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/backups/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [
+        { "path": "$APPCONFIG/filamentLibrary.json" },
+        { "path": "$APPCONFIG/filamentLibrary*.json" },
+        { "path": "$APPCONFIG/update_filamentLibrary.json" },
+        { "path": "$APPDATA/backups/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/backups/**" },
+        { "path": "$APPDATA/**/*.log" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [
+        { "path": "$APPCONFIG/filamentLibrary.json" },
+        { "path": "$APPCONFIG/filamentLibrary*.json" },
+        { "path": "$APPCONFIG/update_filamentLibrary.json" },
+        { "path": "$APPDATA/backups/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/backups/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-create",
+      "allow": [
+        { "path": "$APPCONFIG/filamentLibrary.json" },
+        { "path": "$APPCONFIG/update_filamentLibrary.json" },
+        { "path": "$APPDATA/3DPrinterCalcApp/backups/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-remove",
+      "allow": [
+        { "path": "$APPDATA/backups/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/backups/**" },
+        { "path": "$APPCONFIG/data.json" },
+        { "path": "$APPCONFIG/filamentLibrary.json" },
+        { "path": "$APPCONFIG/update_filamentLibrary.json" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-mkdir",
+      "allow": [
+        { "path": "$APPDATA/backups/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/**" },
+        { "path": "$APPDATA/3DPrinterCalcApp/backups/**" }
+      ]
+    },
     "shell:allow-open",
     "notification:allow-show",
     "notification:allow-notify",
