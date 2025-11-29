@@ -231,6 +231,13 @@ export type TranslationKey =
   | "filaments.colorMode.note"
   | "filaments.colorMode.placeholder"
   | "filaments.multicolor.label"
+  // Common
+  | "common.all"
+  // Offers filters
+  | "offers.filters.minAmount"
+  | "offers.filters.maxAmount"
+  | "offers.filters.fromDate"
+  | "offers.filters.toDate"
   // Printers
   | "printers.title"
   | "printers.addTitle"

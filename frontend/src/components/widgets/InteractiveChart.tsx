@@ -251,6 +251,10 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
           {payload.map((entry: any, index: number) => {
             const rawValue = entry.value as number | undefined;
             const key = (entry.dataKey as string | undefined) ?? (entry.name as string);
+            const labelText =
+              key && labelFormatter
+                ? labelFormatter(key)
+                : entry.name;
 
             let formattedValue: string;
             if (rawValue !== undefined && typeof rawValue === "number") {
@@ -278,7 +282,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
                   fontSize: "14px",
                 }}
               >
-                {`${entry.name}: ${formattedValue}`}
+                {`${labelText}: ${formattedValue}`}
               </p>
             );
           })}

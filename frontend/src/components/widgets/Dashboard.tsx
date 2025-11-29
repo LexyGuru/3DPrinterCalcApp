@@ -214,6 +214,7 @@ interface DashboardProps {
   onProjectClick?: (projectId: number) => void;
   onTaskClick?: (taskId: number) => void;
   onPeriodChange?: (period: "week" | "month" | "year") => void;
+  onTrendRangeChange?: (startIndex: number, endIndex: number) => void;
 }
 
 // Alapértelmezett widget konfigurációk - klasszikus nézet sorrendje szerint
@@ -425,6 +426,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onProjectClick,
   onTaskClick,
   onPeriodChange,
+  onTrendRangeChange,
 }) => {
   const t = useTranslation(settings.language);
 
@@ -1068,6 +1070,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             formatCurrency={formatCurrency}
             currencyLabel={currencyLabel}
             onExport={undefined}
+            onPeriodFilter={onTrendRangeChange}
           />
         );
       case "period-comparison":

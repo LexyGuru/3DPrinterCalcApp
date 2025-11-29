@@ -41,6 +41,24 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.6.0 (2025) - 📊 Widget Interattivi & Prestazioni di Tabelle Grandi
+
+- 🧠 **Grafici Interattivi & Modali di Dettaglio**
+  - Tutti i grafici principali della dashboard ora usano un componente unificato `InteractiveChart` con punti dati cliccabili e modali di dettaglio animate.
+  - I tooltip e le modali mostrano etichette localizzate e leggibili per ricavi, costi, profitto e conteggio offerte.
+  - I grafici di tendenza supportano il filtraggio diretto del periodo dal brush (fette settimanali / mensili / annuali inviate alla dashboard).
+
+- 🧵 **Scorrimento Virtuale per Liste Grandi**
+  - Scorrimento virtuale personalizzato per la lista Offerte e la tabella Filamenti – vengono renderizzate solo le righe visibili, mantenendo lo scorrimento fluido anche con 10k+ elementi.
+  - Impostazioni → Libreria Filamenti usa lo stesso pattern di scorrimento virtuale, quindi le 12.000+ voci di colori complete rimangono reattive.
+  - La posizione e l'altezza della barra di scorrimento rimangono accurate grazie agli elementi spaziatore sopra e sotto la finestra visibile.
+
+- 📋 **Ordinamento & Filtraggio Avanzato delle Tabelle**
+  - Ordinamento multi-colonna per Filamenti e Offerte (clic per ascendente/discendente, Shift+clic per costruire catene di ordinamento come "Marca ↑, poi Prezzo/kg ↓").
+  - La configurazione di ordinamento è persistita nelle impostazioni, quindi l'ordine preferito viene ripristinato al prossimo avvio.
+  - Filamenti: filtri per colonna per marca, materiale/tipo e colore/HEX.
+  - Offerte: filtri di intervallo numerico per importo totale (min/max) e filtri di intervallo date (da/a).
+
 ### v1.5.0 (2025) - 🧠 Dashboard Intelligente e Promemoria Scadenze
 
 - ⏱️ **Promemoria scadenze di stampa** – Nuovo sistema di promemoria per i preventivi accettati:
@@ -823,7 +841,7 @@ Quando si fa push al branch `beta`, il workflow GitHub Actions viene eseguito au
 
 ---
 
-**Versione**: 1.5.0
+**Versione**: 1.6.0
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

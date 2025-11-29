@@ -41,7 +41,25 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
-### v1.5.0 (2025) - 🧠 Dashboard Intelligent & Rappels d’Échéances
+### v1.6.0 (2025) - 📊 Widgets Interactifs & Performance des Grandes Tableaux
+
+- 🧠 **Graphiques Interactifs & Modales de Détail**
+  - Tous les graphiques principaux du tableau de bord utilisent maintenant un composant unifié `InteractiveChart` avec des points de données cliquables et des modales de détail animées.
+  - Les tooltips et modales affichent des libellés localisés et lisibles pour les revenus, coûts, profit et nombre d'offres.
+  - Les graphiques de tendance supportent le filtrage de période direct depuis le brush (tranches hebdomadaires / mensuelles / annuelles envoyées au tableau de bord).
+
+- 🧵 **Défilement Virtuel pour les Grandes Listes**
+  - Défilement virtuel personnalisé pour la liste des Offres et le tableau des Filaments – seules les lignes visibles sont rendues, gardant le défilement fluide même avec 10k+ éléments.
+  - Paramètres → Bibliothèque de Filaments utilise le même modèle de défilement virtuel, donc les 12 000+ entrées de couleurs complètes restent réactives.
+  - La position et la hauteur de la barre de défilement restent précises grâce aux éléments d'espacement au-dessus et en-dessous de la fenêtre visible.
+
+- 📋 **Tri & Filtrage Avancé des Tableaux**
+  - Tri multi-colonnes pour les Filaments et Offres (clic pour croissant/décroissant, Shift+clic pour construire des chaînes de tri comme "Marque ↑, puis Prix/kg ↓").
+  - La configuration de tri est persistée dans les paramètres, donc l'ordre préféré est restauré au prochain lancement.
+  - Filaments : filtres par colonne pour la marque, le matériau/type et la couleur/HEX.
+  - Offres : filtres de plage numérique pour le montant total (min/max) et filtres de plage de dates (de/à).
+
+### v1.5.0 (2025) - 🧠 Dashboard Intelligent & Rappels d'Échéances
 
 - ⏱️ **Rappels d’échéances d’impression** – Nouveau système de rappel pour les devis acceptés :
   - Le widget Tâches Planifiées reçoit automatiquement des tâches à partir des offres avec des dates d’échéance proches
@@ -847,7 +865,7 @@ Lors du push vers la branche `beta`, le workflow GitHub Actions s'exécute autom
 
 ---
 
-**Version**: 1.5.0
+**Version**: 1.6.0
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

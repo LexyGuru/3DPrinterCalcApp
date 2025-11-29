@@ -38,6 +38,24 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
+### v1.6.0 (2025) - 📊 Interaktivní widgety a výkon velkých tabulek
+
+- 🧠 **Interaktivní grafy a detailní modály**
+  - Všechny hlavní grafy dashboardu nyní používají sjednocený komponent `InteractiveChart` s klikacími datovými body a animovanými detailními modálními okny.
+  - Tooltippy a modály zobrazují lokalizované, lidsky čitelné popisky pro příjmy, náklady, zisk a počet nabídek.
+  - Trendové grafy podporují přímé filtrování období pomocí „brush“ (týdenní / měsíční / roční výřezy odesílané do dashboardu).
+
+- 🧵 **Virtuální posouvání pro velké seznamy**
+  - Vlastní virtuální scroll pro seznam Nabídek a tabulku Filamentů – renderují se pouze viditelné řádky, takže posouvání zůstává plynulé i při 10k+ položkách.
+  - Nastavení → Knihovna filamentů používá stejný vzor virtuálního posouvání, takže všech 12 000+ barevných záznamů zůstává responzivních.
+  - Poloha a výška posuvníku zůstávají přesné díky „spacer“ prvkům nad a pod viditelným oknem.
+
+- 📋 **Pokročilé řazení a filtrování tabulek**
+  - Vícesloupcové řazení pro Filamenty a Nabídky (kliknutím pro vzestupné/sestupné, Shift+kliknutím k sestavení řetězců řazení jako „Značka ↑, pak Cena/kg ↓“).
+  - Konfigurace řazení se ukládá v nastavení, takže preferované pořadí je po dalším spuštění automaticky obnoveno.
+  - Filamenty: sloupcové filtry pro značku, materiál/typ a barvu/HEX.
+  - Nabídky: číselné rozsahové filtry pro celkovou částku (min/max) a časové filtry intervalu data (od/do).
+
 ### v1.5.0 (2025) - 🧠 Chytrý Dashboard a připomínky termínů
 
 - ⏱️ **Připomínky termínů tisku** – Nový systém připomínek pro přijaté nabídky:
@@ -844,7 +862,7 @@ Při pushování do větve `beta` se automaticky spustí workflow GitHub Actions
 
 ---
 
-**Verze**: 1.5.0
+**Verze**: 1.6.0
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 

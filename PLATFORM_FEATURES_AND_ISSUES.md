@@ -75,7 +75,7 @@
 - ✅ 15+ téma (Light, Dark, Blue, Green, Purple, stb.)
 - ✅ Custom téma szerkesztő
 - ✅ Animáció beállítások
-- ✅ 14 nyelv támogatás (HU, EN, DE, FR, ES, IT, PL, CS, SK, PT, RU, UK, ZH)
+- ✅ 13 nyelv támogatás (HU, EN, DE, FR, ES, IT, PL, CS, SK, PT, RU, UK, ZH)
 - ✅ 9 pénznem támogatás (EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB)
 - ✅ Backup/Restore
 - ✅ Adat import/export

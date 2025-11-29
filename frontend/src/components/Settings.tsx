@@ -128,7 +128,15 @@ export const SettingsPage: React.FC<Props> = ({
   const [libraryExporting, setLibraryExporting] = useState(false);
   const [libraryImporting, setLibraryImporting] = useState(false);
   const FINISH_OPTIONS: FilamentFinish[] = ["standard", "matte", "silk", "transparent", "metallic", "glow"];
-  const MAX_LIBRARY_DISPLAY = 400;
+
+  // Virtuális scroll a filament könyvtár listához (Settings / Library tab)
+  const LIBRARY_VIRTUAL_THRESHOLD = 200;
+  const LIBRARY_ROW_HEIGHT = 78; // px, kb. egy kártya magassága margóval
+  const LIBRARY_OVERSCAN = 10;
+  const [visibleLibraryRange, setVisibleLibraryRange] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: LIBRARY_VIRTUAL_THRESHOLD,
+  });
   const resolveBaseLanguage = (language: Settings["language"]): "hu" | "en" | "de" => {
     // Csak a három alap nyelvet támogatjuk a témákhoz, a többi nyelv esetén angol lesz a fallback
     return language === "hu" || language === "de" ? language : "en";
@@ -809,9 +817,21 @@ export const SettingsPage: React.FC<Props> = ({
 
     return {
       total: matches.length,
-      entries: matches.slice(0, MAX_LIBRARY_DISPLAY),
+      entries: matches,
     };
   }, [libraryEntriesState, libraryBrandFilter, libraryMaterialFilter, librarySearch]);
+
+  // Virtuális scrollhoz kapcsolódó származtatott értékek a könyvtár listához
+  const shouldVirtualizeLibrary = filteredLibrary.total > LIBRARY_VIRTUAL_THRESHOLD;
+  const libraryVisibleStart = shouldVirtualizeLibrary ? Math.max(0, visibleLibraryRange.start) : 0;
+  const libraryVisibleEnd = shouldVirtualizeLibrary
+    ? Math.min(filteredLibrary.entries.length - 1, visibleLibraryRange.end)
+    : filteredLibrary.entries.length - 1;
+  const visibleLibraryEntries = filteredLibrary.entries.slice(libraryVisibleStart, libraryVisibleEnd + 1);
+  const topLibrarySpacerHeight = shouldVirtualizeLibrary ? libraryVisibleStart * LIBRARY_ROW_HEIGHT : 0;
+  const bottomLibrarySpacerHeight = shouldVirtualizeLibrary
+    ? (filteredLibrary.entries.length - (libraryVisibleEnd + 1)) * LIBRARY_ROW_HEIGHT
+    : 0;
 
   const duplicateGroups = useMemo(() => {
     const grouping = new Map<string, RawLibraryEntry[]>();
@@ -4136,14 +4156,36 @@ export const SettingsPage: React.FC<Props> = ({
                     {t("settings.library.filters.reset")}
                   </button>
                 </div>
-                <div style={{
-                  maxHeight: "500px",
-                  overflowY: "auto",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                  paddingRight: "4px"
-                }}>
+                <div
+                  style={{
+                    maxHeight: "500px",
+                    overflowY: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                    paddingRight: "4px",
+                  }}
+                  onScroll={(e) => {
+                    if (!shouldVirtualizeLibrary) return;
+                    const target = e.currentTarget;
+                    const scrollTop = target.scrollTop;
+                    const clientHeight = target.clientHeight;
+                    const start = Math.max(
+                      0,
+                      Math.floor(scrollTop / LIBRARY_ROW_HEIGHT) - LIBRARY_OVERSCAN
+                    );
+                    const end = Math.min(
+                      filteredLibrary.entries.length - 1,
+                      Math.ceil((scrollTop + clientHeight) / LIBRARY_ROW_HEIGHT) + LIBRARY_OVERSCAN
+                    );
+                    setVisibleLibraryRange((prev) => {
+                      if (prev.start === start && prev.end === end) {
+                        return prev;
+                      }
+                      return { start, end };
+                    });
+                  }}
+                >
                   {libraryLoading && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                       <style>
@@ -4176,7 +4218,15 @@ export const SettingsPage: React.FC<Props> = ({
                       {t("settings.library.empty")}
                     </p>
                   )}
-                  {filteredLibrary.entries.map(entry => {
+                  {shouldVirtualizeLibrary && topLibrarySpacerHeight > 0 && (
+                    <div
+                      style={{
+                        height: `${topLibrarySpacerHeight}px`,
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                  {visibleLibraryEntries.map(entry => {
                     const isDuplicate = entry.id ? duplicateEntryIds.has(entry.id) : false;
                     const isMulticolor = (entry.colorMode as ColorMode) === "multicolor";
                     const hasValidHex = typeof entry.hex === "string" && /^#[0-9A-F]{6}$/i.test(entry.hex);
@@ -4273,6 +4323,14 @@ export const SettingsPage: React.FC<Props> = ({
                       </div>
                     );
                   })}
+                  {shouldVirtualizeLibrary && bottomLibrarySpacerHeight > 0 && (
+                    <div
+                      style={{
+                        height: `${bottomLibrarySpacerHeight}px`,
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
                 </div>
               </div>
 

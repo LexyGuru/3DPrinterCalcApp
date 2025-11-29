@@ -486,6 +486,25 @@ export const Home: React.FC<Props> = ({ settings, offers, filaments = [], theme,
       }));
   }, [offers, selectedPeriod, locale]);
 
+  // Dashboard trend chart-hoz tartozó vizuális szűrő (Brush alapján)
+  const [trendRange, setTrendRange] = React.useState<{ start: number; end: number } | null>(null);
+
+  // Ha az időszak (selectedPeriod) változik, alaphelyzetbe állítjuk a range-et
+  React.useEffect(() => {
+    setTrendRange(null);
+  }, [selectedPeriod]);
+
+  const trendDataForDashboard = useMemo(() => {
+    if (!trendRange) {
+      return trendData;
+    }
+    const { start, end } = trendRange;
+    if (start < 0 || end >= trendData.length || start > end) {
+      return trendData;
+    }
+    return trendData.slice(start, end + 1);
+  }, [trendData, trendRange]);
+
   const trendTotals = useMemo(
     () =>
       trendData.reduce(
@@ -1769,7 +1788,7 @@ export const Home: React.FC<Props> = ({ settings, offers, filaments = [], theme,
               settings={settings}
               theme={theme}
               statistics={currentStats}
-              trendData={trendData.map(point => ({
+              trendData={trendDataForDashboard.map(point => ({
                 name: point.label,
                 revenue: point.revenue,
                 costs: point.costs,
@@ -1839,6 +1858,9 @@ export const Home: React.FC<Props> = ({ settings, offers, filaments = [], theme,
               }}
               onWidgetManagerToggle={() => setShowWidgetManager(!showWidgetManager)}
               showWidgetManager={showWidgetManager}
+              onTrendRangeChange={(startIndex, endIndex) => {
+                setTrendRange({ start: startIndex, end: endIndex });
+              }}
               onError={(error) => {
                 console.error("[Home] Dashboard onError callback:", {
                   error: error.message || String(error),

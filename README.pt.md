@@ -40,6 +40,24 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.6.0 (2025) - 📊 Widgets Interativos e Performance de Tabelas Grandes
+
+- 🧠 **Gráficos Interativos e Modais de Detalhe**
+  - Todos os gráficos principais do painel agora usam um componente unificado `InteractiveChart` com pontos de dados clicáveis e modais de detalhe animados.
+  - Os tooltips e modais mostram etiquetas localizadas e legíveis para receitas, custos, lucro e contagem de ofertas.
+  - Os gráficos de tendência suportam filtragem de período direta do brush (fatias semanais / mensais / anuais enviadas ao painel).
+
+- 🧵 **Rolagem Virtual para Listas Grandes**
+  - Rolagem virtual personalizada para a lista de Ofertas e a tabela de Filamentos – apenas linhas visíveis são renderizadas, mantendo a rolagem suave mesmo com 10k+ itens.
+  - Configurações → Biblioteca de Filamentos usa o mesmo padrão de rolagem virtual, então as 12.000+ entradas de cores completas permanecem responsivas.
+  - A posição e altura da barra de rolagem permanecem precisas graças aos elementos espaçadores acima e abaixo da janela visível.
+
+- 📋 **Ordenação e Filtragem Avançada de Tabelas**
+  - Ordenação multi-coluna para Filamentos e Ofertas (clique para ascendente/descendente, Shift+clique para construir cadeias de ordenação como "Marca ↑, depois Preço/kg ↓").
+  - A configuração de ordenação é persistida nas configurações, então a ordem preferida é restaurada no próximo lançamento.
+  - Filamentos: filtros por coluna para marca, material/tipo e cor/HEX.
+  - Ofertas: filtros de intervalo numérico para valor total (min/max) e filtros de intervalo de data (de/até).
+
 ### v1.5.0 (2025) - 🧠 Dashboard Inteligente e Lembretes de Prazos
 
 - ⏱️ **Lembretes de prazos de impressão** – Novo sistema de lembretes para cotações aceitas:
@@ -846,7 +864,7 @@ Ao fazer push para o branch `beta`, o workflow GitHub Actions é executado autom
 
 ---
 
-**Versão**: 1.5.0
+**Versão**: 1.6.0
 
 Se você tiver alguma dúvida ou encontrar um bug, por favor abra uma issue no repositório GitHub!
 

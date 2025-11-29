@@ -25,7 +25,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
 - 👥 **Ügyfél adatbázis** - Ügyfelek kezelése kapcsolattartási adatokkal, cégadatokkal és árajánlat statisztikákkal
 - 📊 **Ár előzmények és trendek** - Filament ár változások követése grafikonokkal és statisztikákkal
-- 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia, egyszerűsített kínai, cseh, spanyol, olasz, lengyel, portugál, szlovák, ukrán és orosz nyelveken (14 nyelv, összesen 850+ fordítási kulcs minden nyelven)
+- 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia, egyszerűsített kínai, cseh, spanyol, olasz, lengyel, portugál, szlovák, ukrán és orosz nyelveken (13 nyelv, összesen 850+ fordítási kulcs minden nyelven)
 - 💱 **Több pénznem** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 pénznem)
 - 🔄 **Automatikus frissítések** - Ellenőrzi a GitHub Releases-t új verziókért
 - 🧪 **Beta verziók** - Beta branch és beta buildelés támogatás
@@ -40,7 +40,26 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 📱 **Kontextus menük** - Jobb klikk menük gyors műveletekhez (szerkesztés, törlés, duplikálás, export)
 - 🍎 **Platform-specifikus funkciók** - macOS Dock badge, natív értesítések, system tray integráció
 
-## 📋 Változások (Changelog)
+## 📋 Verziótörténet
+
+### v1.6.0 (2025) - 📊 Interaktív widgetek & nagy táblázatok teljesítmény-tuning
+
+- 🧠 **Interaktív grafikonok és részletes modál nézetek**
+  - A fő dashboard grafikonok egységes `InteractiveChart` komponenst használnak kattintható adatpontokkal és animált részletes modál nézettel.
+  - A tooltip és a részletes nézet lokalizált, emberi olvasható címkéket mutat (bevétel, költség, nettó profit, ajánlatszám).
+  - A trend grafikonról közvetlenül állítható az időszak (heti / havi / éves) a brush segítségével, a Home → Dashboard felé szeletelt adatsor megy tovább.
+
+- 🧵 **Virtuális scroll nagy listákhoz**
+  - Egyedi virtuális scroll az Offers listához és a Filaments táblázathoz – egyszerre csak a látható sorok renderelődnek, így 10k+ rekord mellett is sima a görgetés.
+  - A Beállítások → Filament könyvtár ugyanazt a mintát használja, így a teljes 12 000+ színkészlet is reszponzív marad.
+  - A scrollbar pozíciója/magassága helyes marad a látható tartomány feletti és alatti spacer elemeknek köszönhetően.
+
+- 📋 **Fejlett táblázat rendezés és szűrés**
+  - Többoszlopos rendezés Filaments és Offers oldalon (kattintás: növekvő/csökkenő, Shift+katt: rendezési lánc építése – pl. „Márka ↑, majd Ár/kg ↓”).
+  - A rendezési beállítások a `settings`-ben mentésre kerülnek, így újraindítás után is megmarad a preferált sorrend.
+  - Filaments: oszlop szintű szűrők márkára, anyag/típusra és szín/HEX értékre.
+  - Offers: összeg szűrés minimum/maximum értékkel, valamint dátum intervallum szűrők (‑tól / ‑ig).
+
 
 ### v1.5.0 (2025) - 🧠 Okos Dashboard és határidő emlékeztetők
 
@@ -94,7 +113,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
   - Lokalizált export fájlnevek megfelelő OS-kompatibilis elnevezéssel (aláhúzások, nincs speciális karakter)
   - Widget nyelvek azonnal frissülnek nyelvválasztás után
   - Toast értesítések sikeres grafikon exportokhoz
-  - Minden widget elem és betöltési állapot teljes mértékben lefordítva mind a 14 nyelven
+  - Minden widget elem és betöltési állapot teljes mértékben lefordítva mind a 13 nyelven
 - 💱 **Pénznem támogatás bővítése** - Kibővített pénznem támogatás:
   - Hozzáadott pénznemek: GBP (Brit font), PLN (Lengyel zloty), CZK (Cseh korona), CNY (Kínai jüan), UAH (Ukrán hrivnya), RUB (Orosz rubel)
   - Pénznem szimbólumok és címkék minden új pénznemhez
@@ -529,7 +548,7 @@ Lekszikov Miklós (LexyGuru)
 
 A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami buildeli a beta verziót.
 
-## 📋 Verziótörténet
+## 📋 Változások (Changelog)
 
 ### v1.1.0 (2025) - 🚀 Funkció frissítés
 
@@ -579,7 +598,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
   - Ukrán locale támogatás (uk-UA) dátum/idő formázáshoz
   - Orosz locale támogatás (ru-RU) dátum/idő formázáshoz
   - Minden README fájl frissítve az új nyelvekkel a nyelvmenüben
-  - Nyelvszámláló frissítve 12-ről 14 nyelvre
+  - Nyelvszámláló frissítve 11-ről 13 nyelvre
   - README.uk.md és README.ru.md dokumentációs fájlok létrehozva
 
 ### v0.5.57 (2025)
@@ -832,7 +851,7 @@ A `beta` branch pusholásakor automatikusan lefut a GitHub Actions workflow, ami
 
 ---
 
-**Verzió**: 1.5.0
+**Verzió**: 1.6.0
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

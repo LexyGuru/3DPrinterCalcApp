@@ -1,7 +1,215 @@
 # 📊 Fejlesztési Összefoglaló - 3DPrinterCalcApp
 
-**Dátum**: 2025. január  
-**Verzió**: v1.4.33
+**Dátum**: 2025. november  
+**Aktuális stabil verzió**: v1.6.0  
+**Branch**: `beta` / `main` (release build)
+
+---
+
+## 🔎 Globális állapot összefoglaló
+
+- **Alap funkciók (kalkulátor, filament/nyomtató/ügyfél kezelés, árajánlatok, PDF export)**: **KÉSZ**
+- **Dashboard és statisztikai rendszer (widgetek, grafikonok, riportok)**: **KÉSZ**
+- **Filament szín- és árkezelés (12k+ szín, ár-előzmények, trendek)**: **KÉSZ**
+- **Többnyelvűség (13 nyelv) és több pénznem támogatás (9 valuta)**: **KÉSZ**
+- **Platform specifikus integrációk (macOS, Windows, Linux)**: **KÉSZ**
+- **Logolás, backup/restore és update ellenőrzés**: **KÉSZ**
+- **Widget alapú kezdőlap + klasszikus Home nézet**: **KÉSZ**
+- **Feladat- és projekt jellegű widgetek (Active Projects, Scheduled Tasks)**: **UI szinten KÉSZ, mögöttes projekt/task modul későbbre tervezve**
+- **Biztonsági funkciók (ügyféladat titkosítás)**: **TERVEZETT**
+- **Automatizált tesztelés (unit/E2E, TS strict)**: **TERVEZETT**
+
+---
+
+## ✅ Fő kész funkciók (összefoglaló lista)
+
+- **Kalkuláció és árazás**
+  - 3D nyomtatási költségszámítás (filament, áram, szárítás, kopás, profit) – **KÉSZ**
+  - Árajánlat mentés, szerkesztés, duplikálás, verziózás, státusz kezeléssel – **KÉSZ**
+  - PDF export több sablonnal, céges branding blokkal, PDF előnézettel – **KÉSZ**
+  - G-code / slicer import (Prusa, Cura, Orca, Qidi) + árajánlat piszkozat generálás – **KÉSZ**
+
+- **Adatkezelés**
+  - Filament kezelés + 12,000+ gyári szín könyvtár + saját filament könyvtár szerkesztő – **KÉSZ**
+  - Nyomtató + AMS kezelés, oszlop kezelés, rendezés, export/import – **KÉSZ**
+  - Ügyfél adatbázis, statisztikák, kalkulátor integráció – **KÉSZ**
+  - Teljes adat backup/restore, export/import (JSON/CSV) – **KÉSZ**
+
+- **Dashboard és riportok**
+  - Teljes widget rendszer (19/19 widget implementálva és bekötve) – **KÉSZ**
+  - Statisztikai grafikonok (bevételek, költségek, profit, filament/nyomtató bontások) – **KÉSZ**
+  - Státusz dashboard és idővonal, naptár integráció határidős ajánlatokhoz – **KÉSZ**
+  - Widget drag & drop, méretezés, elrendezés mentése – **KÉSZ**
+
+- **UX / UI / Interakció**
+  - Modern témarendszer (11+ téma, gradient/neon, automatikus kontrasztkezeléssel) – **KÉSZ**
+  - Empty state, Card, ProgressBar, Skeleton, Tooltip, ConfirmDialog, Toast – **KÉSZ**
+  - Globális keresés (Ctrl/Cmd+K), gyors műveleti gombok, parancs súgó – **KÉSZ**
+  - Undo/Redo minden fő adatkörre + optimista UI frissítések – **KÉSZ**
+  - Bulk műveletek (kijelölés, tömeges törlés) minden táblázat típusnál – **KÉSZ**
+  - Kontextus menük, drag & drop rendezés, responsive layout desktop ablakméreten – **KÉSZ**
+
+- **Nem-funkcionális**
+  - Log rendszer (frontend + backend log fájlok, log takarítási szabályok) – **KÉSZ**
+  - Platform specifikus funkciók (Dock badge, értesítések, tray ikon) – **KÉSZ**
+  - Verziókezelés, GitHub Releases integráció, automatikus update checker – **KÉSZ**
+- Teljes i18n rendszer 13 nyelvvel, fordítás cache és auto-translate tool – **KÉSZ**
+
+---
+
+## 📌 Fejlesztési backlog – mi NINCS még kész (de tervben van)
+
+Az alábbi lista egy **összevont, priorizált** backlog a korábbi `FEATURE_IMPLEMENTATION_PLAN.md`, `FEATURE_SUGGESTIONS.md` és a jelenlegi összefoglaló alapján. Ezek NINCSENEK még teljesen kész (vagy csak részben kész), de a projekt jövőbeli irányát jelölik.
+
+### 🔐 Biztonság és adatvédelem
+
+- **Ügyfél adatok titkosítása (AES-256-GCM)** – backend titkosítás + jelszó kezelés  
+  - **Státusz**: TERVEZETT (fájlok még nincsenek implementálva: `encryption.rs`, `PasswordDialog.tsx`, stb.)
+  - **Prioritás**: Magas / biztonsági
+
+- **Opcionális jelszavas védelem az apphoz**  
+  - **Státusz**: TERVEZETT  
+  - **Prioritás**: Közepes
+
+### 🧪 Minőségbiztosítás és kódminőség
+
+- **TypeScript strict mode bekapcsolása és típusok tisztítása**  
+  - **Státusz**: TERVEZETT  
+  - **Prioritás**: Közepes
+
+- **Unit tesztek (Vitest/Jest) a kritikus számításokra és utilokra**  
+  - Különösen: kalkulátor logika, ártrend, filament számítások, konverziók  
+  - **Státusz**: TERVEZETT  
+  - **Prioritás**: Közepes–Magas
+
+- **E2E tesztek (Playwright/Cypress) fő use case-ekre**  
+  - Árajánlat létrehozás, PDF export, G-code import flow  
+  - **Státusz**: TERVEZETT  
+  - **Prioritás**: Közepes–Magas
+
+### 📊 Riport, PDF és pénzügyi funkciók bővítése
+
+- **PDF export további testreszabása**  
+  - További sablonok, nagyobb layout szabadság, finomabb branding beállítások  
+  - **Státusz**: RÉSZBEN KÉSZ (alap sablonok és branding már vannak), további bővítés **TERVEZETT**
+
+- **Árajánlatok státusz követésének mélyítése**  
+  - Automatikus emlékeztetők / follow-up logika elutasított vagy függő ajánlatokra  
+  - **Státusz**: ALAP FUNKCIÓK KÉSZ (státusz, naplózás, dashboard), emlékeztető logika **TERVEZETT**
+
+- **Számlázási modul (invoice generálás árajánlatból)**  
+  - Számlaszám kezelés, sablonok, státusz (kiállítva/kifizetve/lejárt)  
+  - **Státusz**: TERVEZETT (még nincs implementálva)  
+  - **Prioritás**: Közepes–Magas
+
+### 🧵 Filament és árak – haladó funkciók
+
+- **Automatikus árfrissítés külső API-ból (filament árak + valuta árfolyam)**  
+  - Ár trendek már vannak, de külső API integráció még nincs  
+  - **Státusz**: TERVEZETT  
+  - **Prioritás**: Közepes–Magas
+
+- **Még haladóbb ár-előzmény elemzés / extra riportok**  
+  - Több szűrés, kombinált grafikonok, export bővítés (Excel, XML, batch import)  
+  - **Státusz**: RÉSZBEN KÉSZ (alap trendek és riportok léteznek), extra formátumok **TERVEZETT**
+
+### 📆 Projektek és feladatkezelés
+
+- **Projektkezelő modul (projektek, kapcsolt árajánlatok, Gantt, költségvetés)**  
+  - Szorosan kapcsolódik az `ActiveProjectsWidget`-hez  
+  - **Státusz**: NINCS KÉSZ (widget UI megvan, backend/domain modul még nincs)  
+  - **Prioritás**: Alacsony–Közepes
+
+- **Feladatkezelő modul (task management)**  
+  - Feladat létrehozása, státusz, határidő, naptár nézet, emlékeztetők  
+  - **Státusz**: NINCS KÉSZ (ScheduledTasksWidget UI + részleges határidő logika létezik)  
+  - **Prioritás**: Alacsony–Közepes
+
+### ⚙️ Technikai és teljesítmény fejlesztések
+
+- **További performance optimalizálás**  
+  - Mélyebb code splitting, virtual scrolling még több listán, memoization finomhangolás  
+  - **Státusz**: RÉSZBEN KÉSZ (alap optimalizálások megtörténtek), további finomítás **TERVEZETT**
+
+- **API / integrációs réteg**  
+  - REST API vagy hasonló interfész a későbbi integrációkhoz vagy mobil apphoz  
+  - **Státusz**: TERVEZETT (még nincs külön backend API réteg)  
+  - **Prioritás**: Alacsony–Közepes
+
+---
+
+## ❌ Nem tervezett / kizárt funkciók (röviden)
+
+A kizárt funkciók **forrása továbbra is az `EXCLUDED_FEATURES.md`**, itt csak rövid összefoglaló található:
+
+- Árajánlatok közvetlen email küldése az alkalmazásból
+- Dark mode automatikus váltás (rendszer szerinti / időzített)
+- AI alapú ajánlások és szöveg generálás
+- Analytics / usage tracking (külső szolgáltatásokkal)
+- Mobil/tablet first responsive UI (az app desktopra optimalizált)
+- Cloud sync (Google Drive / Dropbox / OneDrive integráció)
+
+**Részletes indoklás**: lásd `EXCLUDED_FEATURES.md`.
+
+---
+
+## 🧾 Verziótörténet (rövid összefoglaló)
+
+Ez a rész magas szintű áttekintést ad a főbb mérföldkövekről.  
+**A részletes, teljes changelog továbbra is a `README.hu.md` „Változások (Changelog)” szekciójában található.**
+
+- **v0.1.x – Alap kalkulátor és adatkezelés**
+  - Kalkulátor, filamentek, nyomtatók, árajánlatok első verziója
+  - Alap PDF export, megerősítő dialógusok, toast értesítések
+
+- **v0.2.x – Témarendszer és pénznem kezelés**
+  - Teljes téma rendszer (több színvilág), pénznem konverzió, téma alapú UI
+
+- **v0.3.x – Statisztikák, riportok, logolás, template-ek**
+  - Státusz dashboard, riport generálás, GitHub Releases integráció
+  - Console/Log modul, backup/restore, template rendszer a kalkulátorhoz
+
+- **v0.4.x – Filament könyvtár és modern UI/animációk**
+  - 12k+ filament szín könyvtár, könyvtár szerkesztő, update fájl rendszer
+  - Modernizált UI, animációk, új témák (gradient, neon, stb.)
+
+- **v0.5.x – Slicer integráció, nyelvek bővítése, platform funkciók**
+  - G-code/slicer import, árajánlat piszkozat generálás
+- 13 nyelv teljes támogatása, platform specifikus funkciók (Dock badge, tray, natív értesítések)
+
+- **v0.6.0 – Ügyfél adatbázis, ártrendek, log optimalizálás**
+  - Ügyfél modul, ár-előzmények és trendek, logolási rendszer tisztítása
+
+- **v1.0.0 – Első stabil kiadás**
+  - Modern komponens készlet (Card, ProgressBar, Tooltip, Skeleton, stb.)
+  - Globális keresés, gyors műveletek, undo/redo, bulk műveletek, shortcut rendszer
+
+- **v1.1.x – Nyelvválasztó, header/layout finomhangolás, log menedzsment**
+  - Első induláskor nyelvválasztó, fejlettebb header, log fájl takarítás beállítások
+
+- **v1.3.x – Widget dashboard és pénznem/táblázat fejlesztések**
+  - Widget dashboard rendszer, új grafikon widgetek, további pénznemek
+  - Oszlopkezelés, rendezés, vizuális finomhangolások
+
+- **v1.4.33 – Widget elrendezés stabilizálás + tutorial demo adatok**
+  - Drag & drop és elrendezés javítás, tutorial demo adat flow (generálás/törlés)
+
+- **v1.5.0 – Okos dashboard, határidő emlékeztetők, filament készletkezelés**
+  - Scheduled Tasks és Active Projects widgetek integrálása a határidő logikával
+  - Filament készletmanagement nézet + Filament Stock Alert widget
+  - Dashboard minden fontos widgettel alapértelmezés szerint bekapcsolva
+
+- **v1.6.0 – Widget interaktivitás és részletes grafikon nézetek**
+  - InteractiveChart továbbfejlesztése: részletes, animált modal nézet kattintásra (adatpont részletei több kulccsal)
+  - TrendChartWidget és CustomerStatsChartWidget integrációja a részletes nézettel
+  - Lokalizált, emberi olvasható címkék a grafikon tooltipekben és modálban (bevétel, költség, nettó profit, ajánlatszám)
+  - Táblázatok (Filaments, Offers) többoszlopos rendezése + oszlop szűrők nagy listákhoz, beállítás-alapú rendezés mentéssel
+
+- **Tervezett v1.7.0 – Backup/emlékeztető keret + tutorial frissítés**
+  - Automatikus backup/emlékeztető keret a meglévő backup modulra építve (időzített mentések + „régen mentettél” emlékeztetők)
+  - Értesítési csatornák egységesítése (Toast / natív értesítések / esetleges jövőbeli felugrók közös logika alapján)
+  - Tutorial bővítése az új 1.6.0‑ás funkciókkal (widget interaktivitás, táblázat szűrés/rendezés, virtual scroll)
+  - Tutorial demo adatok frissítése, hogy jobban bemutassák a nagy listákat, új widgeteket és a fejlettebb táblázat nézetet
 
 ---
 

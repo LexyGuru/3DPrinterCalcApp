@@ -40,6 +40,24 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.6.0 (2025) - 📊 Interaktívne widgety a výkon veľkých tabuliek
+
+- 🧠 **Interaktívne grafy a detailné modály**
+  - Všetky hlavné grafy dashboardu teraz používajú jednotný komponent `InteractiveChart` s klikateľnými dátovými bodmi a animovanými detailnými modálnymi oknami.
+  - Tooltippy a modály zobrazujú lokalizované, ľudsky čitateľné popisky pre príjmy, náklady, zisk a počet ponúk.
+  - Trendové grafy podporujú priame filtrovanie obdobia pomocí „brush" (týždenné / mesačné / ročné výrezy odosielané do dashboardu).
+
+- 🧵 **Virtuálne posúvanie pre veľké zoznamy**
+  - Vlastné virtuálne posúvanie pre zoznam Ponúk a tabuľku Filamentov – renderujú sa iba viditeľné riadky, takže posúvanie zostáva plynulé aj pri 10k+ položkách.
+  - Nastavenia → Knižnica filamentov používa rovnaký vzor virtuálneho posúvania, takže všetkých 12 000+ farebných záznamov zostáva responzívnych.
+  - Poloha a výška posuvníka zostávajú presné vďaka „spacer" prvkom nad a pod viditeľným oknom.
+
+- 📋 **Pokročilé triedenie a filtrovanie tabuliek**
+  - Viacstĺpcové triedenie pre Filamenty a Ponuky (kliknutím pre vzostupné/zostupné, Shift+kliknutím na zostavenie reťazcov triedenia ako „Značka ↑, potom Cena/kg ↓").
+  - Konfigurácia triedenia sa ukladá v nastaveniach, takže preferované poradie je po ďalšom spustení automaticky obnovené.
+  - Filamenty: stĺpcové filtre pre značku, materiál/typ a farbu/HEX.
+  - Ponuky: číselné rozsahové filtre pre celkovú sumu (min/max) a časové filtre intervalu dátumu (od/do).
+
 ### v1.5.0 (2025) - 🧠 Inteligentný Dashboard a Pripomienky Termínov
 
 - ⏱️ **Pripomienky termínov tlače** – Nový systém pripomienok pre prijaté ponuky:
@@ -846,7 +864,7 @@ Pri pushovaní do vetvy `beta` sa automaticky spustí workflow GitHub Actions, k
 
 ---
 
-**Verzia**: 1.5.0
+**Verzia**: 1.6.0
 
 Ak máte nejaké otázky alebo nájdete chybu, prosím otvorte issue v repozitári GitHub!
 

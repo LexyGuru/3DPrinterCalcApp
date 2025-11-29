@@ -849,6 +849,9 @@ export const languageRu: TranslationMap = {
   "offers.pdf.history.profit": "Прибыль",
   "offers.pdf.history.totalCost": "Общая стоимость",
   "offers.pdf.statusHistory.none": "История статуса недоступна.",
+  "offers.filters.maxAmount": "Макс. сумма",
+  "offers.filters.fromDate": "Дата с",
+  "offers.filters.toDate": "Дата по",
   // Common
   "common.delete": "Удалить",
   "common.add": "Добавить",
@@ -891,6 +894,7 @@ export const languageRu: TranslationMap = {
   "common.yesterday": "Вчера",
   "common.daysAgo": "дней назад",
   "common.deadline": "Срок",
+  "common.all": "Все",
   "common.tomorrow": "Завтра",
   "common.days": "дней",
   "common.overdue": "Просрочено",

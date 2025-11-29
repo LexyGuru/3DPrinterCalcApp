@@ -849,6 +849,9 @@ export const languageUk: TranslationMap = {
   "offers.pdf.history.profit": "Прибуток",
   "offers.pdf.history.totalCost": "Загальна вартість",
   "offers.pdf.statusHistory.none": "Історія статусу недоступна.",
+  "offers.filters.maxAmount": "Макс. сума",
+  "offers.filters.fromDate": "Дата з",
+  "offers.filters.toDate": "Дата до",
   // Common
   "common.delete": "Видалити",
   "common.add": "Додати",
@@ -891,6 +894,7 @@ export const languageUk: TranslationMap = {
   "common.yesterday": "Вчора",
   "common.daysAgo": "днів тому",
   "common.deadline": "Термін",
+  "common.all": "Усі",
   "common.tomorrow": "Завтра",
   "common.days": "днів",
   "common.overdue": "Прострочено",

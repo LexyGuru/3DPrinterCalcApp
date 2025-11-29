@@ -200,6 +200,8 @@ export interface Settings {
     pricePerKg: boolean;
     action: boolean;
   }; // Filamentek oszlopok láthatósága
+  filamentSortConfig?: Array<{ column: keyof Filament; direction: "asc" | "desc" }>; // Filament táblázat rendezési beállításai
+  offerSortConfig?: Array<{ key: "date" | "amount" | "status" | "customer" | "id"; direction: "asc" | "desc" }>; // Offers lista rendezési beállításai
   showTutorialOnStartup?: boolean; // Kezdő tutorial megjelenítése indításkor
   tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
   logRetentionDays?: number; // Log fájlok megtartása napokban (0 = soha ne törölje)
