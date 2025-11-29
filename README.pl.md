@@ -40,6 +40,78 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.9.0 (2025) - 🔍 Diagnostyka Systemu i Ulepszenia Wydajności
+
+- 🔍 **Diagnostyka Systemu** - Kompleksowe narzędzie do sprawdzania stanu systemu:
+  - Wyświetlanie informacji o systemie (CPU, pamięć, OS, GPU, dysk)
+  - Walidacja systemu plików (data.json, filamentLibrary.json, update_filament.json)
+  - Sprawdzanie dostępności modułów (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Weryfikacja dostępności magazynu danych
+  - Pasek postępu ze szczegółowymi komunikatami statusu
+  - Podsumowanie ze wskaźnikami błędu/ostrzeżenia/sukcesu
+  - Przycisk ponownego uruchomienia diagnostyki
+  - Przeniesione do sekcji Zarządzanie Logami (bardziej logiczne umieszczenie)
+  - W pełni zlokalizowane we wszystkich 13 obsługiwanych językach
+
+- ⚡ **Wydajność Przeglądarki Logów** - Wirtualne przewijanie dla dużych plików logów:
+  - Niestandardowa implementacja wirtualnego przewijania dla komponentu LogViewer
+  - Renderowane są tylko widoczne wpisy logów, dramatycznie poprawiając wydajność
+  - Płynne przewijanie i wyszukiwanie nawet przy masywnych plikach logów (100k+ linii)
+  - Utrzymuje dokładną pozycję i wysokość paska przewijania
+  - Znacznie szybsze operacje wyszukiwania i filtrowania
+
+- 🔔 **Zunifikowany System Powiadomień** - Centralizowany serwis powiadomień:
+  - Pojedynczy `notificationService` dla powiadomień Toast i platformy
+  - Routing powiadomień oparty na priorytecie (wysoki priorytet → powiadomienie platformy)
+  - Automatyczne podejmowanie decyzji na podstawie stanu aplikacji (pierwszy plan/tło)
+  - Kompatybilne wstecz z istniejącymi funkcjami powiadomień
+  - Konfigurowalne preferencje powiadomień (Toast włączony/wyłączony, powiadomienie platformy włączone/wyłączone, poziomy priorytetu)
+
+- 🎯 **Ulepszenia UI/UX**:
+  - Diagnostyka Systemu przeniesiona z sekcji Backup do sekcji Zarządzanie Logami (bardziej logiczne umieszczenie)
+  - Naprawione błędy lintera TypeScript (nieużywane zmienne, niezgodności typów)
+  - Poprawiona jakość i łatwość utrzymania kodu
+
+### v1.8.0 (2025) - 📊 Zaawansowane Logowanie i Ulepszenia Resetu Fabrycznego
+
+- 🔄 **Modal Postępu Resetu Fabrycznego** - Wizualny wskaźnik postępu dla resetu fabrycznego:
+  - 4-etapowy animowany postęp (usuwanie kopii zapasowej, usuwanie logów, usuwanie konfiguracji, ukończenie)
+  - Aktualizacje statusu w czasie rzeczywistym z komunikatami sukcesu/błędu
+  - 10-sekundowe odliczanie przed pojawieniem się selektora języka
+  - Modal nie do odrzucenia podczas procesu resetu
+  - W pełni zlokalizowane we wszystkich 13 obsługiwanych językach
+
+- 📋 **Kompleksowa Przebudowa Systemu Logowania** - Profesjonalna infrastruktura logowania:
+  - Wieloplatformowe ścieżki plików logów (katalogi danych specyficzne dla platformy)
+  - Logowanie informacji o systemie (CPU, pamięć, OS, GPU, dysk, wersja aplikacji)
+  - Logowanie informacji o katalogach (foldery logów i kopii zapasowych, liczby plików, rozmiary)
+  - Szczegółowe logowanie statusu ładowania (sukces/ostrzeżenie/błąd/krytyczny)
+  - Poziomy logów (DEBUG, INFO, WARN, ERROR) z filtrowaniem
+  - Obsługa strukturalnego formatu logów (tekst i JSON)
+  - Rotacja logów z automatycznym czyszczeniem (konfigurowalne dni przechowywania)
+  - Modal Przeglądarki Logów z filtrowaniem, wyszukiwaniem, podświetlaniem i eksportem
+  - Konfiguracja logów w Ustawieniach (format, poziom, dni przechowywania)
+  - Zawartość pliku logu zachowana między ponownymi uruchomieniami aplikacji (tryb dołączania)
+
+- 🔍 **Diagnostyka Systemu** - Modal sprawdzania stanu systemu:
+  - Wyświetlanie i walidacja informacji o systemie
+  - Monitorowanie użycia pamięci z ostrzeżeniami
+  - Sprawdzanie istnienia plików
+  - Weryfikacja dostępności modułów
+  - Testy dostępności magazynu danych
+  - Wyświetlanie paska postępu i podsumowania
+  - W pełni zlokalizowane we wszystkich 13 obsługiwanych językach
+
+- 🛠️ **Ulepszenia Techniczne**:
+  - Logowanie wyłączone podczas Resetu Fabrycznego, aby zapobiec zanieczyszczeniu logów
+  - Tworzenie data.json opóźnione do momentu wyboru języka (czystszy przepływ Resetu Fabrycznego)
+  - Inicjalizacja pliku logu opóźniona do momentu wyboru języka
+  - Automatyczne ponowne uruchomienie aplikacji po wyborze języka
+  - Polecenia backend do zarządzania plikami kopii zapasowych i logów
+  - Obsługa ścieżek wieloplatformowych dla kopii zapasowych i logów
+  - Naprawione obliczanie pamięci (zgodność z sysinfo 0.31)
+  - Naprawione ostrzeżenia stylu React (konflikty skrótów CSS)
+
 ### v1.7.0 (2025) - 💾 System kopii zapasowych, ekran ładowania i ulepszenia biblioteki filamentów
 
 - 💾 **Pełna implementacja systemu kopii zapasowych**

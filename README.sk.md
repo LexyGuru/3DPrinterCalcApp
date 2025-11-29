@@ -40,6 +40,78 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
+### v1.9.0 (2025) - 🔍 Diagnostika Systému a Vylepšenia Výkonu
+
+- 🔍 **Diagnostika Systému** - Komplexný nástroj na kontrolu stavu systému:
+  - Zobrazenie systémových informácií (CPU, pamäť, OS, GPU, disk)
+  - Validácia systému súborov (data.json, filamentLibrary.json, update_filament.json)
+  - Kontrola dostupnosti modulov (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Overenie prístupnosti úložiska dát
+  - Ukazovateľ priebehu s podrobnými správami o stave
+  - Súhrn s indikátormi chyby/varovania/úspechu
+  - Tlačidlo pre opakovanie diagnostiky
+  - Presunuté do sekcie Správa Protokolov (logickejšie umiestnenie)
+  - Plne lokalizované vo všetkých 13 podporovaných jazykoch
+
+- ⚡ **Výkon Prehliadača Protokolov** - Virtuálne posúvanie pre veľké súbory protokolov:
+  - Vlastná implementácia virtuálneho posúvania pre komponentu LogViewer
+  - Renderované sú len viditeľné položky protokolov, dramaticky zlepšujúce výkon
+  - Plynulé posúvanie a vyhľadávanie aj pri masívnych súboroch protokolov (100k+ riadkov)
+  - Udržiava presnú pozíciu a výšku posúvača
+  - Výrazne rýchlejšie operácie vyhľadávania a filtrovania
+
+- 🔔 **Zjednotený Systém Oznámení** - Centralizovaná služba oznámení:
+  - Jeden `notificationService` pre Toast aj platformové oznámenia
+  - Smerovanie oznámení na základe priority (vysoká priorita → platformové oznámenie)
+  - Automatické rozhodovanie na základe stavu aplikácie (popredie/pozadie)
+  - Späť kompatibilné s existujúcimi funkciami oznámení
+  - Konfigurovateľné preferencie oznámení (Toast zapnuté/vypnuté, platformové oznámenie zapnuté/vypnuté, úrovne priority)
+
+- 🎯 **Vylepšenia UI/UX**:
+  - Diagnostika Systému presunutá zo sekcie Zálohovanie do sekcie Správa Protokolov (logickejšie umiestnenie)
+  - Opravené chyby lintera TypeScript (nepoužívané premenné, nesúlad typov)
+  - Zlepšená kvalita kódu a udržateľnosť
+
+### v1.8.0 (2025) - 📊 Pokročilé Protokolovanie a Vylepšenia Továrenského Resetu
+
+- 🔄 **Modal Priebehu Továrenského Resetu** - Vizuálny indikátor priebehu pre továrenský reset:
+  - 4krokový animovaný priebeh (mazanie záloh, mazanie protokolov, mazanie konfigurácie, dokončenie)
+  - Aktualizácie stavu v reálnom čase so správami o úspechu/chybe
+  - 10sekundový odpočet pred zobrazením výberu jazyka
+  - Modal nemožno zatvoriť počas procesu resetu
+  - Plne lokalizované vo všetkých 13 podporovaných jazykoch
+
+- 📋 **Kompletné Prepracovanie Systému Protokolovania** - Profesionálna infraštruktúra protokolovania:
+  - Multiplatformné cesty k súborom protokolov (adresáre dát špecifické pre platformu)
+  - Protokolovanie systémových informácií (CPU, pamäť, OS, GPU, disk, verzia aplikácie)
+  - Protokolovanie informácií o adresároch (priečinky protokolov a záloh, počty súborov, veľkosti)
+  - Podrobné protokolovanie stavu načítavania (úspech/varovanie/chyba/kritické)
+  - Úrovne protokolov (DEBUG, INFO, WARN, ERROR) s filtrovaním
+  - Podpora štruktúrovaného formátu protokolov (text a JSON)
+  - Rotácia protokolov s automatickým čistením (konfigurovateľné dni uchovania)
+  - Modal Prehliadača Protokolov s filtrovaním, vyhľadávaním, zvýrazňovaním a exportom
+  - Konfigurácia protokolov v Nastaveniach (formát, úroveň, dni uchovania)
+  - Obsah súboru protokolu zachovaný pri reštartoch aplikácie (režim pripojovania)
+
+- 🔍 **Diagnostika Systému** - Modal kontroly stavu systému:
+  - Zobrazenie a validácia systémových informácií
+  - Monitorovanie využitia pamäte s varovaniami
+  - Kontroly existencie súborov
+  - Overenie dostupnosti modulov
+  - Testy prístupnosti úložiska dát
+  - Zobrazenie ukazovateľa priebehu a súhrnu
+  - Plne lokalizované vo všetkých 13 podporovaných jazykoch
+
+- 🛠️ **Technické Vylepšenia**:
+  - Protokolovanie zakázané počas Továrenského Resetu, aby sa zabránilo znečisteniu protokolov
+  - Vytvorenie data.json oddialené až do výberu jazyka (čistejší tok Továrenského Resetu)
+  - Inicializácia súboru protokolu oddialená až do výberu jazyka
+  - Automatický reštart aplikácie po výbere jazyka
+  - Backendové príkazy pre správu súborov záloh a protokolov
+  - Multiplatformné spracovanie ciest pre zálohy a protokoly
+  - Opravený výpočet pamäte (kompatibilita sysinfo 0.31)
+  - Opravené varovania štýlu React (konflikty skratiek CSS)
+
 ### v1.7.0 (2025) - 💾 Systém zálohovania, obrazovka načítania a vylepšenia knižnice filamentov
 
 - 💾 **Kompletná implementácia systému zálohovania**

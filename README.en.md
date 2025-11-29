@@ -509,6 +509,78 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.9.0 (2025) - 🔍 System Diagnostics & Performance Improvements
+
+- 🔍 **System Diagnostics** - Comprehensive system health-check tool:
+  - System information display (CPU, memory, OS, GPU, disk)
+  - File system validation (data.json, filamentLibrary.json, update_filament.json)
+  - Module availability checks (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Data store accessibility verification
+  - Progress bar with detailed status messages
+  - Summary with error/warning/success indicators
+  - Rerun diagnostics button
+  - Moved to Log Management section for better organization
+  - Fully localized in all 13 supported languages
+
+- ⚡ **Log Viewer Performance** - Virtual scrolling for large log files:
+  - Custom virtual scrolling implementation for LogViewer component
+  - Only visible log entries are rendered, dramatically improving performance
+  - Smooth scrolling and searching even with massive log files (100k+ lines)
+  - Maintains accurate scrollbar position and height
+  - Significantly faster search and filter operations
+
+- 🔔 **Unified Notification System** - Centralized notification service:
+  - Single `notificationService` for both Toast and platform notifications
+  - Priority-based notification routing (high priority → platform notification)
+  - Automatic decision making based on app state (foreground/background)
+  - Backward compatible with existing notification functions
+  - Configurable notification preferences (Toast on/off, platform notification on/off, priority levels)
+
+- 🎯 **UI/UX Improvements**:
+  - System Diagnostics moved from Backup section to Log Management section (more logical placement)
+  - TypeScript linter errors fixed (unused variables, type mismatches)
+  - Improved code quality and maintainability
+
+### v1.8.0 (2025) - 📊 Advanced Logging & Factory Reset Enhancements
+
+- 🔄 **Factory Reset Progress Modal** - Visual progress indicator for factory reset:
+  - 4-step animated progress (backup deletion, log deletion, config deletion, completion)
+  - Real-time status updates with success/error messages
+  - 10-second countdown before language selector appears
+  - Non-dismissible modal during reset process
+  - Fully localized in all 13 supported languages
+
+- 📋 **Complete Logging System Overhaul** - Professional logging infrastructure:
+  - Cross-platform log file paths (platform-specific data directories)
+  - System information logging (CPU, memory, OS, GPU, disk, app version)
+  - Directory information logging (log and backup folders, file counts, sizes)
+  - Detailed loading status logging (success/warning/error/critical)
+  - Log levels (DEBUG, INFO, WARN, ERROR) with filtering
+  - Structured log format support (text and JSON)
+  - Log rotation with automatic cleanup (configurable retention days)
+  - Log Viewer modal with filtering, search, highlight, and export
+  - Log configuration in Settings (format, level, retention days)
+  - Log file content preserved across app restarts (append mode)
+
+- 🔍 **System Diagnostics** - System health-check modal:
+  - System information display and validation
+  - Memory usage monitoring with warnings
+  - File existence checks
+  - Module availability verification
+  - Data store accessibility tests
+  - Progress bar and summary display
+  - Fully localized in all 13 supported languages
+
+- 🛠️ **Technical Improvements**:
+  - Logging disabled during Factory Reset to prevent log pollution
+  - data.json creation delayed until language selection (cleaner Factory Reset flow)
+  - Log file initialization delayed until language selection
+  - Automatic app restart after language selection
+  - Backend commands for backup and log file management
+  - Cross-platform path handling for backups and logs
+  - Fixed memory calculation (sysinfo 0.31 compatibility)
+  - React style warnings fixed (CSS shorthand conflicts)
+
 ### v1.7.0 (2025) - 💾 Backup system, loading screen and filament library improvements
 
 - 💾 **Complete backup system implementation**

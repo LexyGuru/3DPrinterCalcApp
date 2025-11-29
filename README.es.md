@@ -41,6 +41,78 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 
 ## 📋 Registro de cambios (Changelog)
 
+### v1.9.0 (2025) - 🔍 Diagnósticos del Sistema y Mejoras de Rendimiento
+
+- 🔍 **Diagnósticos del Sistema** - Herramienta completa de verificación de salud del sistema:
+  - Visualización de información del sistema (CPU, memoria, OS, GPU, disco)
+  - Validación del sistema de archivos (data.json, filamentLibrary.json, update_filament.json)
+  - Verificaciones de disponibilidad de módulos (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Verificación de accesibilidad del almacén de datos
+  - Barra de progreso con mensajes de estado detallados
+  - Resumen con indicadores de error/advertencia/éxito
+  - Botón de ejecutar diagnósticos nuevamente
+  - Movido a la sección de Gestión de Registros (ubicación más lógica)
+  - Completamente localizado en los 13 idiomas admitidos
+
+- ⚡ **Rendimiento del Visor de Registros** - Desplazamiento virtual para archivos de registro grandes:
+  - Implementación de desplazamiento virtual personalizada para el componente LogViewer
+  - Solo se renderizan las entradas de registro visibles, mejorando dramáticamente el rendimiento
+  - Desplazamiento y búsqueda suaves incluso con archivos de registro masivos (100k+ líneas)
+  - Mantiene la posición y altura precisas de la barra de desplazamiento
+  - Operaciones de búsqueda y filtrado significativamente más rápidas
+
+- 🔔 **Sistema de Notificaciones Unificado** - Servicio de notificaciones centralizado:
+  - Un solo `notificationService` para notificaciones Toast y de plataforma
+  - Enrutamiento de notificaciones basado en prioridad (prioridad alta → notificación de plataforma)
+  - Toma de decisiones automática basada en el estado de la app (primer plano/fondo)
+  - Compatible con funciones de notificación existentes
+  - Preferencias de notificación configurables (Toast activado/desactivado, notificación de plataforma activada/desactivada, niveles de prioridad)
+
+- 🎯 **Mejoras de UI/UX**:
+  - Diagnósticos del Sistema movidos de la sección de Respaldo a la sección de Gestión de Registros (ubicación más lógica)
+  - Errores del linter de TypeScript corregidos (variables no utilizadas, discrepancias de tipos)
+  - Calidad y mantenibilidad del código mejoradas
+
+### v1.8.0 (2025) - 📊 Registro Avanzado y Mejoras de Restablecimiento de Fábrica
+
+- 🔄 **Modal de Progreso de Restablecimiento de Fábrica** - Indicador de progreso visual para restablecimiento de fábrica:
+  - Progreso animado de 4 pasos (eliminación de respaldo, eliminación de registro, eliminación de configuración, finalización)
+  - Actualizaciones de estado en tiempo real con mensajes de éxito/error
+  - Cuenta regresiva de 10 segundos antes de que aparezca el selector de idioma
+  - Modal no descartable durante el proceso de restablecimiento
+  - Completamente localizado en los 13 idiomas admitidos
+
+- 📋 **Revisión Completa del Sistema de Registro** - Infraestructura de registro profesional:
+  - Rutas de archivos de registro multiplataforma (directorios de datos específicos de la plataforma)
+  - Registro de información del sistema (CPU, memoria, OS, GPU, disco, versión de la app)
+  - Registro de información de directorios (carpetas de registro y respaldo, recuentos de archivos, tamaños)
+  - Registro detallado del estado de carga (éxito/advertencia/error/crítico)
+  - Niveles de registro (DEBUG, INFO, WARN, ERROR) con filtrado
+  - Soporte de formato de registro estructurado (texto y JSON)
+  - Rotación de registro con limpieza automática (días de retención configurables)
+  - Modal del Visor de Registros con filtrado, búsqueda, resaltado y exportación
+  - Configuración de registro en Configuración (formato, nivel, días de retención)
+  - Contenido de archivos de registro conservado entre reinicios de la app (modo anexar)
+
+- 🔍 **Diagnósticos del Sistema** - Modal de verificación de salud del sistema:
+  - Visualización y validación de información del sistema
+  - Monitoreo de uso de memoria con advertencias
+  - Verificaciones de existencia de archivos
+  - Verificación de disponibilidad de módulos
+  - Pruebas de accesibilidad del almacén de datos
+  - Visualización de barra de progreso y resumen
+  - Completamente localizado en los 13 idiomas admitidos
+
+- 🛠️ **Mejoras Técnicas**:
+  - Registro desactivado durante Restablecimiento de Fábrica para prevenir contaminación de registros
+  - Creación de data.json retrasada hasta la selección de idioma (flujo de Restablecimiento de Fábrica más limpio)
+  - Inicialización de archivos de registro retrasada hasta la selección de idioma
+  - Reinicio automático de la app después de la selección de idioma
+  - Comandos backend para gestión de archivos de respaldo y registro
+  - Manejo de rutas multiplataforma para respaldos y registros
+  - Cálculo de memoria corregido (compatibilidad con sysinfo 0.31)
+  - Advertencias de estilo de React corregidas (conflictos de abreviación CSS)
+
 ### v1.7.0 (2025) - 💾 Sistema de respaldo, pantalla de carga y mejoras de biblioteca de filamentos
 
 - 💾 **Implementación completa del sistema de respaldo**

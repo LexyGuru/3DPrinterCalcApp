@@ -435,23 +435,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
     try {
       const savedWidgets = settings.dashboardLayout?.widgets;
       if (savedWidgets && savedWidgets.length > 0) {
-        console.log("[Dashboard] Loading saved widget layout:", {
-          savedWidgetCount: savedWidgets.length,
-          savedWidgetIds: savedWidgets.map(w => w.id),
-        });
+        // Csak development módban logoljuk, és csak console-ra (ne fájlba)
+        if (import.meta.env.DEV) {
+          console.log("[Dashboard] Loading saved widget layout:", {
+            savedWidgetCount: savedWidgets.length,
+            savedWidgetIds: savedWidgets.map(w => w.id),
+          });
+        }
         // Ha van mentett layout, de kevés widget van benne, akkor kiegészítjük az alapértelmezettekkel
         const defaultWidgets = createDefaultWidgets(t);
         const savedWidgetIds = new Set(savedWidgets.map(w => w.id));
         const missingWidgets = defaultWidgets.filter(w => !savedWidgetIds.has(w.id));
         const mergedWidgets = [...savedWidgets, ...missingWidgets].map(normalizeWidgetSize);
-        console.log("[Dashboard] Merged widgets:", {
-          total: mergedWidgets.length,
-          saved: savedWidgets.length,
-          added: missingWidgets.length,
-        });
+        // Csak development módban logoljuk
+        if (import.meta.env.DEV) {
+          console.log("[Dashboard] Merged widgets:", {
+            total: mergedWidgets.length,
+            saved: savedWidgets.length,
+            added: missingWidgets.length,
+          });
+        }
         return mergedWidgets;
       }
-      console.log("[Dashboard] No saved layout found, using default widgets");
+      // Csak development módban logoljuk
+      if (import.meta.env.DEV) {
+        console.log("[Dashboard] No saved layout found, using default widgets");
+      }
       return createDefaultWidgets(t).map(normalizeWidgetSize);
     } catch (error) {
       console.error("[Dashboard] Error initializing widgets:", {
@@ -491,7 +500,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const savedWidgetIds = new Set(savedWidgets.map(w => w.id));
       const missingWidgets = defaultWidgets.filter(w => !savedWidgetIds.has(w.id));
       if (missingWidgets.length > 0) {
-        console.log("[Dashboard] Adding missing widgets:", missingWidgets.map(w => w.id));
+        // Csak development módban logoljuk
+        if (import.meta.env.DEV) {
+          console.log("[Dashboard] Adding missing widgets:", missingWidgets.map(w => w.id));
+        }
         const mergedWidgets = [...savedWidgets, ...missingWidgets];
         setWidgets(mergedWidgets);
         // Automatikusan mentjük a frissített layout-ot

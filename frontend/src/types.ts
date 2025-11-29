@@ -205,6 +205,8 @@ export interface Settings {
   showTutorialOnStartup?: boolean; // Kezdő tutorial megjelenítése indításkor
   tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
   logRetentionDays?: number; // Log fájlok megtartása napokban (0 = soha ne törölje)
+  logFormat?: "text" | "json"; // Log fájl formátum (szöveges vagy JSON) - v1.8.0
+  logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR"; // Minimum log szint (csak e feletti szintű logok kerülnek fájlba) - v1.8.0
   hideMacOSNotificationWarning?: boolean; // macOS értesítési figyelmeztetés elrejtése
   dashboardLayout?: import("./types/widgets").DashboardLayout; // Dashboard widget layout
   useWidgetDashboard?: boolean; // Widget dashboard használata (true) vagy klasszikus nézet (false)
@@ -238,6 +240,8 @@ export const defaultSettings: Settings = {
   calendarProvider: "google", // Alapértelmezett naptár szolgáltató
   showTutorialOnStartup: true, // Alapértelmezetten mutassa a tutorialt
   tutorialCompleted: false, // Alapértelmezetten nem tekintették meg
+  logFormat: "text", // Alapértelmezett log formátum: szöveges (v1.8.0)
+  logLevel: "INFO", // Alapértelmezett minimum log szint: INFO (v1.8.0)
 };
 
 export interface OfferFilament {

@@ -1,6 +1,6 @@
 import { Store } from "@tauri-apps/plugin-store";
 import type { Printer, Filament, Settings, Offer, CalculationTemplate, Customer, PriceHistory } from "../types";
-import { deleteAllAutomaticBackups } from "./backup";
+// deleteAllAutomaticBackups import eltávolítva - a FactoryResetProgress modal kezeli a backup fájlok törlését
 import { remove, exists } from "@tauri-apps/plugin-fs";
 import { BaseDirectory } from "@tauri-apps/plugin-fs";
 
@@ -9,6 +9,16 @@ let storeInstance: Store | null = null;
 
 async function getStore(): Promise<Store> {
   if (!storeInstance) {
+    // Ellenőrizzük, hogy létezik-e a data.json fájl, mielőtt betöltjük a Store-t
+    // Ha nem létezik, akkor nem hozzuk létre automatikusan (Factory Reset után)
+    const dataJsonExists = await exists("data.json", { baseDir: BaseDirectory.AppConfig });
+    if (!dataJsonExists) {
+      // Ha nincs data.json, akkor még nem hozzuk létre a Store-t
+      // Ez biztosítja, hogy a Factory Reset után ne generálódjon automatikusan a fájl
+      // A Store.load() automatikusan létrehozza a fájlt, ha nem létezik, ezért először
+      // ellenőrizzük, és csak akkor hozzuk létre a Store-t, ha a fájl már létezik
+      throw new Error("data.json fájl nem létezik. Kérjük, válasszon nyelvet először.");
+    }
     storeInstance = await Store.load("data.json");
   }
   return storeInstance;
@@ -106,7 +116,20 @@ export async function saveSettings(settings: Settings): Promise<void> {
         theme: settings.theme 
       });
     }
-    const store = await getStore();
+    
+    // Ha a getStore() hibát dob (mert nincs data.json), akkor először létrehozzuk a Store-t
+    let store: Store;
+    try {
+      store = await getStore();
+    } catch (error) {
+      // Ha nincs data.json, akkor most létrehozzuk (pl. nyelvválasztó után)
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ data.json nem létezik, létrehozás...");
+      }
+      store = await Store.load("data.json");
+      storeInstance = store; // Frissítjük a storeInstance-t
+    }
+    
     await store.set("settings", settings);
     await store.save();
     if (import.meta.env.DEV) {
@@ -119,8 +142,19 @@ export async function saveSettings(settings: Settings): Promise<void> {
 }
 
 export async function loadSettings(): Promise<Settings | null> {
-  const store = await getStore();
   try {
+    // Ha nincs data.json, akkor null-t adunk vissza (nem hibaként kezeljük)
+    let store: Store;
+    try {
+      store = await getStore();
+    } catch (error) {
+      // Ha nincs data.json (pl. Factory Reset után), akkor null-t adunk vissza
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ data.json nem létezik, nincsenek mentett beállítások");
+      }
+      return null;
+    }
+    
     if (import.meta.env.DEV) {
       console.log("📥 Beállítások betöltése...");
     }
@@ -309,8 +343,9 @@ export async function clearAllData(): Promise<void> {
     await store.delete("templates");
     await store.delete("priceHistory");
     
-    // Töröljük az összes automatikus vészbackup fájlt
-    await deleteAllAutomaticBackups();
+    // MEGJEGYZÉS: A backup és log fájlok törlése a FactoryResetProgress komponensben történik
+    // Itt nem töröljük őket, hogy a progress modal-ban külön kezelhessük őket
+    
     
     // FONTOS: Nem hívjuk meg a store.save()-et, mert az újra létrehozná az üres fájlt!
     // Ehelyett bezárjuk a Store-t, és utána töröljük a fizikai fájlt

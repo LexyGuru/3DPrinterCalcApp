@@ -1526,176 +1526,186 @@ export const Offers: React.FC<Props> = ({
       {/* Kereső mező és műveletek */}
       {offersWithHistory.length > 0 && (
         <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap" }}>
-            <div style={{ flex: "1", minWidth: "200px" }}>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "8px",
-                  fontWeight: "600",
-                  fontSize: "14px",
-                  color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
-                }}
-              >
-                🔍 {t("offers.search.label")}
-              </label>
-              <input
-                type="text"
-                placeholder={t("offers.search.placeholder")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                onBlur={(e) => {
-                  e.target.style.borderColor = theme.colors.inputBorder;
-                  e.target.style.boxShadow = "none";
-                }}
-                style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
-                aria-label={t("offers.search.aria")}
-                aria-describedby="offers-search-description"
-              />
-              <span id="offers-search-description" style={{ display: "none" }}>
-                {t("offers.search.description")}
-              </span>
-            </div>
-            
-            {/* Összeg + dátum szűrők */}
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              <div style={{ minWidth: "140px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            {/* Első sor: Keresés és Szűrők grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "20px", alignItems: "start" }}>
+              {/* Keresés - bal oldal */}
+              <div>
                 <label
                   style={{
                     display: "block",
-                    marginBottom: "4px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: theme.colors.textMuted,
+                    marginBottom: "8px",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text,
                   }}
                 >
-                  {t("offers.filters.minAmount" as TranslationKey)}
+                  🔍 {t("offers.search.label")}
                 </label>
                 <input
-                  type="number"
-                  value={minAmountFilter}
-                  onChange={(e) => setMinAmountFilter(e.target.value)}
-                  style={{ ...themeStyles.input, padding: "6px 10px", fontSize: "13px", width: "100%" }}
+                  type="text"
+                  placeholder={t("offers.search.placeholder")}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = theme.colors.inputBorder;
+                    e.target.style.boxShadow = "none";
+                  }}
+                  style={{ ...themeStyles.input, width: "100%", padding: "12px 16px", fontSize: "14px", boxSizing: "border-box" }}
+                  aria-label={t("offers.search.aria")}
+                  aria-describedby="offers-search-description"
                 />
+                <span id="offers-search-description" style={{ display: "none" }}>
+                  {t("offers.search.description")}
+                </span>
               </div>
-              <div style={{ minWidth: "140px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "4px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: theme.colors.textMuted,
-                  }}
-                >
-                  {t("offers.filters.maxAmount" as TranslationKey)}
-                </label>
-                <input
-                  type="number"
-                  value={maxAmountFilter}
-                  onChange={(e) => setMaxAmountFilter(e.target.value)}
-                  style={{ ...themeStyles.input, padding: "6px 10px", fontSize: "13px", width: "100%" }}
-                />
-              </div>
-              <div style={{ minWidth: "150px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "4px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: theme.colors.textMuted,
-                  }}
-                >
-                  {t("offers.filters.fromDate" as TranslationKey)}
-                </label>
-                <input
-                  type="date"
-                  value={fromDateFilter}
-                  onChange={(e) => setFromDateFilter(e.target.value)}
-                  style={{ ...themeStyles.input, padding: "6px 10px", fontSize: "13px", width: "100%" }}
-                />
-              </div>
-              <div style={{ minWidth: "150px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "4px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: theme.colors.textMuted,
-                  }}
-                >
-                  {t("offers.filters.toDate" as TranslationKey)}
-                </label>
-                <input
-                  type="date"
-                  value={toDateFilter}
-                  onChange={(e) => setToDateFilter(e.target.value)}
-                  style={{ ...themeStyles.input, padding: "6px 10px", fontSize: "13px", width: "100%" }}
-                />
+
+              {/* Szűrők grid - jobb oldal */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                {/* Összeg szűrők */}
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "6px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: theme.colors.textMuted,
+                    }}
+                  >
+                    {t("offers.filters.minAmount" as TranslationKey)}
+                  </label>
+                  <input
+                    type="number"
+                    value={minAmountFilter}
+                    onChange={(e) => setMinAmountFilter(e.target.value)}
+                    style={{ ...themeStyles.input, padding: "8px 12px", fontSize: "13px", width: "100%", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "6px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: theme.colors.textMuted,
+                    }}
+                  >
+                    {t("offers.filters.maxAmount" as TranslationKey)}
+                  </label>
+                  <input
+                    type="number"
+                    value={maxAmountFilter}
+                    onChange={(e) => setMaxAmountFilter(e.target.value)}
+                    style={{ ...themeStyles.input, padding: "8px 12px", fontSize: "13px", width: "100%", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "6px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: theme.colors.textMuted,
+                    }}
+                  >
+                    {t("offers.filters.fromDate" as TranslationKey)}
+                  </label>
+                  <input
+                    type="date"
+                    value={fromDateFilter}
+                    onChange={(e) => setFromDateFilter(e.target.value)}
+                    style={{ ...themeStyles.input, padding: "8px 12px", fontSize: "13px", width: "100%", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "6px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: theme.colors.textMuted,
+                    }}
+                  >
+                    {t("offers.filters.toDate" as TranslationKey)}
+                  </label>
+                  <input
+                    type="date"
+                    value={toDateFilter}
+                    onChange={(e) => setToDateFilter(e.target.value)}
+                    style={{ ...themeStyles.input, padding: "8px 12px", fontSize: "13px", width: "100%", boxSizing: "border-box" }}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Undo/Redo gombok */}
-            <div style={{ display: "flex", gap: "8px" }}>
-              <Tooltip content={`${t("common.undo")} (Ctrl/Cmd+Z)`}>
-                <button
-                  onClick={() => {
-                    if (canUndo) {
-                      undo();
-                      showToast(t("common.undo") || "Visszavonás", "info");
-                    }
-                  }}
-                  disabled={!canUndo}
-                  style={{
-                    ...themeStyles.button,
-                    ...themeStyles.buttonSecondary,
-                    opacity: canUndo ? 1 : 0.5,
-                    cursor: canUndo ? "pointer" : "not-allowed",
-                    padding: "8px 16px",
-                  }}
-                >
-                  ↶ {t("common.undo")}
-                </button>
-              </Tooltip>
-              <Tooltip content={`${t("common.redo")} (Ctrl/Cmd+Shift+Z)`}>
-                <button
-                  onClick={() => {
-                    if (canRedo) {
-                      redo();
-                      showToast(t("common.redo") || "Újra", "info");
-                    }
-                  }}
-                  disabled={!canRedo}
-                  style={{
-                    ...themeStyles.button,
-                    ...themeStyles.buttonSecondary,
-                    opacity: canRedo ? 1 : 0.5,
-                    cursor: canRedo ? "pointer" : "not-allowed",
-                    padding: "8px 16px",
-                  }}
-                >
-                  ↷ {t("common.redo")}
-                </button>
-              </Tooltip>
+            {/* Második sor: Műveletek és Rendezés */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap", paddingTop: "12px", borderTop: `1px solid ${theme.colors.border}` }}>
+              {/* Undo/Redo gombok - bal oldal */}
+              <div style={{ display: "flex", gap: "8px" }}>
+                <Tooltip content={`${t("common.undo")} (Ctrl/Cmd+Z)`}>
+                  <button
+                    onClick={() => {
+                      if (canUndo) {
+                        undo();
+                        showToast(t("common.undo") || "Visszavonás", "info");
+                      }
+                    }}
+                    disabled={!canUndo}
+                    style={{
+                      ...themeStyles.button,
+                      ...themeStyles.buttonSecondary,
+                      opacity: canUndo ? 1 : 0.5,
+                      cursor: canUndo ? "pointer" : "not-allowed",
+                      padding: "8px 16px",
+                      fontSize: "13px",
+                    }}
+                  >
+                    ↶ {t("common.undo")}
+                  </button>
+                </Tooltip>
+                <Tooltip content={`${t("common.redo")} (Ctrl/Cmd+Shift+Z)`}>
+                  <button
+                    onClick={() => {
+                      if (canRedo) {
+                        redo();
+                        showToast(t("common.redo") || "Újra", "info");
+                      }
+                    }}
+                    disabled={!canRedo}
+                    style={{
+                      ...themeStyles.button,
+                      ...themeStyles.buttonSecondary,
+                      opacity: canRedo ? 1 : 0.5,
+                      cursor: canRedo ? "pointer" : "not-allowed",
+                      padding: "8px 16px",
+                      fontSize: "13px",
+                    }}
+                  >
+                    ↷ {t("common.redo")}
+                  </button>
+                </Tooltip>
+              </div>
+
+              {/* Rendezés – jobb oldal */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+                <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.textMuted, marginRight: "4px" }}>
+                  Rendezés:
+                </span>
+                {renderSortChip("Dátum", "date")}
+                {renderSortChip("Összeg", "amount")}
+                {renderSortChip("Státusz", "status")}
+                {renderSortChip("Ügyfél", "customer")}
+                {renderSortChip("ID", "id")}
+                <span style={{ fontSize: "11px", color: theme.colors.textMuted, fontStyle: "italic" }}>
+                  (Shift + kattintás: több szintű)
+                </span>
+              </div>
             </div>
-          </div>
-          
-          {/* Rendezés – több kulcs, Shift+kattintással láncolható */}
-          <div style={{ marginTop: "12px", display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
-            <span style={{ fontSize: "12px", color: theme.colors.textMuted, marginRight: "4px" }}>
-              Rendezés:
-            </span>
-            {renderSortChip("Dátum", "date")}
-            {renderSortChip("Összeg", "amount")}
-            {renderSortChip("Státusz", "status")}
-            {renderSortChip("Ügyfél", "customer")}
-            {renderSortChip("ID", "id")}
-            <span style={{ fontSize: "11px", color: theme.colors.textMuted, marginLeft: "4px" }}>
-              (Shift + kattintás: több szintű rendezés)
-            </span>
           </div>
         </div>
       )}

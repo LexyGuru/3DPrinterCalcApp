@@ -1,5 +1,5 @@
 import { save, open } from "@tauri-apps/plugin-dialog";
-import { writeTextFile, readTextFile, readDir, exists, remove } from "@tauri-apps/plugin-fs";
+import { writeTextFile, readTextFile, readDir, exists } from "@tauri-apps/plugin-fs";
 import { join } from "@tauri-apps/api/path";
 import { invoke } from "@tauri-apps/api/core";
 import type { Printer, Filament, Offer, Settings } from "../types";
@@ -137,7 +137,7 @@ async function hasTodayBackup(): Promise<boolean> {
     
     // Használjuk a backend command-ot, ami már visszaadja a timestamp-eket is
     // Ez gyorsabb, mint minden fájlt beolvasni
-    const backupFiles = await invoke<[string, string, string][]>("list_backup_files");
+    const backupFiles = await invoke<[string, string, string, number][]>("list_backup_files");
     
     if (import.meta.env.DEV) {
       console.log("🔍 Backup fájlok száma:", backupFiles.length);
@@ -145,7 +145,7 @@ async function hasTodayBackup(): Promise<boolean> {
     
     // Ellenőrizzük a legújabb backupokat (már dátum szerint rendezve a backend-ben)
     // Csak a mai napon készült backupot keressük
-    for (const [fileName, , timestamp] of backupFiles) {
+    for (const [fileName, , timestamp, _fileSize] of backupFiles) {
       if (!timestamp) {
         continue;
       }
@@ -230,14 +230,14 @@ export async function createAutomaticBackup(
       // Ha már van mai backup, NEM frissítjük - csak a dátumot visszaadjuk
       // Az auto_backup csak naponta egyszer kell, hogy létrejöjjön
       // Használjuk a list_backup_files backend command-ot, hogy ne kelljen minden fájlt beolvasni
-      const backupFiles = await invoke<[string, string, string][]>("list_backup_files");
+      const backupFiles = await invoke<[string, string, string, number][]>("list_backup_files");
       
       // Helyi időzóna szerint formázzuk a mai dátumot
       const today = new Date();
       const todayStr = formatDateLocal(today);
       
       // Keresünk mai napon készült backupot timestamp alapján
-      for (const [fileName, filePath, timestamp] of backupFiles) {
+      for (const [fileName, filePath, timestamp, _fileSize] of backupFiles) {
         if (!timestamp) {
           continue;
         }
@@ -322,47 +322,23 @@ export async function createAutomaticBackup(
 
 /**
  * Törli az ÖSSZES automatikus backup fájlt (factory reset esetén)
+ * Backend parancsot használ, hogy elkerüljük a permissions problémákat
  */
 export async function deleteAllAutomaticBackups(): Promise<void> {
   try {
-    // Cross-platform backup könyvtár útvonal
-    const backupDir = await invoke<string>("get_backup_directory_path");
-    
-    if (!(await exists(backupDir))) {
-      if (import.meta.env.DEV) {
-        console.log("ℹ️ Backup könyvtár nem létezik, nincs mit törölni:", backupDir);
-      }
-      return;
+    if (import.meta.env.DEV) {
+      console.log("🗑️ Összes automatikus backup törlése...");
     }
 
-    // Összegyűjtjük az összes automatikus backup fájlt
-    const entries = await readDir(backupDir);
-    const backupFiles = entries.filter(
-      entry => entry.name?.endsWith(".json") && entry.name?.startsWith("auto_backup_")
-    );
-
-    if (backupFiles.length === 0) {
-      if (import.meta.env.DEV) {
-        console.log("ℹ️ Nincs automatikus backup fájl törlésre");
-      }
-      return;
-    }
-
-    // Töröljük az összes backup fájlt
-    for (const file of backupFiles) {
-      try {
-        const filePath = await join(backupDir, file.name!);
-        await remove(filePath);
-        if (import.meta.env.DEV) {
-          console.log("🗑️ Automatikus backup törölve:", file.name);
-        }
-      } catch (error) {
-        console.error(`❌ Hiba a backup törlésekor (${file.name}):`, error);
-      }
-    }
+    // Backend parancsot használunk, hogy elkerüljük a permissions problémákat
+    const deletedCount = await invoke<number>("delete_all_backups");
 
     if (import.meta.env.DEV) {
-      console.log(`✅ Összes automatikus backup törölve (${backupFiles.length} fájl)`);
+      if (deletedCount > 0) {
+        console.log(`✅ ${deletedCount} automatikus backup fájl törölve`);
+      } else {
+        console.log("ℹ️ Nincs automatikus backup fájl törlésre");
+      }
     }
   } catch (error) {
     console.error("❌ Hiba az automatikus backupok törlésekor:", error);
@@ -440,7 +416,7 @@ export async function getAutomaticBackupHistory(): Promise<BackupHistoryItem[]> 
   try {
     // Használjuk a backend command-ot, ami közvetlenül a fájlrendszerből listázza a backup fájlokat
     // Ez elkerüli a Tauri permissions problémát
-    const backupFiles = await invoke<[string, string, string][]>("list_backup_files");
+    const backupFiles = await invoke<[string, string, string, number][]>("list_backup_files");
     
     if (import.meta.env.DEV) {
       console.log("📝 Talált backup fájlok:", backupFiles.length);
@@ -449,7 +425,7 @@ export async function getAutomaticBackupHistory(): Promise<BackupHistoryItem[]> 
     const now = new Date();
     const history: BackupHistoryItem[] = [];
 
-    for (const [fileName, filePath, timestamp] of backupFiles) {
+    for (const [fileName, filePath, timestamp, _fileSize] of backupFiles) {
       try {
         if (timestamp) {
           const backupDate = new Date(timestamp);

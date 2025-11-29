@@ -247,7 +247,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
       position: "absolute",
       width: 0,
       height: 0,
-      border: "6px solid transparent",
+      borderWidth: "6px",
+      borderStyle: "solid",
+      borderColor: "transparent",
     };
 
     switch (actualPosition) {

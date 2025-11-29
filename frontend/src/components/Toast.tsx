@@ -198,7 +198,7 @@ export const ToastContext = React.createContext<ToastContextType | null>(null);
 export const ToastProvider: React.FC<{ children: React.ReactNode; settings?: Settings }> = ({ children, settings }) => {
   const [toasts, setToasts] = React.useState<Array<{ id: number; message: string; type: "success" | "error" | "info" | "warning" }>>([]);
 
-  const showToast = (message: string, type: "success" | "error" | "info" | "warning") => {
+  const showToast = React.useCallback((message: string, type: "success" | "error" | "info" | "warning") => {
     // Ellenőrizzük, hogy az értesítések engedélyezve vannak-e
     if (settings?.notificationEnabled === false) {
       return;
@@ -206,7 +206,17 @@ export const ToastProvider: React.FC<{ children: React.ReactNode; settings?: Set
 
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
-  };
+  }, [settings?.notificationEnabled]);
+
+  // Notification service inicializálása és frissítése
+  React.useEffect(() => {
+    if (settings) {
+      import("../utils/notificationService").then(({ initNotificationService }) => {
+        // Mindig inicializáljuk újra, hogy a showToast callback friss legyen
+        initNotificationService(settings, showToast);
+      });
+    }
+  }, [settings, showToast]);
 
   const removeToast = (id: number) => {
     setToasts(prev => prev.filter(t => t.id !== id));

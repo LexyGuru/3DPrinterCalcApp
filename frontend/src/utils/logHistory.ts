@@ -6,7 +6,7 @@ export interface LogHistoryItem {
   fileName: string;
   filePath: string; // Teljes útvonal a fájl megnyitásához
   date: Date;
-  type: "frontend" | "backend"; // frontend-YYYY-MM-DD.log vagy backend-YYYY-MM-DD.log
+  type: "frontend" | "backend"; // frontend-YYYY-MM-DD.log, backend-YYYY-MM-DD.log, frontend-YYYY-MM-DD.json, backend-YYYY-MM-DD.json
 }
 
 /**
@@ -16,7 +16,7 @@ export async function getLogHistory(): Promise<LogHistoryItem[]> {
   try {
     // Használjuk a backend command-ot, ami közvetlenül a fájlrendszerből listázza a log fájlokat
     // Ez elkerüli a Tauri permissions problémát
-    const logFiles = await invoke<[string, string][]>("list_log_files");
+    const logFiles = await invoke<[string, string, number][]>("list_log_files");
     
     if (import.meta.env.DEV) {
       console.log("📝 Talált log fájlok:", logFiles.length);
@@ -24,15 +24,16 @@ export async function getLogHistory(): Promise<LogHistoryItem[]> {
 
     const history: LogHistoryItem[] = [];
 
-    for (const [fileName, filePath] of logFiles) {
+    for (const [fileName, filePath, _fileSize] of logFiles) {
       try {
         // Kinyerjük a dátumot és a típust a fájlnévből
         let date: Date | null = null;
         let type: "frontend" | "backend" = fileName.startsWith("frontend") ? "frontend" : "backend";
         
-        // Megpróbáljuk kinyerni a dátumot a fájlnévből
+        // Megpróbáljuk kinyerni a dátumot a fájlnévből (mindkét formátum: .log és .json)
         if (fileName.startsWith("frontend-")) {
-          const dateStr = fileName.replace("frontend-", "").replace(".log", "");
+          // Eltávolítjuk a prefix-et és mindkét kiterjesztést (.log és .json)
+          const dateStr = fileName.replace("frontend-", "").replace(".log", "").replace(".json", "");
           const dateParts = dateStr.split("-");
           if (dateParts.length === 3) {
             const year = parseInt(dateParts[0], 10);
@@ -46,7 +47,8 @@ export async function getLogHistory(): Promise<LogHistoryItem[]> {
             }
           }
         } else if (fileName.startsWith("backend-")) {
-          const dateStr = fileName.replace("backend-", "").replace(".log", "");
+          // Eltávolítjuk a prefix-et és mindkét kiterjesztést (.log és .json)
+          const dateStr = fileName.replace("backend-", "").replace(".log", "").replace(".json", "");
           const dateParts = dateStr.split("-");
           if (dateParts.length === 3) {
             const year = parseInt(dateParts[0], 10);

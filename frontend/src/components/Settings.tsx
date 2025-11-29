@@ -31,6 +31,9 @@ import { ShortcutHelp } from "./ShortcutHelp";
 import { Tooltip } from "./Tooltip";
 import { VersionHistory } from "./VersionHistory";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { LogViewer } from "./LogViewer";
+import { FactoryResetProgress } from "./FactoryResetProgress";
+import { SystemDiagnostics } from "./SystemDiagnostics";
 import type { RawLibraryEntry } from "../utils/filamentLibrary";
 import {
   getLibrarySnapshot,
@@ -48,7 +51,7 @@ import { translateText } from "../utils/translator";
 import { logWithLanguage } from "../utils/languages/global_console";
 import { sendNativeNotification, setDockBadge, getPlatform, requestNotificationPermission, checkNotificationPermission } from "../utils/platformFeatures";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
-import { saveSettings, clearAllData } from "../utils/store";
+import { saveSettings } from "../utils/store";
 import { invoke } from "@tauri-apps/api/core";
 import { convertCurrencyFromTo, getCurrencySymbol } from "../utils/currency";
 
@@ -98,6 +101,10 @@ export const SettingsPage: React.FC<Props> = ({
   const [backupHistory, setBackupHistory] = useState<BackupHistoryItem[]>([]);
   const [logHistory, setLogHistory] = useState<LogHistoryItem[]>([]);
   const [previousAutosaveState, setPreviousAutosaveState] = useState<boolean | undefined>(settings.autosave);
+  const [showFactoryResetProgress, setShowFactoryResetProgress] = useState(false);
+  const [showSystemDiagnostics, setShowSystemDiagnostics] = useState(false);
+  const [logViewerOpen, setLogViewerOpen] = useState(false);
+  const [selectedLogFile, setSelectedLogFile] = useState<{ path: string; name: string } | null>(null);
   type LibraryDraft = {
     manufacturer: string;
     material: string;
@@ -1430,24 +1437,10 @@ export const SettingsPage: React.FC<Props> = ({
             logoBase64: optimized,
           },
         });
-        showToast(
-          settings.language === "hu"
-            ? "Logo sikeresen frissítve."
-            : settings.language === "de"
-            ? "Logo erfolgreich aktualisiert."
-            : "Logo updated successfully.",
-          "success"
-        );
+        showToast(t("settings.company.toast.logoUpdated"), "success");
       } catch (error) {
         logWithLanguage(settings.language, "error", "settings.logo.optimizeError", { error });
-        showToast(
-          settings.language === "hu"
-            ? "Hiba történt a logo feldolgozásakor."
-            : settings.language === "de"
-            ? "Bei der Verarbeitung des Logos ist ein Fehler aufgetreten."
-            : "An error occurred while processing the logo.",
-          "error"
-        );
+        showToast(t("settings.company.toast.logoProcessError"), "error");
       } finally {
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
@@ -1726,35 +1719,31 @@ export const SettingsPage: React.FC<Props> = ({
       confirmText: t("settings.backup.factoryResetConfirm"),
       cancelText: t("common.cancel"),
       type: "danger",
-      onConfirm: async () => {
-        try {
-          await clearAllData();
-          // Töröljük az összes state-et
-          setPrinters([]);
-          setFilaments([]);
-          setOffers([]);
-          onChange(defaultSettings);
-          
-          // Ha van callback, hívjuk meg (így az App.tsx manuálisan reseteli az állapotot)
-          if (onFactoryReset) {
-            onFactoryReset();
-          } else {
-            // Fallback: ha nincs callback, akkor reload (régi viselkedés)
-            window.location.reload();
-          }
-        } catch (error) {
-          console.error("Hiba a factory reset során:", error);
-          showToast(
-            settings.language === "hu" 
-              ? "Hiba történt a visszaállítás során" 
-              : settings.language === "de"
-              ? "Fehler beim Zurücksetzen"
-              : "Error during factory reset",
-            "error"
-          );
-        }
+      onConfirm: () => {
+        // Megjelenítjük a Factory Reset Progress modal-t
+        setShowFactoryResetProgress(true);
       },
     });
+  };
+
+  const handleFactoryResetComplete = () => {
+    // A Factory Reset Progress modal befejezése után
+    setShowFactoryResetProgress(false);
+    
+    // Töröljük az összes state-et
+    setPrinters([]);
+    setFilaments([]);
+    setOffers([]);
+    // Explicit módon nullázzuk ki a lastBackupDate-et is a Factory Reset után
+    onChange({ ...defaultSettings, lastBackupDate: undefined });
+    
+    // Ha van callback, hívjuk meg (így az App.tsx manuálisan reseteli az állapotot)
+    if (onFactoryReset) {
+      onFactoryReset();
+    } else {
+      // Fallback: ha nincs callback, akkor reload (régi viselkedés)
+      window.location.reload();
+    }
   };
 
   const renderDisplayTab = () => {
@@ -3199,11 +3188,7 @@ export const SettingsPage: React.FC<Props> = ({
               }}>
                 📋 {t("settings.backup.history.title")}
               </h3>
-              <Tooltip content={settings.language === "hu" 
-                ? "Backup mappa megnyitása a fájlkezelőben" 
-                : settings.language === "de"
-                ? "Backup-Ordner im Datei-Explorer öffnen"
-                : "Open backup folder in file manager"}>
+              <Tooltip content={t("settings.backup.history.openFolderTooltip")}>
                 <button
                   onClick={async () => {
                     try {
@@ -3211,14 +3196,7 @@ export const SettingsPage: React.FC<Props> = ({
                       await invoke("open_directory", { path: backupDirPath });
                     } catch (error) {
                       console.error("Backup mappa megnyitási hiba:", error);
-                      showToast(
-                        settings.language === "hu" 
-                          ? "Hiba a backup mappa megnyitásakor"
-                          : settings.language === "de"
-                          ? "Fehler beim Öffnen des Backup-Ordners"
-                          : "Error opening backup folder",
-                        "error"
-                      );
+                      showToast(t("settings.backup.history.openFolderError"), "error");
                     }
                   }}
                   style={{
@@ -3693,14 +3671,14 @@ export const SettingsPage: React.FC<Props> = ({
                     onClick={async () => {
                       try {
                         await setDockBadge("5");
-                        showToast("Dock badge beállítva: 5", "success");
+                        showToast(t("settings.notifications.dockBadge.set", { value: "5" }), "success");
                         setTimeout(async () => {
                           await setDockBadge(null);
-                          showToast("Dock badge törölve", "info");
+                          showToast(t("settings.notifications.dockBadge.cleared"), "info");
                         }, 3000);
                       } catch (error) {
                         console.error("Dock badge tesztelése sikertelen:", error);
-                        showToast("Dock badge beállítása sikertelen", "error");
+                        showToast(t("settings.notifications.dockBadge.setError"), "error");
                       }
                     }}
                     style={{
@@ -3950,6 +3928,7 @@ export const SettingsPage: React.FC<Props> = ({
               🔄 {t("settings.backup.factoryReset")}
             </button>
           </Tooltip>
+          
         </div>
 
         {/* Log Management */}
@@ -4035,6 +4014,94 @@ export const SettingsPage: React.FC<Props> = ({
               </select>
             </div>
             
+            {/* Log formátum beállítás */}
+            <div>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontWeight: "500", 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              }}>
+                {t("settings.logs.format")}
+              </label>
+              <select
+                value={settings.logFormat || "text"}
+                onChange={async (e) => {
+                  const format = e.target.value as "text" | "json";
+                  const newSettings = { ...settings, logFormat: format };
+                  onChange(newSettings);
+                  await saveSettings(newSettings);
+                  showToast(
+                    settings.language === "hu" 
+                      ? `Log formátum módosítva: ${format === "json" ? "JSON" : "Szöveges"}`
+                      : settings.language === "de"
+                      ? `Log-Format geändert: ${format === "json" ? "JSON" : "Text"}`
+                      : `Log format changed: ${format === "json" ? "JSON" : "Text"}`,
+                    "success"
+                  );
+                }}
+                style={{
+                  ...themeStyles.input,
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                  width: "100%",
+                  maxWidth: "300px",
+                }}
+              >
+                <option value="text">{t("settings.logs.format.text")}</option>
+                <option value="json">{t("settings.logs.format.json")}</option>
+              </select>
+              <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
+                {t("settings.logs.format.description")}
+              </p>
+            </div>
+            
+            {/* Log szint beállítás */}
+            <div>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontWeight: "500", 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              }}>
+                {t("settings.logs.level")}
+              </label>
+              <select
+                value={settings.logLevel || "INFO"}
+                onChange={async (e) => {
+                  const level = e.target.value as "DEBUG" | "INFO" | "WARN" | "ERROR";
+                  const newSettings = { ...settings, logLevel: level };
+                  onChange(newSettings);
+                  await saveSettings(newSettings);
+                  showToast(
+                    settings.language === "hu" 
+                      ? `Log szint módosítva: ${level}`
+                      : settings.language === "de"
+                      ? `Log-Ebene geändert: ${level}`
+                      : `Log level changed: ${level}`,
+                    "success"
+                  );
+                }}
+                style={{
+                  ...themeStyles.input,
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                  width: "100%",
+                  maxWidth: "300px",
+                }}
+              >
+                <option value="DEBUG">{t("settings.logs.level.debug")}</option>
+                <option value="INFO">{t("settings.logs.level.info")}</option>
+                <option value="WARN">{t("settings.logs.level.warn")}</option>
+                <option value="ERROR">{t("settings.logs.level.error")}</option>
+              </select>
+              <p style={{ marginTop: "4px", fontSize: "12px", color: theme.colors.textMuted }}>
+                {t("settings.logs.level.description")}
+              </p>
+            </div>
+            
             {/* Log mappa megnyitása */}
             <div>
               <label style={{ 
@@ -4113,20 +4180,9 @@ export const SettingsPage: React.FC<Props> = ({
                   return (
                     <div
                       key={index}
-                      onClick={async () => {
-                        try {
-                          await invoke("open_file", { path: item.filePath });
-                        } catch (error) {
-                          console.error("❌ Hiba a log fájl megnyitásakor:", error);
-                          showToast(
-                            settings.language === "hu"
-                              ? "Hiba a log fájl megnyitásakor"
-                              : settings.language === "de"
-                              ? "Fehler beim Öffnen der Log-Datei"
-                              : "Error opening log file",
-                            "error"
-                          );
-                        }
+                      onClick={() => {
+                        setSelectedLogFile({ path: item.filePath, name: item.fileName });
+                        setLogViewerOpen(true);
                       }}
                       style={{
                         padding: "12px",
@@ -4194,6 +4250,45 @@ export const SettingsPage: React.FC<Props> = ({
                   : "No log files yet. Log files will be created automatically when the application is in use."}
               </div>
             )}
+          </div>
+          
+          {/* System Diagnostics - Log Management szekcióban */}
+          <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: `1px solid ${theme.colors.border}` }}>
+            <h3 style={{ 
+              fontSize: "16px", 
+              fontWeight: 600, 
+              color: theme.colors.text,
+              marginBottom: "12px"
+            }}>
+              🔍 {t("settings.backup.systemDiagnostics") || "Rendszer Diagnosztika"}
+            </h3>
+            <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
+              {t("settings.backup.systemDiagnosticsTooltip") || "Rendszer diagnosztika és stabilitás ellenőrzése"}
+            </p>
+            <Tooltip content={t("settings.backup.systemDiagnosticsTooltip") || "Rendszer diagnosztika és stabilitás ellenőrzése"}>
+              <button
+                onClick={() => setShowSystemDiagnostics(true)}
+                style={{
+                  ...themeStyles.button,
+                  backgroundColor: theme.colors.primary || "#4f46e5",
+                  color: "#ffffff",
+                  border: `1px solid ${theme.colors.primary || "#4f46e5"}`,
+                  padding: "10px 20px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = theme.colors.primaryHover || "#4338ca";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = theme.colors.primary || "#4f46e5";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                🔍 {t("settings.backup.systemDiagnostics") || "Rendszer Diagnosztika"}
+              </button>
+            </Tooltip>
           </div>
         </div>
 
@@ -5174,6 +5269,38 @@ export const SettingsPage: React.FC<Props> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Factory Reset Progress Modal */}
+      <FactoryResetProgress
+        theme={theme}
+        settings={settings}
+        isOpen={showFactoryResetProgress}
+        onComplete={handleFactoryResetComplete}
+      />
+
+      {/* System Diagnostics Modal */}
+      <SystemDiagnostics
+        isOpen={showSystemDiagnostics}
+        onClose={() => setShowSystemDiagnostics(false)}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+      />
+
+      {/* Log Viewer Modal */}
+      {selectedLogFile && (
+        <LogViewer
+          isOpen={logViewerOpen}
+          onClose={() => {
+            setLogViewerOpen(false);
+            setSelectedLogFile(null);
+          }}
+          logFilePath={selectedLogFile.path}
+          logFileName={selectedLogFile.name}
+          theme={theme}
+          settings={settings}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={confirmDialogConfig !== null}

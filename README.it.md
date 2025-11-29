@@ -41,6 +41,78 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.9.0 (2025) - 🔍 Diagnostica del Sistema e Miglioramenti delle Prestazioni
+
+- 🔍 **Diagnostica del Sistema** - Strumento completo per il controllo dello stato del sistema:
+  - Visualizzazione delle informazioni di sistema (CPU, memoria, OS, GPU, disco)
+  - Validazione del file system (data.json, filamentLibrary.json, update_filament.json)
+  - Verifica della disponibilità dei moduli (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Verifica dell'accessibilità dell'archivio dati
+  - Barra di progresso con messaggi di stato dettagliati
+  - Riepilogo con indicatori di errore/avviso/successo
+  - Pulsante per rieseguire la diagnostica
+  - Spostato nella sezione Gestione Log per una migliore organizzazione
+  - Completamente localizzato in tutte le 13 lingue supportate
+
+- ⚡ **Prestazioni del Visualizzatore di Log** - Scorrimento virtuale per file di log di grandi dimensioni:
+  - Implementazione personalizzata di scorrimento virtuale per il componente LogViewer
+  - Vengono renderizzate solo le voci di log visibili, migliorando drasticamente le prestazioni
+  - Scorrimento e ricerca fluida anche con file di log massicci (100k+ righe)
+  - Mantiene la posizione e l'altezza accurate della barra di scorrimento
+  - Operazioni di ricerca e filtraggio significativamente più veloci
+
+- 🔔 **Sistema di Notifiche Unificato** - Servizio di notifica centralizzato:
+  - Unico `notificationService` per le notifiche Toast e della piattaforma
+  - Routing delle notifiche basato sulla priorità (priorità alta → notifica della piattaforma)
+  - Decisione automatica basata sullo stato dell'app (primo piano/sfondo)
+  - Compatibile con le funzioni di notifica esistenti
+  - Preferenze di notifica configurabili (Toast on/off, notifica piattaforma on/off, livelli di priorità)
+
+- 🎯 **Miglioramenti UI/UX**:
+  - Diagnostica del Sistema spostata dalla sezione Backup alla sezione Gestione Log (posizionamento più logico)
+  - Errori del linter TypeScript corretti (variabili non utilizzate, discrepanze di tipo)
+  - Migliorata la qualità e la manutenibilità del codice
+
+### v1.8.0 (2025) - 📊 Registro Avanzato e Miglioramenti del Reset di Fabbrica
+
+- 🔄 **Modal di Progresso del Reset di Fabbrica** - Indicatore di progresso visivo per il reset di fabbrica:
+  - Progresso animato in 4 fasi (eliminazione backup, eliminazione log, eliminazione config, completamento)
+  - Aggiornamenti di stato in tempo reale con messaggi di successo/errore
+  - Countdown di 10 secondi prima che appaia il selettore della lingua
+  - Modal non chiudibile durante il processo di reset
+  - Completamente localizzato in tutte le 13 lingue supportate
+
+- 📋 **Rifacimento Completo del Sistema di Registro** - Infrastruttura di registrazione professionale:
+  - Percorsi dei file di log multipiattaforma (directory dati specifiche della piattaforma)
+  - Registrazione delle informazioni di sistema (CPU, memoria, OS, GPU, disco, versione app)
+  - Registrazione delle informazioni delle directory (cartelle log e backup, conteggi file, dimensioni)
+  - Registrazione dettagliata dello stato di caricamento (successo/avviso/errore/critico)
+  - Livelli di log (DEBUG, INFO, WARN, ERROR) con filtraggio
+  - Supporto formato log strutturato (testo e JSON)
+  - Rotazione log con pulizia automatica (giorni di conservazione configurabili)
+  - Modal Visualizzatore Log con filtraggio, ricerca, evidenziazione ed esportazione
+  - Configurazione log in Impostazioni (formato, livello, giorni di conservazione)
+  - Contenuto del file di log conservato tra i riavvii dell'app (modalità append)
+
+- 🔍 **Diagnostica del Sistema** - Modal di controllo dello stato del sistema:
+  - Visualizzazione e validazione delle informazioni di sistema
+  - Monitoraggio dell'uso della memoria con avvisi
+  - Verifiche dell'esistenza dei file
+  - Verifica della disponibilità dei moduli
+  - Test di accessibilità dell'archivio dati
+  - Visualizzazione della barra di progresso e del riepilogo
+  - Completamente localizzato in tutte le 13 lingue supportate
+
+- 🛠️ **Miglioramenti Tecnici**:
+  - Registrazione disabilitata durante il Reset di Fabbrica per prevenire l'inquinamento del log
+  - Creazione di data.json ritardata fino alla selezione della lingua (flusso Reset di Fabbrica più pulito)
+  - Inizializzazione del file di log ritardata fino alla selezione della lingua
+  - Riavvio automatico dell'app dopo la selezione della lingua
+  - Comandi backend per la gestione dei file di backup e log
+  - Gestione dei percorsi multipiattaforma per backup e log
+  - Calcolo della memoria corretto (compatibilità sysinfo 0.31)
+  - Avvisi di stile React corretti (conflitti abbreviazione CSS)
+
 ### v1.7.0 (2025) - 💾 Sistema di backup, schermata di caricamento e miglioramenti alla libreria dei filamenti
 
 - 💾 **Implementazione completa del sistema di backup**

@@ -1,6 +1,6 @@
 // Console Logger - rögzíti a console üzeneteket és fájlba is ír
 
-import { writeFrontendLog, initFrontendLog } from './fileLogger';
+import { writeFrontendLog, initFrontendLog, isDirectFileWriteInProgress, isLoggingDisabled } from './fileLogger';
 
 export interface LogEntry {
   id: string;
@@ -25,6 +25,11 @@ class ConsoleLogger {
 
   private async initFileLogger() {
     try {
+      // Ellenőrizzük, hogy a logolás engedélyezve van-e
+      if (isLoggingDisabled()) {
+        // Ha a logolás letiltva van, ne inicializáljuk a logger-t
+        return;
+      }
       await initFrontendLog();
       this.fileLogInitialized = true;
     } catch (error) {
@@ -113,12 +118,32 @@ class ConsoleLogger {
       this.logs.shift();
     }
 
-    // Fájlba is írunk
+    // Fájlba is írunk (kivéve ha már közvetlenül írtuk, vagy FilamentLibrary log)
     if (this.fileLogInitialized) {
-      const fileLevel = level === "log" ? "INFO" : level.toUpperCase();
-      writeFrontendLog(fileLevel as "INFO" | "WARN" | "ERROR" | "DEBUG", message).catch(() => {
-        // Ha a file logger nem elérhető, csak console-ra írunk
-      });
+      // Ne írjuk fájlba, ha a logolás letiltva van (pl. Factory Reset alatt)
+      if (isLoggingDisabled()) {
+        return; // Ne írjuk fájlba, ha a logolás letiltva van
+      }
+      
+      // Ne írjuk fájlba, ha már közvetlenül írtuk (duplikáció elkerülése)
+      if (isDirectFileWriteInProgress()) {
+        return; // Ne rögzítsük újra
+      }
+      
+      // FilamentLibrary logokat csak console-ra, ne fájlba (hogy ne legyenek túl korán a logban)
+      const isFilamentLibraryLog = message.includes('[FilamentLibrary]');
+      
+      // Dashboard logokat csak development módban írjuk fájlba
+      const isDashboardLog = message.includes('[Dashboard]');
+      const isDev = import.meta.env.DEV;
+      
+      if (!isFilamentLibraryLog && (!isDashboardLog || isDev)) {
+        const fileLevel = level === "log" ? "INFO" : level.toUpperCase();
+        // Jelöljük, hogy közvetlen fájlba írás történik
+        writeFrontendLog(fileLevel as "INFO" | "WARN" | "ERROR" | "DEBUG", message).catch(() => {
+          // Ha a file logger nem elérhető, csak console-ra írunk
+        });
+      }
     }
 
     // Értesítjük a listener-eket

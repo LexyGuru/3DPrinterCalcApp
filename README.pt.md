@@ -40,6 +40,78 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.9.0 (2025) - 🔍 Diagnósticos do Sistema e Melhorias de Desempenho
+
+- 🔍 **Diagnósticos do Sistema** - Ferramenta abrangente de verificação de saúde do sistema:
+  - Exibição de informações do sistema (CPU, memória, OS, GPU, disco)
+  - Validação do sistema de arquivos (data.json, filamentLibrary.json, update_filament.json)
+  - Verificações de disponibilidade de módulos (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Verificação de acessibilidade do armazenamento de dados
+  - Barra de progresso com mensagens de status detalhadas
+  - Resumo com indicadores de erro/aviso/sucesso
+  - Botão para executar diagnósticos novamente
+  - Movido para a seção de Gerenciamento de Logs (posicionamento mais lógico)
+  - Totalmente localizado em todos os 13 idiomas suportados
+
+- ⚡ **Desempenho do Visualizador de Logs** - Rolagem virtual para arquivos de log grandes:
+  - Implementação personalizada de rolagem virtual para o componente LogViewer
+  - Apenas entradas de log visíveis são renderizadas, melhorando drasticamente o desempenho
+  - Rolagem e pesquisa suaves mesmo com arquivos de log massivos (100k+ linhas)
+  - Mantém posição e altura precisas da barra de rolagem
+  - Operações de pesquisa e filtragem significativamente mais rápidas
+
+- 🔔 **Sistema de Notificações Unificado** - Serviço de notificação centralizado:
+  - Um único `notificationService` para notificações Toast e da plataforma
+  - Roteamento de notificações baseado em prioridade (alta prioridade → notificação da plataforma)
+  - Tomada de decisão automática com base no estado do aplicativo (primeiro plano/fundo)
+  - Compatível com funções de notificação existentes
+  - Preferências de notificação configuráveis (Toast ligado/desligado, notificação da plataforma ligada/desligada, níveis de prioridade)
+
+- 🎯 **Melhorias de UI/UX**:
+  - Diagnósticos do Sistema movidos da seção de Backup para a seção de Gerenciamento de Logs (posicionamento mais lógico)
+  - Erros do linter TypeScript corrigidos (variáveis não utilizadas, incompatibilidades de tipo)
+  - Qualidade e manutenibilidade do código melhoradas
+
+### v1.8.0 (2025) - 📊 Registro Avançado e Melhorias de Restauração de Fábrica
+
+- 🔄 **Modal de Progresso de Restauração de Fábrica** - Indicador de progresso visual para restauração de fábrica:
+  - Progresso animado de 4 etapas (exclusão de backup, exclusão de log, exclusão de config, conclusão)
+  - Atualizações de status em tempo real com mensagens de sucesso/erro
+  - Contagem regressiva de 10 segundos antes do seletor de idioma aparecer
+  - Modal não descartável durante o processo de restauração
+  - Totalmente localizado em todos os 13 idiomas suportados
+
+- 📋 **Revisão Completa do Sistema de Registro** - Infraestrutura de registro profissional:
+  - Caminhos de arquivos de log multiplataforma (diretórios de dados específicos da plataforma)
+  - Registro de informações do sistema (CPU, memória, OS, GPU, disco, versão do aplicativo)
+  - Registro de informações de diretórios (pastas de log e backup, contagens de arquivos, tamanhos)
+  - Registro detalhado do status de carregamento (sucesso/aviso/erro/crítico)
+  - Níveis de log (DEBUG, INFO, WARN, ERROR) com filtragem
+  - Suporte a formato de log estruturado (texto e JSON)
+  - Rotação de log com limpeza automática (dias de retenção configuráveis)
+  - Modal do Visualizador de Logs com filtragem, pesquisa, destaque e exportação
+  - Configuração de log em Configurações (formato, nível, dias de retenção)
+  - Conteúdo do arquivo de log preservado entre reinicializações do aplicativo (modo de anexação)
+
+- 🔍 **Diagnósticos do Sistema** - Modal de verificação de saúde do sistema:
+  - Exibição e validação de informações do sistema
+  - Monitoramento de uso de memória com avisos
+  - Verificações de existência de arquivos
+  - Verificação de disponibilidade de módulos
+  - Testes de acessibilidade do armazenamento de dados
+  - Exibição de barra de progresso e resumo
+  - Totalmente localizado em todos os 13 idiomas suportados
+
+- 🛠️ **Melhorias Técnicas**:
+  - Registro desabilitado durante a Restauração de Fábrica para prevenir poluição de logs
+  - Criação de data.json atrasada até a seleção de idioma (fluxo de Restauração de Fábrica mais limpo)
+  - Inicialização de arquivo de log atrasada até a seleção de idioma
+  - Reinicialização automática do aplicativo após a seleção de idioma
+  - Comandos backend para gerenciamento de arquivos de backup e log
+  - Manipulação de caminhos multiplataforma para backups e logs
+  - Cálculo de memória corrigido (compatibilidade sysinfo 0.31)
+  - Avisos de estilo React corrigidos (conflitos de abreviação CSS)
+
 ### v1.7.0 (2025) - 💾 Sistema de backup, tela de carregamento e melhorias na biblioteca de filamentos
 
 - 💾 **Implementação completa do sistema de backup**

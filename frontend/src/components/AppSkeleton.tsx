@@ -90,7 +90,16 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
         flexDirection: "column",
         overflow: "hidden",
         zIndex: 9999,
+        pointerEvents: "auto", // A loading screen-re lehet kattintani, de az interakciókat blokkoljuk
+        userSelect: "none", // Ne lehessen kijelölni szöveget
+        WebkitUserSelect: "none",
+        MozUserSelect: "none",
+        msUserSelect: "none",
       }}
+      onWheel={(e) => e.preventDefault()} // Görgetés tiltása
+      onTouchMove={(e) => e.preventDefault()} // Touch görgetés tiltása
+      onClick={(e) => e.preventDefault()} // Kattintás blokkolása
+      onContextMenu={(e) => e.preventDefault()} // Jobb klikk blokkolása
     >
       {/* Glassmorphism overlay - átlátszó háttér a tartalomnak */}
       <div style={{
@@ -104,19 +113,31 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
         WebkitBackdropFilter: "blur(10px)",
       }} />
       
-      {/* Fő konténer - scrollozható, ha szükséges */}
-      <div style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        padding: "32px",
-        overflowY: "auto",
-        overflowX: "hidden",
-        position: "relative",
-        zIndex: 1,
-      }}>
+      {/* Fő konténer - scrollozható programozottan, de felhasználói interakció tiltva */}
+      <div 
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          padding: "32px",
+          overflowY: "auto", // Automatikus scroll engedélyezve (programozottan)
+          overflowX: "hidden",
+          position: "relative",
+          zIndex: 1,
+          pointerEvents: "none", // Ne lehessen kattintani semmire
+          userSelect: "none", // Ne lehessen kijelölni
+          WebkitUserSelect: "none",
+          MozUserSelect: "none",
+          msUserSelect: "none",
+        }}
+        onWheel={(e) => e.preventDefault()} // Görgetés tiltva
+        onTouchMove={(e) => e.preventDefault()} // Touch görgetés tiltva
+        onClick={(e) => e.preventDefault()} // Kattintás tiltva
+        onContextMenu={(e) => e.preventDefault()} // Jobb klikk tiltva
+        onMouseDown={(e) => e.preventDefault()} // Egér lenyomás tiltva
+      >
         {/* Title area - fix tetején */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0, y: -30 }}
@@ -138,7 +159,10 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
               fontSize: "28px",
               fontWeight: 700,
               margin: "0 0 8px 0",
-              background: themeStyles.gradient,
+              backgroundImage: themeStyles.gradient,
+              backgroundSize: "cover",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -260,7 +284,7 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
             width: "100%",
             maxWidth: "600px",
             height: "280px", // Fix magasság - pontosan 3 modul fér el (3 × ~90px magasság)
-            overflowY: "auto", // Automatikus scroll engedélyezve, de scrollbar rejtve
+            overflowY: "auto", // Automatikus scroll engedélyezve (programozottan)
             overflowX: "hidden",
             marginBottom: "24px",
             padding: "20px",
@@ -272,7 +296,17 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
             border: `1px solid ${themeStyles.border}80`,
             boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
             position: "relative",
+            pointerEvents: "none", // Ne lehessen kattintani
+            userSelect: "none", // Ne lehessen kijelölni
+            WebkitUserSelect: "none",
+            MozUserSelect: "none",
+            msUserSelect: "none",
           }}
+          onWheel={(e) => e.preventDefault()} // Görgetés tiltva
+          onTouchMove={(e) => e.preventDefault()} // Touch görgetés tiltva
+          onClick={(e) => e.preventDefault()} // Kattintás tiltva
+          onContextMenu={(e) => e.preventDefault()} // Jobb klikk tiltva
+          onMouseDown={(e) => e.preventDefault()} // Egér lenyomás tiltva
         >
           {/* Custom scrollbar styling - rejtett scrollbar */}
           <style>{`
@@ -376,7 +410,9 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
                           width: "32px",
                           height: "32px",
                           borderRadius: "50%",
-                          border: `3px solid ${themeStyles.primary}30`,
+                          borderWidth: "3px",
+                          borderStyle: "solid",
+                          borderColor: `${themeStyles.primary}30`,
                           borderTopColor: themeStyles.primary,
                         }}
                       />

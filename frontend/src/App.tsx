@@ -24,6 +24,7 @@ import type { Printer, Settings, Filament, Offer, Customer, ThemeName } from "./
 import { defaultSettings } from "./types";
 import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers, resetStoreInstance } from "./utils/store";
 import { createAutomaticBackup, cleanupOldBackups } from "./utils/backup";
+import { cleanupOldLogs } from "./utils/logCleanup";
 import { getThemeStyles, resolveTheme } from "./utils/themes";
 import { defaultAnimationSettings } from "./types";
 import { debounce } from "./utils/debounce";
@@ -35,9 +36,10 @@ import { LoadingSpinner } from "./components/LoadingSpinner";
 import { LanguageSelector } from "./components/LanguageSelector";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
-import { initFrontendLog, frontendLogger } from "./utils/fileLogger"; // Initialize file logger
+import { initFrontendLog, frontendLogger, writeFrontendLog, setAppLoaded, setLogSettings } from "./utils/fileLogger"; // Initialize file logger
 import { logWithLanguage } from "./utils/languages/global_console";
 import { useTranslation } from "./utils/translations";
+import { logApplicationStartup, resetLoggingFlags } from "./utils/appLogging"; // Centralized application logging
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
@@ -61,29 +63,45 @@ export default function App() {
   const [languageSelected, setLanguageSelected] = useState(false);
   const t = useTranslation(settings.language);
 
-  // 🔹 Frontend log inicializálása
+  // 🔹 Log settings frissítése, amikor a settings változik
   useEffect(() => {
-    initFrontendLog().then((path) => {
-      if (path) {
-        console.log("✅ Frontend log fájl inicializálva:", path);
-      }
-    }).catch((error) => {
-      console.error("⚠️ Frontend log inicializálási hiba:", error);
-    });
-  }, []);
+    setLogSettings(settings);
+  }, [settings]);
 
   // 🔹 Első indítás ellenőrzése - nyelvválasztó megjelenítése
+  // NE hívjuk meg a loadSettings()-et, mert az automatikusan létrehozza a data.json fájlt!
   useEffect(() => {
     const checkFirstLaunch = async () => {
       try {
+        // Ellenőrizzük, hogy létezik-e a data.json fájl, anélkül hogy betöltjük a Store-t
+        const { exists } = await import("@tauri-apps/plugin-fs");
+        const { BaseDirectory } = await import("@tauri-apps/plugin-fs");
+        const dataJsonExists = await exists("data.json", { baseDir: BaseDirectory.AppConfig });
+        
+        if (!dataJsonExists) {
+          // Ha nincs data.json, akkor első indítás - mutassuk a nyelvválasztót
+          setShowLanguageSelector(true);
+          return;
+        }
+        
+        // Ha létezik a data.json, akkor betöltjük a beállításokat
         const loadedSettings = await loadSettings();
-        // Ha nincs mentett beállítás, vagy nincs nyelv beállítva, akkor első indítás
+        // Ha nincs nyelv beállítva, akkor első indítás
         if (!loadedSettings || !loadedSettings.language) {
           setShowLanguageSelector(true);
           return; // Ne folytassa a betöltést, várjuk meg a nyelvválasztást
         }
         // Ha van beállítás, folytassa normálisan
         setLanguageSelected(true);
+        
+        // Inicializáljuk a logot, ha már van nyelv
+        initFrontendLog().then((path) => {
+          if (path) {
+            console.log("✅ Frontend log fájl inicializálva:", path);
+          }
+        }).catch((error) => {
+          console.error("⚠️ Frontend log inicializálási hiba:", error);
+        });
       } catch (error) {
         console.error("Hiba a beállítások ellenőrzésekor:", error);
         // Hiba esetén is mutassuk a nyelvválasztót
@@ -95,14 +113,32 @@ export default function App() {
 
   // 🔹 Nyelvválasztó callback - nyelv kiválasztása után
   const handleLanguageSelect = async (language: import("./types").LanguageCode) => {
+    // Factory Reset után explicit módon nullázzuk ki a lastBackupDate-et is
     const newSettings = {
       ...defaultSettings,
       language,
+      lastBackupDate: undefined, // Factory Reset után nincs backup dátum
     };
     setSettings(newSettings);
     await saveSettings(newSettings);
-    setLanguageSelected(true);
-    setShowLanguageSelector(false);
+    
+    // Újra bekapcsoljuk a logolást, mielőtt inicializáljuk a logger-t
+    const { setLoggingEnabled } = await import("./utils/fileLogger");
+    setLoggingEnabled(true);
+    
+    // Inicializáljuk a logot, miután kiválasztottak egy nyelvet
+    initFrontendLog().then((path) => {
+      if (path) {
+        console.log("✅ Frontend log fájl inicializálva:", path);
+      }
+    }).catch((error) => {
+      console.error("⚠️ Frontend log inicializálási hiba:", error);
+    });
+    
+    // Újra indítjuk az appot, hogy minden helyesen töltődjön be
+    setTimeout(() => {
+      window.location.reload();
+    }, 500); // Kis késleltetés, hogy a beállítások mentésre kerüljenek
   };
 
   // 🔹 Factory Reset callback - az összes állapot resetelése
@@ -110,12 +146,16 @@ export default function App() {
     // Reseteljük a Store instance-t, hogy ne hozza létre automatikusan a fájlt
     resetStoreInstance();
     
+    // Reseteljük a logolási flag-eket is
+    resetLoggingFlags();
+    
     // Reseteljük az összes state-et
     setPrinters([]);
     setFilaments([]);
     setOffers([]);
     setCustomers([]);
-    setSettings(defaultSettings);
+    // Explicit módon nullázzuk ki a lastBackupDate-et is a Factory Reset után
+    setSettings({ ...defaultSettings, lastBackupDate: undefined });
     setIsInitialized(false);
     setLoadingProgress(0);
     setLoadingStep(0);
@@ -138,6 +178,8 @@ export default function App() {
       const loadedSettings = await loadSettings();
       if (loadedSettings) {
         setSettings(loadedSettings);
+        // Beállítjuk a log settings-et is
+        setLogSettings(loadedSettings);
       }
       
       const loadedPrinters = await loadPrinters();
@@ -166,13 +208,29 @@ export default function App() {
   useEffect(() => {
     if (!languageSelected) return; // Várjuk meg a nyelvválasztást
     
+    // Lock mechanizmus - csak egyszer fusson le (React StrictMode miatt)
+    const loadKey = '__app_data_loaded__';
+    if ((window as any)[loadKey]) {
+      return; // Már fut a betöltés
+    }
+    (window as any)[loadKey] = true;
+    
     const loadData = async () => {
-      // Minimális késleltetés, hogy látható legyen a skeleton
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      frontendLogger.info("🚀 Alkalmazás betöltés indítása...");
-      
-      let loadedSettings: Settings | null = null;
+      try {
+        // Minimális késleltetés, hogy látható legyen a skeleton
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // 1. Rendszerinformációk és mappa információk logolása (csak egyszer, logikus sorrendben)
+        await logApplicationStartup(true, true);
+        
+        // 2. Alkalmazás betöltés indítása
+        await writeFrontendLog('INFO', '');
+        await writeFrontendLog('INFO', '═══════════════════════════════════════════════════════════');
+        await writeFrontendLog('INFO', '🚀 ALKALMAZÁS BETÖLTÉS INDÍTÁSA');
+        await writeFrontendLog('INFO', '═══════════════════════════════════════════════════════════');
+        // Ne hívjuk meg a console.info()-t, mert a consoleLogger által is fájlba íródik (duplikáció)
+        
+        let loadedSettings: Settings | null = null;
       let loadedPrintersCount = 0;
       let loadedFilamentsCount = 0;
       let loadedOffersCount = 0;
@@ -182,27 +240,36 @@ export default function App() {
         // 1. Beállítások betöltése
         setLoadingStep(0);
         setLoadingProgress(10);
-        frontendLogger.info("📥 [MODUL: Beállítások] Betöltés indítása...");
+        await writeFrontendLog('INFO', "📥 [MODUL: Beállítások] Betöltés indítása...");
         
         await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb, hogy olvasható legyen
+        
+        let settingsStatus: "success" | "warning" | "error" | "critical" = "success";
+        let settingsStatusMessage = "";
         
         try {
           loadedSettings = await loadSettings();
           
           if (loadedSettings) {
-            frontendLogger.info(`✅ [MODUL: Beállítások] Betöltve - Valuta: ${loadedSettings.currency || "N/A"}, Nyelv: ${loadedSettings.language || "N/A"}`);
+            settingsStatusMessage = `✅ [MODUL: Beállítások] Betöltve - Valuta: ${loadedSettings.currency || "N/A"}, Nyelv: ${loadedSettings.language || "N/A"}`;
+            await writeFrontendLog('INFO', settingsStatusMessage);
+            
+            // Beállítjuk a log settings-et
+            setLogSettings(loadedSettings);
             
             // Ellenőrizzük hogy az electricityPrice érvényes érték-e
             if (!loadedSettings.electricityPrice || loadedSettings.electricityPrice <= 0) {
-              const warnMsg = `⚠️ [MODUL: Beállítások] Érvénytelen áram ár (${loadedSettings.electricityPrice}), alapértelmezett érték használata`;
-              frontendLogger.warn(warnMsg);
+              settingsStatus = "warning";
+              const warnMsg = `⚠️ [MODUL: Beállítások] FIGYELMEZTETÉS: Érvénytelen áram ár (${loadedSettings.electricityPrice}), alapértelmezett érték használata`;
+              await writeFrontendLog('WARN', warnMsg);
               logWithLanguage(settings.language, "warn", "settings.invalidElectricityPrice");
               loadedSettings.electricityPrice = defaultSettings.electricityPrice;
             }
             
             // Ha nincs téma, használjuk az alapértelmezettet
             if (!loadedSettings.theme) {
-              frontendLogger.warn("⚠️ [MODUL: Beállítások] Nincs téma beállítva, alapértelmezett használata");
+              settingsStatus = "warning";
+              await writeFrontendLog('WARN', "⚠️ [MODUL: Beállítások] FIGYELMEZTETÉS: Nincs téma beállítva, alapértelmezett használata");
               loadedSettings.theme = defaultSettings.theme;
             }
             
@@ -221,16 +288,28 @@ export default function App() {
             
             setSettings(loadedSettings);
           } else {
-            frontendLogger.warn("⚠️ [MODUL: Beállítások] Nincs mentett beállítás, alapértelmezett használata");
+            settingsStatus = "warning";
+            settingsStatusMessage = "⚠️ [MODUL: Beállítások] FIGYELMEZTETÉS: Nincs mentett beállítás, alapértelmezett használata";
+            await writeFrontendLog('WARN', settingsStatusMessage);
             setSettings(defaultSettings);
             loadedSettings = defaultSettings;
           }
         } catch (error) {
-          const errorMsg = `❌ [MODUL: Beállítások] Hiba a betöltés során: ${error instanceof Error ? error.message : String(error)}`;
-          frontendLogger.error(errorMsg);
+          settingsStatus = "error";
+          settingsStatusMessage = `❌ [MODUL: Beállítások] HIBA: ${error instanceof Error ? error.message : String(error)}`;
+          await writeFrontendLog('ERROR', settingsStatusMessage);
           console.error("❌ Hiba a beállítások betöltésekor:", error);
           setSettings(defaultSettings);
           loadedSettings = defaultSettings;
+        }
+        
+        // Státusz logolása
+        if (settingsStatus === "success") {
+          await writeFrontendLog('INFO', "✅ [MODUL: Beállítások] Státusz: Minden rendben");
+        } else if (settingsStatus === "warning") {
+          await writeFrontendLog('WARN', `⚠️ [MODUL: Beállítások] Státusz: Figyelmeztetés - ${settingsStatusMessage}`);
+        } else {
+          await writeFrontendLog('ERROR', `❌ [MODUL: Beállítások] Státusz: Hiba - ${settingsStatusMessage}`);
         }
         
         setLoadingProgress(20);
@@ -239,23 +318,29 @@ export default function App() {
         // 2. Nyomtatók betöltése
         setLoadingStep(1);
         setLoadingProgress(35);
-        frontendLogger.info("📥 [MODUL: Nyomtatók] Betöltés indítása...");
+        await writeFrontendLog('INFO', "📥 [MODUL: Nyomtatók] Betöltés indítása...");
         
         await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
         
+        let printersStatus: "success" | "warning" | "error" = "success";
         try {
           const loadedPrinters = await loadPrinters();
           loadedPrintersCount = loadedPrinters.length;
           
           if (loadedPrinters.length > 0) {
             setPrinters(loadedPrinters);
-            frontendLogger.info(`✅ [MODUL: Nyomtatók] Betöltve - ${loadedPrinters.length} nyomtató`);
+            await writeFrontendLog('INFO', `✅ [MODUL: Nyomtatók] Betöltve - ${loadedPrinters.length} nyomtató`);
+            await writeFrontendLog('INFO', "✅ [MODUL: Nyomtatók] Státusz: Minden rendben");
           } else {
-            frontendLogger.info("ℹ️ [MODUL: Nyomtatók] Nincs mentett nyomtató");
+            printersStatus = "warning";
+            await writeFrontendLog('INFO', "ℹ️ [MODUL: Nyomtatók] Nincs mentett nyomtató");
+            await writeFrontendLog('WARN', "⚠️ [MODUL: Nyomtatók] Státusz: Figyelmeztetés - Nincs mentett nyomtató");
           }
         } catch (error) {
-          const errorMsg = `❌ [MODUL: Nyomtatók] Hiba a betöltés során: ${error instanceof Error ? error.message : String(error)}`;
-          frontendLogger.error(errorMsg);
+          printersStatus = "error";
+          const errorMsg = `❌ [MODUL: Nyomtatók] HIBA: ${error instanceof Error ? error.message : String(error)}`;
+          await writeFrontendLog('ERROR', errorMsg);
+          await writeFrontendLog('ERROR', "❌ [MODUL: Nyomtatók] Státusz: Hiba");
           console.error("❌ Hiba a nyomtatók betöltésekor:", error);
           setPrinters([]);
           loadedPrintersCount = 0;
@@ -264,23 +349,29 @@ export default function App() {
         // 3. Filamentek betöltése
         setLoadingStep(2);
         setLoadingProgress(50);
-        frontendLogger.info("📥 [MODUL: Filamentek] Betöltés indítása...");
+        await writeFrontendLog('INFO', "📥 [MODUL: Filamentek] Betöltés indítása...");
         
         await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
         
+        let filamentsStatus: "success" | "warning" | "error" = "success";
         try {
           const loadedFilaments = await loadFilaments();
           loadedFilamentsCount = loadedFilaments.length;
           
           if (loadedFilaments.length > 0) {
             setFilaments(loadedFilaments);
-            frontendLogger.info(`✅ [MODUL: Filamentek] Betöltve - ${loadedFilaments.length} filament`);
+            await writeFrontendLog('INFO', `✅ [MODUL: Filamentek] Betöltve - ${loadedFilaments.length} filament`);
+            await writeFrontendLog('INFO', "✅ [MODUL: Filamentek] Státusz: Minden rendben");
           } else {
-            frontendLogger.info("ℹ️ [MODUL: Filamentek] Nincs mentett filament");
+            filamentsStatus = "warning";
+            await writeFrontendLog('INFO', "ℹ️ [MODUL: Filamentek] Nincs mentett filament");
+            await writeFrontendLog('WARN', "⚠️ [MODUL: Filamentek] Státusz: Figyelmeztetés - Nincs mentett filament");
           }
         } catch (error) {
-          const errorMsg = `❌ [MODUL: Filamentek] Hiba a betöltés során: ${error instanceof Error ? error.message : String(error)}`;
-          frontendLogger.error(errorMsg);
+          filamentsStatus = "error";
+          const errorMsg = `❌ [MODUL: Filamentek] HIBA: ${error instanceof Error ? error.message : String(error)}`;
+          await writeFrontendLog('ERROR', errorMsg);
+          await writeFrontendLog('ERROR', "❌ [MODUL: Filamentek] Státusz: Hiba");
           console.error("❌ Hiba a filamentek betöltésekor:", error);
           setFilaments([]);
           loadedFilamentsCount = 0;
@@ -289,23 +380,29 @@ export default function App() {
         // 4. Árajánlatok betöltése
         setLoadingStep(3);
         setLoadingProgress(70);
-        frontendLogger.info("📥 [MODUL: Árajánlatok] Betöltés indítása...");
+        await writeFrontendLog('INFO', "📥 [MODUL: Árajánlatok] Betöltés indítása...");
         
         await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
         
+        let offersStatus: "success" | "warning" | "error" = "success";
         try {
           const loadedOffers = await loadOffers();
           loadedOffersCount = loadedOffers.length;
           
           if (loadedOffers.length > 0) {
             setOffers(loadedOffers);
-            frontendLogger.info(`✅ [MODUL: Árajánlatok] Betöltve - ${loadedOffers.length} árajánlat`);
+            await writeFrontendLog('INFO', `✅ [MODUL: Árajánlatok] Betöltve - ${loadedOffers.length} árajánlat`);
+            await writeFrontendLog('INFO', "✅ [MODUL: Árajánlatok] Státusz: Minden rendben");
           } else {
-            frontendLogger.info("ℹ️ [MODUL: Árajánlatok] Nincs mentett árajánlat");
+            offersStatus = "warning";
+            await writeFrontendLog('INFO', "ℹ️ [MODUL: Árajánlatok] Nincs mentett árajánlat");
+            await writeFrontendLog('WARN', "⚠️ [MODUL: Árajánlatok] Státusz: Figyelmeztetés - Nincs mentett árajánlat");
           }
         } catch (error) {
-          const errorMsg = `❌ [MODUL: Árajánlatok] Hiba a betöltés során: ${error instanceof Error ? error.message : String(error)}`;
-          frontendLogger.error(errorMsg);
+          offersStatus = "error";
+          const errorMsg = `❌ [MODUL: Árajánlatok] HIBA: ${error instanceof Error ? error.message : String(error)}`;
+          await writeFrontendLog('ERROR', errorMsg);
+          await writeFrontendLog('ERROR', "❌ [MODUL: Árajánlatok] Státusz: Hiba");
           console.error("❌ Hiba az árajánlatok betöltésekor:", error);
           setOffers([]);
           loadedOffersCount = 0;
@@ -314,23 +411,29 @@ export default function App() {
         // 5. Ügyfelek betöltése
         setLoadingStep(4);
         setLoadingProgress(85);
-        frontendLogger.info("📥 [MODUL: Ügyfelek] Betöltés indítása...");
+        await writeFrontendLog('INFO', "📥 [MODUL: Ügyfelek] Betöltés indítása...");
         
         await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
         
+        let customersStatus: "success" | "warning" | "error" = "success";
         try {
           const loadedCustomers = await loadCustomers();
           loadedCustomersCount = loadedCustomers.length;
           
           if (loadedCustomers.length > 0) {
             setCustomers(loadedCustomers);
-            frontendLogger.info(`✅ [MODUL: Ügyfelek] Betöltve - ${loadedCustomers.length} ügyfél`);
+            await writeFrontendLog('INFO', `✅ [MODUL: Ügyfelek] Betöltve - ${loadedCustomers.length} ügyfél`);
+            await writeFrontendLog('INFO', "✅ [MODUL: Ügyfelek] Státusz: Minden rendben");
           } else {
-            frontendLogger.info("ℹ️ [MODUL: Ügyfelek] Nincs mentett ügyfél");
+            customersStatus = "warning";
+            await writeFrontendLog('INFO', "ℹ️ [MODUL: Ügyfelek] Nincs mentett ügyfél");
+            await writeFrontendLog('WARN', "⚠️ [MODUL: Ügyfelek] Státusz: Figyelmeztetés - Nincs mentett ügyfél");
           }
         } catch (error) {
-          const errorMsg = `❌ [MODUL: Ügyfelek] Hiba a betöltés során: ${error instanceof Error ? error.message : String(error)}`;
-          frontendLogger.error(errorMsg);
+          customersStatus = "error";
+          const errorMsg = `❌ [MODUL: Ügyfelek] HIBA: ${error instanceof Error ? error.message : String(error)}`;
+          await writeFrontendLog('ERROR', errorMsg);
+          await writeFrontendLog('ERROR', "❌ [MODUL: Ügyfelek] Státusz: Hiba");
           console.error("❌ Hiba az ügyfelek betöltésekor:", error);
           setCustomers([]);
           loadedCustomersCount = 0;
@@ -339,19 +442,57 @@ export default function App() {
         // 6. Inicializálás
         setLoadingStep(5);
         setLoadingProgress(100);
-        frontendLogger.info("📥 [MODUL: Inicializálás] Alkalmazás inicializálása...");
+        await writeFrontendLog('INFO', "📥 [MODUL: Inicializálás] Alkalmazás inicializálása...");
         
         await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb, hogy olvasható legyen
         
         // Betöltési összefoglaló
-        frontendLogger.info(`✅ Alkalmazás betöltés befejezve - Nyomtatók: ${loadedPrintersCount}, Filamentek: ${loadedFilamentsCount}, Árajánlatok: ${loadedOffersCount}, Ügyfelek: ${loadedCustomersCount}, Beállítások: ${loadedSettings ? "✅" : "⚠️ Alapértelmezett"}`);
+        const statusSummary = {
+          settings: settingsStatus,
+          printers: printersStatus,
+          filaments: filamentsStatus,
+          offers: offersStatus,
+          customers: customersStatus,
+        };
+        
+        const hasWarnings = Object.values(statusSummary).some(s => s === "warning");
+        const hasErrors = Object.values(statusSummary).some(s => s === "error");
+        
+        let summaryStatus = "✅ Minden rendben";
+        if (hasErrors) {
+          summaryStatus = "❌ Hibák vannak";
+        } else if (hasWarnings) {
+          summaryStatus = "⚠️ Figyelmeztetések vannak";
+        }
+        
+        await writeFrontendLog('INFO', '─────────────────────────────────────────────────────────────────');
+        const summaryMsg = `✅ Alkalmazás betöltés befejezve - Nyomtatók: ${loadedPrintersCount}, Filamentek: ${loadedFilamentsCount}, Árajánlatok: ${loadedOffersCount}, Ügyfelek: ${loadedCustomersCount}, Beállítások: ${loadedSettings ? "✅" : "⚠️ Alapértelmezett"}`;
+        const statusMsg = `📊 Betöltési összefoglaló: ${summaryStatus}`;
+        const detailMsg = `📊 Részletes státuszok - Beállítások: ${settingsStatus}, Nyomtatók: ${printersStatus}, Filamentek: ${filamentsStatus}, Árajánlatok: ${offersStatus}, Ügyfelek: ${customersStatus}`;
+        
+        // Közvetlenül fájlba írunk, nem frontendLogger-rel (hogy ne legyen duplikáció)
+        await writeFrontendLog('INFO', summaryMsg);
+        await writeFrontendLog('INFO', statusMsg);
+        await writeFrontendLog('INFO', detailMsg);
+        await writeFrontendLog('INFO', '═══════════════════════════════════════════════════════════');
+        
+        // Ne írunk console-ra is, mert a writeFrontendLog() már fájlba ír,
+        // és a console.info() újra fájlba írna a consoleLogger miatt (duplikáció)
         
         // Kis késleltetés a smooth átmenethez
         await new Promise(resolve => setTimeout(resolve, 1000)); // Lassabb, hogy látható legyen a 100%
         
         setIsInitialized(true);
         setLastSaved(new Date());
+        
+        // Jelöljük, hogy az alkalmazás betöltődött - ezt követően írunk fájlba minden logot
+        setAppLoaded(true);
+        
         frontendLogger.info("✅ Alkalmazás inicializálva és kész a használatra");
+      } catch (error) {
+        console.error("❌ Hiba az adatok betöltésekor:", error);
+        frontendLogger.error(`Hiba az adatok betöltésekor: ${error}`);
+      }
         
         // Tutorial indítás, ha be van állítva és még nem nézték meg
         // Csak akkor mutassuk, ha:
@@ -402,6 +543,7 @@ export default function App() {
       } catch (error) {
         const errorMsg = `❌ [KRITIKUS HIBA] Alkalmazás betöltés során váratlan hiba: ${error instanceof Error ? error.message : String(error)}`;
         frontendLogger.error(errorMsg);
+        frontendLogger.error("❌ [KRITIKUS HIBA] Státusz: Kritikus hiba - Az alkalmazás nem tudott teljesen betöltődni");
         console.error("❌ Hiba az adatok betöltésekor:", error);
         setIsInitialized(true); // Mégis inicializáljuk, hogy ne ragadjon be
       }
@@ -651,6 +793,48 @@ export default function App() {
       clearInterval(intervalId);
     };
   }, [autosaveEnabled, isInitialized, createAutomaticBackupIfEnabled]);
+
+  // 🔹 Automatikus log rotáció (törlés) - alkalmazás indításakor és naponta
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
+
+    const performLogCleanup = async () => {
+      try {
+        const retentionDays = settings.logRetentionDays ?? 0;
+        
+        if (retentionDays > 0) {
+          if (import.meta.env.DEV) {
+            console.log(`🔍 Automatikus log rotáció ellenőrzés (${retentionDays} nap)...`);
+          }
+          
+          const deletedCount = await cleanupOldLogs(retentionDays);
+          
+          if (deletedCount > 0 && import.meta.env.DEV) {
+            console.log(`✅ ${deletedCount} régi log fájl törölve`);
+          }
+        }
+      } catch (error) {
+        console.error("❌ Hiba az automatikus log rotáció során:", error);
+      }
+    };
+
+    // Fut az indítás után kis késleltetéssel
+    const initialTimeout = setTimeout(() => {
+      performLogCleanup();
+    }, 10000); // 10 másodperc késleltetés az indítás után
+
+    // Utána naponta egyszer fut (24 óra)
+    const intervalId = setInterval(() => {
+      performLogCleanup();
+    }, 24 * 60 * 60 * 1000); // 24 óra
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(intervalId);
+    };
+  }, [isInitialized, settings.logRetentionDays]);
 
   const handleSaveOffer = useCallback((offer: Offer) => {
     setOffers(prevOffers => [...prevOffers, offer]);
@@ -1021,12 +1205,40 @@ export default function App() {
             perspective: animationSettings.pageTransition === "flip" ? "1200px" : undefined,
           }}>
             {!isInitialized ? (
-              <AppSkeleton 
-                theme={currentTheme}
-                settings={settings}
-                loadingSteps={loadingSteps}
-                currentStep={loadingStep}
-              />
+              <>
+                {/* Blokkoló overlay - minden interakciót lefog */}
+                <div
+                  style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 10000,
+                    pointerEvents: "auto",
+                    userSelect: "none",
+                    WebkitUserSelect: "none",
+                    MozUserSelect: "none",
+                    msUserSelect: "none",
+                    cursor: "wait",
+                  }}
+                  onWheel={(e) => e.preventDefault()}
+                  onTouchMove={(e) => e.preventDefault()}
+                  onClick={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onMouseUp={(e) => e.preventDefault()}
+                  onMouseMove={(e) => e.preventDefault()}
+                  onKeyDown={(e) => e.preventDefault()}
+                  onKeyUp={(e) => e.preventDefault()}
+                />
+                <AppSkeleton 
+                  theme={currentTheme}
+                  settings={settings}
+                  loadingSteps={loadingSteps}
+                  currentStep={loadingStep}
+                />
+              </>
             ) : (
               <Suspense fallback={
                 <div style={{
