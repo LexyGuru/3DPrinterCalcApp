@@ -41,8 +41,16 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
-### v1.7.0 (2025) - 💾 Ottimizzazione del sistema di backup e miglioramenti delle prestazioni
+### v1.7.0 (2025) - 💾 Sistema di backup, schermata di caricamento e miglioramenti alla libreria dei filamenti
 
+- 💾 **Implementazione completa del sistema di backup**
+  - Sistema di backup automatico con un file di backup al giorno (creato solo in un nuovo giorno)
+  - Hook di promemoria backup e componente UI - notifica quando non esiste un backup
+  - UI Cronologia backup in Impostazioni - elenco codificato a colori (verde/giallo/rosso/grigio) che mostra l'età del file di backup e il countdown di eliminazione
+  - Finestra modale Autosave - spiegazione quando si abilita l'autosave
+  - Autosave e sincronizzazione backup automatico - backup automatico sul salvataggio autosave
+  - Reset di fabbrica ora elimina i file di backup automatici
+  - La cronologia backup si aggiorna automaticamente quando l'autosave è abilitato
 - 🔧 **Ottimizzazione backend del sistema di backup**
   - Comandi backend aggiunti per eliminare i backup vecchi (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
   - Funzioni di pulizia frontend aggiornate per utilizzare i comandi backend, eliminando gli errori "percorso vietato"
@@ -51,13 +59,33 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
   - `hasTodayBackup()` ottimizzato: utilizza il comando backend `list_backup_files`, non è necessario leggere tutti i file
   - Meccanismo di blocco aggiunto per prevenire la creazione parallela di backup
   - Funzionamento più veloce anche con grandi quantità di file di backup
-- 📁 **Aprire la directory di backup**
+- 📁 **Aprire la directory di backup e cronologia log**
   - Pulsante aggiunto in Impostazioni → Cronologia backup per aprire la cartella di backup
-  - Supporto multipiattaforma (macOS, Windows, Linux)
-- 📝 **Funzione cronologia log**
-  - Nuova sezione cronologia log in Impostazioni
-  - Elencare e aprire i file di log
+  - Nuova sezione cronologia log in Impostazioni - elencare e aprire i file di log
   - Eliminazione automatica dei file di log configurabile per giorni
+  - Supporto multipiattaforma (macOS, Windows, Linux)
+- 🎨 **Riprogettazione completa della schermata di caricamento**
+  - Logo dell'app integrato come sfondo con effetti glassmorphism
+  - Layout fisso per le spunte - scorrimento automatico, solo 3 moduli visibili alla volta
+  - Effetti shimmer, animazioni punti pulsanti
+  - Contenitore di scorrimento con barra di scorrimento nascosta
+- ⚙️ **Miglioramenti al processo di caricamento**
+  - Caricamento rallentato (ritardi di 800ms) - i messaggi di caricamento sono leggibili
+  - Gestione degli errori per ogni modulo (blocchi try-catch)
+  - File di log fisico per tutti gli stati e gli errori
+  - Riepilogo di caricamento alla fine
+- 🎨 **Supporto multilingue della libreria dei filamenti**
+  - Colori dei filamenti visualizzati in tutte le lingue supportate (non solo ungherese/tedesco/inglese)
+  - Logica di fallback: inglese → ungherese → tedesco → colore/nome grezzo
+  - Componenti Impostazioni, Ricerca globale e Filamenti aggiornati
+- 🔄 **Miglioramenti al Reset di fabbrica**
+  - Eliminazione dei file fisici (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reset dell'istanza Store senza ricaricamento
+  - Selettore lingua visualizzato dopo il Reset di fabbrica
+- 🎓 **Tutorial aggiornato con le funzionalità v1.7.0**
+  - Nuovi passaggi: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Dati demo espansi: 6 filamenti → 11 filamenti, 3 offerte → 5 offerte
+  - Chiavi di traduzione aggiunte per tutte le lingue
 
 ### v1.6.0 (2025) - 📊 Widget Interattivi & Prestazioni di Tabelle Grandi
 

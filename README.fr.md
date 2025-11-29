@@ -41,8 +41,16 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
-### v1.7.0 (2025) - 💾 Optimisation du système de sauvegarde et améliorations des performances
+### v1.7.0 (2025) - 💾 Système de sauvegarde, écran de chargement et améliorations de la bibliothèque de filaments
 
+- 💾 **Implémentation complète du système de sauvegarde**
+  - Système de sauvegarde automatique avec un fichier de sauvegarde par jour (créé uniquement un nouveau jour)
+  - Hook de rappel de sauvegarde et composant UI - notification lorsqu'aucune sauvegarde n'existe
+  - UI Historique de sauvegarde dans Paramètres - liste codée par couleur (vert/jaune/rouge/gris) montrant l'âge du fichier de sauvegarde et compte à rebours de suppression
+  - Fenêtre modale Autosave - explication lors de l'activation de l'autosave
+  - Autosave et synchronisation de sauvegarde automatique - sauvegarde automatique lors de la sauvegarde autosave
+  - Réinitialisation d'usine supprime maintenant les fichiers de sauvegarde automatiques
+  - L'historique de sauvegarde se met à jour automatiquement lorsque l'autosave est activé
 - 🔧 **Optimisation backend du système de sauvegarde**
   - Commandes backend ajoutées pour supprimer les anciennes sauvegardes (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
   - Fonctions de nettoyage frontend mises à jour pour utiliser les commandes backend, éliminant les erreurs "chemin interdit"
@@ -51,13 +59,33 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
   - `hasTodayBackup()` optimisé : utilise la commande backend `list_backup_files`, pas besoin de lire tous les fichiers
   - Mécanisme de verrouillage ajouté pour empêcher la création parallèle de sauvegardes
   - Fonctionnement plus rapide même avec un grand nombre de fichiers de sauvegarde
-- 📁 **Ouvrir le répertoire de sauvegarde**
+- 📁 **Ouvrir le répertoire de sauvegarde et historique des journaux**
   - Bouton ajouté dans Paramètres → Historique de sauvegarde pour ouvrir le dossier de sauvegarde
-  - Support multiplateforme (macOS, Windows, Linux)
-- 📝 **Fonction d'historique des journaux**
-  - Nouvelle section d'historique des journaux dans Paramètres
-  - Lister et ouvrir les fichiers journaux
+  - Nouvelle section d'historique des journaux dans Paramètres - lister et ouvrir les fichiers journaux
   - Suppression automatique des fichiers journaux configurable par jours
+  - Support multiplateforme (macOS, Windows, Linux)
+- 🎨 **Refonte complète de l'écran de chargement**
+  - Logo de l'application intégré comme arrière-plan avec effets de glassmorphisme
+  - Disposition fixe pour les coches - défilement automatique, seulement 3 modules visibles à la fois
+  - Effets scintillants, animations de points pulsants
+  - Conteneur de défilement avec barre de défilement masquée
+- ⚙️ **Améliorations du processus de chargement**
+  - Chargement ralenti (délais de 800ms) - les messages de chargement sont lisibles
+  - Gestion des erreurs pour chaque module (blocs try-catch)
+  - Fichier journal physique pour tous les statuts et erreurs
+  - Résumé de chargement à la fin
+- 🎨 **Support multilingue de la bibliothèque de filaments**
+  - Couleurs de filaments affichées dans toutes les langues prises en charge (pas seulement hongrois/allemand/anglais)
+  - Logique de secours : anglais → hongrois → allemand → couleur/nom brut
+  - Composants Paramètres, Recherche globale et Filaments mis à jour
+- 🔄 **Améliorations de la réinitialisation d'usine**
+  - Suppression des fichiers physiques (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Réinitialisation de l'instance Store sans rechargement
+  - Sélecteur de langue affiché après la réinitialisation d'usine
+- 🎓 **Tutoriel mis à jour avec les fonctionnalités v1.7.0**
+  - Nouvelles étapes : widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Données de démonstration étendues : 6 filaments → 11 filaments, 3 offres → 5 offres
+  - Clés de traduction ajoutées pour toutes les langues
 
 ### v1.6.0 (2025) - 📊 Widgets Interactifs & Performance des Grandes Tableaux
 

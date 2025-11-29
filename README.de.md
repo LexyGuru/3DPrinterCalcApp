@@ -42,8 +42,16 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
-### v1.7.0 (2025) - 💾 Backup-System-Optimierung und Leistungsverbesserungen
+### v1.7.0 (2025) - 💾 Backup-System, Ladebildschirm und Filament-Bibliothek Verbesserungen
 
+- 💾 **Vollständige Backup-System-Implementierung**
+  - Automatisches Backup-System mit einer Backup-Datei pro Tag (wird nur an einem neuen Tag erstellt)
+  - Backup-Erinnerung Hook und UI-Komponente - Benachrichtigung, wenn kein Backup existiert
+  - Backup-Verlauf UI in Einstellungen - farbcodierte Liste (grün/gelb/rot/grau) mit Backup-Dateialter und Lösch-Countdown
+  - Autosave-Modal-Fenster - Erklärung beim Aktivieren von Autosave
+  - Autosave und automatisches Backup synchronisiert - automatisches Backup bei Autosave-Speicherung
+  - Factory Reset löscht jetzt automatische Backup-Dateien
+  - Backup-Verlauf aktualisiert sich automatisch, wenn Autosave aktiviert wird
 - 🔧 **Backup-System-Backend-Optimierung**
   - Backend-Befehle zum Löschen alter Backups hinzugefügt (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
   - Frontend-Cleanup-Funktionen aktualisiert, um Backend-Befehle zu verwenden, wodurch "forbidden path"-Fehler eliminiert werden
@@ -52,13 +60,33 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
   - `hasTodayBackup()` optimiert: verwendet `list_backup_files` Backend-Befehl, keine Notwendigkeit, alle Dateien zu lesen
   - Sperrmechanismus hinzugefügt, um parallele Backup-Erstellung zu verhindern
   - Schnellere Bedienung auch bei großen Mengen von Backup-Dateien
-- 📁 **Backup-Verzeichnis öffnen**
+- 📁 **Backup-Verzeichnis öffnen und Log-Verlauf**
   - Button in Einstellungen → Backup-Verlauf hinzugefügt, um den Backup-Ordner zu öffnen
-  - Plattformübergreifende Unterstützung (macOS, Windows, Linux)
-- 📝 **Log-Verlauf-Funktion**
-  - Neuer Log-Verlauf-Bereich in den Einstellungen
-  - Log-Dateien auflisten und öffnen
+  - Neuer Log-Verlauf-Bereich in Einstellungen - Log-Dateien auflisten und öffnen
   - Automatisches Löschen von Log-Dateien nach Tagen konfigurierbar
+  - Plattformübergreifende Unterstützung (macOS, Windows, Linux)
+- 🎨 **Vollständige Ladebildschirm-Neugestaltung**
+  - App-Logo als Hintergrund mit Glassmorphismus-Effekten integriert
+  - Fixes Layout für Häkchen - automatisches Scrollen, nur 3 Module gleichzeitig sichtbar
+  - Shimmer-Effekte, pulsierende Punkt-Animationen
+  - Scroll-Container mit versteckter Scrollbar
+- ⚙️ **Ladevorgang-Verbesserungen**
+  - Verlangsamtes Laden (800ms Verzögerungen) - Lademeldungen sind lesbar
+  - Fehlerbehandlung für jedes Modul (try-catch-Blöcke)
+  - Physische Log-Datei für alle Status und Fehler
+  - Lade-Zusammenfassung am Ende
+- 🎨 **Mehrsprachige Filament-Bibliothek-Unterstützung**
+  - Filament-Farben werden in allen unterstützten Sprachen angezeigt (nicht nur Ungarisch/Deutsch/Englisch)
+  - Fallback-Logik: Englisch → Ungarisch → Deutsch → rohe Farbe/Name
+  - Einstellungen, Globale Suche und Filamente Komponenten aktualisiert
+- 🔄 **Factory Reset Verbesserungen**
+  - Physische Dateien-Löschung (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Store-Instanz-Reset ohne Neuladen
+  - Sprachauswahl wird nach Factory Reset angezeigt
+- 🎓 **Tutorial mit v1.7.0-Funktionen aktualisiert**
+  - Neue Schritte: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Demo-Daten erweitert: 6 Filamente → 11 Filamente, 3 Angebote → 5 Angebote
+  - Übersetzungsschlüssel für alle Sprachen hinzugefügt
 
 ### v1.6.0 (2025) - 📊 Interaktive Widgets & Leistung großer Tabellen
 

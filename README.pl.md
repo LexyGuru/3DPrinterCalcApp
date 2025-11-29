@@ -40,8 +40,16 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
-### v1.7.0 (2025) - 💾 Optymalizacja systemu kopii zapasowych i ulepszenia wydajności
+### v1.7.0 (2025) - 💾 System kopii zapasowych, ekran ładowania i ulepszenia biblioteki filamentów
 
+- 💾 **Pełna implementacja systemu kopii zapasowych**
+  - Automatyczny system kopii zapasowych z jednym plikiem kopii zapasowej dziennie (tworzony tylko w nowym dniu)
+  - Hook przypomnienia kopii zapasowej i komponent UI - powiadomienie, gdy brak kopii zapasowej
+  - UI Historii kopii zapasowych w Ustawieniach - lista kodowana kolorami (zielony/żółty/czerwony/szary) pokazująca wiek pliku kopii zapasowej i odliczanie do usunięcia
+  - Okno modalne Autozapisu - wyjaśnienie przy włączaniu autozapisu
+  - Autozapis i synchronizacja automatycznej kopii zapasowej - automatyczna kopia zapasowa przy zapisie autozapisu
+  - Reset fabryczny teraz usuwa automatyczne pliki kopii zapasowych
+  - Historia kopii zapasowych automatycznie odświeża się, gdy autozapis jest włączony
 - 🔧 **Optymalizacja backendu systemu kopii zapasowych**
   - Dodano polecenia backend do usuwania starych kopii zapasowych (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
   - Zaktualizowano funkcje czyszczenia frontendu, aby używały poleceń backend, eliminując błędy "zabroniona ścieżka"
@@ -50,13 +58,33 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
   - `hasTodayBackup()` zoptymalizowane: używa polecenia backend `list_backup_files`, nie trzeba czytać wszystkich plików
   - Dodano mechanizm blokady, aby zapobiec równoległemu tworzeniu kopii zapasowych
   - Szybsza praca nawet przy dużej liczbie plików kopii zapasowych
-- 📁 **Otwórz katalog kopii zapasowych**
+- 📁 **Otwórz katalog kopii zapasowych i historia logów**
   - Dodano przycisk w Ustawienia → Historia kopii zapasowych, aby otworzyć folder kopii zapasowych
-  - Wsparcie wieloplatformowe (macOS, Windows, Linux)
-- 📝 **Funkcja historii logów**
-  - Nowa sekcja historii logów w Ustawieniach
-  - Listowanie i otwieranie plików logów
+  - Nowa sekcja historii logów w Ustawieniach - listowanie i otwieranie plików logów
   - Automatyczne usuwanie plików logów konfigurowalne według dni
+  - Wsparcie wieloplatformowe (macOS, Windows, Linux)
+- 🎨 **Kompletna przebudowa ekranu ładowania**
+  - Logo aplikacji zintegrowane jako tło z efektami glassmorfizmu
+  - Stały układ dla znaczników - automatyczne przewijanie, tylko 3 moduły widoczne naraz
+  - Efekty shimmer, animacje pulsujących kropek
+  - Kontener przewijania z ukrytą paskiem przewijania
+- ⚙️ **Ulepszenia procesu ładowania**
+  - Spowolnione ładowanie (opóźnienia 800ms) - komunikaty ładowania są czytelne
+  - Obsługa błędów dla każdego modułu (bloki try-catch)
+  - Fizyczny plik logów dla wszystkich statusów i błędów
+  - Podsumowanie ładowania na końcu
+- 🎨 **Wielojęzyczne wsparcie biblioteki filamentów**
+  - Kolory filamentów wyświetlane we wszystkich obsługiwanych językach (nie tylko węgierski/niemiecki/angielski)
+  - Logika zapasowa: angielski → węgierski → niemiecki → surowy kolor/nazwa
+  - Komponenty Ustawienia, Globalne Wyszukiwanie i Filamenty zaktualizowane
+- 🔄 **Ulepszenia Resetu fabrycznego**
+  - Usuwanie plików fizycznych (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reset instancji Store bez przeładowania
+  - Selektor języka wyświetlany po Resecie fabrycznym
+- 🎓 **Samouczek zaktualizowany funkcjami v1.7.0**
+  - Nowe kroki: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Rozszerzone dane demonstracyjne: 6 filamentów → 11 filamentów, 3 oferty → 5 ofert
+  - Dodane klucze tłumaczeń dla wszystkich języków
 
 ### v1.6.0 (2025) - 📊 Interaktywne Widgety i Wydajność Dużych Tabel
 

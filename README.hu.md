@@ -42,8 +42,16 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Verziótörténet
 
-### v1.7.0 (2025) - 💾 Backup rendszer optimalizációja és performance javítások
+### v1.7.0 (2025) - 💾 Backup rendszer, betöltési képernyő és filament könyvtár fejlesztések
 
+- 💾 **Backup rendszer teljes implementációja**
+  - Automatikus backup rendszer naponta egy backup fájllal (csak új napon jön létre)
+  - Backup reminder hook és UI komponens - értesítés, ha nincs backup
+  - Backup History UI a Settings-ben - színes lista (zöld/sárga/piros/szürke) a backup fájlok korához és törlési számlálóval
+  - Autosave modal ablak - magyarázat az autosave bekapcsolásakor
+  - Autosave és automatikus backup szinkronizálása - autosave mentéskor automatikus backup
+  - Factory Reset automatikus backup fájlok törlésével
+  - Backup history automatikus frissítése amikor az autosave bekapcsolódik
 - 🔧 **Backup rendszer backend optimalizációja**
   - Backend commands hozzáadása régi backupok törléséhez (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
   - Frontend cleanup függvények backend command használatára frissítve, így nincs többé "forbidden path" hiba
@@ -52,13 +60,33 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
   - `hasTodayBackup()` optimalizálva: `list_backup_files` backend command használata, nem kell minden fájlt beolvasni
   - Lock mechanizmus hozzáadva párhuzamos backupok megelőzésére
   - Gyorsabb működés nagy számú backup fájl esetén is
-- 📁 **Backup directory megnyitása**
+- 📁 **Backup directory megnyitása és log history**
   - Gomb hozzáadva a Settings → Backup History szekcióban a backup mappa megnyitásához
-  - Cross-platform támogatás (macOS, Windows, Linux)
-- 📝 **Log history funkció**
-  - Új log history szekció a Settings-ben
-  - Log fájlok listázása és megnyitása
+  - Új log history szekció a Settings-ben - log fájlok listázása és megnyitása
   - Automatikus log fájl törlés beállítható napok alapján
+  - Cross-platform támogatás (macOS, Windows, Linux)
+- 🎨 **Betöltési képernyő teljes átalakítása**
+  - App logo integrálva háttérként glassmorphism effekttel
+  - Fix layout pipákhoz - automatikus görgetés, csak 3 modul látható egyszerre
+  - Shimmer effekt, pulsing dots animációk
+  - Scroll container rejtett scrollbárral
+- ⚙️ **Betöltési folyamat javítások**
+  - Lassított betöltés (800ms késleltetések) - olvashatóak a betöltési üzenetek
+  - Hibakezelés minden modulnál (try-catch blokkok)
+  - Fizikai log fájl minden státuszhoz és hibához
+  - Betöltési összefoglaló a végén
+- 🎨 **Filament könyvtár többnyelvű támogatása**
+  - Filament színek megjelenítése minden támogatott nyelven (nem csak magyar/német/angol)
+  - Fallback logika: angol → magyar → német → raw color/name
+  - Settings, GlobalSearch és Filaments komponensek frissítve
+- 🔄 **Factory Reset javítások**
+  - Fizikai fájlok törlése (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Store instance reset reload nélkül
+  - Nyelvválasztó megjelenítése a Factory Reset után
+- 🎓 **Tutorial frissítés v1.7.0 újdonságokkal**
+  - Új lépések: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Demo adatok bővítve: 6 filament → 11 filament, 3 árajánlat → 5 árajánlat
+  - Fordítási kulcsok hozzáadva minden nyelvhez
 
 ### v1.6.0 (2025) - 📊 Interaktív widgetek & nagy táblázatok teljesítmény-tuning
 

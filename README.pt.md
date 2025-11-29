@@ -40,8 +40,16 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
-### v1.7.0 (2025) - 💾 Otimização do sistema de backup e melhorias de desempenho
+### v1.7.0 (2025) - 💾 Sistema de backup, tela de carregamento e melhorias na biblioteca de filamentos
 
+- 💾 **Implementação completa do sistema de backup**
+  - Sistema de backup automático com um arquivo de backup por dia (criado apenas em um novo dia)
+  - Hook de lembrete de backup e componente UI - notificação quando não existe backup
+  - UI de Histórico de Backup em Configurações - lista codificada por cores (verde/amarelo/vermelho/cinza) mostrando a idade do arquivo de backup e contagem regressiva de exclusão
+  - Janela modal de Autosave - explicação ao habilitar autosave
+  - Autosave e sincronização de backup automático - backup automático no salvamento autosave
+  - Reset de Fábrica agora exclui arquivos de backup automáticos
+  - O histórico de backup é atualizado automaticamente quando o autosave é habilitado
 - 🔧 **Otimização do backend do sistema de backup**
   - Comandos backend adicionados para excluir backups antigos (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
   - Funções de limpeza do frontend atualizadas para usar comandos backend, eliminando erros de "caminho proibido"
@@ -50,13 +58,33 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
   - `hasTodayBackup()` otimizado: usa o comando backend `list_backup_files`, não é necessário ler todos os arquivos
   - Mecanismo de bloqueio adicionado para prevenir criação paralela de backups
   - Operação mais rápida mesmo com grandes quantidades de arquivos de backup
-- 📁 **Abrir diretório de backup**
+- 📁 **Abrir diretório de backup e histórico de log**
   - Botão adicionado em Configurações → Histórico de backup para abrir a pasta de backup
-  - Suporte multiplataforma (macOS, Windows, Linux)
-- 📝 **Função de histórico de log**
-  - Nova seção de histórico de log em Configurações
-  - Listar e abrir arquivos de log
+  - Nova seção de histórico de log em Configurações - listar e abrir arquivos de log
   - Exclusão automática de arquivos de log configurável por dias
+  - Suporte multiplataforma (macOS, Windows, Linux)
+- 🎨 **Redesign completo da tela de carregamento**
+  - Logo do aplicativo integrado como fundo com efeitos de glassmorfismo
+  - Layout fixo para marcas de verificação - rolagem automática, apenas 3 módulos visíveis por vez
+  - Efeitos shimmer, animações de pontos pulsantes
+  - Contêiner de rolagem com barra de rolagem oculta
+- ⚙️ **Melhorias no processo de carregamento**
+  - Carregamento mais lento (atrasos de 800ms) - mensagens de carregamento são legíveis
+  - Tratamento de erros para cada módulo (blocos try-catch)
+  - Arquivo de log físico para todos os status e erros
+  - Resumo de carregamento no final
+- 🎨 **Suporte multilíngue da biblioteca de filamentos**
+  - Cores de filamentos exibidas em todos os idiomas suportados (não apenas húngaro/alemão/inglês)
+  - Lógica de fallback: inglês → húngaro → alemão → cor/nome bruto
+  - Componentes Configurações, Busca Global e Filamentos atualizados
+- 🔄 **Melhorias no Reset de Fábrica**
+  - Exclusão de arquivos físicos (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reset da instância Store sem recarregar
+  - Seletor de idioma exibido após o Reset de Fábrica
+- 🎓 **Tutorial atualizado com recursos v1.7.0**
+  - Novos passos: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Dados de demonstração expandidos: 6 filamentos → 11 filamentos, 3 ofertas → 5 ofertas
+  - Chaves de tradução adicionadas para todos os idiomas
 
 ### v1.6.0 (2025) - 📊 Widgets Interativos e Performance de Tabelas Grandes
 

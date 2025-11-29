@@ -41,8 +41,16 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 
 ## 📋 Registro de cambios (Changelog)
 
-### v1.7.0 (2025) - 💾 Optimización del sistema de respaldo y mejoras de rendimiento
+### v1.7.0 (2025) - 💾 Sistema de respaldo, pantalla de carga y mejoras de biblioteca de filamentos
 
+- 💾 **Implementación completa del sistema de respaldo**
+  - Sistema de respaldo automático con un archivo de respaldo por día (solo se crea en un día nuevo)
+  - Hook de recordatorio de respaldo y componente UI - notificación cuando no existe respaldo
+  - UI de Historial de Respaldo en Configuración - lista codificada por colores (verde/amarillo/rojo/gris) que muestra la antigüedad del archivo de respaldo y cuenta regresiva de eliminación
+  - Ventana modal de Autoguardado - explicación al habilitar autoguardado
+  - Autoguardado y sincronización de respaldo automático - respaldo automático en guardado de autoguardado
+  - Restablecimiento de fábrica ahora elimina archivos de respaldo automáticos
+  - El historial de respaldo se actualiza automáticamente cuando se habilita el autoguardado
 - 🔧 **Optimización del backend del sistema de respaldo**
   - Comandos backend agregados para eliminar respaldos antiguos (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
   - Funciones de limpieza del frontend actualizadas para usar comandos backend, eliminando errores de "ruta prohibida"
@@ -51,13 +59,33 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
   - `hasTodayBackup()` optimizado: usa el comando backend `list_backup_files`, no es necesario leer todos los archivos
   - Mecanismo de bloqueo agregado para prevenir la creación paralela de respaldos
   - Operación más rápida incluso con grandes cantidades de archivos de respaldo
-- 📁 **Abrir directorio de respaldo**
+- 📁 **Abrir directorio de respaldo e historial de registro**
   - Botón agregado en Configuración → Historial de respaldo para abrir la carpeta de respaldo
-  - Soporte multiplataforma (macOS, Windows, Linux)
-- 📝 **Función de historial de registro**
-  - Nueva sección de historial de registro en Configuración
-  - Listar y abrir archivos de registro
+  - Nueva sección de historial de registro en Configuración - listar y abrir archivos de registro
   - Eliminación automática de archivos de registro configurable por días
+  - Soporte multiplataforma (macOS, Windows, Linux)
+- 🎨 **Rediseño completo de la pantalla de carga**
+  - Logo de la aplicación integrado como fondo con efectos de glassmorfismo
+  - Layout fijo para marcas de verificación - desplazamiento automático, solo 3 módulos visibles a la vez
+  - Efectos shimmer, animaciones de puntos pulsantes
+  - Contenedor de desplazamiento con barra de desplazamiento oculta
+- ⚙️ **Mejoras en el proceso de carga**
+  - Carga más lenta (retrasos de 800ms) - los mensajes de carga son legibles
+  - Manejo de errores para cada módulo (bloques try-catch)
+  - Archivo de registro físico para todos los estados y errores
+  - Resumen de carga al final
+- 🎨 **Soporte multilingüe de la biblioteca de filamentos**
+  - Colores de filamentos mostrados en todos los idiomas admitidos (no solo húngaro/alemán/inglés)
+  - Lógica de respaldo: inglés → húngaro → alemán → color/nombre crudo
+  - Componentes de Configuración, Búsqueda Global y Filamentos actualizados
+- 🔄 **Mejoras de Restablecimiento de Fábrica**
+  - Eliminación de archivos físicos (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reinicio de instancia de Store sin recarga
+  - Selector de idioma mostrado después del Restablecimiento de Fábrica
+- 🎓 **Tutorial actualizado con características de v1.7.0**
+  - Nuevos pasos: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Datos de demostración expandidos: 6 filamentos → 11 filamentos, 3 ofertas → 5 ofertas
+  - Claves de traducción agregadas para todos los idiomas
 
 ### v1.6.0 (2025) - 📊 Widgets Interactivos y Rendimiento de Tablas Grandes
 

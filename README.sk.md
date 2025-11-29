@@ -40,8 +40,16 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
 
 ## 📋 Zoznam zmien (Changelog)
 
-### v1.7.0 (2025) - 💾 Optimalizácia systému zálohovania a vylepšenia výkonu
+### v1.7.0 (2025) - 💾 Systém zálohovania, obrazovka načítania a vylepšenia knižnice filamentov
 
+- 💾 **Kompletná implementácia systému zálohovania**
+  - Automatický systém zálohovania s jedným zálohovacím súborom denne (vytváraný len v novom dni)
+  - Hook pripomienky zálohy a UI komponenta - upozornenie, keď neexistuje záloha
+  - UI Histórie záloh v Nastavení - farebne kódovaný zoznam (zelená/žltá/červená/sivá) zobrazujúci vek zálohovacieho súboru a odpočítavanie do zmazania
+  - Modálne okno Autosave - vysvetlenie pri povolení autosave
+  - Autosave a synchronizácia automatickej zálohy - automatická záloha pri uložení autosave
+  - Továrenský reset teraz maže automatické zálohovacie súbory
+  - História záloh sa automaticky aktualizuje, keď je autosave povolené
 - 🔧 **Optimalizácia backendu systému zálohovania**
   - Pridané backend príkazy na mazanie starých záloh (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
   - Aktualizované frontend funkcie čistenia na použitie backend príkazov, eliminujúce chyby "zakázaná cesta"
@@ -50,13 +58,33 @@ Moderná desktopová aplikácia na výpočet nákladov na 3D tlač. Vytvorená p
   - `hasTodayBackup()` optimalizované: používa backend príkaz `list_backup_files`, nie je potrebné čítať všetky súbory
   - Pridaný mechanizmus zámku na prevenciu paralelného vytvárania záloh
   - Rýchlejší prevádzka aj pri veľkom množstve zálohovacích súborov
-- 📁 **Otvoriť adresár záloh**
+- 📁 **Otvoriť adresár záloh a históriu protokolov**
   - Pridané tlačidlo v Nastavení → História záloh na otvorenie priečinka záloh
-  - Multiplatformná podpora (macOS, Windows, Linux)
-- 📝 **Funkcia histórie protokolov**
-  - Nová sekcia histórie protokolov v Nastavení
-  - Výpis a otvorenie súborov protokolov
+  - Nová sekcia histórie protokolov v Nastavení - výpis a otvorenie súborov protokolov
   - Automatické mazanie súborov protokolov konfigurovateľné podľa dní
+  - Multiplatformná podpora (macOS, Windows, Linux)
+- 🎨 **Kompletné prepracovanie obrazovky načítania**
+  - Logo aplikácie integrované ako pozadie s efektami glassmorphism
+  - Fixný layout pre odškrtávacie značky - automatické posúvanie, len 3 moduly viditeľné naraz
+  - Efekty shimmer, animácie pulzujúcich bodiek
+  - Posuvný kontajner so skrytým posuvníkom
+- ⚙️ **Vylepšenia procesu načítania**
+  - Spomalené načítanie (oneskorenia 800ms) - správy načítania sú čitateľné
+  - Spracovanie chýb pre každý modul (bloky try-catch)
+  - Fyzický súbor protokolu pre všetky stavy a chyby
+  - Zhrnutie načítania na konci
+- 🎨 **Viacjazyčná podpora knižnice filamentov**
+  - Farby filamentov zobrazené vo všetkých podporovaných jazykoch (nie len maďarčina/nemčina/angličtina)
+  - Logika záložná: angličtina → maďarčina → nemčina → surová farba/názov
+  - Komponenty Nastavenie, Globálne vyhľadávanie a Filamenty aktualizované
+- 🔄 **Vylepšenia továrenského resetu**
+  - Mazanie fyzických súborov (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reset inštancie Store bez znovunačítania
+  - Výber jazyka zobrazený po továrenskom resete
+- 🎓 **Tutoriál aktualizovaný funkciami v1.7.0**
+  - Nové kroky: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Rozšírené demo dáta: 6 filamentov → 11 filamentov, 3 ponuky → 5 ponúk
+  - Pridané prekladové kľúče pre všetky jazyky
 
 ### v1.6.0 (2025) - 📊 Interaktívne widgety a výkon veľkých tabuliek
 

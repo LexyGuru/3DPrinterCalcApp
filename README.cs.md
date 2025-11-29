@@ -38,25 +38,99 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 
 ## 📋 Seznam změn (Changelog)
 
-### v1.6.0 (2025) - 📊 Interaktivní widgety a výkon velkých tabulek
+### v1.7.0 (2025) - 💾 Systém zálohování, obrazovka načítání a vylepšení knihovny filamentů
 
-### v1.7.0 (2025) - 💾 Optimalizace systému zálohování a vylepšení výkonu
-
+- 💾 **Kompletní implementace systému zálohování**
+  - Automatický systém zálohování s jedním záložním souborem denně (vytvářen pouze v novém dni)
+  - Hook připomenutí zálohy a UI komponenta - upozornění, když neexistuje záloha
+  - UI Historie záloh v Nastavení - barevně kódovaný seznam (zelená/žlutá/červená/šedá) zobrazující stáří záložního souboru a odpočet do smazání
+  - Modální okno Autosave - vysvětlení při povolení autosave
+  - Autosave a synchronizace automatické zálohy - automatická záloha při uložení autosave
+  - Tovární reset nyní maže automatické záložní soubory
+  - Historie záloh se automaticky aktualizuje, když je autosave povoleno
 - 🔧 **Optimalizace backendu systému zálohování**
-  - Přidány backend příkazy pro mazání starých záloh (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
-  - Aktualizovány frontend funkce čištění pro použití backend příkazů, eliminující chyby "zakázaná cesta"
+  - Backend příkazy přidány pro mazání starých záloh (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Frontend funkce čištění aktualizovány pro použití backend příkazů, eliminující chyby "zakázaná cesta"
   - Všechny operace se soubory (vytváření, mazání, výpis) nyní probíhají z backendu, čímž se vyhneme problémům s oprávněními Tauri
 - ⚡ **Optimalizace výkonu systému zálohování**
   - `hasTodayBackup()` optimalizováno: používá backend příkaz `list_backup_files`, není třeba číst všechny soubory
   - Přidán mechanismus zámku pro prevenci paralelního vytváření záloh
   - Rychlejší provoz i při velkém množství zálohovacích souborů
-- 📁 **Otevřít adresář záloh**
+- 📁 **Otevřít adresář záloh a historie protokolů**
   - Přidáno tlačítko v Nastavení → Historie záloh pro otevření složky záloh
-  - Multiplatformní podpora (macOS, Windows, Linux)
-- 📝 **Funkce historie protokolů**
-  - Nová sekce historie protokolů v Nastavení
-  - Výpis a otevření souborů protokolů
+  - Nová sekce historie protokolů v Nastavení - výpis a otevření souborů protokolů
   - Automatické mazání souborů protokolů konfigurovatelné podle dnů
+  - Multiplatformní podpora (macOS, Windows, Linux)
+- 🎨 **Kompletní přepracování obrazovky načítání**
+  - Logo aplikace integrováno jako pozadí s efekty glassmorphism
+  - Fixní layout pro zaškrtávací značky - automatické posouvání, pouze 3 moduly viditelné najednou
+  - Efekty shimmer, animace pulsujících teček
+  - Posuvný kontejner se skrytým posuvníkem
+- ⚙️ **Vylepšení procesu načítání**
+  - Zpomalené načítání (zpoždění 800ms) - zprávy načítání jsou čitelné
+  - Zpracování chyb pro každý modul (bloky try-catch)
+  - Fyzický soubor protokolu pro všechny stavy a chyby
+  - Shrnutí načítání na konci
+- 🎨 **Vícejazyčná podpora knihovny filamentů**
+  - Barvy filamentů zobrazeny ve všech podporovaných jazycích (ne jen maďarština/němčina/angličtina)
+  - Logika záložní: angličtina → maďarština → němčina → surová barva/název
+  - Komponenty Nastavení, Globální vyhledávání a Filamenty aktualizovány
+- 🔄 **Vylepšení továrního resetu**
+  - Mazání fyzických souborů (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reset instance Store bez znovunačtení
+  - Výběr jazyka zobrazen po továrním resetu
+- 🎓 **Tutorial aktualizován funkcemi v1.7.0**
+  - Nové kroky: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Rozšířená demo data: 6 filamentů → 11 filamentů, 3 nabídky → 5 nabídek
+  - Přidány překladové klíče pro všechny jazyky
+
+### v1.7.0 (2025) - 💾 Systém zálohování, obrazovka načítání a vylepšení knihovny filamentů
+
+- 💾 **Kompletní implementace systému zálohování**
+  - Automatický systém zálohování s jedním záložním souborem denně (vytvářen pouze v novém dni)
+  - Hook připomenutí zálohy a UI komponenta - upozornění, když neexistuje záloha
+  - UI Historie záloh v Nastavení - barevně kódovaný seznam (zelená/žlutá/červená/šedá) zobrazující stáří záložního souboru a odpočet do smazání
+  - Modální okno Autosave - vysvětlení při povolení autosave
+  - Autosave a synchronizace automatické zálohy - automatická záloha při uložení autosave
+  - Tovární reset nyní maže automatické záložní soubory
+  - Historie záloh se automaticky aktualizuje, když je autosave povoleno
+- 🔧 **Optimalizace backendu systému zálohování**
+  - Backend příkazy přidány pro mazání starých záloh (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Frontend funkce čištění aktualizovány pro použití backend příkazů, eliminující chyby "zakázaná cesta"
+  - Všechny operace se soubory (vytváření, mazání, výpis) nyní probíhají z backendu, čímž se vyhneme problémům s oprávněními Tauri
+- ⚡ **Optimalizace výkonu systému zálohování**
+  - `hasTodayBackup()` optimalizováno: používá backend příkaz `list_backup_files`, není třeba číst všechny soubory
+  - Přidán mechanismus zámku pro prevenci paralelního vytváření záloh
+  - Rychlejší provoz i při velkém množství zálohovacích souborů
+- 📁 **Otevřít adresář záloh a historie protokolů**
+  - Přidáno tlačítko v Nastavení → Historie záloh pro otevření složky záloh
+  - Nová sekce historie protokolů v Nastavení - výpis a otevření souborů protokolů
+  - Automatické mazání souborů protokolů konfigurovatelné podle dnů
+  - Multiplatformní podpora (macOS, Windows, Linux)
+- 🎨 **Kompletní přepracování obrazovky načítání**
+  - Logo aplikace integrováno jako pozadí s efekty glassmorphism
+  - Fixní layout pro zaškrtávací značky - automatické posouvání, pouze 3 moduly viditelné najednou
+  - Efekty shimmer, animace pulsujících teček
+  - Posuvný kontejner se skrytým posuvníkem
+- ⚙️ **Vylepšení procesu načítání**
+  - Zpomalené načítání (zpoždění 800ms) - zprávy načítání jsou čitelné
+  - Zpracování chyb pro každý modul (bloky try-catch)
+  - Fyzický soubor protokolu pro všechny stavy a chyby
+  - Shrnutí načítání na konci
+- 🎨 **Vícejazyčná podpora knihovny filamentů**
+  - Barvy filamentů zobrazeny ve všech podporovaných jazycích (ne jen maďarština/němčina/angličtina)
+  - Logika záložní: angličtina → maďarština → němčina → surová barva/název
+  - Komponenty Nastavení, Globální vyhledávání a Filamenty aktualizovány
+- 🔄 **Vylepšení továrního resetu**
+  - Mazání fyzických souborů (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reset instance Store bez znovunačtení
+  - Výběr jazyka zobrazen po továrním resetu
+- 🎓 **Tutorial aktualizován funkcemi v1.7.0**
+  - Nové kroky: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Rozšířená demo data: 6 filamentů → 11 filamentů, 3 nabídky → 5 nabídek
+  - Přidány překladové klíče pro všechny jazyky
+
+### v1.6.0 (2025) - 📊 Interaktivní widgety a výkon velkých tabulek
 
 ### v1.6.0 (2025) - 📊 Interaktivní widgety a výkon velkých tabulek
 

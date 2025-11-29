@@ -509,8 +509,16 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
-### v1.7.0 (2025) - 💾 Backup system optimization and performance improvements
+### v1.7.0 (2025) - 💾 Backup system, loading screen and filament library improvements
 
+- 💾 **Complete backup system implementation**
+  - Automatic backup system with one backup file per day (only created on a new day)
+  - Backup reminder hook and UI component - notification when no backup exists
+  - Backup History UI in Settings - color-coded list (green/yellow/red/gray) showing backup file age and deletion countdown
+  - Autosave modal window - explanation when enabling autosave
+  - Autosave and automatic backup synchronization - automatic backup on autosave save
+  - Factory Reset now deletes automatic backup files
+  - Backup history automatically refreshes when autosave is enabled
 - 🔧 **Backup system backend optimization**
   - Backend commands added for deleting old backups (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
   - Frontend cleanup functions updated to use backend commands, eliminating "forbidden path" errors
@@ -519,13 +527,33 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
   - `hasTodayBackup()` optimized: uses `list_backup_files` backend command, no need to read all files
   - Lock mechanism added to prevent parallel backup creation
   - Faster operation even with large numbers of backup files
-- 📁 **Open backup directory**
+- 📁 **Open backup directory and log history**
   - Button added in Settings → Backup History section to open the backup folder
-  - Cross-platform support (macOS, Windows, Linux)
-- 📝 **Log history feature**
-  - New log history section in Settings
-  - List and open log files
+  - New log history section in Settings - list and open log files
   - Automatic log file deletion configurable by days
+  - Cross-platform support (macOS, Windows, Linux)
+- 🎨 **Complete loading screen redesign**
+  - App logo integrated as background with glassmorphism effects
+  - Fixed layout for checkmarks - automatic scrolling, only 3 modules visible at once
+  - Shimmer effects, pulsing dots animations
+  - Scroll container with hidden scrollbar
+- ⚙️ **Loading process improvements**
+  - Slowed down loading (800ms delays) - loading messages are readable
+  - Error handling for every module (try-catch blocks)
+  - Physical log file for all statuses and errors
+  - Loading summary at the end
+- 🎨 **Filament library multilingual support**
+  - Filament colors displayed in all supported languages (not just Hungarian/German/English)
+  - Fallback logic: English → Hungarian → German → raw color/name
+  - Settings, GlobalSearch and Filaments components updated
+- 🔄 **Factory Reset improvements**
+  - Physical files deletion (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Store instance reset without reload
+  - Language selector displayed after Factory Reset
+- 🎓 **Tutorial updated with v1.7.0 features**
+  - New steps: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Demo data expanded: 6 filaments → 11 filaments, 3 offers → 5 offers
+  - Translation keys added for all languages
 
 ### v1.6.0 (2025) - 📊 Interactive Widgets & Large Table Performance
 
