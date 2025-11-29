@@ -1,5 +1,5 @@
 import type { FilamentColorOption, FilamentFinish } from "./filamentColors";
-import type { ColorMode } from "../types";
+import type { ColorMode, Settings } from "../types";
 import { normalizeHex, resolveColorHexFromName } from "./filamentColors";
 import { translateText } from "./translator";
 import { BaseDirectory, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
@@ -652,6 +652,59 @@ export const resolveLibraryHexFromName = (
     console.warn("[FilamentLibrary] Could not resolve hex for", { label, brand, material });
   }
   return undefined;
+};
+
+/**
+ * Visszaadja a library entry szín címkéjét a kívánt nyelven, fallback logikával
+ * Ha nincs fordítás a nyelvhez, akkor angol, magyar vagy német fallback-tel
+ * Ez lehetővé teszi, hogy minden támogatott nyelven jelenjen meg a szín, még ha csak 3 nyelv van a labels-ben
+ */
+export const getLocalizedLibraryColorLabel = (
+  entry: RawLibraryEntry | LibraryColorOption,
+  language: Settings["language"]
+): string => {
+  // Először próbáljuk meg a kívánt nyelvet (ha a labels tartalmazza)
+  if (entry.labels) {
+    // Type guard: csak akkor indexeljük, ha biztosan string
+    const labels = entry.labels as { hu?: string | null; en?: string | null; de?: string | null };
+    
+    // Próbáljuk meg a kívánt nyelvet (ha az hu, en, vagy de)
+    if ((language === "hu" || language === "en" || language === "de") && labels[language]) {
+      return labels[language]!;
+    }
+    
+    // Ha nincs, akkor angol fallback
+    if (labels.en) {
+      return labels.en;
+    }
+    
+    // Ha nincs angol sem, akkor magyar
+    if (labels.hu) {
+      return labels.hu;
+    }
+    
+    // Végül német
+    if (labels.de) {
+      return labels.de;
+    }
+  }
+  
+  // Ha nincs semmi a labels-ben, próbáljuk meg a color vagy name mezőt (csak RawLibraryEntry-n)
+  if ("color" in entry && entry.color) {
+    return entry.color;
+  }
+  
+  if ("name" in entry && entry.name) {
+    return entry.name;
+  }
+  
+  // Ha library entry, akkor rawColor-t használhatjuk
+  if ("rawColor" in entry && entry.rawColor) {
+    return entry.rawColor;
+  }
+  
+  // Ha semmi nincs, akkor üres string
+  return "";
 };
 
 export const persistLibraryEntries = async (entries: RawLibraryEntry[]) => {

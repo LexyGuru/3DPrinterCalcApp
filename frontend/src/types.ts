@@ -205,9 +205,18 @@ export interface Settings {
   showTutorialOnStartup?: boolean; // Kezdő tutorial megjelenítése indításkor
   tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
   logRetentionDays?: number; // Log fájlok megtartása napokban (0 = soha ne törölje)
+  logFormat?: "text" | "json"; // Log fájl formátum (szöveges vagy JSON) - v1.8.0
+  logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR"; // Minimum log szint (csak e feletti szintű logok kerülnek fájlba) - v1.8.0
   hideMacOSNotificationWarning?: boolean; // macOS értesítési figyelmeztetés elrejtése
   dashboardLayout?: import("./types/widgets").DashboardLayout; // Dashboard widget layout
   useWidgetDashboard?: boolean; // Widget dashboard használata (true) vagy klasszikus nézet (false)
+  // Backup és emlékeztető beállítások (v1.7.0)
+  backupReminderEnabled?: boolean; // Backup emlékeztető bekapcsolása
+  backupReminderIntervalDays?: number; // Backup emlékeztető intervallum (napokban)
+  automaticBackupEnabled?: boolean; // Automatikus backup bekapcsolása
+  automaticBackupIntervalHours?: number; // Automatikus backup intervallum (órákban)
+  maxAutomaticBackups?: number; // Maximum automatikus backup-ok száma (régi törlése)
+  lastBackupDate?: string; // Utolsó backup dátuma (ISO string)
 }
 
 export const defaultSettings: Settings = {
@@ -216,7 +225,7 @@ export const defaultSettings: Settings = {
   language: "hu",
   checkForBetaUpdates: false, // Alapértelmezetten nem ellenőrzi a beta release-eket
   theme: "light", // Alapértelmezett téma
-  autosave: true, // Alapértelmezetten engedélyezve
+  autosave: false, // Alapértelmezetten ki van kapcsolva
   autosaveInterval: 30, // Alapértelmezett 30 másodperc
   notificationEnabled: true, // Alapértelmezetten engedélyezve
   notificationDuration: 3000, // Alapértelmezett 3 másodperc
@@ -231,6 +240,8 @@ export const defaultSettings: Settings = {
   calendarProvider: "google", // Alapértelmezett naptár szolgáltató
   showTutorialOnStartup: true, // Alapértelmezetten mutassa a tutorialt
   tutorialCompleted: false, // Alapértelmezetten nem tekintették meg
+  logFormat: "text", // Alapértelmezett log formátum: szöveges (v1.8.0)
+  logLevel: "INFO", // Alapértelmezett minimum log szint: INFO (v1.8.0)
 };
 
 export interface OfferFilament {

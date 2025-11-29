@@ -41,6 +41,124 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 
 ## 📋 Registro de cambios (Changelog)
 
+### v1.9.0 (2025) - 🔍 Diagnósticos del Sistema y Mejoras de Rendimiento
+
+- 🔍 **Diagnósticos del Sistema** - Herramienta completa de verificación de salud del sistema:
+  - Visualización de información del sistema (CPU, memoria, OS, GPU, disco)
+  - Validación del sistema de archivos (data.json, filamentLibrary.json, update_filament.json)
+  - Verificaciones de disponibilidad de módulos (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Verificación de accesibilidad del almacén de datos
+  - Barra de progreso con mensajes de estado detallados
+  - Resumen con indicadores de error/advertencia/éxito
+  - Botón de ejecutar diagnósticos nuevamente
+  - Movido a la sección de Gestión de Registros (ubicación más lógica)
+  - Completamente localizado en los 13 idiomas admitidos
+
+- ⚡ **Rendimiento del Visor de Registros** - Desplazamiento virtual para archivos de registro grandes:
+  - Implementación de desplazamiento virtual personalizada para el componente LogViewer
+  - Solo se renderizan las entradas de registro visibles, mejorando dramáticamente el rendimiento
+  - Desplazamiento y búsqueda suaves incluso con archivos de registro masivos (100k+ líneas)
+  - Mantiene la posición y altura precisas de la barra de desplazamiento
+  - Operaciones de búsqueda y filtrado significativamente más rápidas
+
+- 🔔 **Sistema de Notificaciones Unificado** - Servicio de notificaciones centralizado:
+  - Un solo `notificationService` para notificaciones Toast y de plataforma
+  - Enrutamiento de notificaciones basado en prioridad (prioridad alta → notificación de plataforma)
+  - Toma de decisiones automática basada en el estado de la app (primer plano/fondo)
+  - Compatible con funciones de notificación existentes
+  - Preferencias de notificación configurables (Toast activado/desactivado, notificación de plataforma activada/desactivada, niveles de prioridad)
+
+- 🎯 **Mejoras de UI/UX**:
+  - Diagnósticos del Sistema movidos de la sección de Respaldo a la sección de Gestión de Registros (ubicación más lógica)
+  - Errores del linter de TypeScript corregidos (variables no utilizadas, discrepancias de tipos)
+  - Calidad y mantenibilidad del código mejoradas
+
+### v1.8.0 (2025) - 📊 Registro Avanzado y Mejoras de Restablecimiento de Fábrica
+
+- 🔄 **Modal de Progreso de Restablecimiento de Fábrica** - Indicador de progreso visual para restablecimiento de fábrica:
+  - Progreso animado de 4 pasos (eliminación de respaldo, eliminación de registro, eliminación de configuración, finalización)
+  - Actualizaciones de estado en tiempo real con mensajes de éxito/error
+  - Cuenta regresiva de 10 segundos antes de que aparezca el selector de idioma
+  - Modal no descartable durante el proceso de restablecimiento
+  - Completamente localizado en los 13 idiomas admitidos
+
+- 📋 **Revisión Completa del Sistema de Registro** - Infraestructura de registro profesional:
+  - Rutas de archivos de registro multiplataforma (directorios de datos específicos de la plataforma)
+  - Registro de información del sistema (CPU, memoria, OS, GPU, disco, versión de la app)
+  - Registro de información de directorios (carpetas de registro y respaldo, recuentos de archivos, tamaños)
+  - Registro detallado del estado de carga (éxito/advertencia/error/crítico)
+  - Niveles de registro (DEBUG, INFO, WARN, ERROR) con filtrado
+  - Soporte de formato de registro estructurado (texto y JSON)
+  - Rotación de registro con limpieza automática (días de retención configurables)
+  - Modal del Visor de Registros con filtrado, búsqueda, resaltado y exportación
+  - Configuración de registro en Configuración (formato, nivel, días de retención)
+  - Contenido de archivos de registro conservado entre reinicios de la app (modo anexar)
+
+- 🔍 **Diagnósticos del Sistema** - Modal de verificación de salud del sistema:
+  - Visualización y validación de información del sistema
+  - Monitoreo de uso de memoria con advertencias
+  - Verificaciones de existencia de archivos
+  - Verificación de disponibilidad de módulos
+  - Pruebas de accesibilidad del almacén de datos
+  - Visualización de barra de progreso y resumen
+  - Completamente localizado en los 13 idiomas admitidos
+
+- 🛠️ **Mejoras Técnicas**:
+  - Registro desactivado durante Restablecimiento de Fábrica para prevenir contaminación de registros
+  - Creación de data.json retrasada hasta la selección de idioma (flujo de Restablecimiento de Fábrica más limpio)
+  - Inicialización de archivos de registro retrasada hasta la selección de idioma
+  - Reinicio automático de la app después de la selección de idioma
+  - Comandos backend para gestión de archivos de respaldo y registro
+  - Manejo de rutas multiplataforma para respaldos y registros
+  - Cálculo de memoria corregido (compatibilidad con sysinfo 0.31)
+  - Advertencias de estilo de React corregidas (conflictos de abreviación CSS)
+
+### v1.7.0 (2025) - 💾 Sistema de respaldo, pantalla de carga y mejoras de biblioteca de filamentos
+
+- 💾 **Implementación completa del sistema de respaldo**
+  - Sistema de respaldo automático con un archivo de respaldo por día (solo se crea en un día nuevo)
+  - Hook de recordatorio de respaldo y componente UI - notificación cuando no existe respaldo
+  - UI de Historial de Respaldo en Configuración - lista codificada por colores (verde/amarillo/rojo/gris) que muestra la antigüedad del archivo de respaldo y cuenta regresiva de eliminación
+  - Ventana modal de Autoguardado - explicación al habilitar autoguardado
+  - Autoguardado y sincronización de respaldo automático - respaldo automático en guardado de autoguardado
+  - Restablecimiento de fábrica ahora elimina archivos de respaldo automáticos
+  - El historial de respaldo se actualiza automáticamente cuando se habilita el autoguardado
+- 🔧 **Optimización del backend del sistema de respaldo**
+  - Comandos backend agregados para eliminar respaldos antiguos (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Funciones de limpieza del frontend actualizadas para usar comandos backend, eliminando errores de "ruta prohibida"
+  - Todas las operaciones de archivos (crear, eliminar, listar) ahora ocurren desde el backend, evitando problemas de permisos de Tauri
+- ⚡ **Optimización del rendimiento del sistema de respaldo**
+  - `hasTodayBackup()` optimizado: usa el comando backend `list_backup_files`, no es necesario leer todos los archivos
+  - Mecanismo de bloqueo agregado para prevenir la creación paralela de respaldos
+  - Operación más rápida incluso con grandes cantidades de archivos de respaldo
+- 📁 **Abrir directorio de respaldo e historial de registro**
+  - Botón agregado en Configuración → Historial de respaldo para abrir la carpeta de respaldo
+  - Nueva sección de historial de registro en Configuración - listar y abrir archivos de registro
+  - Eliminación automática de archivos de registro configurable por días
+  - Soporte multiplataforma (macOS, Windows, Linux)
+- 🎨 **Rediseño completo de la pantalla de carga**
+  - Logo de la aplicación integrado como fondo con efectos de glassmorfismo
+  - Layout fijo para marcas de verificación - desplazamiento automático, solo 3 módulos visibles a la vez
+  - Efectos shimmer, animaciones de puntos pulsantes
+  - Contenedor de desplazamiento con barra de desplazamiento oculta
+- ⚙️ **Mejoras en el proceso de carga**
+  - Carga más lenta (retrasos de 800ms) - los mensajes de carga son legibles
+  - Manejo de errores para cada módulo (bloques try-catch)
+  - Archivo de registro físico para todos los estados y errores
+  - Resumen de carga al final
+- 🎨 **Soporte multilingüe de la biblioteca de filamentos**
+  - Colores de filamentos mostrados en todos los idiomas admitidos (no solo húngaro/alemán/inglés)
+  - Lógica de respaldo: inglés → húngaro → alemán → color/nombre crudo
+  - Componentes de Configuración, Búsqueda Global y Filamentos actualizados
+- 🔄 **Mejoras de Restablecimiento de Fábrica**
+  - Eliminación de archivos físicos (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reinicio de instancia de Store sin recarga
+  - Selector de idioma mostrado después del Restablecimiento de Fábrica
+- 🎓 **Tutorial actualizado con características de v1.7.0**
+  - Nuevos pasos: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Datos de demostración expandidos: 6 filamentos → 11 filamentos, 3 ofertas → 5 ofertas
+  - Claves de traducción agregadas para todos los idiomas
+
 ### v1.6.0 (2025) - 📊 Widgets Interactivos y Rendimiento de Tablas Grandes
 
 - 🧠 **Gráficos Interactivos y Modales de Detalle**

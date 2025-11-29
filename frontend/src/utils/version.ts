@@ -11,7 +11,7 @@ export interface VersionInfo {
   isBeta: boolean;
 }
 
-const CURRENT_VERSION = "1.6.0"; // Frissítsd ezt, amikor új verziót adsz ki
+const CURRENT_VERSION = "1.9.0"; // Frissítsd ezt, amikor új verziót adsz ki
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp"; // Frissítsd a saját repository nevedre
 const RATE_LIMIT_BACKOFF_MS = 15 * 60 * 1000; // 15 perc
 

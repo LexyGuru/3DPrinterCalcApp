@@ -549,6 +549,8 @@ export const languageFr: TranslationMap = {
   "settings.company.logoTip": "Astuce : utilisez un PNG transparent 512×512 px (4 Mo max).",
   "settings.company.editButton": "Détails de l'entreprise",
   "settings.company.toast.logoRemoved": "Logo supprimé.",
+  "settings.company.toast.logoUpdated": "Logo mis à jour avec succès.",
+  "settings.company.toast.logoProcessError": "Une erreur s'est produite lors du traitement du logo.",
   "settings.library.sectionTitle": "Bibliothèque de couleurs de filament",
   "settings.library.sectionDescription":
     "Créez des couleurs personnalisées qui seront disponibles immédiatement dans la sélection de filament.",
@@ -958,6 +960,15 @@ export const languageFr: TranslationMap = {
   "backup.invalidFile": "Fichier de sauvegarde invalide.",
   "backup.confirmRestore":
     "Restaurer cette sauvegarde ? Les données actuelles seront remplacées.",
+  "backup.reminder.never": "💾 Vous n'avez pas encore créé de sauvegarde ! Il est recommandé de sauvegarder régulièrement vos données.",
+  "backup.reminder.oneDay": "💾 Vous n'avez pas créé de sauvegarde depuis 1 jour. Il est recommandé de sauvegarder vos données.",
+  "backup.reminder.multipleDays": "💾 Vous n'avez pas créé de sauvegarde depuis {{days}} jours. Il est recommandé de sauvegarder vos données.",
+  "backup.reminder.minutes": "💾 Vous n'avez pas créé de sauvegarde depuis {{minutes}} minutes. Il est recommandé de sauvegarder vos données.",
+  "backup.reminder.hours": "💾 Vous n'avez pas créé de sauvegarde depuis {{hours}} heures. Il est recommandé de sauvegarder vos données.",
+  "backup.reminder.weeks": "💾 Vous n'avez pas créé de sauvegarde depuis {{weeks}} semaines. Il est recommandé de sauvegarder vos données.",
+  "backup.reminder.months": "💾 Vous n'avez pas créé de sauvegarde depuis {{months}} mois. Il est recommandé de sauvegarder vos données.",
+  "backup.reminder.years": "💾 Vous n'avez pas créé de sauvegarde depuis {{years}} années. Il est recommandé de sauvegarder vos données.",
+  "backup.reminder.today": "💾 Vous n'avez pas créé de sauvegarde aujourd'hui ! Il est recommandé de sauvegarder vos données.",
   // Gestion du stock de filament
   "filamentStock.title": "Gestion du stock de filament",
   "filamentStock.subtitle": "Surveiller et gérer les niveaux de stock de filament",
@@ -1161,6 +1172,14 @@ export const languageFr: TranslationMap = {
   "tutorial.previous": "Précédent",
   "tutorial.skip": "Passer",
   "tutorial.finish": "Terminer",
+  "tutorial.widgetInteractivity.title": "Interactivité des graphiques",
+  "tutorial.widgetInteractivity.description": "Vous pouvez cliquer sur les graphiques pour obtenir des vues détaillées. Vous pouvez utiliser le filtrage par période directement depuis le graphique (bascule hebdomadaire/mensuelle/annuelle) et les exporter au format SVG.",
+  "tutorial.filamentLibraryMultilang.title": "Noms de couleurs multilingues",
+  "tutorial.filamentLibraryMultilang.description": "Les noms de couleurs de filament apparaissent automatiquement dans votre langue sélectionnée ! L'application prend en charge les noms de couleurs dans 14 langues, ce qui facilite la navigation dans la bibliothèque.",
+  "tutorial.tableSorting.title": "Filtrage et tri des tableaux",
+  "tutorial.tableSorting.description": "Dans les tableaux, vous pouvez trier et filtrer par colonnes. Vous pouvez trier par plusieurs colonnes à la fois et les paramètres de tri sont enregistrés. Le défilement virtuel est également disponible pour les grandes listes.",
+  "tutorial.autosaveBackup.title": "Sauvegarde automatique et sauvegarde",
+  "tutorial.autosaveBackup.description": "La fonction de sauvegarde automatique crée un fichier de sauvegarde une fois par jour de toutes vos données. Dans l'historique des sauvegardes, vous pouvez voir les sauvegardes précédentes avec des indicateurs codés par couleur (vert=aujourd'hui, jaune=hier, rouge=2-4 jours, gris=5+ jours, sera supprimé bientôt).",
   
   // Éléments de widget
   "widget.manager.title": "Gestionnaire de widgets",
@@ -1221,6 +1240,189 @@ export const languageFr: TranslationMap = {
   "loading.offers": "Chargement des offres...",
   "loading.customers": "Chargement des clients...",
   "loading.initialization": "Initialisation...",
+  "loading.info": "L'application charge vos données sauvegardées (imprimantes, filaments, offres, clients) depuis le stockage.",
+  
+  // Settings - Backup History
+  "settings.backup.history.title": "Historique des sauvegardes automatiques",
+  "settings.backup.history.today": "Aujourd'hui",
+  "settings.backup.history.yesterday": "Hier",
+  "settings.backup.history.daysAgo": "il y a {days} jours",
+  "settings.backup.history.daysAgoWillDelete": "il y a {days} jours (sera supprimé bientôt)",
+  "settings.backup.history.willBeDeletedIn": "Sera supprimé dans: {countdown}",
+  "settings.backup.history.description": "Les fichiers de sauvegarde automatique sont créés une fois par jour lorsque l'enregistrement automatique est activé. Les fichiers sont automatiquement supprimés après 5 jours.",
+  "settings.backup.history.colorExplanation": "Explication du codage couleur:",
+  "settings.backup.history.colorGreen": "🟢 Vert - Sauvegarde d'aujourd'hui",
+  "settings.backup.history.colorYellow": "🟡 Jaune - Sauvegarde d'hier",
+  "settings.backup.history.colorRed": "🔴 Rouge - Sauvegarde de 2-4 jours",
+  "settings.backup.history.colorGray": "⚪ Gris - Sauvegarde de 5+ jours (sera bientôt supprimée)",
+  "settings.backup.history.deletionInfo": "Les fichiers de sauvegarde sont automatiquement supprimés après 5 jours. Cliquez sur un fichier pour l'ouvrir.",
+  "settings.backup.history.clickToOpen": "Cliquez sur un fichier de sauvegarde pour l'ouvrir",
+  "settings.backup.history.openFolder": "Ouvrir le dossier de sauvegarde",
+  "settings.backup.history.openFolderTooltip": "Ouvrir le dossier de sauvegarde dans le gestionnaire de fichiers",
+  "settings.backup.history.openFolderError": "Erreur lors de l'ouverture du dossier de sauvegarde",
+  
+  // Settings - Notifications
+  "settings.notifications.permissionRequired": "Autorisation de notification requise",
+  "settings.notifications.permissionGranted": "Autorisation accordée",
+  "settings.notifications.requestPermission": "Demander l'autorisation",
+  "settings.notifications.permissionGrantedMessage": "Autorisation de notification accordée",
+  "settings.notifications.testNotification": "Tester la notification",
+  "settings.notifications.testDockBadge": "Tester le badge Dock",
+  "settings.notifications.dockBadge.set": "Badge Dock défini: {value}",
+  "settings.notifications.dockBadge.cleared": "Badge Dock effacé",
+  "settings.notifications.dockBadge.setError": "Échec de la définition du badge Dock",
+  "settings.notifications.macOSLimitations": "Limitations des notifications macOS:",
+  "settings.notifications.closeAndDontShow": "Fermer et ne plus afficher",
+  "settings.notifications.closeWillReappear": "Fermer (réapparaîtra après le redémarrage)",
+  
+  // Settings - Other Settings
+  "settings.otherSettings": "Autres paramètres",
+  "settings.otherSettingsDescription": "Voir les raccourcis clavier et l'historique des versions",
+  "settings.versionHistory": "Historique des versions",
+  "settings.versionHistoryTooltip": "Afficher l'historique des versions",
+  
+  // Settings - Backup & Restore
+  "settings.backup.description": "Créer une sauvegarde de toutes les données ou restaurer un état précédent",
+  "settings.backup.exportTooltip": "Enregistrer toutes les données dans un fichier JSON",
+  "settings.backup.importTooltip": "Restaurer à partir d'un fichier de sauvegarde précédent",
+  "settings.backup.factoryReset": "Réinitialisation d'usine",
+  "settings.backup.factoryResetTitle": "Réinitialisation d'usine",
+  "settings.backup.factoryResetConfirm": "Oui, tout supprimer",
+  
+  // Settings - Log Management
+  "settings.logs.title": "Gestion des fichiers de journal",
+  "settings.logs.description": "Vous pouvez définir l'ancienneté des fichiers de journal que l'application doit supprimer automatiquement.",
+  "settings.logs.deleteOld": "Supprimer les anciens fichiers de journal",
+  "settings.logs.neverDelete": "Ne jamais supprimer",
+  "settings.logs.daysOrOlder": "jours ou plus anciens",
+  "settings.logs.location": "Emplacement des fichiers de journal",
+  "settings.logs.openFolder": "Ouvrir le dossier des journaux",
+  "settings.logs.format": "Format du fichier journal",
+  "settings.logs.format.text": "Texte",
+  "settings.logs.format.json": "JSON (structuré)",
+  "settings.logs.format.description": "Choisissez le format du fichier journal. Le format JSON contient des données structurées (horodatage, niveau, composant, trace de pile).",
+  "settings.logs.level": "Niveau de journal minimum",
+  "settings.logs.level.description": "Seuls les journaux de ce niveau ou supérieur seront écrits dans le fichier. DEBUG = tout, INFO = info et supérieur, WARN = avertissements et erreurs, ERROR = erreurs uniquement.",
+  "settings.logs.level.debug": "DEBUG (tout)",
+  "settings.logs.level.info": "INFO (par défaut)",
+  "settings.logs.level.warn": "WARN (avertissements et erreurs)",
+  "settings.logs.level.error": "ERROR (erreurs uniquement)",
+  
+  // Settings - Data Export/Import
+  "settings.data.exportTooltip": "Exporter les données vers un fichier JSON",
+  "settings.data.importWarning": "Attention: L'importation écrasera les données actuelles!",
+  "settings.data.selectOneItem": "Sélectionnez au moins un élément!",
+  "settings.data.invalidFileFormat": "Format de fichier invalide!",
+  
+  // Settings - Autosave Modal
+  "settings.autosave.modal.cancel": "Annuler",
+  "settings.autosave.modal.ok": "OK",
+  
+  // Settings - Factory Reset Message
+  "settings.backup.factoryResetMessage": "⚠️ ATTENTION! Cette action supprimera TOUTES les données stockées:\n\n• Imprimantes\n• Filaments\n• Offres\n• Clients\n• Paramètres\n• Modèles\n• Historique des prix\n• Fichiers de sauvegarde automatique\n\nCette action est IRRÉVERSIBLE! Êtes-vous sûr de vouloir continuer?",
+  
+  // Settings - Notification Messages
+  "settings.notifications.permissionGrantedTitle": "Autorisation accordée",
+  "settings.notifications.permissionGrantedBody": "L'application apparaîtra maintenant dans les paramètres de notification.",
+  "settings.notifications.permissionGrantedToast": "Autorisation de notification accordée! Notification de test envoyée. Si vous ne la voyez pas, essayez de masquer l'application (Cmd+H).",
+  "settings.notifications.permissionGrantedButFailed": "Autorisation de notification accordée, mais l'envoi de la notification a échoué. Essayez de masquer l'application (Cmd+H) et d'envoyer à nouveau la notification.",
+  "settings.notifications.permissionDenied": "Autorisation de notification refusée. Activez-la dans les paramètres système.",
+  "settings.notifications.requestFailed": "Échec de la demande d'autorisation",
+  "settings.notifications.devModeWarning": "En mode développement, les notifications peuvent ne pas toujours apparaître nativement (en raison de l'absence de signature de code).",
+  "settings.notifications.productionBuildInfo": "Dans la version de production, les notifications fonctionnent correctement si l'application est signée.",
+  "settings.notifications.backgroundOnly": "Les notifications n'apparaissent nativement que lorsque l'application est inactive (en arrière-plan).",
+  "settings.notifications.systemSettingsInfo": "L'application apparaîtra dans Réglages système > Notifications et Focus après la version de production.",
+  
+  // Settings - Factory Reset
+  "settings.backup.factoryResetDescription": "Cette action supprimera TOUTES les données stockées et réinitialisera l'application aux paramètres par défaut. L'application redémarrera comme si vous la lanciez pour la première fois.",
+  "settings.backup.factoryResetTooltip": "Réinitialisation d'usine - supprime toutes les données",
+  "settings.backup.systemDiagnostics": "Diagnostics système",
+  "settings.backup.systemDiagnosticsTooltip": "Diagnostics système et vérification de stabilité",
+  
+  // Factory Reset Progress
+  "factoryResetProgress.title": "Réinitialisation d'usine",
+  "factoryResetProgress.step.deleteBackups": "Suppression des fichiers de sauvegarde automatique...",
+  "factoryResetProgress.step.deleteLogs": "Suppression des fichiers de journal...",
+  "factoryResetProgress.step.deleteConfig": "Suppression des fichiers de configuration...",
+  "factoryResetProgress.step.complete": "Réinitialisation terminée",
+  "factoryResetProgress.message.filesDeleted": "fichiers supprimés",
+  "factoryResetProgress.message.noFilesToDelete": "Aucun fichier à supprimer",
+  "factoryResetProgress.message.filesDeletedShort": "Fichiers supprimés",
+  "factoryResetProgress.completed.title": "Réinitialisation d'usine terminée avec succès!",
+  "factoryResetProgress.completed.countdown": "Le sélecteur de langue apparaîtra dans {seconds} secondes...",
+  "factoryResetProgress.waiting": "Veuillez patienter... Ce processus ne peut pas être annulé.",
+  
+  // Common - Header
+  "common.nextSave": "Prochain enregistrement",
+  "common.lastSaved": "Dernier enregistrement",
+  "common.currentDate": "Date actuelle",
+  "common.noBackupYet": "Pas encore de sauvegarde",
+  "common.justSaved": "Enregistré à l'instant",
+  
+  // Common - Time Ago
+  "common.timeAgo.years": "il y a {count} ans",
+  "common.timeAgo.months": "il y a {count} mois",
+  "common.timeAgo.weeks": "il y a {count} semaines",
+  "common.timeAgo.days": "il y a {count} jours",
+  "common.timeAgo.hours": "il y a {count} heures",
+  "common.timeAgo.minutes": "il y a {count} minutes",
+  
+  // Header - Autosave
+  "header.autosave.notSavedYet": "Pas encore enregistré",
+  "header.autosave.justSaved": "Enregistré à l'instant",
+  "header.autosave.saveInSeconds": "Enregistrer dans {seconds} s",
+  "header.autosave.saveInMinutes": "Enregistrer dans {minutes} min",
+  "header.autosave.saveInMinutesSeconds": "Enregistrer dans {minutes}:{seconds}",
+  
+  // Header - Menu
+  "header.menu.hide": "Masquer le menu",
+  "header.menu.show": "Afficher le menu",
+  
+  // Header - Reminder
+  "header.reminder.today": "Aujourd'hui",
+  "header.reminder.tomorrow": "Demain",
+  "header.reminder.in2Days": "Après-demain",
+  "header.reminder.more": "(+{count} de plus)",
+  
+  // System Diagnostics
+  "systemDiagnostics.title": "Diagnostics système",
+  "systemDiagnostics.checking.systemInfo": "Vérification des informations système...",
+  "systemDiagnostics.checking.memory": "Vérification de l'utilisation de la mémoire...",
+  "systemDiagnostics.checking.files": "Vérification du système de fichiers...",
+  "systemDiagnostics.checking.modules": "Vérification des modules...",
+  "systemDiagnostics.checking.store": "Vérification du stockage de données...",
+  "systemDiagnostics.success.cpu": "Informations CPU récupérées avec succès",
+  "systemDiagnostics.success.memory": "Informations mémoire récupérées avec succès",
+  "systemDiagnostics.success.os": "Informations système d'exploitation récupérées avec succès",
+  "systemDiagnostics.success.memoryUsage": "L'utilisation de la mémoire est acceptable",
+  "systemDiagnostics.success.fileExists": "Le fichier existe",
+  "systemDiagnostics.success.moduleLoaded": "Module chargé",
+  "systemDiagnostics.success.storeAccessible": "Stockage de données accessible",
+  "systemDiagnostics.warning.memoryHigh": "Utilisation élevée de la mémoire",
+  "systemDiagnostics.warning.memoryRecommendation": "Il est recommandé de redémarrer l'application.",
+  "systemDiagnostics.warning.fileMissing": "Fichier manquant",
+  "systemDiagnostics.warning.fileWillBeCreated": "Le fichier sera créé automatiquement lors de la première utilisation.",
+  "systemDiagnostics.error.systemInfo": "Erreur lors de la récupération des informations système",
+  "systemDiagnostics.error.memoryCritical": "Utilisation critique de la mémoire !",
+  "systemDiagnostics.error.memoryCheck": "Erreur lors de la vérification de la mémoire",
+  "systemDiagnostics.error.fileCheck": "Erreur lors de la vérification du fichier",
+  "systemDiagnostics.error.moduleNotFound": "Module non trouvé",
+  "systemDiagnostics.error.moduleLoad": "Erreur lors du chargement du module",
+  "systemDiagnostics.error.storeCheck": "Erreur lors de la vérification du stockage de données",
+  "systemDiagnostics.error.general": "Erreur lors de l'exécution du diagnostic",
+  "systemDiagnostics.info.storeWillBeCreated": "Le stockage de données sera créé automatiquement",
+  "systemDiagnostics.info.moduleAvailable": "Composant disponible",
+  "systemDiagnostics.category.system": "Système",
+  "systemDiagnostics.category.memory": "Mémoire",
+  "systemDiagnostics.category.files": "Fichiers",
+  "systemDiagnostics.category.modules": "Modules",
+  "systemDiagnostics.category.store": "Stockage de données",
+  "systemDiagnostics.category.summary": "Résumé",
+  "systemDiagnostics.category.errors": "Erreurs",
+  "systemDiagnostics.summary.completed": "Diagnostic terminé",
+  "systemDiagnostics.completed": "Terminé",
+  "systemDiagnostics.waiting": "En attente du démarrage de la vérification...",
+  "systemDiagnostics.rerun": "Relancer",
 };
 
 

@@ -1,14 +1,32 @@
 import { Store } from "@tauri-apps/plugin-store";
 import type { Printer, Filament, Settings, Offer, CalculationTemplate, Customer, PriceHistory } from "../types";
+// deleteAllAutomaticBackups import eltávolítva - a FactoryResetProgress modal kezeli a backup fájlok törlését
+import { remove, exists } from "@tauri-apps/plugin-fs";
+import { BaseDirectory } from "@tauri-apps/plugin-fs";
 
 // Lazy-initialized store
 let storeInstance: Store | null = null;
 
 async function getStore(): Promise<Store> {
   if (!storeInstance) {
+    // Ellenőrizzük, hogy létezik-e a data.json fájl, mielőtt betöltjük a Store-t
+    // Ha nem létezik, akkor nem hozzuk létre automatikusan (Factory Reset után)
+    const dataJsonExists = await exists("data.json", { baseDir: BaseDirectory.AppConfig });
+    if (!dataJsonExists) {
+      // Ha nincs data.json, akkor még nem hozzuk létre a Store-t
+      // Ez biztosítja, hogy a Factory Reset után ne generálódjon automatikusan a fájl
+      // A Store.load() automatikusan létrehozza a fájlt, ha nem létezik, ezért először
+      // ellenőrizzük, és csak akkor hozzuk létre a Store-t, ha a fájl már létezik
+      throw new Error("data.json fájl nem létezik. Kérjük, válasszon nyelvet először.");
+    }
     storeInstance = await Store.load("data.json");
   }
   return storeInstance;
+}
+
+// Exportált függvény a Store instance resetelésére (Factory Reset után)
+export function resetStoreInstance(): void {
+  storeInstance = null;
 }
 
 // Printers
@@ -98,7 +116,20 @@ export async function saveSettings(settings: Settings): Promise<void> {
         theme: settings.theme 
       });
     }
-    const store = await getStore();
+    
+    // Ha a getStore() hibát dob (mert nincs data.json), akkor először létrehozzuk a Store-t
+    let store: Store;
+    try {
+      store = await getStore();
+    } catch (error) {
+      // Ha nincs data.json, akkor most létrehozzuk (pl. nyelvválasztó után)
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ data.json nem létezik, létrehozás...");
+      }
+      store = await Store.load("data.json");
+      storeInstance = store; // Frissítjük a storeInstance-t
+    }
+    
     await store.set("settings", settings);
     await store.save();
     if (import.meta.env.DEV) {
@@ -111,8 +142,19 @@ export async function saveSettings(settings: Settings): Promise<void> {
 }
 
 export async function loadSettings(): Promise<Settings | null> {
-  const store = await getStore();
   try {
+    // Ha nincs data.json, akkor null-t adunk vissza (nem hibaként kezeljük)
+    let store: Store;
+    try {
+      store = await getStore();
+    } catch (error) {
+      // Ha nincs data.json (pl. Factory Reset után), akkor null-t adunk vissza
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ data.json nem létezik, nincsenek mentett beállítások");
+      }
+      return null;
+    }
+    
     if (import.meta.env.DEV) {
       console.log("📥 Beállítások betöltése...");
     }
@@ -292,7 +334,7 @@ export async function clearAllData(): Promise<void> {
     }
     const store = await getStore();
     
-    // Töröljük az összes kulcsot
+    // Töröljük az összes kulcsot a Store-ból
     await store.delete("printers");
     await store.delete("filaments");
     await store.delete("offers");
@@ -301,8 +343,79 @@ export async function clearAllData(): Promise<void> {
     await store.delete("templates");
     await store.delete("priceHistory");
     
-    // Mentjük az üres store-t
-    await store.save();
+    // MEGJEGYZÉS: A backup és log fájlok törlése a FactoryResetProgress komponensben történik
+    // Itt nem töröljük őket, hogy a progress modal-ban külön kezelhessük őket
+    
+    
+    // FONTOS: Nem hívjuk meg a store.save()-et, mert az újra létrehozná az üres fájlt!
+    // Ehelyett bezárjuk a Store-t, és utána töröljük a fizikai fájlt
+    
+    // Reseteljük a storeInstance-t, hogy bezárjuk a Store-t
+    // Ez lehetővé teszi a fizikai fájl törlését
+    storeInstance = null;
+    
+    // Nagyobb késleltetés, hogy a Store biztosan bezáruljon
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Töröljük a fizikai fájlokat is
+    try {
+      // Töröljük a data.json fájlt (Store fájl)
+      try {
+        const dataJsonExists = await exists("data.json", { baseDir: BaseDirectory.AppConfig });
+        if (dataJsonExists) {
+          await remove("data.json", { baseDir: BaseDirectory.AppConfig });
+          if (import.meta.env.DEV) {
+            console.log("🗑️ data.json törölve");
+          }
+        } else {
+          if (import.meta.env.DEV) {
+            console.log("ℹ️ data.json nem létezett");
+          }
+        }
+      } catch (error) {
+        console.error("❌ Hiba a data.json törlésekor:", error);
+        // Folytatjuk a többi fájl törlésével
+      }
+      
+      // Töröljük a filamentLibrary.json fájlt
+      try {
+        const filamentLibraryExists = await exists("filamentLibrary.json", { baseDir: BaseDirectory.AppConfig });
+        if (filamentLibraryExists) {
+          await remove("filamentLibrary.json", { baseDir: BaseDirectory.AppConfig });
+          if (import.meta.env.DEV) {
+            console.log("🗑️ filamentLibrary.json törölve");
+          }
+        } else {
+          if (import.meta.env.DEV) {
+            console.log("ℹ️ filamentLibrary.json nem létezett");
+          }
+        }
+      } catch (error) {
+        console.error("❌ Hiba a filamentLibrary.json törlésekor:", error);
+        // Folytatjuk a többi fájl törlésével
+      }
+      
+      // Töröljük az update_filamentLibrary.json fájlt
+      try {
+        const updateFilamentLibraryExists = await exists("update_filamentLibrary.json", { baseDir: BaseDirectory.AppConfig });
+        if (updateFilamentLibraryExists) {
+          await remove("update_filamentLibrary.json", { baseDir: BaseDirectory.AppConfig });
+          if (import.meta.env.DEV) {
+            console.log("🗑️ update_filamentLibrary.json törölve");
+          }
+        } else {
+          if (import.meta.env.DEV) {
+            console.log("ℹ️ update_filamentLibrary.json nem létezett");
+          }
+        }
+      } catch (error) {
+        console.error("❌ Hiba az update_filamentLibrary.json törlésekor:", error);
+        // Folytatjuk
+      }
+    } catch (error) {
+      console.error("❌ Hiba a fizikai fájlok törlésekor:", error);
+      // Ne dobjuk el a hibát, mert a Store már törölve lett
+    }
     
     if (import.meta.env.DEV) {
       console.log("✅ Összes adat törölve (Factory reset kész)");

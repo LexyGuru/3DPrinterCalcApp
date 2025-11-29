@@ -42,6 +42,124 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 
 ## 📋 Änderungsprotokoll (Changelog)
 
+### v1.9.0 (2025) - 🔍 Systemdiagnose & Leistungsverbesserungen
+
+- 🔍 **Systemdiagnose** - Umfassendes Systemgesundheitsprüfungs-Tool:
+  - Systeminformationsanzeige (CPU, Speicher, OS, GPU, Festplatte)
+  - Dateisystemvalidierung (data.json, filamentLibrary.json, update_filament.json)
+  - Modulverfügbarkeitsprüfungen (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Datenspeicher-Zugänglichkeitsprüfung
+  - Fortschrittsbalken mit detaillierten Statusmeldungen
+  - Zusammenfassung mit Fehler/Warnung/Erfolgs-Indikatoren
+  - Diagnose erneut ausführen Button
+  - In Log-Verwaltungsbereich verschoben (logischere Platzierung)
+  - Vollständig lokalisiert in allen 13 unterstützten Sprachen
+
+- ⚡ **Log-Viewer-Leistung** - Virtuelles Scrollen für große Log-Dateien:
+  - Benutzerdefinierte virtuelle Scroll-Implementierung für LogViewer-Komponente
+  - Nur sichtbare Log-Einträge werden gerendert, dramatisch verbesserte Leistung
+  - Reibungsloses Scrollen und Suchen auch bei massiven Log-Dateien (100k+ Zeilen)
+  - Beibehaltung genauer Scrollbar-Position und -Höhe
+  - Deutlich schnellere Such- und Filtervorgänge
+
+- 🔔 **Einheitliches Benachrichtigungssystem** - Zentralisierter Benachrichtigungsdienst:
+  - Einzelner `notificationService` für sowohl Toast- als auch Plattform-Benachrichtigungen
+  - Prioritätsbasierte Benachrichtigungsrouting (hohe Priorität → Plattform-Benachrichtigung)
+  - Automatische Entscheidungsfindung basierend auf App-Status (Vordergrund/Hintergrund)
+  - Rückwärtskompatibel mit vorhandenen Benachrichtigungsfunktionen
+  - Konfigurierbare Benachrichtigungseinstellungen (Toast ein/aus, Plattform-Benachrichtigung ein/aus, Prioritätsstufen)
+
+- 🎯 **UI/UX-Verbesserungen**:
+  - Systemdiagnose von Backup-Bereich in Log-Verwaltungsbereich verschoben (logischere Platzierung)
+  - TypeScript-Linter-Fehler behoben (ungenutzte Variablen, Typinkongruenzen)
+  - Verbesserte Codequalität und Wartbarkeit
+
+### v1.8.0 (2025) - 📊 Erweiterte Protokollierung & Factory Reset Verbesserungen
+
+- 🔄 **Factory Reset Progress Modal** - Visueller Fortschrittsindikator für Factory Reset:
+  - 4-stufiger animierter Fortschritt (Backup-Löschung, Log-Löschung, Config-Löschung, Abschluss)
+  - Echtzeit-Statusaktualisierungen mit Erfolgs-/Fehlermeldungen
+  - 10-Sekunden-Countdown vor Anzeige der Sprachauswahl
+  - Nicht schließbares Modal während des Reset-Vorgangs
+  - Vollständig lokalisiert in allen 13 unterstützten Sprachen
+
+- 📋 **Vollständige Protokollierungssystem-Überarbeitung** - Professionelle Protokollierungsinfrastruktur:
+  - Plattformübergreifende Log-Dateipfade (plattformspezifische Datenverzeichnisse)
+  - Systeminformationsprotokollierung (CPU, Speicher, OS, GPU, Festplatte, App-Version)
+  - Verzeichnisinformationsprotokollierung (Log- und Backup-Ordner, Dateianzahl, Größen)
+  - Detaillierte Ladestatus-Protokollierung (Erfolg/Warnung/Fehler/kritisch)
+  - Log-Stufen (DEBUG, INFO, WARN, ERROR) mit Filterung
+  - Unterstützung für strukturiertes Log-Format (Text und JSON)
+  - Log-Rotation mit automatischer Bereinigung (konfigurierbare Aufbewahrungstage)
+  - Log-Viewer-Modal mit Filterung, Suche, Hervorhebung und Export
+  - Log-Konfiguration in Einstellungen (Format, Stufe, Aufbewahrungstage)
+  - Log-Dateiinhalte bleiben über App-Neustarts erhalten (Anhängen-Modus)
+
+- 🔍 **Systemdiagnose** - Systemgesundheitsprüfungs-Modal:
+  - Systeminformationsanzeige und Validierung
+  - Speichernutzungsüberwachung mit Warnungen
+  - Dateiexistenzprüfungen
+  - Modulverfügbarkeitsprüfung
+  - Datenspeicher-Zugänglichkeitstests
+  - Fortschrittsbalken und Zusammenfassungsanzeige
+  - Vollständig lokalisiert in allen 13 unterstützten Sprachen
+
+- 🛠️ **Technische Verbesserungen**:
+  - Protokollierung während Factory Reset deaktiviert, um Protokollverschmutzung zu vermeiden
+  - data.json-Erstellung verzögert bis zur Sprachauswahl (sauberer Factory Reset-Ablauf)
+  - Log-Dateiinitialisierung verzögert bis zur Sprachauswahl
+  - Automatischer App-Neustart nach Sprachauswahl
+  - Backend-Befehle für Backup- und Log-Dateiverwaltung
+  - Plattformübergreifende Pfadbehandlung für Backups und Logs
+  - Speicherberechnung behoben (sysinfo 0.31-Kompatibilität)
+  - React-Stil-Warnungen behoben (CSS-Kurzschrift-Konflikte)
+
+### v1.7.0 (2025) - 💾 Backup-System, Ladebildschirm und Filament-Bibliothek Verbesserungen
+
+- 💾 **Vollständige Backup-System-Implementierung**
+  - Automatisches Backup-System mit einer Backup-Datei pro Tag (wird nur an einem neuen Tag erstellt)
+  - Backup-Erinnerung Hook und UI-Komponente - Benachrichtigung, wenn kein Backup existiert
+  - Backup-Verlauf UI in Einstellungen - farbcodierte Liste (grün/gelb/rot/grau) mit Backup-Dateialter und Lösch-Countdown
+  - Autosave-Modal-Fenster - Erklärung beim Aktivieren von Autosave
+  - Autosave und automatisches Backup synchronisiert - automatisches Backup bei Autosave-Speicherung
+  - Factory Reset löscht jetzt automatische Backup-Dateien
+  - Backup-Verlauf aktualisiert sich automatisch, wenn Autosave aktiviert wird
+- 🔧 **Backup-System-Backend-Optimierung**
+  - Backend-Befehle zum Löschen alter Backups hinzugefügt (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Frontend-Cleanup-Funktionen aktualisiert, um Backend-Befehle zu verwenden, wodurch "forbidden path"-Fehler eliminiert werden
+  - Alle Dateioperationen (Erstellen, Löschen, Auflisten) erfolgen jetzt vom Backend aus, wodurch Tauri-Berechtigungsprobleme vermieden werden
+- ⚡ **Backup-System-Leistungsoptimierung**
+  - `hasTodayBackup()` optimiert: verwendet `list_backup_files` Backend-Befehl, keine Notwendigkeit, alle Dateien zu lesen
+  - Sperrmechanismus hinzugefügt, um parallele Backup-Erstellung zu verhindern
+  - Schnellere Bedienung auch bei großen Mengen von Backup-Dateien
+- 📁 **Backup-Verzeichnis öffnen und Log-Verlauf**
+  - Button in Einstellungen → Backup-Verlauf hinzugefügt, um den Backup-Ordner zu öffnen
+  - Neuer Log-Verlauf-Bereich in Einstellungen - Log-Dateien auflisten und öffnen
+  - Automatisches Löschen von Log-Dateien nach Tagen konfigurierbar
+  - Plattformübergreifende Unterstützung (macOS, Windows, Linux)
+- 🎨 **Vollständige Ladebildschirm-Neugestaltung**
+  - App-Logo als Hintergrund mit Glassmorphismus-Effekten integriert
+  - Fixes Layout für Häkchen - automatisches Scrollen, nur 3 Module gleichzeitig sichtbar
+  - Shimmer-Effekte, pulsierende Punkt-Animationen
+  - Scroll-Container mit versteckter Scrollbar
+- ⚙️ **Ladevorgang-Verbesserungen**
+  - Verlangsamtes Laden (800ms Verzögerungen) - Lademeldungen sind lesbar
+  - Fehlerbehandlung für jedes Modul (try-catch-Blöcke)
+  - Physische Log-Datei für alle Status und Fehler
+  - Lade-Zusammenfassung am Ende
+- 🎨 **Mehrsprachige Filament-Bibliothek-Unterstützung**
+  - Filament-Farben werden in allen unterstützten Sprachen angezeigt (nicht nur Ungarisch/Deutsch/Englisch)
+  - Fallback-Logik: Englisch → Ungarisch → Deutsch → rohe Farbe/Name
+  - Einstellungen, Globale Suche und Filamente Komponenten aktualisiert
+- 🔄 **Factory Reset Verbesserungen**
+  - Physische Dateien-Löschung (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Store-Instanz-Reset ohne Neuladen
+  - Sprachauswahl wird nach Factory Reset angezeigt
+- 🎓 **Tutorial mit v1.7.0-Funktionen aktualisiert**
+  - Neue Schritte: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Demo-Daten erweitert: 6 Filamente → 11 Filamente, 3 Angebote → 5 Angebote
+  - Übersetzungsschlüssel für alle Sprachen hinzugefügt
+
 ### v1.6.0 (2025) - 📊 Interaktive Widgets & Leistung großer Tabellen
 
 - 🧠 **Interaktive Diagramme & Detail-Modals**

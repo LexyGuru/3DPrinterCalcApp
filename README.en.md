@@ -509,6 +509,124 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+### v1.9.0 (2025) - 🔍 System Diagnostics & Performance Improvements
+
+- 🔍 **System Diagnostics** - Comprehensive system health-check tool:
+  - System information display (CPU, memory, OS, GPU, disk)
+  - File system validation (data.json, filamentLibrary.json, update_filament.json)
+  - Module availability checks (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Data store accessibility verification
+  - Progress bar with detailed status messages
+  - Summary with error/warning/success indicators
+  - Rerun diagnostics button
+  - Moved to Log Management section for better organization
+  - Fully localized in all 13 supported languages
+
+- ⚡ **Log Viewer Performance** - Virtual scrolling for large log files:
+  - Custom virtual scrolling implementation for LogViewer component
+  - Only visible log entries are rendered, dramatically improving performance
+  - Smooth scrolling and searching even with massive log files (100k+ lines)
+  - Maintains accurate scrollbar position and height
+  - Significantly faster search and filter operations
+
+- 🔔 **Unified Notification System** - Centralized notification service:
+  - Single `notificationService` for both Toast and platform notifications
+  - Priority-based notification routing (high priority → platform notification)
+  - Automatic decision making based on app state (foreground/background)
+  - Backward compatible with existing notification functions
+  - Configurable notification preferences (Toast on/off, platform notification on/off, priority levels)
+
+- 🎯 **UI/UX Improvements**:
+  - System Diagnostics moved from Backup section to Log Management section (more logical placement)
+  - TypeScript linter errors fixed (unused variables, type mismatches)
+  - Improved code quality and maintainability
+
+### v1.8.0 (2025) - 📊 Advanced Logging & Factory Reset Enhancements
+
+- 🔄 **Factory Reset Progress Modal** - Visual progress indicator for factory reset:
+  - 4-step animated progress (backup deletion, log deletion, config deletion, completion)
+  - Real-time status updates with success/error messages
+  - 10-second countdown before language selector appears
+  - Non-dismissible modal during reset process
+  - Fully localized in all 13 supported languages
+
+- 📋 **Complete Logging System Overhaul** - Professional logging infrastructure:
+  - Cross-platform log file paths (platform-specific data directories)
+  - System information logging (CPU, memory, OS, GPU, disk, app version)
+  - Directory information logging (log and backup folders, file counts, sizes)
+  - Detailed loading status logging (success/warning/error/critical)
+  - Log levels (DEBUG, INFO, WARN, ERROR) with filtering
+  - Structured log format support (text and JSON)
+  - Log rotation with automatic cleanup (configurable retention days)
+  - Log Viewer modal with filtering, search, highlight, and export
+  - Log configuration in Settings (format, level, retention days)
+  - Log file content preserved across app restarts (append mode)
+
+- 🔍 **System Diagnostics** - System health-check modal:
+  - System information display and validation
+  - Memory usage monitoring with warnings
+  - File existence checks
+  - Module availability verification
+  - Data store accessibility tests
+  - Progress bar and summary display
+  - Fully localized in all 13 supported languages
+
+- 🛠️ **Technical Improvements**:
+  - Logging disabled during Factory Reset to prevent log pollution
+  - data.json creation delayed until language selection (cleaner Factory Reset flow)
+  - Log file initialization delayed until language selection
+  - Automatic app restart after language selection
+  - Backend commands for backup and log file management
+  - Cross-platform path handling for backups and logs
+  - Fixed memory calculation (sysinfo 0.31 compatibility)
+  - React style warnings fixed (CSS shorthand conflicts)
+
+### v1.7.0 (2025) - 💾 Backup system, loading screen and filament library improvements
+
+- 💾 **Complete backup system implementation**
+  - Automatic backup system with one backup file per day (only created on a new day)
+  - Backup reminder hook and UI component - notification when no backup exists
+  - Backup History UI in Settings - color-coded list (green/yellow/red/gray) showing backup file age and deletion countdown
+  - Autosave modal window - explanation when enabling autosave
+  - Autosave and automatic backup synchronization - automatic backup on autosave save
+  - Factory Reset now deletes automatic backup files
+  - Backup history automatically refreshes when autosave is enabled
+- 🔧 **Backup system backend optimization**
+  - Backend commands added for deleting old backups (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Frontend cleanup functions updated to use backend commands, eliminating "forbidden path" errors
+  - All file operations (create, delete, list) now happen from the backend, avoiding Tauri permissions issues
+- ⚡ **Backup system performance optimization**
+  - `hasTodayBackup()` optimized: uses `list_backup_files` backend command, no need to read all files
+  - Lock mechanism added to prevent parallel backup creation
+  - Faster operation even with large numbers of backup files
+- 📁 **Open backup directory and log history**
+  - Button added in Settings → Backup History section to open the backup folder
+  - New log history section in Settings - list and open log files
+  - Automatic log file deletion configurable by days
+  - Cross-platform support (macOS, Windows, Linux)
+- 🎨 **Complete loading screen redesign**
+  - App logo integrated as background with glassmorphism effects
+  - Fixed layout for checkmarks - automatic scrolling, only 3 modules visible at once
+  - Shimmer effects, pulsing dots animations
+  - Scroll container with hidden scrollbar
+- ⚙️ **Loading process improvements**
+  - Slowed down loading (800ms delays) - loading messages are readable
+  - Error handling for every module (try-catch blocks)
+  - Physical log file for all statuses and errors
+  - Loading summary at the end
+- 🎨 **Filament library multilingual support**
+  - Filament colors displayed in all supported languages (not just Hungarian/German/English)
+  - Fallback logic: English → Hungarian → German → raw color/name
+  - Settings, GlobalSearch and Filaments components updated
+- 🔄 **Factory Reset improvements**
+  - Physical files deletion (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Store instance reset without reload
+  - Language selector displayed after Factory Reset
+- 🎓 **Tutorial updated with v1.7.0 features**
+  - New steps: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Demo data expanded: 6 filaments → 11 filaments, 3 offers → 5 offers
+  - Translation keys added for all languages
+
 ### v1.6.0 (2025) - 📊 Interactive Widgets & Large Table Performance
 
 - 🧠 **Interactive Charts & Detail Modals**

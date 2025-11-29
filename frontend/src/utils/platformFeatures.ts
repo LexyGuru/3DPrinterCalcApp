@@ -146,8 +146,19 @@ export function getPlatform(): "macos" | "windows" | "linux" | "unknown" {
 
 /**
  * Platform specifikus értesítés küldése export műveletekhez
+ * @deprecated Használd a notificationService.notifyExportComplete() helyette
  */
 export async function notifyExportComplete(fileName: string): Promise<void> {
+  // Visszafelé kompatibilitás: próbáljuk meg használni az új service-t
+  try {
+    const { notifyExportComplete: notifyExport } = await import("./notificationService");
+    await notifyExport(fileName);
+    return;
+  } catch (error) {
+    // Ha nincs inicializálva, használjuk a régi módszert
+    console.warn("notificationService nincs inicializálva, régi módszer használata");
+  }
+  
   const platform = getPlatform();
   const title = platform === "macos" 
     ? "Exportálás kész" 
@@ -160,15 +171,37 @@ export async function notifyExportComplete(fileName: string): Promise<void> {
 
 /**
  * Platform specifikus értesítés küldése mentéshez
+ * @deprecated Használd a notificationService.notifySaveComplete() helyette
  */
 export async function notifySaveComplete(): Promise<void> {
+  // Visszafelé kompatibilitás: próbáljuk meg használni az új service-t
+  try {
+    const { notifySaveComplete: notifySave } = await import("./notificationService");
+    await notifySave();
+    return;
+  } catch (error) {
+    // Ha nincs inicializálva, használjuk a régi módszert
+    console.warn("notificationService nincs inicializálva, régi módszer használata");
+  }
+  
   await sendNativeNotification("Mentés", "Adatok sikeresen mentve");
 }
 
 /**
  * Platform specifikus értesítés küldése árajánlat státusz változáshoz
+ * @deprecated Használd a notificationService.notifyOfferStatusChange() helyette
  */
 export async function notifyOfferStatusChange(offerName: string, status: string): Promise<void> {
+  // Visszafelé kompatibilitás: próbáljuk meg használni az új service-t
+  try {
+    const { notifyOfferStatusChange: notifyOffer } = await import("./notificationService");
+    await notifyOffer(offerName, status);
+    return;
+  } catch (error) {
+    // Ha nincs inicializálva, használjuk a régi módszert
+    console.warn("notificationService nincs inicializálva, régi módszer használata");
+  }
+  
   await sendNativeNotification(
     "Árajánlat státusz változás",
     `${offerName} státusza: ${status}`

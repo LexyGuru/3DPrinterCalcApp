@@ -41,6 +41,124 @@ Une application desktop moderne pour calculer les coûts d'impression 3D. Constr
 
 ## 📋 Journal des modifications (Changelog)
 
+### v1.9.0 (2025) - 🔍 Diagnostics Système et Améliorations des Performances
+
+- 🔍 **Diagnostics Système** - Outil complet de vérification de l'état du système:
+  - Affichage des informations système (CPU, mémoire, OS, GPU, disque)
+  - Validation du système de fichiers (data.json, filamentLibrary.json, update_filament.json)
+  - Vérifications de disponibilité des modules (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Vérification de l'accessibilité du stockage de données
+  - Barre de progression avec messages d'état détaillés
+  - Résumé avec indicateurs d'erreur/avertissement/succès
+  - Bouton pour relancer les diagnostics
+  - Déplacé vers la section Gestion des Journaux (placement plus logique)
+  - Entièrement localisé dans les 13 langues prises en charge
+
+- ⚡ **Performances du Visualiseur de Journaux** - Défilement virtuel pour les fichiers journaux volumineux:
+  - Implémentation personnalisée du défilement virtuel pour le composant LogViewer
+  - Seules les entrées de journal visibles sont rendues, améliorant considérablement les performances
+  - Défilement et recherche fluides même avec des fichiers journaux massifs (100k+ lignes)
+  - Maintient une position et une hauteur précises de la barre de défilement
+  - Opérations de recherche et de filtrage considérablement plus rapides
+
+- 🔔 **Système de Notifications Unifié** - Service de notification centralisé:
+  - Un seul `notificationService` pour les notifications Toast et de la plateforme
+  - Routage des notifications basé sur la priorité (priorité élevée → notification de la plateforme)
+  - Prise de décision automatique basée sur l'état de l'application (avant-plan/arrière-plan)
+  - Compatible avec les fonctions de notification existantes
+  - Préférences de notification configurables (Toast activé/désactivé, notification de la plateforme activée/désactivée, niveaux de priorité)
+
+- 🎯 **Améliorations UI/UX**:
+  - Diagnostics Système déplacés de la section Sauvegarde vers la section Gestion des Journaux (placement plus logique)
+  - Erreurs du linter TypeScript corrigées (variables non utilisées, incompatibilités de type)
+  - Qualité et maintenabilité du code améliorées
+
+### v1.8.0 (2025) - 📊 Journalisation Avancée et Améliorations de la Réinitialisation d'Usine
+
+- 🔄 **Modal de Progression de la Réinitialisation d'Usine** - Indicateur de progression visuel pour la réinitialisation d'usine:
+  - Progression animée en 4 étapes (suppression de sauvegarde, suppression de journal, suppression de config, complétion)
+  - Mises à jour de statut en temps réel avec messages de succès/erreur
+  - Compte à rebours de 10 secondes avant l'apparition du sélecteur de langue
+  - Modal non fermable pendant le processus de réinitialisation
+  - Entièrement localisé dans les 13 langues prises en charge
+
+- 📋 **Refonte Complète du Système de Journalisation** - Infrastructure de journalisation professionnelle:
+  - Chemins de fichiers journaux multiplateformes (répertoires de données spécifiques à la plateforme)
+  - Journalisation des informations système (CPU, mémoire, OS, GPU, disque, version de l'application)
+  - Journalisation des informations de répertoire (dossiers journaux et sauvegarde, comptes de fichiers, tailles)
+  - Journalisation détaillée du statut de chargement (succès/avertissement/erreur/critique)
+  - Niveaux de journal (DEBUG, INFO, WARN, ERROR) avec filtrage
+  - Support du format de journal structuré (texte et JSON)
+  - Rotation des journaux avec nettoyage automatique (jours de rétention configurables)
+  - Modal Visualiseur de Journaux avec filtrage, recherche, mise en surbrillance et exportation
+  - Configuration du journal dans Paramètres (format, niveau, jours de rétention)
+  - Contenu du fichier journal préservé entre les redémarrages de l'application (mode d'ajout)
+
+- 🔍 **Diagnostics Système** - Modal de vérification de l'état du système:
+  - Affichage et validation des informations système
+  - Surveillance de l'utilisation de la mémoire avec avertissements
+  - Vérifications de l'existence des fichiers
+  - Vérification de la disponibilité des modules
+  - Tests d'accessibilité du stockage de données
+  - Affichage de la barre de progression et du résumé
+  - Entièrement localisé dans les 13 langues prises en charge
+
+- 🛠️ **Améliorations Techniques**:
+  - Journalisation désactivée pendant la Réinitialisation d'Usine pour prévenir la pollution des journaux
+  - Création de data.json retardée jusqu'à la sélection de la langue (flux de Réinitialisation d'Usine plus propre)
+  - Initialisation du fichier journal retardée jusqu'à la sélection de la langue
+  - Redémarrage automatique de l'application après la sélection de la langue
+  - Commandes backend pour la gestion des fichiers de sauvegarde et de journal
+  - Gestion des chemins multiplateformes pour les sauvegardes et les journaux
+  - Calcul de la mémoire corrigé (compatibilité sysinfo 0.31)
+  - Avertissements de style React corrigés (conflits d'abréviation CSS)
+
+### v1.7.0 (2025) - 💾 Système de sauvegarde, écran de chargement et améliorations de la bibliothèque de filaments
+
+- 💾 **Implémentation complète du système de sauvegarde**
+  - Système de sauvegarde automatique avec un fichier de sauvegarde par jour (créé uniquement un nouveau jour)
+  - Hook de rappel de sauvegarde et composant UI - notification lorsqu'aucune sauvegarde n'existe
+  - UI Historique de sauvegarde dans Paramètres - liste codée par couleur (vert/jaune/rouge/gris) montrant l'âge du fichier de sauvegarde et compte à rebours de suppression
+  - Fenêtre modale Autosave - explication lors de l'activation de l'autosave
+  - Autosave et synchronisation de sauvegarde automatique - sauvegarde automatique lors de la sauvegarde autosave
+  - Réinitialisation d'usine supprime maintenant les fichiers de sauvegarde automatiques
+  - L'historique de sauvegarde se met à jour automatiquement lorsque l'autosave est activé
+- 🔧 **Optimisation backend du système de sauvegarde**
+  - Commandes backend ajoutées pour supprimer les anciennes sauvegardes (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Fonctions de nettoyage frontend mises à jour pour utiliser les commandes backend, éliminant les erreurs "chemin interdit"
+  - Toutes les opérations de fichiers (créer, supprimer, lister) se font maintenant depuis le backend, évitant les problèmes de permissions Tauri
+- ⚡ **Optimisation des performances du système de sauvegarde**
+  - `hasTodayBackup()` optimisé : utilise la commande backend `list_backup_files`, pas besoin de lire tous les fichiers
+  - Mécanisme de verrouillage ajouté pour empêcher la création parallèle de sauvegardes
+  - Fonctionnement plus rapide même avec un grand nombre de fichiers de sauvegarde
+- 📁 **Ouvrir le répertoire de sauvegarde et historique des journaux**
+  - Bouton ajouté dans Paramètres → Historique de sauvegarde pour ouvrir le dossier de sauvegarde
+  - Nouvelle section d'historique des journaux dans Paramètres - lister et ouvrir les fichiers journaux
+  - Suppression automatique des fichiers journaux configurable par jours
+  - Support multiplateforme (macOS, Windows, Linux)
+- 🎨 **Refonte complète de l'écran de chargement**
+  - Logo de l'application intégré comme arrière-plan avec effets de glassmorphisme
+  - Disposition fixe pour les coches - défilement automatique, seulement 3 modules visibles à la fois
+  - Effets scintillants, animations de points pulsants
+  - Conteneur de défilement avec barre de défilement masquée
+- ⚙️ **Améliorations du processus de chargement**
+  - Chargement ralenti (délais de 800ms) - les messages de chargement sont lisibles
+  - Gestion des erreurs pour chaque module (blocs try-catch)
+  - Fichier journal physique pour tous les statuts et erreurs
+  - Résumé de chargement à la fin
+- 🎨 **Support multilingue de la bibliothèque de filaments**
+  - Couleurs de filaments affichées dans toutes les langues prises en charge (pas seulement hongrois/allemand/anglais)
+  - Logique de secours : anglais → hongrois → allemand → couleur/nom brut
+  - Composants Paramètres, Recherche globale et Filaments mis à jour
+- 🔄 **Améliorations de la réinitialisation d'usine**
+  - Suppression des fichiers physiques (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Réinitialisation de l'instance Store sans rechargement
+  - Sélecteur de langue affiché après la réinitialisation d'usine
+- 🎓 **Tutoriel mis à jour avec les fonctionnalités v1.7.0**
+  - Nouvelles étapes : widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Données de démonstration étendues : 6 filaments → 11 filaments, 3 offres → 5 offres
+  - Clés de traduction ajoutées pour toutes les langues
+
 ### v1.6.0 (2025) - 📊 Widgets Interactifs & Performance des Grandes Tableaux
 
 - 🧠 **Graphiques Interactifs & Modales de Détail**

@@ -1,5 +1,5 @@
 import type { Printer, Filament, Offer, Customer, Settings } from "../types";
-import { savePrinters, saveFilaments, saveOffers, saveCustomers } from "./store";
+import { savePrinters, saveFilaments, saveOffers, saveCustomers, saveSettings, loadSettings } from "./store";
 import { calculateOfferCosts } from "./offerCalc";
 import { Store } from "@tauri-apps/plugin-store";
 
@@ -101,6 +101,61 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
         pricePerKg: 22.99,
         color: "White",
         colorHex: "#FFFFFF",
+        colorMode: "solid",
+        favorite: false,
+      },
+      {
+        brand: "Polymaker",
+        type: "PETG",
+        weight: 1000,
+        density: 1.27,
+        pricePerKg: 28.99,
+        color: "Green",
+        colorHex: "#00FF00",
+        colorMode: "solid",
+        favorite: false,
+      },
+      {
+        brand: "Overture",
+        type: "PLA",
+        weight: 1000,
+        density: 1.24,
+        pricePerKg: 23.99,
+        color: "Yellow",
+        colorHex: "#FFFF00",
+        colorMode: "solid",
+        favorite: false,
+      },
+      {
+        brand: "Hatchbox",
+        type: "PLA",
+        weight: 1000,
+        density: 1.24,
+        pricePerKg: 24.99,
+        color: "Orange",
+        colorHex: "#FFA500",
+        colorMode: "solid",
+        favorite: true,
+      },
+      {
+        brand: "Sunlu",
+        type: "PETG",
+        weight: 1000,
+        density: 1.27,
+        pricePerKg: 21.99,
+        color: "Purple",
+        colorHex: "#800080",
+        colorMode: "solid",
+        favorite: false,
+      },
+      {
+        brand: "Geeetech",
+        type: "PLA",
+        weight: 1000,
+        density: 1.24,
+        pricePerKg: 19.99,
+        color: "Grey",
+        colorHex: "#808080",
         colorMode: "solid",
         favorite: false,
       },
@@ -288,6 +343,101 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
         statusUpdatedAt: nowDate.toISOString(),
         currency: settings.currency || "EUR",
       },
+      {
+        id: 4,
+        printerName: "Bambu Lab X1 Carbon",
+        printerType: "FDM",
+        printerId: 1,
+        printerPower: 350,
+        customerName: "John Doe",
+        customerContact: "john.doe@example.com",
+        description: "Nagy mennyiségű prototípus - 10 db",
+        date: lastWeek.toISOString(),
+        filaments: [
+          {
+            brand: "Bambu Lab",
+            type: "PLA",
+            color: "Blue",
+            colorHex: "#0000FF",
+            usedGrams: 500,
+            pricePerKg: 25.99,
+          },
+          {
+            brand: "Polymaker",
+            type: "PETG",
+            color: "Green",
+            colorHex: "#00FF00",
+            usedGrams: 300,
+            pricePerKg: 28.99,
+          },
+        ],
+        printTimeHours: 8,
+        printTimeMinutes: 0,
+        printTimeSeconds: 0,
+        totalPrintTimeHours: 8,
+        profitPercentage: 35,
+        status: "sent",
+        statusHistory: [
+          {
+            status: "draft",
+            date: lastWeek.toISOString(),
+            note: "Első verzió",
+          },
+          {
+            status: "sent",
+            date: yesterday.toISOString(),
+            note: "Elküldve",
+          },
+        ],
+        statusUpdatedAt: yesterday.toISOString(),
+        currency: settings.currency || "EUR",
+      },
+      {
+        id: 5,
+        printerName: "Prusa i3 MK3S+",
+        printerType: "FDM",
+        printerId: 2,
+        printerPower: 220,
+        customerName: "Jane Smith",
+        customerContact: "+36 20 123 4567",
+        description: "Prototype részletek - 3D nyomtatás",
+        date: lastWeek.toISOString(),
+        filaments: [
+          {
+            brand: "Hatchbox",
+            type: "PLA",
+            color: "Orange",
+            colorHex: "#FFA500",
+            usedGrams: 250,
+            pricePerKg: 24.99,
+          },
+        ],
+        printTimeHours: 3,
+        printTimeMinutes: 30,
+        printTimeSeconds: 0,
+        totalPrintTimeHours: 3.5,
+        profitPercentage: 30,
+        status: "accepted",
+        statusHistory: [
+          {
+            status: "draft",
+            date: lastWeek.toISOString(),
+            note: "Első verzió",
+          },
+          {
+            status: "sent",
+            date: yesterday.toISOString(),
+            note: "Elküldve",
+          },
+          {
+            status: "accepted",
+            date: nowDate.toISOString(),
+            note: "Elfogadva",
+          },
+        ],
+        statusUpdatedAt: nowDate.toISOString(),
+        currency: settings.currency || "EUR",
+      },
     ];
 
     // Kiszámoljuk a költségeket minden árajánlathoz
@@ -402,7 +552,19 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
     await saveFilaments(demoFilaments);
     await saveCustomers(demoCustomers);
     await saveOffers(demoOffers);
-    // Settings-et nem írjuk felül, csak a demo adatokat mentjük
+    
+    // Frissítjük a settings-et, hogy beállítsuk a lastBackupDate-et (így nem jelenik meg a backup emlékeztető tutorial alatt)
+    const currentSettings = await loadSettings();
+    if (currentSettings) {
+      const updatedSettings: Settings = {
+        ...currentSettings,
+        lastBackupDate: new Date().toISOString(), // Beállítjuk a mai dátumot, hogy ne jelenjen meg az emlékeztető
+      };
+      await saveSettings(updatedSettings);
+      if (import.meta.env.DEV) {
+        console.log("✅ Settings frissítve - lastBackupDate beállítva tutorial demo adatokhoz");
+      }
+    }
 
     console.log("✅ Tutorial demo adatok sikeresen generálva", {
       printers: demoPrinters.length,

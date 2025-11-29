@@ -41,6 +41,124 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 
 ## 📋 Registro delle modifiche (Changelog)
 
+### v1.9.0 (2025) - 🔍 Diagnostica del Sistema e Miglioramenti delle Prestazioni
+
+- 🔍 **Diagnostica del Sistema** - Strumento completo per il controllo dello stato del sistema:
+  - Visualizzazione delle informazioni di sistema (CPU, memoria, OS, GPU, disco)
+  - Validazione del file system (data.json, filamentLibrary.json, update_filament.json)
+  - Verifica della disponibilità dei moduli (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Verifica dell'accessibilità dell'archivio dati
+  - Barra di progresso con messaggi di stato dettagliati
+  - Riepilogo con indicatori di errore/avviso/successo
+  - Pulsante per rieseguire la diagnostica
+  - Spostato nella sezione Gestione Log per una migliore organizzazione
+  - Completamente localizzato in tutte le 13 lingue supportate
+
+- ⚡ **Prestazioni del Visualizzatore di Log** - Scorrimento virtuale per file di log di grandi dimensioni:
+  - Implementazione personalizzata di scorrimento virtuale per il componente LogViewer
+  - Vengono renderizzate solo le voci di log visibili, migliorando drasticamente le prestazioni
+  - Scorrimento e ricerca fluida anche con file di log massicci (100k+ righe)
+  - Mantiene la posizione e l'altezza accurate della barra di scorrimento
+  - Operazioni di ricerca e filtraggio significativamente più veloci
+
+- 🔔 **Sistema di Notifiche Unificato** - Servizio di notifica centralizzato:
+  - Unico `notificationService` per le notifiche Toast e della piattaforma
+  - Routing delle notifiche basato sulla priorità (priorità alta → notifica della piattaforma)
+  - Decisione automatica basata sullo stato dell'app (primo piano/sfondo)
+  - Compatibile con le funzioni di notifica esistenti
+  - Preferenze di notifica configurabili (Toast on/off, notifica piattaforma on/off, livelli di priorità)
+
+- 🎯 **Miglioramenti UI/UX**:
+  - Diagnostica del Sistema spostata dalla sezione Backup alla sezione Gestione Log (posizionamento più logico)
+  - Errori del linter TypeScript corretti (variabili non utilizzate, discrepanze di tipo)
+  - Migliorata la qualità e la manutenibilità del codice
+
+### v1.8.0 (2025) - 📊 Registro Avanzato e Miglioramenti del Reset di Fabbrica
+
+- 🔄 **Modal di Progresso del Reset di Fabbrica** - Indicatore di progresso visivo per il reset di fabbrica:
+  - Progresso animato in 4 fasi (eliminazione backup, eliminazione log, eliminazione config, completamento)
+  - Aggiornamenti di stato in tempo reale con messaggi di successo/errore
+  - Countdown di 10 secondi prima che appaia il selettore della lingua
+  - Modal non chiudibile durante il processo di reset
+  - Completamente localizzato in tutte le 13 lingue supportate
+
+- 📋 **Rifacimento Completo del Sistema di Registro** - Infrastruttura di registrazione professionale:
+  - Percorsi dei file di log multipiattaforma (directory dati specifiche della piattaforma)
+  - Registrazione delle informazioni di sistema (CPU, memoria, OS, GPU, disco, versione app)
+  - Registrazione delle informazioni delle directory (cartelle log e backup, conteggi file, dimensioni)
+  - Registrazione dettagliata dello stato di caricamento (successo/avviso/errore/critico)
+  - Livelli di log (DEBUG, INFO, WARN, ERROR) con filtraggio
+  - Supporto formato log strutturato (testo e JSON)
+  - Rotazione log con pulizia automatica (giorni di conservazione configurabili)
+  - Modal Visualizzatore Log con filtraggio, ricerca, evidenziazione ed esportazione
+  - Configurazione log in Impostazioni (formato, livello, giorni di conservazione)
+  - Contenuto del file di log conservato tra i riavvii dell'app (modalità append)
+
+- 🔍 **Diagnostica del Sistema** - Modal di controllo dello stato del sistema:
+  - Visualizzazione e validazione delle informazioni di sistema
+  - Monitoraggio dell'uso della memoria con avvisi
+  - Verifiche dell'esistenza dei file
+  - Verifica della disponibilità dei moduli
+  - Test di accessibilità dell'archivio dati
+  - Visualizzazione della barra di progresso e del riepilogo
+  - Completamente localizzato in tutte le 13 lingue supportate
+
+- 🛠️ **Miglioramenti Tecnici**:
+  - Registrazione disabilitata durante il Reset di Fabbrica per prevenire l'inquinamento del log
+  - Creazione di data.json ritardata fino alla selezione della lingua (flusso Reset di Fabbrica più pulito)
+  - Inizializzazione del file di log ritardata fino alla selezione della lingua
+  - Riavvio automatico dell'app dopo la selezione della lingua
+  - Comandi backend per la gestione dei file di backup e log
+  - Gestione dei percorsi multipiattaforma per backup e log
+  - Calcolo della memoria corretto (compatibilità sysinfo 0.31)
+  - Avvisi di stile React corretti (conflitti abbreviazione CSS)
+
+### v1.7.0 (2025) - 💾 Sistema di backup, schermata di caricamento e miglioramenti alla libreria dei filamenti
+
+- 💾 **Implementazione completa del sistema di backup**
+  - Sistema di backup automatico con un file di backup al giorno (creato solo in un nuovo giorno)
+  - Hook di promemoria backup e componente UI - notifica quando non esiste un backup
+  - UI Cronologia backup in Impostazioni - elenco codificato a colori (verde/giallo/rosso/grigio) che mostra l'età del file di backup e il countdown di eliminazione
+  - Finestra modale Autosave - spiegazione quando si abilita l'autosave
+  - Autosave e sincronizzazione backup automatico - backup automatico sul salvataggio autosave
+  - Reset di fabbrica ora elimina i file di backup automatici
+  - La cronologia backup si aggiorna automaticamente quando l'autosave è abilitato
+- 🔧 **Ottimizzazione backend del sistema di backup**
+  - Comandi backend aggiunti per eliminare i backup vecchi (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Funzioni di pulizia frontend aggiornate per utilizzare i comandi backend, eliminando gli errori "percorso vietato"
+  - Tutte le operazioni sui file (creare, eliminare, elencare) ora avvengono dal backend, evitando problemi di permessi Tauri
+- ⚡ **Ottimizzazione delle prestazioni del sistema di backup**
+  - `hasTodayBackup()` ottimizzato: utilizza il comando backend `list_backup_files`, non è necessario leggere tutti i file
+  - Meccanismo di blocco aggiunto per prevenire la creazione parallela di backup
+  - Funzionamento più veloce anche con grandi quantità di file di backup
+- 📁 **Aprire la directory di backup e cronologia log**
+  - Pulsante aggiunto in Impostazioni → Cronologia backup per aprire la cartella di backup
+  - Nuova sezione cronologia log in Impostazioni - elencare e aprire i file di log
+  - Eliminazione automatica dei file di log configurabile per giorni
+  - Supporto multipiattaforma (macOS, Windows, Linux)
+- 🎨 **Riprogettazione completa della schermata di caricamento**
+  - Logo dell'app integrato come sfondo con effetti glassmorphism
+  - Layout fisso per le spunte - scorrimento automatico, solo 3 moduli visibili alla volta
+  - Effetti shimmer, animazioni punti pulsanti
+  - Contenitore di scorrimento con barra di scorrimento nascosta
+- ⚙️ **Miglioramenti al processo di caricamento**
+  - Caricamento rallentato (ritardi di 800ms) - i messaggi di caricamento sono leggibili
+  - Gestione degli errori per ogni modulo (blocchi try-catch)
+  - File di log fisico per tutti gli stati e gli errori
+  - Riepilogo di caricamento alla fine
+- 🎨 **Supporto multilingue della libreria dei filamenti**
+  - Colori dei filamenti visualizzati in tutte le lingue supportate (non solo ungherese/tedesco/inglese)
+  - Logica di fallback: inglese → ungherese → tedesco → colore/nome grezzo
+  - Componenti Impostazioni, Ricerca globale e Filamenti aggiornati
+- 🔄 **Miglioramenti al Reset di fabbrica**
+  - Eliminazione dei file fisici (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reset dell'istanza Store senza ricaricamento
+  - Selettore lingua visualizzato dopo il Reset di fabbrica
+- 🎓 **Tutorial aggiornato con le funzionalità v1.7.0**
+  - Nuovi passaggi: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Dati demo espansi: 6 filamenti → 11 filamenti, 3 offerte → 5 offerte
+  - Chiavi di traduzione aggiunte per tutte le lingue
+
 ### v1.6.0 (2025) - 📊 Widget Interattivi & Prestazioni di Tabelle Grandi
 
 - 🧠 **Grafici Interattivi & Modali di Dettaglio**

@@ -40,6 +40,124 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 
 ## 📋 Dziennik zmian (Changelog)
 
+### v1.9.0 (2025) - 🔍 Diagnostyka Systemu i Ulepszenia Wydajności
+
+- 🔍 **Diagnostyka Systemu** - Kompleksowe narzędzie do sprawdzania stanu systemu:
+  - Wyświetlanie informacji o systemie (CPU, pamięć, OS, GPU, dysk)
+  - Walidacja systemu plików (data.json, filamentLibrary.json, update_filament.json)
+  - Sprawdzanie dostępności modułów (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Weryfikacja dostępności magazynu danych
+  - Pasek postępu ze szczegółowymi komunikatami statusu
+  - Podsumowanie ze wskaźnikami błędu/ostrzeżenia/sukcesu
+  - Przycisk ponownego uruchomienia diagnostyki
+  - Przeniesione do sekcji Zarządzanie Logami (bardziej logiczne umieszczenie)
+  - W pełni zlokalizowane we wszystkich 13 obsługiwanych językach
+
+- ⚡ **Wydajność Przeglądarki Logów** - Wirtualne przewijanie dla dużych plików logów:
+  - Niestandardowa implementacja wirtualnego przewijania dla komponentu LogViewer
+  - Renderowane są tylko widoczne wpisy logów, dramatycznie poprawiając wydajność
+  - Płynne przewijanie i wyszukiwanie nawet przy masywnych plikach logów (100k+ linii)
+  - Utrzymuje dokładną pozycję i wysokość paska przewijania
+  - Znacznie szybsze operacje wyszukiwania i filtrowania
+
+- 🔔 **Zunifikowany System Powiadomień** - Centralizowany serwis powiadomień:
+  - Pojedynczy `notificationService` dla powiadomień Toast i platformy
+  - Routing powiadomień oparty na priorytecie (wysoki priorytet → powiadomienie platformy)
+  - Automatyczne podejmowanie decyzji na podstawie stanu aplikacji (pierwszy plan/tło)
+  - Kompatybilne wstecz z istniejącymi funkcjami powiadomień
+  - Konfigurowalne preferencje powiadomień (Toast włączony/wyłączony, powiadomienie platformy włączone/wyłączone, poziomy priorytetu)
+
+- 🎯 **Ulepszenia UI/UX**:
+  - Diagnostyka Systemu przeniesiona z sekcji Backup do sekcji Zarządzanie Logami (bardziej logiczne umieszczenie)
+  - Naprawione błędy lintera TypeScript (nieużywane zmienne, niezgodności typów)
+  - Poprawiona jakość i łatwość utrzymania kodu
+
+### v1.8.0 (2025) - 📊 Zaawansowane Logowanie i Ulepszenia Resetu Fabrycznego
+
+- 🔄 **Modal Postępu Resetu Fabrycznego** - Wizualny wskaźnik postępu dla resetu fabrycznego:
+  - 4-etapowy animowany postęp (usuwanie kopii zapasowej, usuwanie logów, usuwanie konfiguracji, ukończenie)
+  - Aktualizacje statusu w czasie rzeczywistym z komunikatami sukcesu/błędu
+  - 10-sekundowe odliczanie przed pojawieniem się selektora języka
+  - Modal nie do odrzucenia podczas procesu resetu
+  - W pełni zlokalizowane we wszystkich 13 obsługiwanych językach
+
+- 📋 **Kompleksowa Przebudowa Systemu Logowania** - Profesjonalna infrastruktura logowania:
+  - Wieloplatformowe ścieżki plików logów (katalogi danych specyficzne dla platformy)
+  - Logowanie informacji o systemie (CPU, pamięć, OS, GPU, dysk, wersja aplikacji)
+  - Logowanie informacji o katalogach (foldery logów i kopii zapasowych, liczby plików, rozmiary)
+  - Szczegółowe logowanie statusu ładowania (sukces/ostrzeżenie/błąd/krytyczny)
+  - Poziomy logów (DEBUG, INFO, WARN, ERROR) z filtrowaniem
+  - Obsługa strukturalnego formatu logów (tekst i JSON)
+  - Rotacja logów z automatycznym czyszczeniem (konfigurowalne dni przechowywania)
+  - Modal Przeglądarki Logów z filtrowaniem, wyszukiwaniem, podświetlaniem i eksportem
+  - Konfiguracja logów w Ustawieniach (format, poziom, dni przechowywania)
+  - Zawartość pliku logu zachowana między ponownymi uruchomieniami aplikacji (tryb dołączania)
+
+- 🔍 **Diagnostyka Systemu** - Modal sprawdzania stanu systemu:
+  - Wyświetlanie i walidacja informacji o systemie
+  - Monitorowanie użycia pamięci z ostrzeżeniami
+  - Sprawdzanie istnienia plików
+  - Weryfikacja dostępności modułów
+  - Testy dostępności magazynu danych
+  - Wyświetlanie paska postępu i podsumowania
+  - W pełni zlokalizowane we wszystkich 13 obsługiwanych językach
+
+- 🛠️ **Ulepszenia Techniczne**:
+  - Logowanie wyłączone podczas Resetu Fabrycznego, aby zapobiec zanieczyszczeniu logów
+  - Tworzenie data.json opóźnione do momentu wyboru języka (czystszy przepływ Resetu Fabrycznego)
+  - Inicjalizacja pliku logu opóźniona do momentu wyboru języka
+  - Automatyczne ponowne uruchomienie aplikacji po wyborze języka
+  - Polecenia backend do zarządzania plikami kopii zapasowych i logów
+  - Obsługa ścieżek wieloplatformowych dla kopii zapasowych i logów
+  - Naprawione obliczanie pamięci (zgodność z sysinfo 0.31)
+  - Naprawione ostrzeżenia stylu React (konflikty skrótów CSS)
+
+### v1.7.0 (2025) - 💾 System kopii zapasowych, ekran ładowania i ulepszenia biblioteki filamentów
+
+- 💾 **Pełna implementacja systemu kopii zapasowych**
+  - Automatyczny system kopii zapasowych z jednym plikiem kopii zapasowej dziennie (tworzony tylko w nowym dniu)
+  - Hook przypomnienia kopii zapasowej i komponent UI - powiadomienie, gdy brak kopii zapasowej
+  - UI Historii kopii zapasowych w Ustawieniach - lista kodowana kolorami (zielony/żółty/czerwony/szary) pokazująca wiek pliku kopii zapasowej i odliczanie do usunięcia
+  - Okno modalne Autozapisu - wyjaśnienie przy włączaniu autozapisu
+  - Autozapis i synchronizacja automatycznej kopii zapasowej - automatyczna kopia zapasowa przy zapisie autozapisu
+  - Reset fabryczny teraz usuwa automatyczne pliki kopii zapasowych
+  - Historia kopii zapasowych automatycznie odświeża się, gdy autozapis jest włączony
+- 🔧 **Optymalizacja backendu systemu kopii zapasowych**
+  - Dodano polecenia backend do usuwania starych kopii zapasowych (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Zaktualizowano funkcje czyszczenia frontendu, aby używały poleceń backend, eliminując błędy "zabroniona ścieżka"
+  - Wszystkie operacje na plikach (tworzenie, usuwanie, listowanie) odbywają się teraz z backendu, unikając problemów z uprawnieniami Tauri
+- ⚡ **Optymalizacja wydajności systemu kopii zapasowych**
+  - `hasTodayBackup()` zoptymalizowane: używa polecenia backend `list_backup_files`, nie trzeba czytać wszystkich plików
+  - Dodano mechanizm blokady, aby zapobiec równoległemu tworzeniu kopii zapasowych
+  - Szybsza praca nawet przy dużej liczbie plików kopii zapasowych
+- 📁 **Otwórz katalog kopii zapasowych i historia logów**
+  - Dodano przycisk w Ustawienia → Historia kopii zapasowych, aby otworzyć folder kopii zapasowych
+  - Nowa sekcja historii logów w Ustawieniach - listowanie i otwieranie plików logów
+  - Automatyczne usuwanie plików logów konfigurowalne według dni
+  - Wsparcie wieloplatformowe (macOS, Windows, Linux)
+- 🎨 **Kompletna przebudowa ekranu ładowania**
+  - Logo aplikacji zintegrowane jako tło z efektami glassmorfizmu
+  - Stały układ dla znaczników - automatyczne przewijanie, tylko 3 moduły widoczne naraz
+  - Efekty shimmer, animacje pulsujących kropek
+  - Kontener przewijania z ukrytą paskiem przewijania
+- ⚙️ **Ulepszenia procesu ładowania**
+  - Spowolnione ładowanie (opóźnienia 800ms) - komunikaty ładowania są czytelne
+  - Obsługa błędów dla każdego modułu (bloki try-catch)
+  - Fizyczny plik logów dla wszystkich statusów i błędów
+  - Podsumowanie ładowania na końcu
+- 🎨 **Wielojęzyczne wsparcie biblioteki filamentów**
+  - Kolory filamentów wyświetlane we wszystkich obsługiwanych językach (nie tylko węgierski/niemiecki/angielski)
+  - Logika zapasowa: angielski → węgierski → niemiecki → surowy kolor/nazwa
+  - Komponenty Ustawienia, Globalne Wyszukiwanie i Filamenty zaktualizowane
+- 🔄 **Ulepszenia Resetu fabrycznego**
+  - Usuwanie plików fizycznych (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reset instancji Store bez przeładowania
+  - Selektor języka wyświetlany po Resecie fabrycznym
+- 🎓 **Samouczek zaktualizowany funkcjami v1.7.0**
+  - Nowe kroki: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Rozszerzone dane demonstracyjne: 6 filamentów → 11 filamentów, 3 oferty → 5 ofert
+  - Dodane klucze tłumaczeń dla wszystkich języków
+
 ### v1.6.0 (2025) - 📊 Interaktywne Widgety i Wydajność Dużych Tabel
 
 - 🧠 **Interaktywne Wykresy i Modale Szczegółów**

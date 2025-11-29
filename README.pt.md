@@ -40,6 +40,124 @@ Uma aplicação desktop moderna para calcular custos de impressão 3D. Construí
 
 ## 📋 Registro de alterações (Changelog)
 
+### v1.9.0 (2025) - 🔍 Diagnósticos do Sistema e Melhorias de Desempenho
+
+- 🔍 **Diagnósticos do Sistema** - Ferramenta abrangente de verificação de saúde do sistema:
+  - Exibição de informações do sistema (CPU, memória, OS, GPU, disco)
+  - Validação do sistema de arquivos (data.json, filamentLibrary.json, update_filament.json)
+  - Verificações de disponibilidade de módulos (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Verificação de acessibilidade do armazenamento de dados
+  - Barra de progresso com mensagens de status detalhadas
+  - Resumo com indicadores de erro/aviso/sucesso
+  - Botão para executar diagnósticos novamente
+  - Movido para a seção de Gerenciamento de Logs (posicionamento mais lógico)
+  - Totalmente localizado em todos os 13 idiomas suportados
+
+- ⚡ **Desempenho do Visualizador de Logs** - Rolagem virtual para arquivos de log grandes:
+  - Implementação personalizada de rolagem virtual para o componente LogViewer
+  - Apenas entradas de log visíveis são renderizadas, melhorando drasticamente o desempenho
+  - Rolagem e pesquisa suaves mesmo com arquivos de log massivos (100k+ linhas)
+  - Mantém posição e altura precisas da barra de rolagem
+  - Operações de pesquisa e filtragem significativamente mais rápidas
+
+- 🔔 **Sistema de Notificações Unificado** - Serviço de notificação centralizado:
+  - Um único `notificationService` para notificações Toast e da plataforma
+  - Roteamento de notificações baseado em prioridade (alta prioridade → notificação da plataforma)
+  - Tomada de decisão automática com base no estado do aplicativo (primeiro plano/fundo)
+  - Compatível com funções de notificação existentes
+  - Preferências de notificação configuráveis (Toast ligado/desligado, notificação da plataforma ligada/desligada, níveis de prioridade)
+
+- 🎯 **Melhorias de UI/UX**:
+  - Diagnósticos do Sistema movidos da seção de Backup para a seção de Gerenciamento de Logs (posicionamento mais lógico)
+  - Erros do linter TypeScript corrigidos (variáveis não utilizadas, incompatibilidades de tipo)
+  - Qualidade e manutenibilidade do código melhoradas
+
+### v1.8.0 (2025) - 📊 Registro Avançado e Melhorias de Restauração de Fábrica
+
+- 🔄 **Modal de Progresso de Restauração de Fábrica** - Indicador de progresso visual para restauração de fábrica:
+  - Progresso animado de 4 etapas (exclusão de backup, exclusão de log, exclusão de config, conclusão)
+  - Atualizações de status em tempo real com mensagens de sucesso/erro
+  - Contagem regressiva de 10 segundos antes do seletor de idioma aparecer
+  - Modal não descartável durante o processo de restauração
+  - Totalmente localizado em todos os 13 idiomas suportados
+
+- 📋 **Revisão Completa do Sistema de Registro** - Infraestrutura de registro profissional:
+  - Caminhos de arquivos de log multiplataforma (diretórios de dados específicos da plataforma)
+  - Registro de informações do sistema (CPU, memória, OS, GPU, disco, versão do aplicativo)
+  - Registro de informações de diretórios (pastas de log e backup, contagens de arquivos, tamanhos)
+  - Registro detalhado do status de carregamento (sucesso/aviso/erro/crítico)
+  - Níveis de log (DEBUG, INFO, WARN, ERROR) com filtragem
+  - Suporte a formato de log estruturado (texto e JSON)
+  - Rotação de log com limpeza automática (dias de retenção configuráveis)
+  - Modal do Visualizador de Logs com filtragem, pesquisa, destaque e exportação
+  - Configuração de log em Configurações (formato, nível, dias de retenção)
+  - Conteúdo do arquivo de log preservado entre reinicializações do aplicativo (modo de anexação)
+
+- 🔍 **Diagnósticos do Sistema** - Modal de verificação de saúde do sistema:
+  - Exibição e validação de informações do sistema
+  - Monitoramento de uso de memória com avisos
+  - Verificações de existência de arquivos
+  - Verificação de disponibilidade de módulos
+  - Testes de acessibilidade do armazenamento de dados
+  - Exibição de barra de progresso e resumo
+  - Totalmente localizado em todos os 13 idiomas suportados
+
+- 🛠️ **Melhorias Técnicas**:
+  - Registro desabilitado durante a Restauração de Fábrica para prevenir poluição de logs
+  - Criação de data.json atrasada até a seleção de idioma (fluxo de Restauração de Fábrica mais limpo)
+  - Inicialização de arquivo de log atrasada até a seleção de idioma
+  - Reinicialização automática do aplicativo após a seleção de idioma
+  - Comandos backend para gerenciamento de arquivos de backup e log
+  - Manipulação de caminhos multiplataforma para backups e logs
+  - Cálculo de memória corrigido (compatibilidade sysinfo 0.31)
+  - Avisos de estilo React corrigidos (conflitos de abreviação CSS)
+
+### v1.7.0 (2025) - 💾 Sistema de backup, tela de carregamento e melhorias na biblioteca de filamentos
+
+- 💾 **Implementação completa do sistema de backup**
+  - Sistema de backup automático com um arquivo de backup por dia (criado apenas em um novo dia)
+  - Hook de lembrete de backup e componente UI - notificação quando não existe backup
+  - UI de Histórico de Backup em Configurações - lista codificada por cores (verde/amarelo/vermelho/cinza) mostrando a idade do arquivo de backup e contagem regressiva de exclusão
+  - Janela modal de Autosave - explicação ao habilitar autosave
+  - Autosave e sincronização de backup automático - backup automático no salvamento autosave
+  - Reset de Fábrica agora exclui arquivos de backup automáticos
+  - O histórico de backup é atualizado automaticamente quando o autosave é habilitado
+- 🔧 **Otimização do backend do sistema de backup**
+  - Comandos backend adicionados para excluir backups antigos (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Funções de limpeza do frontend atualizadas para usar comandos backend, eliminando erros de "caminho proibido"
+  - Todas as operações de arquivos (criar, excluir, listar) agora ocorrem do backend, evitando problemas de permissões do Tauri
+- ⚡ **Otimização de desempenho do sistema de backup**
+  - `hasTodayBackup()` otimizado: usa o comando backend `list_backup_files`, não é necessário ler todos os arquivos
+  - Mecanismo de bloqueio adicionado para prevenir criação paralela de backups
+  - Operação mais rápida mesmo com grandes quantidades de arquivos de backup
+- 📁 **Abrir diretório de backup e histórico de log**
+  - Botão adicionado em Configurações → Histórico de backup para abrir a pasta de backup
+  - Nova seção de histórico de log em Configurações - listar e abrir arquivos de log
+  - Exclusão automática de arquivos de log configurável por dias
+  - Suporte multiplataforma (macOS, Windows, Linux)
+- 🎨 **Redesign completo da tela de carregamento**
+  - Logo do aplicativo integrado como fundo com efeitos de glassmorfismo
+  - Layout fixo para marcas de verificação - rolagem automática, apenas 3 módulos visíveis por vez
+  - Efeitos shimmer, animações de pontos pulsantes
+  - Contêiner de rolagem com barra de rolagem oculta
+- ⚙️ **Melhorias no processo de carregamento**
+  - Carregamento mais lento (atrasos de 800ms) - mensagens de carregamento são legíveis
+  - Tratamento de erros para cada módulo (blocos try-catch)
+  - Arquivo de log físico para todos os status e erros
+  - Resumo de carregamento no final
+- 🎨 **Suporte multilíngue da biblioteca de filamentos**
+  - Cores de filamentos exibidas em todos os idiomas suportados (não apenas húngaro/alemão/inglês)
+  - Lógica de fallback: inglês → húngaro → alemão → cor/nome bruto
+  - Componentes Configurações, Busca Global e Filamentos atualizados
+- 🔄 **Melhorias no Reset de Fábrica**
+  - Exclusão de arquivos físicos (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Reset da instância Store sem recarregar
+  - Seletor de idioma exibido após o Reset de Fábrica
+- 🎓 **Tutorial atualizado com recursos v1.7.0**
+  - Novos passos: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Dados de demonstração expandidos: 6 filamentos → 11 filamentos, 3 ofertas → 5 ofertas
+  - Chaves de tradução adicionadas para todos os idiomas
+
 ### v1.6.0 (2025) - 📊 Widgets Interativos e Performance de Tabelas Grandes
 
 - 🧠 **Gráficos Interativos e Modais de Detalhe**

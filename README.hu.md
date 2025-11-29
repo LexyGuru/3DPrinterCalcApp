@@ -42,6 +42,124 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 
 ## 📋 Verziótörténet
 
+### v1.9.0 (2025) - 🔍 Rendszer Diagnosztika & Teljesítmény Fejlesztések
+
+- 🔍 **Rendszer Diagnosztika** - Átfogó rendszerállapot-ellenőrző eszköz:
+  - Rendszerinformációk megjelenítése (CPU, memória, OS, GPU, lemez)
+  - Fájlrendszer validálás (data.json, filamentLibrary.json, update_filament.json)
+  - Modul elérhetőség ellenőrzés (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Adattárolás elérhetőség ellenőrzése
+  - Progress bar részletes státusz üzenetekkel
+  - Összefoglaló hibák/figyelmeztetések/sikeres állapotokkal
+  - Újrafuttatás gomb
+  - Áthelyezve a Log Management szekcióba (logikusabb elhelyezés)
+  - Teljes lokalizáció mind a 13 támogatott nyelven
+
+- ⚡ **Log Viewer Teljesítmény** - Virtuális scroll nagy log fájlokhoz:
+  - Egyedi virtuális scroll implementáció a LogViewer komponenshez
+  - Csak a látható log bejegyzések renderelődnek, jelentősen javítva a teljesítményt
+  - Zökkenőmentes görgetés és keresés akár hatalmas log fájlokkal is (100k+ sor)
+  - Pontos scrollbar pozíciót és magasságot tart
+  - Jelentősen gyorsabb keresés és szűrés műveletek
+
+- 🔔 **Egységes Értesítési Rendszer** - Központi értesítési szolgáltatás:
+  - Egyetlen `notificationService` mind a Toast, mind a platform értesítésekhez
+  - Prioritás alapú értesítési irányítás (magas prioritás → platform értesítés)
+  - Automatikus döntéshozatal az app állapota alapján (előtér/háttér)
+  - Visszafelé kompatibilis a meglévő értesítési függvényekkel
+  - Konfigurálható értesítési beállítások (Toast be/kikapcsolva, platform értesítés be/kikapcsolva, prioritás szintek)
+
+- 🎯 **UI/UX Fejlesztések**:
+  - Rendszer Diagnosztika áthelyezve a Backup szekcióból a Log Management szekcióba (logikusabb elhelyezés)
+  - TypeScript linter hibák javítva (nem használt változók, típus eltérések)
+  - Javított kódminőség és karbantarthatóság
+
+### v1.8.0 (2025) - 📊 Fejlett Logolási Rendszer & Factory Reset Fejlesztések
+
+- 🔄 **Factory Reset Progress Modal** - Vizuális progress indikátor a factory reset-hez:
+  - 4 lépéses animált progress (backup törlés, log törlés, config törlés, befejezés)
+  - Valós idejű státusz frissítések sikeres/hiba üzenetekkel
+  - 10 másodperces visszaszámláló a nyelvválasztó megjelenítése előtt
+  - Nem zárható modal a reset folyamat alatt
+  - Teljes lokalizáció mind a 13 támogatott nyelven
+
+- 📋 **Teljes Logolási Rendszer Átértékelés** - Professzionális logolási infrastruktúra:
+  - Cross-platform log fájl útvonalak (platform-specifikus adat könyvtárak)
+  - Rendszerinformációk logolása (CPU, memória, OS, GPU, lemez, app verzió)
+  - Mappa információk logolása (log és backup mappák, fájlok száma, mérete)
+  - Részletes betöltési státusz logolás (sikeres/figyelmeztetés/hiba/kritikus)
+  - Log szintek (DEBUG, INFO, WARN, ERROR) szűréssel
+  - Strukturált log formátum támogatás (szöveges és JSON)
+  - Log rotáció automatikus cleanup-pal (konfigurálható megőrzési napok)
+  - Log Viewer modal szűréssel, kereséssel, kiemeléssel és exportálással
+  - Log konfiguráció a Settings-ben (formátum, szint, megőrzési napok)
+  - Log fájl tartalom megőrzése az app újraindításakor (append mód)
+
+- 🔍 **Rendszer Diagnosztika** - Rendszerállapot-ellenőrző modal:
+  - Rendszerinformációk megjelenítése és validálás
+  - Memória használat monitorozás figyelmeztetésekkel
+  - Fájl létezés ellenőrzések
+  - Modul elérhetőség ellenőrzése
+  - Adattárolás elérhetőség tesztek
+  - Progress bar és összefoglaló megjelenítés
+  - Teljes lokalizáció mind a 13 támogatott nyelven
+
+- 🛠️ **Technikai Fejlesztések**:
+  - Logolás letiltva a Factory Reset alatt a log szennyezés elkerülésére
+  - data.json létrehozás késleltetve a nyelvválasztásig (tisztább Factory Reset folyamat)
+  - Log fájl inicializálás késleltetve a nyelvválasztásig
+  - Automatikus app újraindítás a nyelvválasztás után
+  - Backend parancsok a backup és log fájl kezeléshez
+  - Cross-platform path kezelés a backupokhoz és logokhoz
+  - Javított memória számítás (sysinfo 0.31 kompatibilitás)
+  - React stílus figyelmeztetések javítva (CSS shorthand konfliktusok)
+
+### v1.7.0 (2025) - 💾 Backup rendszer, betöltési képernyő és filament könyvtár fejlesztések
+
+- 💾 **Backup rendszer teljes implementációja**
+  - Automatikus backup rendszer naponta egy backup fájllal (csak új napon jön létre)
+  - Backup reminder hook és UI komponens - értesítés, ha nincs backup
+  - Backup History UI a Settings-ben - színes lista (zöld/sárga/piros/szürke) a backup fájlok korához és törlési számlálóval
+  - Autosave modal ablak - magyarázat az autosave bekapcsolásakor
+  - Autosave és automatikus backup szinkronizálása - autosave mentéskor automatikus backup
+  - Factory Reset automatikus backup fájlok törlésével
+  - Backup history automatikus frissítése amikor az autosave bekapcsolódik
+- 🔧 **Backup rendszer backend optimalizációja**
+  - Backend commands hozzáadása régi backupok törléséhez (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+  - Frontend cleanup függvények backend command használatára frissítve, így nincs többé "forbidden path" hiba
+  - Minden fájl művelet (létrehozás, törlés, listázás) most backend-ről történik, elkerülve a Tauri permissions problémákat
+- ⚡ **Backup rendszer performance optimalizációja**
+  - `hasTodayBackup()` optimalizálva: `list_backup_files` backend command használata, nem kell minden fájlt beolvasni
+  - Lock mechanizmus hozzáadva párhuzamos backupok megelőzésére
+  - Gyorsabb működés nagy számú backup fájl esetén is
+- 📁 **Backup directory megnyitása és log history**
+  - Gomb hozzáadva a Settings → Backup History szekcióban a backup mappa megnyitásához
+  - Új log history szekció a Settings-ben - log fájlok listázása és megnyitása
+  - Automatikus log fájl törlés beállítható napok alapján
+  - Cross-platform támogatás (macOS, Windows, Linux)
+- 🎨 **Betöltési képernyő teljes átalakítása**
+  - App logo integrálva háttérként glassmorphism effekttel
+  - Fix layout pipákhoz - automatikus görgetés, csak 3 modul látható egyszerre
+  - Shimmer effekt, pulsing dots animációk
+  - Scroll container rejtett scrollbárral
+- ⚙️ **Betöltési folyamat javítások**
+  - Lassított betöltés (800ms késleltetések) - olvashatóak a betöltési üzenetek
+  - Hibakezelés minden modulnál (try-catch blokkok)
+  - Fizikai log fájl minden státuszhoz és hibához
+  - Betöltési összefoglaló a végén
+- 🎨 **Filament könyvtár többnyelvű támogatása**
+  - Filament színek megjelenítése minden támogatott nyelven (nem csak magyar/német/angol)
+  - Fallback logika: angol → magyar → német → raw color/name
+  - Settings, GlobalSearch és Filaments komponensek frissítve
+- 🔄 **Factory Reset javítások**
+  - Fizikai fájlok törlése (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+  - Store instance reset reload nélkül
+  - Nyelvválasztó megjelenítése a Factory Reset után
+- 🎓 **Tutorial frissítés v1.7.0 újdonságokkal**
+  - Új lépések: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+  - Demo adatok bővítve: 6 filament → 11 filament, 3 árajánlat → 5 árajánlat
+  - Fordítási kulcsok hozzáadva minden nyelvhez
+
 ### v1.6.0 (2025) - 📊 Interaktív widgetek & nagy táblázatok teljesítmény-tuning
 
 - 🧠 **Interaktív grafikonok és részletes modál nézetek**
