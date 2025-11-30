@@ -5,6 +5,7 @@ import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { invoke } from "@tauri-apps/api/core";
 import { writeFrontendLog } from "../utils/fileLogger";
+import { getPerformanceMetrics } from "../utils/systemInfo";
 
 interface DiagnosticResult {
   category: string;
@@ -143,7 +144,91 @@ export const SystemDiagnostics: React.FC<SystemDiagnosticsProps> = ({
       setResults([...allResults]);
       setProgress(40);
 
-      // 3. Fájl rendszer ellenőrzése
+      // 3. Performance metrikák ellenőrzése
+      setCurrentCheck(t("systemDiagnostics.checking.performance") || "Performance metrikák ellenőrzése...");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      try {
+        const performanceMetrics = await getPerformanceMetrics();
+        if (performanceMetrics) {
+          // CPU használat
+          const cpuUsage = parseFloat(performanceMetrics.cpu.usage_percent);
+          if (cpuUsage > 90) {
+            allResults.push({
+              category: "performance",
+              item: "cpu",
+              status: "warning",
+              message: t("systemDiagnostics.warning.cpuHigh") || "Magas CPU használat",
+              value: `${cpuUsage.toFixed(1)}%`,
+              details: t("systemDiagnostics.warning.cpuRecommendation") || "A CPU használat magas, ez lassulást okozhat.",
+            });
+          } else {
+            allResults.push({
+              category: "performance",
+              item: "cpu",
+              status: "success",
+              message: t("systemDiagnostics.success.cpuUsage") || "CPU használat megfelelő",
+              value: `${cpuUsage.toFixed(1)}%`,
+              details: `${performanceMetrics.cpu.cores} mag`,
+            });
+          }
+          
+          // Memória használat (performance metrikákból)
+          const memoryPercent = performanceMetrics.memory.used_percent;
+          const usedMb = parseFloat(performanceMetrics.memory.used_mb);
+          const totalMb = parseFloat(performanceMetrics.memory.total_mb);
+          
+          if (memoryPercent > 95) {
+            allResults.push({
+              category: "performance",
+              item: "memory",
+              status: "error",
+              message: t("systemDiagnostics.error.memoryCritical") || "Kritikus memória használat!",
+              value: `${memoryPercent}%`,
+              details: `${usedMb.toFixed(2)} MB / ${totalMb.toFixed(2)} MB`,
+            });
+          } else if (memoryPercent > 85) {
+            allResults.push({
+              category: "performance",
+              item: "memory",
+              status: "warning",
+              message: t("systemDiagnostics.warning.memoryHigh") || "Magas memória használat",
+              value: `${memoryPercent}%`,
+              details: `${usedMb.toFixed(2)} MB / ${totalMb.toFixed(2)} MB`,
+            });
+          } else {
+            allResults.push({
+              category: "performance",
+              item: "memory",
+              status: "success",
+              message: t("systemDiagnostics.success.memoryUsage") || "Memória használat megfelelő",
+              value: `${memoryPercent}%`,
+              details: `${usedMb.toFixed(2)} MB / ${totalMb.toFixed(2)} MB`,
+            });
+          }
+        } else {
+          allResults.push({
+            category: "performance",
+            item: "metrics",
+            status: "error",
+            message: t("systemDiagnostics.error.performanceMetrics") || "Hiba a performance metrikák lekérdezésekor",
+            details: t("systemDiagnostics.error.performanceMetricsDetails") || "Nem sikerült lekérni a performance metrikákat.",
+          });
+        }
+      } catch (error) {
+        allResults.push({
+          category: "performance",
+          item: "metrics",
+          status: "error",
+          message: t("systemDiagnostics.error.performanceCheck") || "Hiba a performance ellenőrzésekor",
+          details: String(error),
+        });
+      }
+
+      setResults([...allResults]);
+      setProgress(55);
+
+      // 4. Fájl rendszer ellenőrzése
       setCurrentCheck(t("systemDiagnostics.checking.files") || "Fájl rendszer ellenőrzése...");
       await new Promise(resolve => setTimeout(resolve, 500));
 

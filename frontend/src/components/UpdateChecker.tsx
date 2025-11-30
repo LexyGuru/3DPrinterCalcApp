@@ -12,6 +12,9 @@ interface Props {
   };
 }
 
+const LAST_UPDATE_CHECK_KEY = "lastUpdateCheck";
+const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 60 * 1000; // 5 óra
+
 export const UpdateChecker: React.FC<Props> = ({ settings }) => {
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
@@ -19,23 +22,38 @@ export const UpdateChecker: React.FC<Props> = ({ settings }) => {
   const t = useTranslation(settings.language);
 
   useEffect(() => {
-    // Ellenőrzés indításkor és 5 perc múlva
+    const checkUpdates = async () => {
+      const info = await checkForUpdates(beta);
+      setVersionInfo(info);
+      // Mentjük az utolsó ellenőrzés idejét
+      localStorage.setItem(LAST_UPDATE_CHECK_KEY, Date.now().toString());
+    };
+
+    // Ellenőrzés indításkor (mindig)
     checkUpdates();
-    const interval = setInterval(checkUpdates, 5 * 60 * 1000); // 5 perc
     
-    return () => clearInterval(interval);
+    // Következő ellenőrzés 5 óra múlva
+    const scheduleNextCheck = () => {
+      setTimeout(() => {
+        checkUpdates();
+        scheduleNextCheck(); // Újra ütemezzük 5 óra múlva
+      }, UPDATE_CHECK_INTERVAL_MS);
+    };
+    
+    scheduleNextCheck();
   }, [beta]);
 
   // Ha a beta beállítás változik, azonnal újra ellenőrizzük és visszaállítjuk a dismissed-et
   useEffect(() => {
     setDismissed(false); // Visszaállítjuk, hogy az új verziókat lássa
-    // Ne hívjuk meg itt is a checkUpdates-t, mert a fenti useEffect már kezeli a beta változást
+    // Beta beállítás változásakor azonnal ellenőrizzük
+    const checkUpdates = async () => {
+      const info = await checkForUpdates(beta);
+      setVersionInfo(info);
+      localStorage.setItem(LAST_UPDATE_CHECK_KEY, Date.now().toString());
+    };
+    checkUpdates();
   }, [settings.checkForBetaUpdates]);
-
-  const checkUpdates = async () => {
-    const info = await checkForUpdates(beta);
-    setVersionInfo(info);
-  };
 
   if (dismissed || !versionInfo || !versionInfo.isUpdateAvailable) {
     return null;

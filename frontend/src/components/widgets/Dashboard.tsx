@@ -437,10 +437,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       if (savedWidgets && savedWidgets.length > 0) {
         // Csak development módban logoljuk, és csak console-ra (ne fájlba)
         if (import.meta.env.DEV) {
-          console.log("[Dashboard] Loading saved widget layout:", {
-            savedWidgetCount: savedWidgets.length,
-            savedWidgetIds: savedWidgets.map(w => w.id),
-          });
+        console.log("[Dashboard] Loading saved widget layout:", {
+          savedWidgetCount: savedWidgets.length,
+          savedWidgetIds: savedWidgets.map(w => w.id),
+        });
         }
         // Ha van mentett layout, de kevés widget van benne, akkor kiegészítjük az alapértelmezettekkel
         const defaultWidgets = createDefaultWidgets(t);
@@ -449,17 +449,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
         const mergedWidgets = [...savedWidgets, ...missingWidgets].map(normalizeWidgetSize);
         // Csak development módban logoljuk
         if (import.meta.env.DEV) {
-          console.log("[Dashboard] Merged widgets:", {
-            total: mergedWidgets.length,
-            saved: savedWidgets.length,
-            added: missingWidgets.length,
-          });
+        console.log("[Dashboard] Merged widgets:", {
+          total: mergedWidgets.length,
+          saved: savedWidgets.length,
+          added: missingWidgets.length,
+        });
         }
         return mergedWidgets;
       }
       // Csak development módban logoljuk
       if (import.meta.env.DEV) {
-        console.log("[Dashboard] No saved layout found, using default widgets");
+      console.log("[Dashboard] No saved layout found, using default widgets");
       }
       return createDefaultWidgets(t).map(normalizeWidgetSize);
     } catch (error) {
@@ -502,7 +502,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       if (missingWidgets.length > 0) {
         // Csak development módban logoljuk
         if (import.meta.env.DEV) {
-          console.log("[Dashboard] Adding missing widgets:", missingWidgets.map(w => w.id));
+        console.log("[Dashboard] Adding missing widgets:", missingWidgets.map(w => w.id));
         }
         const mergedWidgets = [...savedWidgets, ...missingWidgets];
         setWidgets(mergedWidgets);

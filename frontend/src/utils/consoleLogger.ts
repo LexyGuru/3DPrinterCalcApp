@@ -138,11 +138,11 @@ class ConsoleLogger {
       const isDev = import.meta.env.DEV;
       
       if (!isFilamentLibraryLog && (!isDashboardLog || isDev)) {
-        const fileLevel = level === "log" ? "INFO" : level.toUpperCase();
+      const fileLevel = level === "log" ? "INFO" : level.toUpperCase();
         // Jelöljük, hogy közvetlen fájlba írás történik
-        writeFrontendLog(fileLevel as "INFO" | "WARN" | "ERROR" | "DEBUG", message).catch(() => {
-          // Ha a file logger nem elérhető, csak console-ra írunk
-        });
+      writeFrontendLog(fileLevel as "INFO" | "WARN" | "ERROR" | "DEBUG", message).catch(() => {
+        // Ha a file logger nem elérhető, csak console-ra írunk
+      });
       }
     }
 

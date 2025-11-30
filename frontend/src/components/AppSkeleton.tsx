@@ -184,15 +184,15 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
           >
             {t("loading.title")}
           </motion.p>
-        </motion.div>
+      </motion.div>
 
         {/* Overall Progress Bar - fix pozíció - glassmorphism háttérrel */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          style={{
-            width: "100%",
+        style={{
+          width: "100%",
             maxWidth: "600px",
             marginBottom: "24px",
             padding: "20px",
@@ -202,21 +202,21 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
             borderRadius: "16px",
             border: `1px solid ${themeStyles.border}80`,
             boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-          }}
-        >
-          <div style={{ 
-            display: "flex", 
-            justifyContent: "space-between", 
-            alignItems: "center",
+        }}
+      >
+        <div style={{ 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center",
             marginBottom: "16px",
+        }}>
+          <span style={{ 
+            color: themeStyles.text, 
+            fontSize: "16px", 
+            fontWeight: 600 
           }}>
-            <span style={{ 
-              color: themeStyles.text, 
-              fontSize: "16px", 
-              fontWeight: 600 
-            }}>
-              {t("loading.title")}
-            </span>
+            {t("loading.title")}
+          </span>
             <motion.span
               key={overallProgress}
               initial={{ scale: 1.2 }}
@@ -229,24 +229,24 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
             >
               {overallProgress}%
             </motion.span>
-          </div>
-          <div style={{
-            width: "100%",
+        </div>
+        <div style={{
+          width: "100%",
             height: "12px",
-            backgroundColor: themeStyles.surface,
+          backgroundColor: themeStyles.surface,
             borderRadius: "6px",
-            overflow: "hidden",
-            border: `1px solid ${themeStyles.border}`,
+          overflow: "hidden",
+          border: `1px solid ${themeStyles.border}`,
             position: "relative",
-          }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ 
+        }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ 
                 width: `${overallProgress}%`,
-              }}
+            }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              style={{
-                height: "100%",
+            style={{
+              height: "100%",
                 background: themeStyles.gradient,
                 borderRadius: "6px",
                 boxShadow: `0 0 20px ${themeStyles.primary}60`,
@@ -271,11 +271,11 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
                   duration: 2,
                   repeat: Infinity,
                   ease: "linear",
-                }}
-              />
+            }}
+          />
             </motion.div>
-          </div>
-        </motion.div>
+        </div>
+      </motion.div>
 
         {/* Loading steps - fix magasságú container, csak 3 modul látható, automatikus scroll - glassmorphism háttérrel */}
         <div 
@@ -376,8 +376,8 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                  }}>
-                    {isCompleted ? (
+                }}>
+                  {isCompleted ? (
                       <motion.div
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
@@ -385,18 +385,18 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
                         style={{
                           width: "32px",
                           height: "32px",
-                          borderRadius: "50%",
-                          backgroundColor: themeStyles.primary,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#ffffff",
+                      borderRadius: "50%",
+                      backgroundColor: themeStyles.primary,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#ffffff",
                           fontSize: "18px",
-                          fontWeight: "bold",
+                      fontWeight: "bold",
                           boxShadow: `0 2px 8px ${themeStyles.primary}60`,
                         }}
                       >
-                        ✓
+                      ✓
                       </motion.div>
                     ) : isActive ? (
                       <motion.div
@@ -424,7 +424,7 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
                         backgroundColor: themeStyles.surface,
                         border: `2px solid ${themeStyles.border}`,
                       }} />
-                    )}
+                  )}
                   </div>
                   
                   {/* Step label és progress */}
@@ -486,11 +486,11 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
         </div>
 
         {/* Információs szöveg - glassmorphism háttérrel */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
-          style={{
+        style={{
             width: "100%",
             maxWidth: "600px",
             marginTop: "auto",
@@ -502,19 +502,19 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
             borderRadius: "16px",
             border: `1px solid ${themeStyles.border}80`,
             boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-          }}
-        >
-          <motion.p
-            style={{
+        }}
+      >
+        <motion.p
+          style={{
               color: themeStyles.textMuted,
               fontSize: "13px",
-              textAlign: "center",
-              margin: 0,
+            textAlign: "center",
+            margin: 0,
               lineHeight: "1.6",
-            }}
-          >
+          }}
+        >
             {t("loading.info")}
-          </motion.p>
+        </motion.p>
           
           {/* Pulsing dot animáció */}
           <motion.div
@@ -526,7 +526,7 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
             }}
           >
             {[0, 1, 2].map((i) => (
-              <motion.div
+        <motion.div
                 key={i}
                 style={{
                   width: "8px",
@@ -534,20 +534,20 @@ export const AppSkeleton: React.FC<AppSkeletonProps> = ({
                   borderRadius: "50%",
                   backgroundColor: themeStyles.primary,
                 }}
-                animate={{
+          animate={{ 
                   scale: [1, 1.5, 1],
                   opacity: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
+          }}
+          transition={{ 
+            duration: 1.5, 
+            repeat: Infinity,
                   delay: i * 0.2,
                   ease: "easeInOut",
-                }}
-              />
+          }}
+        />
             ))}
           </motion.div>
-        </motion.div>
+      </motion.div>
       </div>
     </motion.div>
   );

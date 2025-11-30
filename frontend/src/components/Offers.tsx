@@ -25,6 +25,7 @@ import { DEFAULT_COLOR_HEX, normalizeHex, resolveColorHexFromName } from "../uti
 import { notifyExportComplete, notifyOfferStatusChange } from "../utils/platformFeatures";
 import { useUndoRedo } from "../hooks/useUndoRedo";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
+import { auditCreate, auditUpdate, auditDelete } from "../utils/auditLog";
 
 const STATUS_ORDER: OfferStatus[] = ["draft", "sent", "accepted", "rejected", "completed"];
 
@@ -276,6 +277,18 @@ export const Offers: React.FC<Props> = ({
       offerId: id,
       customerName: offerToDelete?.customerName,
     });
+    
+    // Audit log
+    try {
+      await auditDelete("offer", id, offerToDelete?.customerName || "Unknown", {
+        status: offerToDelete?.status,
+        profitPercentage: offerToDelete?.profitPercentage,
+        totalCost: offerToDelete?.costs?.totalCost,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
+    
     setOffersWithHistory(offersWithHistory.filter(o => o.id !== id));
     if (selectedOffer?.id === id) {
       setSelectedOffer(null);
@@ -302,7 +315,7 @@ export const Offers: React.FC<Props> = ({
     setDeleteConfirmId(null);
   };
 
-  const duplicateOffer = (offer: Offer) => {
+  const duplicateOffer = async (offer: Offer) => {
     logWithLanguage(settings.language, "log", "offers.duplicate.start", {
       originalOfferId: offer.id,
       customerName: offer.customerName,
@@ -314,6 +327,19 @@ export const Offers: React.FC<Props> = ({
     };
     setOffers([...offers, duplicated]);
     setSelectedOffer(duplicated);
+    
+    // Audit log
+    try {
+      await auditCreate("offer", duplicated.id, duplicated.customerName, {
+        originalOfferId: offer.id,
+        customerName: duplicated.customerName,
+        status: duplicated.status,
+        profitPercentage: duplicated.profitPercentage,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
+    
     logWithLanguage(settings.language, "log", "offers.duplicate.success", {
       newOfferId: duplicated.id,
     });
@@ -597,6 +623,27 @@ export const Offers: React.FC<Props> = ({
     setOffers(updatedOffers);
     setSelectedOffer(updatedOffer);
     cancelEditOffer();
+    
+    // Audit log
+    if (hasChanges) {
+      try {
+        await auditUpdate("offer", editingOffer.id, editCustomerName.trim(), {
+          oldValues: {
+            customerName: editingOffer.customerName,
+            profitPercentage: editingOffer.profitPercentage,
+            printerId: editingOffer.printerId,
+          },
+          newValues: {
+            customerName: editCustomerName.trim(),
+            profitPercentage: editProfitPercentage,
+            printerId: selectedPrinter.id,
+          },
+          version: currentVersion,
+        });
+      } catch (error) {
+        console.warn("Audit log hiba:", error);
+      }
+    }
     
     logWithLanguage(settings.language, "log", "offers.save.success", {
       offerId: editingOffer.id,

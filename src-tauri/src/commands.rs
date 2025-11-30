@@ -599,6 +599,20 @@ pub fn list_backup_files() -> Result<Vec<(String, String, String, u64)>, String>
 #[tauri::command]
 pub fn open_directory(path: String) -> Result<(), String> {
     use std::process::Command;
+    use std::path::Path;
+    
+    let path_buf = Path::new(&path);
+    
+    // Ha a könyvtár nem létezik, létrehozzuk
+    if !path_buf.exists() {
+        std::fs::create_dir_all(path_buf)
+            .map_err(|e| format!("Nem sikerült létrehozni a könyvtárat: {} - {}", path, e))?;
+    }
+    
+    // Ellenőrizzük, hogy a könyvtár valóban létezik-e
+    if !path_buf.exists() {
+        return Err(format!("A könyvtár nem létezik: {}", path));
+    }
     
     #[cfg(target_os = "macos")]
     {
@@ -1079,6 +1093,65 @@ pub fn get_system_info() -> Result<serde_json::Value, String> {
     Ok(system_info)
 }
 
+/// Performance metrikák lekérése (CPU használat, memória használat, stb.)
+#[tauri::command]
+pub fn get_performance_metrics() -> Result<serde_json::Value, String> {
+    use sysinfo::{System, CpuRefreshKind};
+    
+    let mut system = System::new();
+    
+    // CPU frissítés részletes adatokkal
+    system.refresh_cpu_specifics(CpuRefreshKind::everything());
+    system.refresh_memory();
+    
+    // CPU információk
+    let cpus = system.cpus();
+    let cpu_count = cpus.len();
+    let cpu_usage = if cpu_count > 0 {
+        // Átlagos CPU használat
+        let total_usage: f32 = cpus.iter().map(|cpu| cpu.cpu_usage()).sum();
+        total_usage / cpu_count as f32
+    } else {
+        0.0
+    };
+    
+    // Memória információk
+    let total_memory_bytes = system.total_memory();
+    let used_memory_bytes = system.used_memory();
+    let available_memory_bytes = system.available_memory();
+    
+    // Konvertálás MB-ba
+    let total_memory_mb = total_memory_bytes as f64 / (1024.0 * 1024.0);
+    let used_memory_mb = used_memory_bytes as f64 / (1024.0 * 1024.0);
+    let available_memory_mb = available_memory_bytes as f64 / (1024.0 * 1024.0);
+    
+    // Memória százalék
+    let memory_percent = if total_memory_bytes > 0 {
+        (used_memory_bytes as f64 / total_memory_bytes as f64 * 100.0).round() as u32
+    } else {
+        0
+    };
+    
+    // Megjegyzés: sysinfo 0.31-ben a Process memória használat lekérése komplexebb, 
+    // ezért most csak a rendszer szintű memóriát adunk vissza
+    
+    let metrics = serde_json::json!({
+        "cpu": {
+            "usage_percent": format!("{:.2}", cpu_usage),
+            "cores": cpu_count,
+        },
+        "memory": {
+            "total_mb": format!("{:.2}", total_memory_mb),
+            "used_mb": format!("{:.2}", used_memory_mb),
+            "available_mb": format!("{:.2}", available_memory_mb),
+            "used_percent": memory_percent,
+        },
+        "timestamp": chrono::Utc::now().to_rfc3339(),
+    });
+    
+    Ok(metrics)
+}
+
 /// Ellenőrzi, hogy egy fájl létezik-e az alkalmazás adatkönyvtárában
 #[tauri::command]
 pub async fn check_file_exists(file_path: String) -> Result<bool, String> {
@@ -1113,4 +1186,213 @@ pub async fn check_file_exists(file_path: String) -> Result<bool, String> {
     } else {
         Ok(false)
     }
+}
+
+/// Audit log entry írása
+#[tauri::command]
+pub fn write_audit_log(entry: serde_json::Value) -> Result<(), String> {
+    use dirs;
+    use std::fs::{self, OpenOptions};
+    use std::io::Write;
+    use chrono::Local;
+    
+    let audit_dir = dirs::data_local_dir()
+        .ok_or_else(|| "Nem található data directory".to_string())?
+        .join("3DPrinterCalcApp")
+        .join("audit_logs");
+    
+    // Létrehozzuk az audit könyvtárat, ha nem létezik
+    if !audit_dir.exists() {
+        fs::create_dir_all(&audit_dir)
+            .map_err(|e| format!("Nem sikerült létrehozni az audit könyvtárat: {}", e))?;
+    }
+    
+    // Napi audit log fájl (audit-YYYY-MM-DD.json)
+    let today = Local::now().format("%Y-%m-%d").to_string();
+    let audit_file_path = audit_dir.join(format!("audit-{}.json", today));
+    
+    // Fájl megnyitása (létrehozás vagy hozzáfűzés)
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&audit_file_path)
+        .map_err(|e| format!("Nem sikerült megnyitni az audit log fájlt: {}", e))?;
+    
+    // JSON sor formátumban írjuk (minden entry egy JSON objektum egy sorban)
+    let json_line = serde_json::to_string(&entry)
+        .map_err(|e| format!("Nem sikerült JSON formátumra alakítani: {}", e))?;
+    
+    file.write_all(json_line.as_bytes())
+        .map_err(|e| format!("Nem sikerült írni az audit log fájlba: {}", e))?;
+    file.write_all(b"\n")
+        .map_err(|e| format!("Nem sikerült írni a newline-t: {}", e))?;
+    
+    file.flush()
+        .map_err(|e| format!("Nem sikerült flush-olni az audit log fájlt: {}", e))?;
+    
+    Ok(())
+}
+
+/// Audit log fájlok listázása
+#[tauri::command]
+pub fn list_audit_logs() -> Result<Vec<(String, String, u64)>, String> {
+    use dirs;
+    use std::fs;
+    use chrono::NaiveDate;
+    
+    let audit_dir = dirs::data_local_dir()
+        .ok_or_else(|| "Nem található data directory".to_string())?
+        .join("3DPrinterCalcApp")
+        .join("audit_logs");
+    
+    if !audit_dir.exists() {
+        return Ok(Vec::new());
+    }
+    
+    let mut audit_files: Vec<(String, String, u64)> = Vec::new();
+    
+    match fs::read_dir(&audit_dir) {
+        Ok(entries) => {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    if path.is_file() {
+                        if let Some(file_name) = path.file_name().and_then(|n| n.to_str()) {
+                            // Fájl neve: audit-YYYY-MM-DD.json
+                            if let Some(date_str) = file_name.strip_prefix("audit-") {
+                                if let Some(date_str) = date_str.strip_suffix(".json") {
+                                    if let Ok(_file_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
+                                        let file_path = path.to_string_lossy().to_string();
+                                        let file_size = path.metadata()
+                                            .map(|m| m.len())
+                                            .unwrap_or(0);
+                                        
+                                        audit_files.push((file_name.to_string(), file_path, file_size));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            return Err(format!("Nem sikerült olvasni az audit könyvtárat: {}", e));
+        }
+    }
+    
+    // Dátum szerint csökkenő sorrendben (legújabb elöl)
+    audit_files.sort_by(|a, b| b.0.cmp(&a.0));
+    
+    Ok(audit_files)
+}
+
+/// Audit log fájl olvasása
+#[tauri::command]
+pub fn read_audit_log_file(file_path: String) -> Result<String, String> {
+    use std::fs;
+    use std::path::Path;
+    
+    // Biztonsági ellenőrzés: csak audit könyvtárban lévő fájlokat olvashatunk
+    let audit_dir = dirs::data_local_dir()
+        .ok_or_else(|| "Nem található data directory".to_string())?
+        .join("3DPrinterCalcApp")
+        .join("audit_logs");
+    
+    let requested_path = Path::new(&file_path);
+    
+    // Ellenőrizzük, hogy a fájl az audit könyvtárban van-e
+    if !requested_path.starts_with(&audit_dir) {
+        return Err(format!(
+            "Forbidden path: audit log fájl csak az audit könyvtárból érhető el. Requested: {:?}, Audit dir: {:?}",
+            requested_path, audit_dir
+        ));
+    }
+    
+    // Biztonsági ellenőrzés: csak .json fájlokat olvashatunk
+    if !requested_path.extension().and_then(|s| s.to_str()).map_or(false, |ext| ext == "json") {
+        return Err("Forbidden: csak JSON fájlokat lehet olvasni".to_string());
+    }
+    
+    // Olvassuk be a fájl tartalmát
+    let content = fs::read_to_string(requested_path)
+        .map_err(|e| format!("Nem sikerült beolvasni az audit log fájlt: {}", e))?;
+    
+    logger::log_info(&format!("Audit log fájl beolvasva: {}", file_path));
+    
+    Ok(content)
+}
+
+/// Régi audit log fájlok törlése
+#[tauri::command]
+pub fn delete_old_audit_logs(days: u32) -> Result<u32, String> {
+    use dirs;
+    use std::fs;
+    use chrono::NaiveDate;
+    
+    let audit_dir = dirs::data_local_dir()
+        .ok_or_else(|| "Nem található data directory".to_string())?
+        .join("3DPrinterCalcApp")
+        .join("audit_logs");
+    
+    if !audit_dir.exists() {
+        return Ok(0);
+    }
+    
+    let cutoff_date = chrono::Local::now().date_naive() - chrono::Duration::days(days as i64);
+    let mut deleted_count = 0;
+    
+    match fs::read_dir(&audit_dir) {
+        Ok(entries) => {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    if path.is_file() {
+                        // Fájl neve: audit-YYYY-MM-DD.json
+                        if let Some(file_name) = path.file_name().and_then(|n| n.to_str()) {
+                            if let Some(date_str) = file_name.strip_prefix("audit-") {
+                                if let Some(date_str) = date_str.strip_suffix(".json") {
+                                    if let Ok(file_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
+                                        if file_date < cutoff_date {
+                                            if let Err(e) = fs::remove_file(&path) {
+                                                logger::log_warn(&format!("Nem sikerült törölni az audit log fájlt: {} - {}", path.display(), e));
+                                            } else {
+                                                deleted_count += 1;
+                                                logger::log_info(&format!("Régi audit log fájl törölve: {}", path.display()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            return Err(format!("Nem sikerült olvasni az audit log könyvtárat: {}", e));
+        }
+    }
+    
+    Ok(deleted_count)
+}
+
+/// Audit log könyvtár útvonalának lekérése
+#[tauri::command]
+pub fn get_audit_log_directory_path() -> Result<String, String> {
+    use dirs;
+    use std::fs;
+    
+    let audit_dir = dirs::data_local_dir()
+        .ok_or_else(|| "Nem található data directory".to_string())?
+        .join("3DPrinterCalcApp")
+        .join("audit_logs");
+    
+    // Létrehozzuk a könyvtárat, ha nem létezik
+    if !audit_dir.exists() {
+        fs::create_dir_all(&audit_dir)
+            .map_err(|e| format!("Nem sikerült létrehozni az audit log könyvtárat: {}", e))?;
+    }
+    
+    Ok(audit_dir.to_string_lossy().to_string())
 }

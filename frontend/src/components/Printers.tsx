@@ -11,6 +11,7 @@ import { Tooltip } from "./Tooltip";
 import { EmptyState } from "./EmptyState";
 import { validatePrinterPower, validateUsageCost, validateAMSCount } from "../utils/validation";
 import { useUndoRedo } from "../hooks/useUndoRedo";
+import { auditCreate, auditUpdate, auditDelete } from "../utils/auditLog";
 
 interface Props {
   printers: Printer[];
@@ -118,7 +119,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     }
   };
 
-  const addPrinter = () => {
+  const addPrinter = async () => {
     if (!name || !type || !power) {
       showToast(`${t("common.error")}: ${t("printers.error.missingFields")}`, "error");
       return;
@@ -153,6 +154,19 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       setEditingPrinterId(newId);
     }
     console.log("✅ Nyomtató sikeresen hozzáadva", { printerId: newId, name });
+    
+    // Audit log
+    try {
+      await auditCreate("printer", newId, name, {
+        type,
+        power,
+        usageCost,
+        amsCount: amsCount || 0,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
+    
     showToast(t("common.printerAdded"), "success");
     setName(""); setType(""); setPower(0); setUsageCost(0); setAmsCount(0);
     setShowAddForm(false);
@@ -199,11 +213,23 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     setDeleteConfirmId(id);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteConfirmId === null) return;
     const id = deleteConfirmId;
     const printerToDelete = printersWithHistory.find(p => p.id === id);
     console.log("🗑️ Nyomtató törlése...", { printerId: id, name: printerToDelete?.name, type: printerToDelete?.type });
+    
+    // Audit log (próbáljuk meg a törlés előtt, hogy biztosan legyen adat)
+    try {
+      await auditDelete("printer", id, printerToDelete?.name || "Unknown", {
+        type: printerToDelete?.type,
+        power: printerToDelete?.power,
+        amsCount: printerToDelete?.amsCount || 0,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
+    
     setPrintersWithHistory(printersWithHistory.filter(p => p.id !== id));
     const newAmsForms = { ...amsForms };
     delete newAmsForms[id];
@@ -240,7 +266,7 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     setAmsForms({});
   };
 
-  const savePrinter = (printerId: number) => {
+  const savePrinter = async (printerId: number) => {
     if (!editingPrinter) return;
     
     if (!editingPrinter.name || !editingPrinter.type || !editingPrinter.power) {
@@ -268,6 +294,8 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     
     const finalAMSCount = editingPrinter.amsCount;
     
+    const oldPrinter = printers.find(p => p.id === printerId);
+    
     setPrinters(printers.map(p => 
       p.id === printerId 
         ? { 
@@ -281,6 +309,29 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
           }
         : p
     ));
+    
+    // Audit log
+    try {
+      await auditUpdate("printer", printerId, editingPrinter.name, {
+        oldValues: oldPrinter ? {
+          name: oldPrinter.name,
+          type: oldPrinter.type,
+          power: oldPrinter.power,
+          usageCost: oldPrinter.usageCost,
+          amsCount: oldPrinter.amsCount || 0,
+        } : undefined,
+        newValues: {
+          name: editingPrinter.name,
+          type: editingPrinter.type,
+          power: editingPrinter.power,
+          usageCost: editingPrinter.usageCost,
+          amsCount: finalAMSCount || 0,
+        },
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
+    
     console.log("✅ Nyomtató sikeresen mentve", { printerId, amsCount: validAMS.length });
     showToast(t("common.printerUpdated"), "success");
     cancelEdit();

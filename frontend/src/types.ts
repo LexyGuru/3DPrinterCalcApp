@@ -205,6 +205,7 @@ export interface Settings {
   showTutorialOnStartup?: boolean; // Kezdő tutorial megjelenítése indításkor
   tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
   logRetentionDays?: number; // Log fájlok megtartása napokban (0 = soha ne törölje)
+  auditLogRetentionDays?: number; // Audit log fájlok megtartása napokban (0 = soha ne törölje)
   logFormat?: "text" | "json"; // Log fájl formátum (szöveges vagy JSON) - v1.8.0
   logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR"; // Minimum log szint (csak e feletti szintű logok kerülnek fájlba) - v1.8.0
   hideMacOSNotificationWarning?: boolean; // macOS értesítési figyelmeztetés elrejtése

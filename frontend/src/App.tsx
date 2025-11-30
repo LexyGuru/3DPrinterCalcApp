@@ -25,6 +25,7 @@ import { defaultSettings } from "./types";
 import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers, resetStoreInstance } from "./utils/store";
 import { createAutomaticBackup, cleanupOldBackups } from "./utils/backup";
 import { cleanupOldLogs } from "./utils/logCleanup";
+import { cleanupOldAuditLogs } from "./utils/auditLogCleanup";
 import { getThemeStyles, resolveTheme } from "./utils/themes";
 import { defaultAnimationSettings } from "./types";
 import { debounce } from "./utils/debounce";
@@ -40,6 +41,8 @@ import { initFrontendLog, frontendLogger, writeFrontendLog, setAppLoaded, setLog
 import { logWithLanguage } from "./utils/languages/global_console";
 import { useTranslation } from "./utils/translations";
 import { logApplicationStartup, resetLoggingFlags } from "./utils/appLogging"; // Centralized application logging
+import { PerformanceTimer, logMemoryUsage, logPerformanceSummary, logPeriodicPerformanceMetrics, type PerformanceMetric } from "./utils/performance"; // Performance metrikák
+import { auditCreate } from "./utils/auditLog"; // Audit log
 
 export default function App() {
   const [activePage, setActivePage] = useState("home");
@@ -230,6 +233,12 @@ export default function App() {
         await writeFrontendLog('INFO', '═══════════════════════════════════════════════════════════');
         // Ne hívjuk meg a console.info()-t, mert a consoleLogger által is fájlba íródik (duplikáció)
         
+        // Performance metrikák tömbje az összefoglalóhoz
+        const performanceMetrics: PerformanceMetric[] = [];
+        
+        // Memória használat mérése az elején
+        await logMemoryUsage("Alkalmazás betöltés kezdete");
+        
         let loadedSettings: Settings | null = null;
       let loadedPrintersCount = 0;
       let loadedFilamentsCount = 0;
@@ -237,7 +246,7 @@ export default function App() {
       let loadedCustomersCount = 0;
       
       try {
-        // 1. Beállítások betöltése
+        // 1. Beállítások betöltése (Performance metrikákkal)
         setLoadingStep(0);
         setLoadingProgress(10);
         await writeFrontendLog('INFO', "📥 [MODUL: Beállítások] Betöltés indítása...");
@@ -247,8 +256,12 @@ export default function App() {
         let settingsStatus: "success" | "warning" | "error" | "critical" = "success";
         let settingsStatusMessage = "";
         
+        // Performance metrika mérése
+        const settingsTimer = new PerformanceTimer("Beállítások betöltése", "loading", false);
         try {
           loadedSettings = await loadSettings();
+          const settingsMetric = await settingsTimer.stop();
+          performanceMetrics.push(settingsMetric);
           
           if (loadedSettings) {
             settingsStatusMessage = `✅ [MODUL: Beállítások] Betöltve - Valuta: ${loadedSettings.currency || "N/A"}, Nyelv: ${loadedSettings.language || "N/A"}`;
@@ -297,6 +310,7 @@ export default function App() {
         } catch (error) {
           settingsStatus = "error";
           settingsStatusMessage = `❌ [MODUL: Beállítások] HIBA: ${error instanceof Error ? error.message : String(error)}`;
+          await settingsTimer.stopWithError(error);
           await writeFrontendLog('ERROR', settingsStatusMessage);
           console.error("❌ Hiba a beállítások betöltésekor:", error);
           setSettings(defaultSettings);
@@ -323,8 +337,13 @@ export default function App() {
         await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
         
         let printersStatus: "success" | "warning" | "error" = "success";
+        // Performance metrika mérése
+        const printersTimer = new PerformanceTimer("Nyomtatók betöltése", "loading", false);
         try {
           const loadedPrinters = await loadPrinters();
+          const printersMetric = await printersTimer.stop();
+          performanceMetrics.push(printersMetric);
+          
           loadedPrintersCount = loadedPrinters.length;
           
           if (loadedPrinters.length > 0) {
@@ -338,6 +357,7 @@ export default function App() {
           }
         } catch (error) {
           printersStatus = "error";
+          await printersTimer.stopWithError(error);
           const errorMsg = `❌ [MODUL: Nyomtatók] HIBA: ${error instanceof Error ? error.message : String(error)}`;
           await writeFrontendLog('ERROR', errorMsg);
           await writeFrontendLog('ERROR', "❌ [MODUL: Nyomtatók] Státusz: Hiba");
@@ -354,8 +374,13 @@ export default function App() {
         await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
         
         let filamentsStatus: "success" | "warning" | "error" = "success";
+        // Performance metrika mérése
+        const filamentsTimer = new PerformanceTimer("Filamentek betöltése", "loading", false);
         try {
           const loadedFilaments = await loadFilaments();
+          const filamentsMetric = await filamentsTimer.stop();
+          performanceMetrics.push(filamentsMetric);
+          
           loadedFilamentsCount = loadedFilaments.length;
           
           if (loadedFilaments.length > 0) {
@@ -369,6 +394,7 @@ export default function App() {
           }
         } catch (error) {
           filamentsStatus = "error";
+          await filamentsTimer.stopWithError(error);
           const errorMsg = `❌ [MODUL: Filamentek] HIBA: ${error instanceof Error ? error.message : String(error)}`;
           await writeFrontendLog('ERROR', errorMsg);
           await writeFrontendLog('ERROR', "❌ [MODUL: Filamentek] Státusz: Hiba");
@@ -385,8 +411,13 @@ export default function App() {
         await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
         
         let offersStatus: "success" | "warning" | "error" = "success";
+        // Performance metrika mérése
+        const offersTimer = new PerformanceTimer("Árajánlatok betöltése", "loading", false);
         try {
           const loadedOffers = await loadOffers();
+          const offersMetric = await offersTimer.stop();
+          performanceMetrics.push(offersMetric);
+          
           loadedOffersCount = loadedOffers.length;
           
           if (loadedOffers.length > 0) {
@@ -400,6 +431,7 @@ export default function App() {
           }
         } catch (error) {
           offersStatus = "error";
+          await offersTimer.stopWithError(error);
           const errorMsg = `❌ [MODUL: Árajánlatok] HIBA: ${error instanceof Error ? error.message : String(error)}`;
           await writeFrontendLog('ERROR', errorMsg);
           await writeFrontendLog('ERROR', "❌ [MODUL: Árajánlatok] Státusz: Hiba");
@@ -416,8 +448,13 @@ export default function App() {
         await new Promise(resolve => setTimeout(resolve, 800)); // Lassabb
         
         let customersStatus: "success" | "warning" | "error" = "success";
+        // Performance metrika mérése
+        const customersTimer = new PerformanceTimer("Ügyfelek betöltése", "loading", false);
         try {
           const loadedCustomers = await loadCustomers();
+          const customersMetric = await customersTimer.stop();
+          performanceMetrics.push(customersMetric);
+          
           loadedCustomersCount = loadedCustomers.length;
           
           if (loadedCustomers.length > 0) {
@@ -431,6 +468,7 @@ export default function App() {
           }
         } catch (error) {
           customersStatus = "error";
+          await customersTimer.stopWithError(error);
           const errorMsg = `❌ [MODUL: Ügyfelek] HIBA: ${error instanceof Error ? error.message : String(error)}`;
           await writeFrontendLog('ERROR', errorMsg);
           await writeFrontendLog('ERROR', "❌ [MODUL: Ügyfelek] Státusz: Hiba");
@@ -475,6 +513,14 @@ export default function App() {
         await writeFrontendLog('INFO', statusMsg);
         await writeFrontendLog('INFO', detailMsg);
         await writeFrontendLog('INFO', '═══════════════════════════════════════════════════════════');
+        
+        // Performance összefoglaló logolása
+        if (performanceMetrics.length > 0) {
+          await logPerformanceSummary(performanceMetrics);
+        }
+        
+        // Memória használat mérése a végén
+        await logMemoryUsage("Alkalmazás betöltés vége");
         
         // Ne írunk console-ra is, mert a writeFrontendLog() már fájlba ír,
         // és a console.info() újra fájlba írna a consoleLogger miatt (duplikáció)
@@ -836,8 +882,96 @@ export default function App() {
     };
   }, [isInitialized, settings.logRetentionDays]);
 
-  const handleSaveOffer = useCallback((offer: Offer) => {
+  // Automatikus audit log rotáció (naponta egyszer)
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const performAuditLogCleanup = async () => {
+      try {
+        const retentionDays = settings.auditLogRetentionDays ?? 0;
+        
+        if (retentionDays > 0) {
+          if (import.meta.env.DEV) {
+            console.log(`🔍 Automatikus audit log rotáció ellenőrzés (${retentionDays} nap)...`);
+          }
+          
+          const deletedCount = await cleanupOldAuditLogs(retentionDays);
+          
+          if (deletedCount > 0 && import.meta.env.DEV) {
+            console.log(`✅ ${deletedCount} régi audit log fájl törölve`);
+          }
+        }
+      } catch (error) {
+        console.error("❌ Hiba az automatikus audit log rotáció során:", error);
+      }
+    };
+
+    // Fut az indítás után kis késleltetéssel
+    const initialTimeout = setTimeout(() => {
+      performAuditLogCleanup();
+    }, 12000); // 12 másodperc késleltetés az indítás után (log cleanup után)
+
+    // Utána naponta egyszer fut (24 óra)
+    const intervalId = setInterval(() => {
+      performAuditLogCleanup();
+    }, 24 * 60 * 60 * 1000); // 24 óra
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(intervalId);
+    };
+  }, [isInitialized, settings.auditLogRetentionDays]);
+
+  // 🔹 Performance metrikák rendszeres logolása (5 percenként)
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const logPerformanceMetrics = async () => {
+      try {
+        if (import.meta.env.DEV) {
+          console.log("⚡ Performance metrikák rendszeres logolása...");
+        }
+        
+        await logPeriodicPerformanceMetrics();
+        
+        if (import.meta.env.DEV) {
+          console.log("✅ Performance metrikák logolva");
+        }
+      } catch (error) {
+        console.error("❌ Hiba a performance metrikák rendszeres logolása során:", error);
+      }
+    };
+
+    // Fut az indítás után kis késleltetéssel (15 másodperc, hogy ne zavarja a betöltést)
+    const initialTimeout = setTimeout(() => {
+      logPerformanceMetrics();
+    }, 15000); // 15 másodperc késleltetés az indítás után
+
+    // Utána 5 percenként fut
+    const intervalId = setInterval(() => {
+      logPerformanceMetrics();
+    }, 5 * 60 * 1000); // 5 perc
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(intervalId);
+    };
+  }, [isInitialized]);
+
+  const handleSaveOffer = useCallback(async (offer: Offer) => {
     setOffers(prevOffers => [...prevOffers, offer]);
+    
+    // Audit log
+    try {
+      await auditCreate("offer", offer.id, offer.customerName, {
+        status: offer.status,
+        profitPercentage: offer.profitPercentage,
+        printerId: offer.printerId,
+        totalCost: offer.costs?.totalCost,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
   }, []);
 
   // Get current theme (memoized)

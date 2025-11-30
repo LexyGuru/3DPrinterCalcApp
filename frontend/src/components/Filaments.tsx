@@ -42,6 +42,7 @@ import {
 import { logWithLanguage } from "../utils/languages/global_console";
 import { addPriceHistory, isSignificantPriceChange, getFilamentPriceHistory } from "../utils/priceHistory";
 import type { PriceHistory } from "../types";
+import { auditCreate, auditUpdate, auditDelete } from "../utils/auditLog";
 
 const DEFAULT_WEIGHT_UNITS = ["g", "kg"] as const;
 
@@ -884,6 +885,30 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       logWithLanguage(settings.language, "log", "filaments.edit.success", {
         index: editingIndex,
       });
+      
+      // Audit log
+      try {
+        const filamentId = `${oldFilament.brand}_${oldFilament.type}_${oldFilament.color || "no-color"}_${editingIndex}`;
+        await auditUpdate("filament", filamentId, `${oldFilament.brand} ${oldFilament.type} ${oldFilament.color || ""}`, {
+          oldValues: {
+            brand: oldFilament.brand,
+            type: oldFilament.type,
+            color: oldFilament.color,
+            pricePerKg: oldFilament.pricePerKg,
+            weight: oldFilament.weight,
+          },
+          newValues: {
+            brand: newFilament.brand,
+            type: newFilament.type,
+            color: newFilament.color,
+            pricePerKg: newFilament.pricePerKg,
+            weight: newFilament.weight,
+          },
+        });
+      } catch (error) {
+        console.warn("Audit log hiba:", error);
+      }
+      
       showToast(t("common.filamentUpdated"), "success");
       resetForm();
       setPriceHistory([]);
@@ -896,7 +921,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         pricePerKg,
         hasImage: !!optimizedImage,
       });
-      setFilamentsWithHistory([...filamentsWithHistory, { 
+      const newFilament = {
         brand, 
         type, 
         weight, 
@@ -906,11 +931,28 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
         imageBase64: optimizedImage,
         colorMode: entryColorMode,
         multiColorHint: entryColorMode === "multicolor" ? entryMultiColorHint || color || undefined : undefined,
-      }]);
+      };
+      setFilamentsWithHistory([...filamentsWithHistory, newFilament]);
       logWithLanguage(settings.language, "log", "filaments.addNew.success", {
         brand,
         type,
       });
+      
+      // Audit log
+      try {
+        const newIndex = filamentsWithHistory.length;
+        const filamentId = `${brand}_${type}_${color || "no-color"}_${newIndex}`;
+        await auditCreate("filament", filamentId, `${brand} ${type} ${color || ""}`, {
+          brand,
+          type,
+          color: color || undefined,
+          pricePerKg,
+          weight,
+        });
+      } catch (error) {
+        console.warn("Audit log hiba:", error);
+      }
+      
       showToast(t("common.filamentAdded"), "success");
       resetForm();
     }
@@ -983,7 +1025,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setDeleteConfirmIndex(index);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteConfirmIndex === null) return;
     const index = deleteConfirmIndex;
     const filamentToDelete = filamentsWithHistory[index];
@@ -992,6 +1034,21 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       brand: filamentToDelete?.brand,
       type: filamentToDelete?.type,
     });
+    
+    // Audit log
+    try {
+      const filamentId = `${filamentToDelete?.brand || "unknown"}_${filamentToDelete?.type || "unknown"}_${filamentToDelete?.color || "no-color"}_${index}`;
+      await auditDelete("filament", filamentId, `${filamentToDelete?.brand || ""} ${filamentToDelete?.type || ""} ${filamentToDelete?.color || ""}`, {
+        brand: filamentToDelete?.brand,
+        type: filamentToDelete?.type,
+        color: filamentToDelete?.color,
+        pricePerKg: filamentToDelete?.pricePerKg,
+        weight: filamentToDelete?.weight,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
+    
     setFilamentsWithHistory(filamentsWithHistory.filter((_, i) => i !== index));
     if (editingIndex === index) {
       resetForm();

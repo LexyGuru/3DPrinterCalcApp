@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { invoke } from "@tauri-apps/api/core";
 import type { Theme } from "../utils/themes";
@@ -6,6 +6,7 @@ import type { Settings } from "../types";
 import { useToast } from "./Toast";
 import type { StructuredLogEntry, LogLevel } from "../utils/structuredLog";
 import { useVirtualScroll } from "../hooks/useVirtualScroll";
+import { useTranslation } from "../utils/translations";
 
 interface LogViewerProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
   settings,
 }) => {
   const { showToast } = useToast();
+  const t = useTranslation(settings.language);
   const [logEntries, setLogEntries] = useState<ParsedLogEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -120,24 +122,23 @@ export const LogViewer: React.FC<LogViewerProps> = ({
           }
         }
 
+        // Timestamp szerint rendezzük fordított sorrendben (legfrissebb felül)
+        entries.sort((a, b) => {
+          try {
+            const dateA = new Date(a.timestamp).getTime();
+            const dateB = new Date(b.timestamp).getTime();
+            return dateB - dateA; // Csökkenő sorrend (legfrissebb elől)
+          } catch {
+            return 0; // Ha nem sikerül parse-olni, marad az eredeti sorrend
+          }
+        });
+        
         setLogEntries(entries);
       } catch (err) {
         console.error("❌ Hiba a log fájl betöltésekor:", err);
-        setError(
-          settings.language === "hu"
-            ? "Hiba a log fájl betöltésekor"
-            : settings.language === "de"
-            ? "Fehler beim Laden der Log-Datei"
-            : "Error loading log file"
-        );
-        showToast(
-          settings.language === "hu"
-            ? "Hiba a log fájl betöltésekor"
-            : settings.language === "de"
-            ? "Fehler beim Laden der Log-Datei"
-            : "Error loading log file",
-          "error"
-        );
+        const errorMsg = t("logViewer.error.loading");
+        setError(errorMsg);
+        showToast(errorMsg, "error");
       } finally {
         setLoading(false);
       }
@@ -146,9 +147,122 @@ export const LogViewer: React.FC<LogViewerProps> = ({
     loadLogFile();
   }, [isOpen, logFilePath, settings.language, showToast]);
 
-  // Szűrt és keresett log bejegyzések
+  // Real-time frissítés: rendszeres polling amikor a modal nyitva van
+  const [autoRefresh, setAutoRefresh] = useState(true); // Alapértelmezetten be van kapcsolva
+  const lastContentHashRef = useRef<string>(""); // Hash az előző fájl tartalmáról
+  
+  useEffect(() => {
+    if (!isOpen || !logFilePath || !autoRefresh) return;
+
+    let isMounted = true;
+
+    const refreshLogFile = async () => {
+      try {
+        // Backend command-ot használunk a log fájl olvasásához
+        const content = await invoke<string>("read_log_file", { filePath: logFilePath });
+        
+        // Egyszerű hash a fájl tartalmáról (az első és utolsó néhány karakter + hossz)
+        const contentHash = `${content.length}-${content.slice(0, 100)}-${content.slice(-100)}`;
+        
+        // Ha a fájl nem változott, ne csináljunk semmit
+        if (contentHash === lastContentHashRef.current) {
+          return; // Nincs változás
+        }
+        
+        lastContentHashRef.current = contentHash;
+
+        // Parse-oljuk az új fájl tartalmát
+        const entries: ParsedLogEntry[] = [];
+        const lines = content.split("\n");
+        let lineNumber = 0;
+
+        for (const line of lines) {
+          lineNumber++;
+          if (!line.trim()) continue;
+
+          try {
+            const jsonEntry = JSON.parse(line) as StructuredLogEntry;
+            entries.push({
+              timestamp: jsonEntry.timestamp,
+              level: jsonEntry.level,
+              component: jsonEntry.component,
+              message: jsonEntry.message,
+              stackTrace: jsonEntry.stackTrace,
+              context: jsonEntry.context,
+              rawLine: line,
+              lineNumber,
+            });
+          } catch {
+            const textMatch = line.match(/\[([^\]]+)\] \[([^\]]+)\]\s+(.+)/);
+            if (textMatch) {
+              const [, timestamp, level, message] = textMatch;
+              entries.push({
+                timestamp,
+                level: level as LogLevel,
+                message: message.trim(),
+                rawLine: line,
+                lineNumber,
+              });
+            } else {
+              entries.push({
+                timestamp: new Date().toISOString(),
+                level: "INFO" as LogLevel,
+                message: line.trim(),
+                rawLine: line,
+                lineNumber,
+              });
+            }
+          }
+        }
+
+        // Timestamp szerint rendezzük fordított sorrendben (legfrissebb felül)
+        entries.sort((a, b) => {
+          try {
+            const dateA = new Date(a.timestamp).getTime();
+            const dateB = new Date(b.timestamp).getTime();
+            return dateB - dateA;
+          } catch {
+            return 0;
+          }
+        });
+
+        if (isMounted) {
+          setLogEntries(entries);
+        }
+      } catch (err) {
+        // Csendben maradunk, hogy ne zavarjuk a felhasználót
+        if (import.meta.env.DEV) {
+          console.warn("⚠️ Hiba a log fájl frissítésekor:", err);
+        }
+      }
+    };
+
+    // Első frissítés késleltetett (hogy ne zavarja az első betöltést)
+    const initialTimeout = setTimeout(() => {
+      if (isMounted && logEntries.length > 0) {
+        // Állítsuk be a jelenlegi fájl hash-jét
+        const currentContent = logEntries.map(e => e.rawLine).join("\n");
+        lastContentHashRef.current = `${currentContent.length}-${currentContent.slice(0, 100)}-${currentContent.slice(-100)}`;
+      }
+    }, 2000); // 2 másodperc késleltetés
+
+    // Rendszeres frissítés 3 másodpercenként
+    const intervalId = setInterval(() => {
+      if (isMounted) {
+        refreshLogFile();
+      }
+    }, 3000); // 3 másodpercenként
+
+    return () => {
+      isMounted = false;
+      clearTimeout(initialTimeout);
+      clearInterval(intervalId);
+    };
+  }, [isOpen, logFilePath, autoRefresh, logEntries]);
+
+  // Szűrt és keresett log bejegyzések (már fordított sorrendben vannak a logEntries, legfrissebb felül)
   const filteredEntries = useMemo(() => {
-    let filtered = logEntries;
+    let filtered = [...logEntries]; // Másolat, hogy ne módosítsuk az eredetit
 
     // Szűrés szint szerint
     if (filterLevel !== "all") {
@@ -217,12 +331,60 @@ export const LogViewer: React.FC<LogViewerProps> = ({
     }
   }, [isOpen, filteredEntries.length, virtualScroll.containerRef]);
 
-  // Auto-scroll az új betöltés után (top-ra scroll)
+  // Auto-scroll az új betöltés után (top-ra scroll - a legfrissebb bejegyzés felül van)
+  // Csak akkor scrollolunk, ha az auto-refresh be van kapcsolva ÉS a felhasználó felül van
+  const previousEntriesCountRef = useRef<number>(0);
+  const userScrolledRef = useRef<boolean>(false); // Tracks if user manually scrolled
+  
   useEffect(() => {
-    if (logEntries.length > 0 && virtualScroll.containerRef.current) {
-      virtualScroll.containerRef.current.scrollTop = 0;
+    // Csak akkor működjön az auto-scroll, ha az auto-refresh be van kapcsolva
+    if (!autoRefresh) {
+      // Ha az auto-refresh ki van kapcsolva, ne csináljunk semmit (ne görgessen, ne frissüljön)
+      return;
     }
-  }, [logEntries.length, virtualScroll.containerRef]);
+
+    if (logEntries.length > 0 && virtualScroll.containerRef.current) {
+      const hasNewEntries = logEntries.length > previousEntriesCountRef.current;
+      
+      // Ha van új bejegyzés ÉS a felhasználó nem görgetett manuálisan lefelé, scrolloljunk felülre
+      // (a legfrissebb bejegyzés felül van)
+      if (hasNewEntries && !userScrolledRef.current) {
+        // Kisebb késleltetés, hogy a renderelés befejeződjön
+        setTimeout(() => {
+          if (virtualScroll.containerRef.current) {
+            virtualScroll.containerRef.current.scrollTop = 0;
+          }
+        }, 100);
+        // Reset, hogy az új logok után is működjön
+        userScrolledRef.current = false;
+      }
+      
+      previousEntriesCountRef.current = logEntries.length;
+    }
+  }, [logEntries.length, autoRefresh, virtualScroll.containerRef]);
+
+  // Scroll event listener - figyeljük, hogy a felhasználó manuálisan görget-e
+  useEffect(() => {
+    const container = virtualScroll.containerRef.current;
+    if (!container || !isOpen) return;
+
+    const handleScroll = () => {
+      // Ha a felhasználó lefelé görgetett (10px-nél több), akkor manuálisan görgetett
+      const isAtTop = container.scrollTop <= 10;
+      if (!isAtTop) {
+        userScrolledRef.current = true; // Felhasználó manuálisan görgetett
+      } else {
+        // Ha visszatért a tetejére, akkor újra engedélyezzük az auto-scroll-t
+        userScrolledRef.current = false;
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, [isOpen, virtualScroll.containerRef]);
 
   // Kijelölés kezelése
   const handleToggleSelection = (lineNumber: number) => {
@@ -269,25 +431,14 @@ export const LogViewer: React.FC<LogViewerProps> = ({
       if (filePath) {
         await writeTextFile(filePath, exportContent);
         showToast(
-          settings.language === "hu"
-            ? `${entriesToExport.length} log bejegyzés exportálva`
-            : settings.language === "de"
-            ? `${entriesToExport.length} Log-Einträge exportiert`
-            : `${entriesToExport.length} log entries exported`,
+          t("logViewer.export.success", { count: entriesToExport.length.toString() }),
           "success"
         );
         setSelectedEntries(new Set());
       }
     } catch (error) {
       console.error("Export error:", error);
-      showToast(
-        settings.language === "hu"
-          ? "Hiba az exportálás során"
-          : settings.language === "de"
-          ? "Fehler beim Exportieren"
-          : "Error during export",
-        "error"
-      );
+      showToast(t("logViewer.export.error"), "error");
     }
   };
 
@@ -311,7 +462,22 @@ export const LogViewer: React.FC<LogViewerProps> = ({
   const formatTimestamp = (timestamp: string) => {
     try {
       const date = new Date(timestamp);
-      return date.toLocaleString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", {
+      const localeMap: Record<string, string> = {
+        hu: "hu-HU",
+        de: "de-DE",
+        en: "en-US",
+        cs: "cs-CZ",
+        es: "es-ES",
+        fr: "fr-FR",
+        it: "it-IT",
+        pl: "pl-PL",
+        pt: "pt-PT",
+        ru: "ru-RU",
+        sk: "sk-SK",
+        uk: "uk-UA",
+        zh: "zh-CN",
+      };
+      return date.toLocaleString(localeMap[settings.language] || "en-US", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -420,29 +586,21 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                 }}
               >
                 <span>
-                  {settings.language === "hu"
-                    ? `Összes: ${stats.total}`
-                    : settings.language === "de"
-                    ? `Gesamt: ${stats.total}`
-                    : `Total: ${stats.total}`}
+                  {t("logViewer.total")}: {stats.total}
                 </span>
                 {stats.filtered !== stats.total && (
                   <span>
-                    {settings.language === "hu"
-                      ? `Szűrt: ${stats.filtered}`
-                      : settings.language === "de"
-                      ? `Gefiltert: ${stats.filtered}`
-                      : `Filtered: ${stats.filtered}`}
+                    {t("logViewer.filtered")}: {stats.filtered}
                   </span>
                 )}
                 {stats.errors > 0 && (
                   <span style={{ color: themeStyles.error }}>
-                    ⚠️ {settings.language === "hu" ? `${stats.errors} hiba` : settings.language === "de" ? `${stats.errors} Fehler` : `${stats.errors} errors`}
+                    ⚠️ {stats.errors} {t("logViewer.errors")}
                   </span>
                 )}
                 {stats.warnings > 0 && (
                   <span style={{ color: themeStyles.warn }}>
-                    ⚠️ {settings.language === "hu" ? `${stats.warnings} figyelmeztetés` : settings.language === "de" ? `${stats.warnings} Warnungen` : `${stats.warnings} warnings`}
+                    ⚠️ {stats.warnings} {t("logViewer.warnings")}
                   </span>
                 )}
               </div>
@@ -467,7 +625,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                 e.currentTarget.style.backgroundColor = themeStyles.background;
               }}
             >
-              ✕ {settings.language === "hu" ? "Bezárás" : settings.language === "de" ? "Schließen" : "Close"}
+              ✕ {t("logViewer.close")}
             </button>
           </div>
 
@@ -491,7 +649,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                   color: themeStyles.text,
                 }}
               >
-                {settings.language === "hu" ? "Szint:" : settings.language === "de" ? "Ebene:" : "Level:"}
+                {t("logViewer.level")}
               </label>
               <select
                 value={filterLevel}
@@ -507,7 +665,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                 }}
               >
                 <option value="all">
-                  {settings.language === "hu" ? "Összes" : settings.language === "de" ? "Alle" : "All"}
+                  {t("logViewer.all")}
                 </option>
                 <option value="ERROR">ERROR</option>
                 <option value="WARN">WARN</option>
@@ -525,19 +683,14 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                   color: themeStyles.text,
                 }}
               >
-                {settings.language === "hu" ? "Keresés:" : settings.language === "de" ? "Suchen:" : "Search:"}
+                {t("logViewer.search")}
               </label>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={
-                  settings.language === "hu"
-                    ? "Keresés a logokban..."
-                    : settings.language === "de"
-                    ? "In Logs suchen..."
-                    : "Search in logs..."
-                }
+                placeholder={t("logViewer.search.placeholder")}
+                title={t("logViewer.search.tooltip")}
                 style={{
                   flex: 1,
                   padding: "6px 12px",
@@ -549,6 +702,28 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                 }}
               />
             </div>
+
+            {/* Auto-refresh kapcsoló */}
+            <button
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                border: `1px solid ${autoRefresh ? themeStyles.primary : themeStyles.border}`,
+                backgroundColor: autoRefresh ? themeStyles.primary + "20" : themeStyles.background,
+                color: autoRefresh ? themeStyles.primary : themeStyles.text,
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: "600",
+                transition: "all 0.2s ease",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+              title={autoRefresh ? t("logViewer.autoRefresh.enabled") : t("logViewer.autoRefresh.disabled")}
+            >
+              {autoRefresh ? "🔄" : "⏸️"} {t("logViewer.autoRefresh")}
+            </button>
 
             {/* Export gomb */}
             <button
@@ -577,7 +752,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                 }
               }}
             >
-              💾 {settings.language === "hu" ? "Exportálás" : settings.language === "de" ? "Exportieren" : "Export"}
+              💾 {t("logViewer.export")}
               {selectedEntries.size > 0 && ` (${selectedEntries.size})`}
             </button>
 
@@ -603,17 +778,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                   e.currentTarget.style.backgroundColor = themeStyles.background;
                 }}
               >
-                {selectedEntries.size === filteredEntries.length
-                  ? settings.language === "hu"
-                    ? "Kijelölés megszüntetése"
-                    : settings.language === "de"
-                    ? "Auswahl aufheben"
-                    : "Deselect All"
-                  : settings.language === "hu"
-                  ? "Összes kijelölése"
-                  : settings.language === "de"
-                  ? "Alle auswählen"
-                  : "Select All"}
+                {selectedEntries.size === filteredEntries.length ? t("logViewer.deselectAll") : t("logViewer.selectAll")}
               </button>
             )}
           </div>
@@ -639,7 +804,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                   color: themeStyles.textMuted,
                 }}
               >
-                {settings.language === "hu" ? "Betöltés..." : settings.language === "de" ? "Laden..." : "Loading..."}
+                {t("logViewer.loading")}
               </div>
             ) : error ? (
               <div
@@ -663,11 +828,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                   color: themeStyles.textMuted,
                 }}
               >
-                {settings.language === "hu"
-                  ? "Nincsenek log bejegyzések"
-                  : settings.language === "de"
-                  ? "Keine Log-Einträge"
-                  : "No log entries"}
+                {t("logViewer.noEntries")}
               </div>
             ) : (
               <div

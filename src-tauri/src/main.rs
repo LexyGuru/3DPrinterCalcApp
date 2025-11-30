@@ -34,7 +34,13 @@ fn main() {
             cleanup_old_backups_by_count,
             delete_all_backups,
             get_system_info,
+            get_performance_metrics,
             check_file_exists,
+            write_audit_log,
+            list_audit_logs,
+            read_audit_log_file,
+            get_audit_log_directory_path,
+            delete_old_audit_logs,
             #[cfg(target_os = "macos")]
             set_dock_badge,
             #[cfg(target_os = "windows")]

@@ -3,6 +3,7 @@ import { writeTextFile, readTextFile, readDir, exists } from "@tauri-apps/plugin
 import { join } from "@tauri-apps/api/path";
 import { invoke } from "@tauri-apps/api/core";
 import type { Printer, Filament, Offer, Settings } from "../types";
+import { auditBackup } from "./auditLog";
 
 // Lock mechanizmus a párhuzamos backupok megelőzésére
 let isCreatingBackup = false;
@@ -58,6 +59,20 @@ export async function createBackup(
     await writeTextFile(filePath, JSON.stringify(backupData, null, 2));
     console.log("✅ Backup sikeresen létrehozva", { filePath, timestamp });
 
+    // Audit log
+    try {
+      const fileName = filePath.split(/[/\\]/).pop() || "backup.json";
+      await auditBackup("backup_create", fileName, {
+        filePath,
+        timestamp,
+        printersCount: printers.length,
+        filamentsCount: filaments.length,
+        offersCount: offers.length,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
+
     return { filePath, timestamp };
   } catch (error) {
     console.error("❌ Hiba a backup létrehozásakor:", error);
@@ -98,6 +113,21 @@ export async function restoreBackup(): Promise<BackupData | null> {
       filaments: backupData.filaments?.length || 0,
       offers: backupData.offers?.length || 0,
     });
+
+    // Audit log
+    try {
+      const fileName = typeof filePath === "string" ? filePath.split(/[/\\]/).pop() || "backup.json" : "backup.json";
+      await auditBackup("backup_restore", fileName, {
+        filePath: typeof filePath === "string" ? filePath : undefined,
+        version: backupData.version,
+        timestamp: backupData.timestamp,
+        printersCount: backupData.printers?.length || 0,
+        filamentsCount: backupData.filaments?.length || 0,
+        offersCount: backupData.offers?.length || 0,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
 
     return backupData;
   } catch (error) {

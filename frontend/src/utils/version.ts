@@ -11,7 +11,7 @@ export interface VersionInfo {
   isBeta: boolean;
 }
 
-const CURRENT_VERSION = "1.9.0"; // Frissítsd ezt, amikor új verziót adsz ki
+const CURRENT_VERSION = "2.0.0"; // Frissítsd ezt, amikor új verziót adsz ki
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp"; // Frissítsd a saját repository nevedre
 const RATE_LIMIT_BACKOFF_MS = 15 * 60 * 1000; // 15 perc
 
@@ -105,10 +105,12 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
     }
 
     if (beta) {
-      // Beta esetén a legújabb pre-release verziót keresjük
+      // Beta esetén a legújabb pre-release verziót keresjük (beta-v prefix vagy prerelease flag)
       const releases: any[] = await response.json();
-      // Elsőként a pre-release verziókat keressük, ha nincs akkor az első release-t
-      const latestRelease = releases.find(r => r.prerelease === true) || releases[0];
+      // Elsőként a beta-v prefixű vagy prerelease verziókat keressük
+      const latestRelease = releases.find(r => 
+        r.tag_name.startsWith('beta-v') || r.prerelease === true
+      ) || releases[0];
       
       if (!latestRelease) {
         return {
@@ -120,8 +122,9 @@ export async function checkForUpdates(beta: boolean = false): Promise<VersionInf
         };
       }
 
-      const latestVersion = latestRelease.tag_name.replace(/^v/, "");
-      // Beta verzió esetén: ha pre-release és újabb mint a jelenlegi, akkor mutassuk
+      // Távolítsuk el a beta-v vagy v prefixet a verziószámból
+      let latestVersion = latestRelease.tag_name.replace(/^(beta-)?v/, "");
+      // Beta verzió esetén: ha pre-release vagy beta-v prefix és újabb mint a jelenlegi, akkor mutassuk
       // Ez lehetővé teszi, hogy main build-ről beta-ra frissítsen, ha van újabb beta verzió
       const isNewer = compareVersions(latestVersion, CURRENT_VERSION) > 0;
 

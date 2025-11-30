@@ -45,6 +45,34 @@ export interface SystemInfo {
   };
 }
 
+export interface PerformanceMetrics {
+  cpu: {
+    usage_percent: string;
+    cores: number;
+  };
+  memory: {
+    total_mb: string;
+    used_mb: string;
+    available_mb: string;
+    used_percent: number;
+  };
+  timestamp: string;
+}
+
+/**
+ * Lekéri a performance metrikákat a backend-től
+ */
+export async function getPerformanceMetrics(): Promise<PerformanceMetrics | null> {
+  try {
+    const metrics = await invoke<PerformanceMetrics>("get_performance_metrics");
+    return metrics;
+  } catch (error) {
+    console.error("❌ Hiba a performance metrikák lekérésekor:", error);
+    writeFrontendLog('ERROR', `Performance metrikák lekérési hiba: ${error}`).catch(() => {});
+    return null;
+  }
+}
+
 /**
  * Lekéri a rendszerinformációkat a backend-től
  */
