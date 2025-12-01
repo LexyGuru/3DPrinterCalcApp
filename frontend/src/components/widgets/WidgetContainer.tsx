@@ -91,6 +91,32 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
         return t("widget.title.customerStatsChart");
       case "offer-status-chart":
         return t("widget.title.offerStatusChart");
+      case "quick-actions":
+        return t("widget.title.quickActions");
+      case "recent-offers":
+        return t("widget.title.recentOffers");
+      case "filament-stock-alert":
+        return t("widget.title.filamentStockAlert");
+      case "financial-trends":
+        return t("widget.title.financialTrends");
+      case "active-projects":
+        return t("widget.title.activeProjects");
+      case "scheduled-tasks":
+        return t("widget.title.scheduledTasks");
+      case "backup-status":
+        return t("widget.title.backupStatus");
+      case "error-summary":
+        return t("widget.title.errorSummary");
+      case "log-viewer":
+        return t("widget.title.logViewer");
+      case "audit-log":
+        return t("widget.title.auditLog");
+      case "system-diagnostics":
+        return t("widget.title.systemDiagnostics");
+      case "performance-metrics":
+        return t("widget.title.performanceMetrics");
+      case "console":
+        return t("widget.title.console");
       default:
         return widget.title || "";
     }

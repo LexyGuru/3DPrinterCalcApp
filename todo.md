@@ -83,11 +83,98 @@ Magas prioritás – rövid, fejlesztői TODO lista
 [ ] API / integrációs réteg (REST API, későbbi mobil/egyéb integrációkhoz)
 
 6. Projekt / feladat modulok (a meglévő widgetek mögé)
-[ ] Projektkezelő modul (ActiveProjectsWidget mögötti domain logika)
-[ ] Feladatkezelő modul (ScheduledTasksWidget mögötti domain logika)
+[x] Projektkezelő modul (ActiveProjectsWidget mögötti domain logika) – **KÉSZ v2.0.0 (Project interface, CRUD műveletek, tárolás, UI komponens, widget integráció, 13 nyelv fordítás)**
+[x] Feladatkezelő modul (ScheduledTasksWidget mögötti domain logika) – **KÉSZ v2.0.0 (Task interface, CRUD műveletek, tárolás, UI komponens, widget integráció, 13 nyelv fordítás)**
 [ ] További performance optimalizálás (mélyebb code splitting, virtual scroll több helyen)
 
-7. Tutorial / Demo frissítés
+**Megjegyzés v2.0.0 projekt/feladat modulokhoz:**
+- ✅ Alapvető CRUD műveletek teljesen implementálva (létrehozás, szerkesztés, törlés)
+- ✅ Projekt-Feladat kapcsolatok (feladatok hozzárendelhetők projektekhez)
+- ✅ Projekt-Árajánlat kapcsolatok (árajánlatok hozzárendelhetők projektekhez)
+- ✅ Automatikus progress számítás projektekhez kapcsolt árajánlatok alapján
+- ✅ Undo/Redo funkcionalitás mindkét modulhoz
+- ✅ Keresés, szűrés, rendezés funkciók
+- ✅ TypeScript hibák és warning-ok javítva
+- ❌ Gantt chart megjelenítés (későbbi verzióhoz)
+- ❌ Recurring tasks támogatás (későbbi verzióhoz)
+- ❌ Automatikus feladat generálás árajánlatok határidejéből (manuális hozzárendelés lehetséges)
+
+7. Widget integráció hiányzó funkciókkal
+[x] Log Viewer Widget – **KÉSZ v2.0.0 (LogViewerWidget komponens létrehozva, Dashboard-ba integrálva, widget-en keresztül megnyitható modal, performance optimalizálva)**
+  - Log fájlok listázása widget formában ✅
+  - Legutóbbi logok megjelenítése (utolsó N bejegyzés) ✅
+  - Szűrés szint szerint (INFO/WARN/ERROR/DEBUG) widget-en belül ✅
+  - Kattintás → teljes LogViewer modal megnyitása ✅
+  - Real-time log frissítés opcionális ✅
+  - **Tárhely**: `frontend/src/components/widgets/LogViewerWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] Audit Log Widget – **KÉSZ v2.0.0 (AuditLogWidget komponens létrehozva, Dashboard-ba integrálva, widget-en keresztül megnyitható modal, human-readable setting names, performance optimalizálva)**
+  - Legutóbbi audit log bejegyzések megjelenítése (utolsó N művelet) ✅
+  - Kritikus műveletek kiemelése (Factory Reset, Backup, Settings változások) ✅
+  - Szűrés entitás szerint (Filament, Printer, Offer, Customer, Project, Task) ✅
+  - Szűrés akció szerint (Create, Update, Delete, Settings Change) ✅
+  - Kattintás → teljes AuditLogViewer modal megnyitása ✅
+  - **Tárhely**: `frontend/src/components/widgets/AuditLogWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] System Diagnostics Widget – **KÉSZ v2.0.0 (SystemDiagnosticsWidget komponens létrehozva, Dashboard-ba integrálva, widget-en keresztül megnyitható modal, performance optimalizálva)**
+  - Rendszer információ összefoglaló (CPU, memória, disk) ✅
+  - Log fájlok statisztikái (fájlok száma, összméret) ✅
+  - Backup fájlok statisztikái (fájlok száma, összméret, legutóbbi backup dátum) ✅
+  - Adattárolás információk (Store méret, adatbázis állapot) ✅
+  - Kattintás → teljes System Diagnostics modal megnyitása ✅
+  - **Tárhely**: `frontend/src/components/widgets/SystemDiagnosticsWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] Performance Metrics Widget – **KÉSZ v2.0.0 (PerformanceMetricsWidget komponens létrehozva, Dashboard-ba integrálva, real-time CPU és memória megjelenítés)**
+  - Betöltési idők megjelenítése (app indítás, modul betöltések) ✅
+  - Memória használat grafikon (real-time vagy időbeli trend) ✅
+  - CPU használat százalék (ha elérhető) ✅
+  - Performance trend analízis (utolsó X nap) ✅
+  - **Tárhely**: `frontend/src/components/widgets/PerformanceMetricsWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] Console Widget – **KÉSZ v2.0.0 (ConsoleWidget komponens létrehozva, Dashboard-ba integrálva, real-time console logok megjelenítése)**
+  - Console logok megjelenítése widget formában ✅
+  - Real-time log streaming ✅
+  - Szűrés szint szerint (log/info/warn/error/debug) ✅
+  - Auto-scroll opció ✅
+  - Kattintás → teljes Console oldal megnyitása ✅
+  - **Tárhely**: `frontend/src/components/widgets/ConsoleWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] Backup Status Widget – **KÉSZ v2.0.0 (BackupStatusWidget komponens létrehozva, Dashboard-ba integrálva, backup történet és törlési számláló megjelenítése, performance optimalizálva)**
+  - Legutóbbi backup információ (dátum, idő, állapot) ✅
+  - Backup történet összefoglaló (utolsó 5-10 backup) ✅
+  - Backup fájlok száma és összmérete ✅
+  - Automatikus backup állapot (bekapcsolva/kikapcsolva) ✅
+  - Következő backup emlékeztető (ha be van kapcsolva) ✅
+  - Gyors backup készítés gomb (ha lehetséges) ✅
+  - **Tárhely**: `frontend/src/components/widgets/BackupStatusWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] Error Summary Widget – **KÉSZ v2.0.0 (ErrorSummaryWidget komponens létrehozva, Dashboard-ba integrálva, hibák és figyelmeztetések összefoglalója)**
+  - Hibák összefoglalója (utolsó 24 óra/heti/havi) ✅
+  - Hiba típusok bontása (ERROR vs WARN) ✅
+  - Leggyakoribb hibák listája ✅
+  - Kritikus hibák kiemelése ✅
+  - Kattintás → Log Viewer hibák szűrésével ✅
+  - **Tárhely**: `frontend/src/components/widgets/ErrorSummaryWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+**Megjegyzés widget integrációkhoz:**
+- ✅ Minden logolási/audit/diagnosztika funkció már létezik komponens vagy utility formában
+- ✅ Minden widget létrehozva és integrálva a Dashboard-ba v2.0.0
+- ✅ Widget-ek követik a meglévő widget architektúrát (WidgetContainer, WidgetConfig)
+- ✅ Widget-ek támogatják a resizable/moveable funkcionalitást
+- ✅ Widget-ek integrálva vannak a widget konfiguráció rendszerbe (createDefaultWidgets, widget típusok)
+- ✅ Widget címek fordítása javítva (WidgetContainer.tsx-ben minden widget típus fordítva)
+- ✅ Widget-en keresztül megnyitott modal-ok bezárási problémája javítva (Settings.tsx initialModal kezelés)
+- ✅ RecentOffersWidget szépséghibák javítva (status fordítása, duplikált cím eltávolítva)
+- ✅ Performance optimalizációk (timeout-ok, visibility checks, refresh interval-ek növelése)
+
+8. Tutorial / Demo frissítés
 [x] Tutorial lépések frissítése az 1.6.0 és 1.7.0 újdonságokkal (widget interaktivitás, táblázat szűrés/rendezés, virtual scroll, backup rendszer, filament többnyelvű színek) – **KÉSZ v1.7.0 (Tutorial.tsx: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang lépések hozzáadva)**
 [x] Tutorial demo adatok bővítése (nagyobb Offers/Filaments lista, több minta projekt/ügyfél az új funkciók bemutatásához) – **KÉSZ v1.7.0 (tutorialDemoData.ts: 6 filament → 11 filament, 3 árajánlat → 5 árajánlat)**
 [x] Tutorial fordítási kulcsok hozzáadása minden nyelvhez – **KÉSZ v1.7.0 (13 nyelv: widgetInteractivity, filamentLibraryMultilang, tableSorting, autosaveBackup kulcsok hozzáadva)**
@@ -330,88 +417,88 @@ A v2.0.0 egy major verzió, amely jelentős új funkciókat, biztonsági fejlesz
 ### 📁 4. Projekt / Feladat Modulok
 
 #### 4.1. Projektkezelő Modul
-- [ ] **Domain logika implementálása**
+- [x] **Domain logika implementálása** – **KÉSZ v2.0.0**
   - Projekt adatstruktúra bővítése (`types.ts`)
-    - Projekt ID, név, leírás
-    - Státusz (active, on-hold, completed, cancelled)
-    - Progress tracking (0-100%)
-    - Deadline
-    - Kapcsolt árajánlatok (offer IDs)
-    - Költségvetés és tényleges költség
-    - Projekt tags/assignees (ha multi-user lesz később)
-  - **Tárhely**: `frontend/src/types.ts` (Project interface hozzáadása)
+    - Projekt ID, név, leírás ✅
+    - Státusz (active, on-hold, completed, cancelled) ✅
+    - Progress tracking (0-100%) ✅
+    - Deadline ✅
+    - Kapcsolt árajánlatok (offer IDs) ✅
+    - Költségvetés és tényleges költség ✅
+    - Projekt tags/assignees (ha multi-user lesz később) – **KIHAGYVA (nem prioritás)**
+  - **Tárhely**: `frontend/src/types.ts` (Project interface hozzáadása) ✅
 
-- [ ] **Projekt CRUD műveletek**
-  - Projekt létrehozása, szerkesztése, törlése
-  - Projekt-árajánlat kapcsolatok kezelése
-  - Progress automatikus számítása kapcsolt árajánlatok alapján
-  - **Tárhely**: `frontend/src/utils/projects.ts` (új fájl)
+- [x] **Projekt CRUD műveletek** – **KÉSZ v2.0.0**
+  - Projekt létrehozása, szerkesztése, törlése ✅
+  - Projekt-árajánlat kapcsolatok kezelése ✅
+  - Progress automatikus számítása kapcsolt árajánlatok alapján ✅
+  - **Tárhely**: `frontend/src/utils/projects.ts` (új fájl) ✅
 
-- [ ] **Projekt tárolás**
-  - Projektek mentése Store-ban (`projects.json` vagy Store kulcs)
-  - Projekt verziózás (ha szükséges)
-  - **Tárhely**: `frontend/src/utils/store.ts` (módosítás)
+- [x] **Projekt tárolás** – **KÉSZ v2.0.0**
+  - Projektek mentése Store-ban (`projects.json` vagy Store kulcs) ✅
+  - Projekt verziózás (ha szükséges) – **KIHAGYVA (nem prioritás)**
+  - **Tárhely**: `frontend/src/utils/store.ts` (módosítás) ✅
 
-- [ ] **Projekt UI komponens**
-  - Projektek listázása (új oldal vagy Dashboard bővítés)
-  - Projekt részletes nézet modal
-  - Projekt létrehozás/szerkesztés form
-  - Gantt chart megjelenítés (opcionális, későbbi verzióhoz)
-  - **Tárhely**: `frontend/src/components/Projects.tsx` (új fájl)
+- [x] **Projekt UI komponens** – **KÉSZ v2.0.0**
+  - Projektek listázása (új oldal vagy Dashboard bővítés) ✅
+  - Projekt részletes nézet modal ✅
+  - Projekt létrehozás/szerkesztés form ✅
+  - Gantt chart megjelenítés (opcionális, későbbi verzióhoz) – **KIHAGYVA (nem prioritás)**
+  - **Tárhely**: `frontend/src/components/Projects.tsx` (új fájl) ✅
 
-- [ ] **ActiveProjectsWidget integráció**
-  - Widget valódi projekt adatokkal való feltöltése
-  - Projekt kattintás → projekt részletes nézet megnyitása
-  - **Tárhely**: `frontend/src/components/widgets/ActiveProjectsWidget.tsx` (módosítás)
-  - **Tárhely**: `frontend/src/components/Dashboard.tsx` (módosítás)
+- [x] **ActiveProjectsWidget integráció** – **KÉSZ v2.0.0**
+  - Widget valódi projekt adatokkal való feltöltése ✅
+  - Projekt kattintás → projekt részletes nézet megnyitása ✅
+  - **Tárhely**: `frontend/src/components/widgets/ActiveProjectsWidget.tsx` (módosítás) ✅
+  - **Tárhely**: `frontend/src/components/Dashboard.tsx` (módosítás) ✅
 
-- [ ] **Fordítások**
-  - Projektkezelés szövegek (13 nyelv)
-  - Projekt státuszok, címkék (13 nyelv)
-  - **Tárhely**: `frontend/src/utils/languages/*.ts`
+- [x] **Fordítások** – **KÉSZ v2.0.0**
+  - Projektkezelés szövegek (13 nyelv) ✅
+  - Projekt státuszok, címkék (13 nyelv) ✅
+  - **Tárhely**: `frontend/src/utils/languages/*.ts` ✅
 
 #### 4.2. Feladatkezelő Modul
-- [ ] **Domain logika implementálása**
+- [x] **Domain logika implementálása** – **KÉSZ v2.0.0**
   - Feladat adatstruktúra bővítése (`types.ts`)
-    - Feladat ID, cím, leírás
-    - Prioritás (high, medium, low)
-    - Státusz (pending, in-progress, completed, cancelled)
-    - Határidő (due date)
-    - Kapcsolt árajánlat ID (opcionális)
-    - Feladat kategóriák/tags
-    - Feladat assignee (ha multi-user lesz később)
-    - Recurring tasks támogatás (opcionális)
-  - **Tárhely**: `frontend/src/types.ts` (Task interface hozzáadása)
+    - Feladat ID, cím, leírás ✅
+    - Prioritás (high, medium, low) ✅
+    - Státusz (pending, in-progress, completed, cancelled) ✅
+    - Határidő (due date) ✅
+    - Kapcsolt árajánlat ID (opcionális) ✅
+    - Feladat kategóriák/tags – **KIHAGYVA (nem prioritás)**
+    - Feladat assignee (ha multi-user lesz később) – **KIHAGYVA (nem prioritás)**
+    - Recurring tasks támogatás (opcionális) – **KIHAGYVA (nem prioritás)**
+  - **Tárhely**: `frontend/src/types.ts` (Task interface hozzáadása) ✅
 
-- [ ] **Feladat CRUD műveletek**
-  - Feladat létrehozása, szerkesztése, törlése
-  - Feladat státusz változtatás
-  - Határidő kezelés és emlékeztetők
-  - **Tárhely**: `frontend/src/utils/tasks.ts` (új fájl)
+- [x] **Feladat CRUD műveletek** – **KÉSZ v2.0.0**
+  - Feladat létrehozása, szerkesztése, törlése ✅
+  - Feladat státusz változtatás ✅
+  - Határidő kezelés és emlékeztetők ✅
+  - **Tárhely**: `frontend/src/utils/tasks.ts` (új fájl) ✅
 
-- [ ] **Feladat tárolás**
-  - Feladatok mentése Store-ban (`tasks.json` vagy Store kulcs)
-  - Feladat szűrés és rendezés
-  - **Tárhely**: `frontend/src/utils/store.ts` (módosítás)
+- [x] **Feladat tárolás** – **KÉSZ v2.0.0**
+  - Feladatok mentése Store-ban (`tasks.json` vagy Store kulcs) ✅
+  - Feladat szűrés és rendezés ✅
+  - **Tárhely**: `frontend/src/utils/store.ts` (módosítás) ✅
 
-- [ ] **Feladat UI komponens**
-  - Feladatok listázása (új oldal vagy Dashboard bővítés)
-  - Feladat részletes nézet modal
-  - Feladat létrehozás/szerkesztés form
-  - Naptár nézet feladatokkal (opcionális)
-  - **Tárhely**: `frontend/src/components/Tasks.tsx` (új fájl)
+- [x] **Feladat UI komponens** – **KÉSZ v2.0.0**
+  - Feladatok listázása (új oldal vagy Dashboard bővítés) ✅
+  - Feladat részletes nézet modal ✅
+  - Feladat létrehozás/szerkesztés form ✅
+  - Naptár nézet feladatokkal (opcionális) – **KIHAGYVA (nem prioritás)**
+  - **Tárhely**: `frontend/src/components/Tasks.tsx` (új fájl) ✅
 
-- [ ] **ScheduledTasksWidget integráció**
-  - Widget valódi feladat adatokkal való feltöltése
-  - Feladat kattintás → feladat részletes nézet megnyitása
-  - Automatikus feladat generálás árajánlatok határidejéből
-  - **Tárhely**: `frontend/src/components/widgets/ScheduledTasksWidget.tsx` (módosítás)
-  - **Tárhely**: `frontend/src/components/Dashboard.tsx` (módosítás)
+- [x] **ScheduledTasksWidget integráció** – **KÉSZ v2.0.0**
+  - Widget valódi feladat adatokkal való feltöltése ✅
+  - Feladat kattintás → feladat részletes nézet megnyitása ✅
+  - Automatikus feladat generálás árajánlatok határidejéből – **KIHAGYVA (nem prioritás, manuális hozzárendelés lehetséges)**
+  - **Tárhely**: `frontend/src/components/widgets/ScheduledTasksWidget.tsx` (módosítás) ✅
+  - **Tárhely**: `frontend/src/components/Dashboard.tsx` (módosítás) ✅
 
-- [ ] **Fordítások**
-  - Feladatkezelés szövegek (13 nyelv)
-  - Feladat prioritások, státuszok (13 nyelv)
-  - **Tárhely**: `frontend/src/utils/languages/*.ts`
+- [x] **Fordítások** – **KÉSZ v2.0.0**
+  - Feladatkezelés szövegek (13 nyelv) ✅
+  - Feladat prioritások, státuszok (13 nyelv) ✅
+  - **Tárhely**: `frontend/src/utils/languages/*.ts` ✅
 
 ---
 

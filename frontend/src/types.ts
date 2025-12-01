@@ -412,3 +412,47 @@ export interface FilamentPriceHistory {
   maxPrice?: number; // Maximum ár
   priceTrend?: "increasing" | "decreasing" | "stable"; // Ár trend
 }
+
+// Projekt adatstruktúra
+export type ProjectStatus = "active" | "on-hold" | "completed" | "cancelled";
+
+export interface Project {
+  id: number;
+  name: string;
+  description?: string;
+  status: ProjectStatus;
+  progress: number; // 0-100%
+  deadline?: string; // ISO date string
+  offerIds: number[]; // Kapcsolt árajánlatok ID-k
+  budget?: number; // Költségvetés (EUR)
+  actualCost?: number; // Tényleges költség (EUR)
+  tags?: string[]; // Projekt címkék/kategóriák
+  assignee?: string; // Opcionális: felelős személy (ha multi-user lesz később)
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  startedAt?: string; // ISO date string - projekt kezdés dátuma
+  completedAt?: string; // ISO date string - projekt befejezés dátuma
+}
+
+// Feladat adatstruktúra
+export type TaskPriority = "high" | "medium" | "low";
+export type TaskStatus = "pending" | "in-progress" | "completed" | "cancelled";
+
+export interface Task {
+  id: number;
+  title: string;
+  description?: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  dueDate: string; // ISO date string
+  relatedOfferId?: number; // Kapcsolt árajánlat ID (opcionális)
+  relatedProjectId?: number; // Kapcsolt projekt ID (opcionális)
+  tags?: string[]; // Feladat kategóriák/címkék
+  assignee?: string; // Opcionális: felelős személy (ha multi-user lesz később)
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  completedAt?: string; // ISO date string - feladat befejezés dátuma
+  isRecurring?: boolean; // Opcionális: ismétlődő feladat
+  recurringPattern?: string; // Opcionális: ismétlődési minta (daily, weekly, monthly, stb.)
+  nextRecurrenceDate?: string; // Opcionális: következő ismétlődés dátuma
+}

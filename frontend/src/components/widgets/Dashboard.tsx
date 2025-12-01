@@ -6,7 +6,7 @@ import "react-resizable/css/styles.css";
 import { getCurrencyLabel } from "../../utils/currency";
 import type { WidgetConfig, WidgetSize, DashboardLayout } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
-import type { Settings, Offer, Filament } from "../../types";
+import type { Settings, Offer, Filament, Project, Task } from "../../types";
 import { useTranslation } from "../../utils/translations";
 import { WidgetContainer } from "./WidgetContainer";
 import { StatisticsWidget } from "./StatisticsWidget";
@@ -26,6 +26,13 @@ import { FilamentStockAlertWidget } from "./FilamentStockAlertWidget";
 import { FinancialTrendsWidget } from "./FinancialTrendsWidget";
 import { ActiveProjectsWidget } from "./ActiveProjectsWidget";
 import { ScheduledTasksWidget } from "./ScheduledTasksWidget";
+import { BackupStatusWidget } from "./BackupStatusWidget";
+import { ErrorSummaryWidget } from "./ErrorSummaryWidget";
+import { LogViewerWidget } from "./LogViewerWidget";
+import { AuditLogWidget } from "./AuditLogWidget";
+import { SystemDiagnosticsWidget } from "./SystemDiagnosticsWidget";
+import { PerformanceMetricsWidget } from "./PerformanceMetricsWidget";
+import { ConsoleWidget } from "./ConsoleWidget";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -58,6 +65,13 @@ const getAllowedSizesForWidget = (widget: WidgetConfig): WidgetSize[] => {
     case "filament-stock-alert":
     case "active-projects":
     case "scheduled-tasks":
+    case "backup-status":
+    case "error-summary":
+    case "log-viewer":
+    case "audit-log":
+    case "system-diagnostics":
+    case "performance-metrics":
+    case "console":
       return ["medium", "large"];
 
     // Csak nagyban értelmes: komplex layout / több soros tartalom
@@ -190,24 +204,8 @@ interface DashboardProps {
       margin: number;
     }>;
   };
-  activeProjects?: Array<{
-    id: number;
-    name: string;
-    status: "active" | "on-hold" | "completed";
-    progress: number;
-    deadline?: string;
-    offerCount: number;
-    totalRevenue: number;
-  }>;
-  scheduledTasks?: Array<{
-    id: number;
-    title: string;
-    description?: string;
-    dueDate: string;
-    priority: "high" | "medium" | "low";
-    status: "pending" | "in-progress" | "completed";
-    relatedOfferId?: number;
-  }>;
+  activeProjects?: Project[];
+  scheduledTasks?: Task[];
   onNavigate?: (page: string) => void;
   onOfferClick?: (offerId: number) => void;
   onFilamentClick?: (filamentIndex: number) => void;
@@ -215,9 +213,16 @@ interface DashboardProps {
   onTaskClick?: (taskId: number) => void;
   onPeriodChange?: (period: "week" | "month" | "year") => void;
   onTrendRangeChange?: (startIndex: number, endIndex: number) => void;
+  onViewFullHistory?: () => void;
+  onViewLogs?: () => void;
+  onViewFullLogs?: () => void;
+  onViewFullAuditLog?: () => void;
+  onViewFullDiagnostics?: () => void;
+  onViewFullConsole?: () => void;
 }
 
 // Alapértelmezett widget konfigurációk - klasszikus nézet sorrendje szerint
+// ⚠️ IDEIGLENES: Minden widget kikapcsolva a teljesítmény probléma diagnosztizálásához
 const createDefaultWidgets = (t: (key: import("../../utils/languages/types").TranslationKey) => string): WidgetConfig[] => {
   return [
     // 1. Időszak összehasonlítás (első sor, 3 kártya egymás mellett)
@@ -226,7 +231,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "period-comparison",
       title: t("widget.title.periodComparison"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "period-comparison-1", x: 0, y: 0, w: 12, h: 3, minW: 6, minH: 2 },
     },
     // 2. Statisztikai kártyák (6 kártya grid-ben, 2 sorban)
@@ -235,7 +240,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "stat-card-filament",
       title: t("widget.title.totalFilament"),
       size: "small",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "stat-card-filament-1", x: 0, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
     },
     {
@@ -243,7 +248,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "stat-card-revenue",
       title: t("widget.title.totalRevenue"),
       size: "small",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "stat-card-revenue-1", x: 2, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
     },
     {
@@ -251,7 +256,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "stat-card-electricity",
       title: t("widget.title.totalElectricity"),
       size: "small",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "stat-card-electricity-1", x: 4, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
     },
     {
@@ -259,7 +264,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "stat-card-cost",
       title: t("widget.title.totalCost"),
       size: "small",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "stat-card-cost-1", x: 6, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
     },
     {
@@ -267,7 +272,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "stat-card-profit",
       title: t("widget.title.netProfit"),
       size: "small",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "stat-card-profit-1", x: 8, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
     },
     {
@@ -275,7 +280,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "stat-card-print-time",
       title: t("widget.title.totalPrintTime"),
       size: "small",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "stat-card-print-time-1", x: 10, y: 3, w: 2, h: 3, minW: 2, minH: 2 },
     },
     // 3. Pénzügyi trendek (nagy kártya, teljes szélesség)
@@ -284,7 +289,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "trend-chart",
       title: t("widget.title.trends"),
       size: "large",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "trend-chart-1", x: 0, y: 6, w: 12, h: 5, minW: 6, minH: 4 },
     },
     // 4. Filament megoszlás és Bevétel nyomtatónként (2 kártya egymás mellett)
@@ -293,7 +298,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "filament-breakdown",
       title: t("widget.title.filamentBreakdown"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "filament-breakdown-1", x: 0, y: 11, w: 6, h: 4, minW: 4, minH: 3 },
     },
     {
@@ -301,7 +306,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "printer-breakdown",
       title: t("widget.title.revenueByPrinter"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "printer-breakdown-1", x: 6, y: 11, w: 6, h: 4, minW: 4, minH: 3 },
     },
     // 5. Összefoglaló (utolsó sor, teljes szélesség)
@@ -310,7 +315,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "summary",
       title: t("widget.title.summary"),
       size: "large",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "summary-1", x: 0, y: 15, w: 12, h: 3, minW: 6, minH: 2 },
     },
     // 6. Nyomtatási idő grafikon
@@ -319,7 +324,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "print-time-chart",
       title: t("widget.title.printTimeChart"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "print-time-chart-1", x: 0, y: 18, w: 12, h: 4, minW: 6, minH: 3 },
     },
     // 7. Ügyfél statisztikák grafikon
@@ -328,7 +333,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "customer-stats-chart",
       title: t("widget.title.customerStatsChart"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "customer-stats-chart-1", x: 0, y: 22, w: 6, h: 4, minW:4, minH: 3 },
     },
     // 8. Árajánlat státusz eloszlás
@@ -337,7 +342,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "offer-status-chart",
       title: t("widget.title.offerStatusChart"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "offer-status-chart-1", x: 6, y: 22, w: 6, h: 4, minW:4, minH: 3 },
     },
     // 9. Új widgetek
@@ -346,7 +351,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "quick-actions",
       title: t("widget.title.quickActions"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "quick-actions-1", x: 0, y: 26, w: 4, h: 3, minW: 3, minH: 2 },
     },
     {
@@ -354,7 +359,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "recent-offers",
       title: t("widget.title.recentOffers"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "recent-offers-1", x: 4, y: 26, w: 4, h: 3, minW: 3, minH: 2 },
     },
     {
@@ -362,7 +367,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "filament-stock-alert",
       title: t("widget.title.filamentStockAlert"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "filament-stock-alert-1", x: 8, y: 26, w: 4, h: 3, minW: 3, minH: 2 },
     },
     {
@@ -370,7 +375,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "financial-trends",
       title: t("widget.title.financialTrends"),
       size: "large",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "financial-trends-1", x: 0, y: 29, w: 12, h: 5, minW: 6, minH: 4 },
     },
     {
@@ -378,7 +383,7 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "active-projects",
       title: t("widget.title.activeProjects"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "active-projects-1", x: 0, y: 34, w: 6, h: 4, minW: 4, minH: 3 },
     },
     {
@@ -386,8 +391,65 @@ const createDefaultWidgets = (t: (key: import("../../utils/languages/types").Tra
       type: "scheduled-tasks",
       title: t("widget.title.scheduledTasks"),
       size: "medium",
-      visible: true,
+      visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
       layout: { i: "scheduled-tasks-1", x: 6, y: 34, w: 6, h: 4, minW: 4, minH: 3 },
+    },
+    // 10. Új rendszer és log widgetek (alapértelmezettként REJTETT - csak manuálisan aktiválható)
+    {
+      id: "backup-status-1",
+      type: "backup-status",
+      title: t("widget.title.backupStatus"),
+      size: "medium",
+      visible: false, // Alapértelmezettként rejtett - csak manuálisan aktiválható
+      layout: { i: "backup-status-1", x: 0, y: 38, w: 4, h: 4, minW: 3, minH: 3 },
+    },
+    {
+      id: "error-summary-1",
+      type: "error-summary",
+      title: t("widget.title.errorSummary"),
+      size: "medium",
+      visible: false, // Alapértelmezettként rejtett
+      layout: { i: "error-summary-1", x: 4, y: 38, w: 4, h: 4, minW: 3, minH: 3 },
+    },
+    {
+      id: "log-viewer-1",
+      type: "log-viewer",
+      title: t("widget.title.logViewer"),
+      size: "medium",
+      visible: false, // Alapértelmezettként rejtett
+      layout: { i: "log-viewer-1", x: 8, y: 38, w: 4, h: 4, minW: 3, minH: 3 },
+    },
+    {
+      id: "audit-log-1",
+      type: "audit-log",
+      title: t("widget.title.auditLog"),
+      size: "medium",
+      visible: false, // Alapértelmezettként rejtett
+      layout: { i: "audit-log-1", x: 0, y: 42, w: 4, h: 4, minW: 3, minH: 3 },
+    },
+    {
+      id: "system-diagnostics-1",
+      type: "system-diagnostics",
+      title: t("widget.title.systemDiagnostics"),
+      size: "medium",
+      visible: false, // Alapértelmezettként rejtett
+      layout: { i: "system-diagnostics-1", x: 4, y: 42, w: 4, h: 4, minW: 3, minH: 3 },
+    },
+    {
+      id: "performance-metrics-1",
+      type: "performance-metrics",
+      title: t("widget.title.performanceMetrics"),
+      size: "medium",
+      visible: false, // Alapértelmezettként rejtett
+      layout: { i: "performance-metrics-1", x: 8, y: 42, w: 4, h: 4, minW: 3, minH: 3 },
+    },
+    {
+      id: "console-1",
+      type: "console",
+      title: t("widget.title.console"),
+      size: "medium",
+      visible: false, // Alapértelmezettként rejtett
+      layout: { i: "console-1", x: 0, y: 46, w: 12, h: 5, minW: 6, minH: 4 },
     },
   ];
 };
@@ -427,6 +489,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onTaskClick,
   onPeriodChange,
   onTrendRangeChange,
+  onViewFullHistory,
+  onViewLogs,
+  onViewFullLogs,
+  onViewFullAuditLog,
+  onViewFullDiagnostics,
+  onViewFullConsole,
 }) => {
   const t = useTranslation(settings.language);
 
@@ -538,7 +606,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       return widget.title || `${t("widget.group.name")} 1`;
     }
     
-    // Egyéb widget típusok fordítása
+    // Egyéb widget típusok fordítása - MINDIG a fordított címet adja vissza, függetlenül a widget.title-től
     switch (widget.type) {
       case "period-comparison":
         return t("widget.title.periodComparison");
@@ -580,6 +648,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
         return t("widget.title.activeProjects");
       case "scheduled-tasks":
         return t("widget.title.scheduledTasks");
+      case "backup-status":
+        return t("widget.title.backupStatus");
+      case "error-summary":
+        return t("widget.title.errorSummary");
+      case "log-viewer":
+        return t("widget.title.logViewer");
+      case "audit-log":
+        return t("widget.title.auditLog");
+      case "system-diagnostics":
+        return t("widget.title.systemDiagnostics");
+      case "performance-metrics":
+        return t("widget.title.performanceMetrics");
+      case "console":
+        return t("widget.title.console");
       default:
         return widget.title || "";
     }
@@ -904,7 +986,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         type: "widget-group",
         title: `${t("widget.group.name")} ${groupNumber}`,
         size: "large",
-        visible: true,
+        visible: false, // ⚠️ IDEIGLENES: Kikapcsolva
         layout: {
           i: groupId,
           x: 0,
@@ -1294,6 +1376,68 @@ export const Dashboard: React.FC<DashboardProps> = ({
             settings={settings}
             tasks={safeScheduledTasks}
             onTaskClick={onTaskClick}
+          />
+        );
+      case "backup-status":
+        return (
+          <BackupStatusWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            onViewFullHistory={onViewFullHistory}
+          />
+        );
+      case "error-summary":
+        return (
+          <ErrorSummaryWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            onViewLogs={onViewLogs}
+          />
+        );
+      case "log-viewer":
+        return (
+          <LogViewerWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            onViewFullLogs={onViewFullLogs}
+          />
+        );
+      case "audit-log":
+        return (
+          <AuditLogWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            onViewFullAuditLog={onViewFullAuditLog}
+          />
+        );
+      case "system-diagnostics":
+        return (
+          <SystemDiagnosticsWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            onViewFullDiagnostics={onViewFullDiagnostics}
+          />
+        );
+      case "performance-metrics":
+        return (
+          <PerformanceMetricsWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+          />
+        );
+      case "console":
+        return (
+          <ConsoleWidget
+            widget={widget}
+            theme={theme}
+            settings={settings}
+            onViewFullConsole={onViewFullConsole}
           />
         );
       case "widget-group":

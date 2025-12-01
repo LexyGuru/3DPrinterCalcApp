@@ -98,6 +98,8 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
         { key: "filament-stock", label: t("sidebar.filamentStock") || "Készletnyilvántartás", icon: "📦" },
         { key: "customers", label: t("sidebar.customers"), icon: "👥" },
         { key: "offers", label: t("sidebar.offers"), icon: "📋" },
+        { key: "projects", label: t("sidebar.projects") || "Projektek", icon: "📁" },
+        { key: "tasks", label: t("sidebar.tasks") || "Feladatok", icon: "✅" },
       ],
     },
     {

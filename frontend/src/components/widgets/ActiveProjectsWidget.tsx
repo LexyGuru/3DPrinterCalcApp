@@ -1,24 +1,14 @@
 import React from "react";
 import type { WidgetConfig } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
-import type { Settings } from "../../types";
+import type { Settings, Project } from "../../types";
 import { useTranslation } from "../../utils/translations";
-
-interface ActiveProject {
-  id: number;
-  name: string;
-  status: "active" | "on-hold" | "completed";
-  progress: number; // 0-100
-  deadline?: string;
-  offerCount: number;
-  totalRevenue: number;
-}
 
 interface ActiveProjectsWidgetProps {
   widget: WidgetConfig;
   theme: Theme;
   settings: Settings;
-  projects: ActiveProject[];
+  projects: Project[];
   onProjectClick?: (projectId: number) => void;
 }
 
@@ -187,6 +177,14 @@ export const ActiveProjectsWidget: React.FC<ActiveProjectsWidgetProps> = ({
                   color: theme.colors.textMuted,
                 }}>
                   {t("common.deadline") || "Deadline"}: {new Date(project.deadline).toLocaleDateString()}
+                </div>
+              )}
+              {project.offerIds && project.offerIds.length > 0 && (
+                <div style={{
+                  fontSize: isSmall ? "10px" : "11px",
+                  color: theme.colors.textMuted,
+                }}>
+                  {project.offerIds?.length || 0} {t("offers.title") || "offers"}
                 </div>
               )}
             </div>

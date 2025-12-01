@@ -448,10 +448,7 @@ export async function getAutomaticBackupHistory(): Promise<BackupHistoryItem[]> 
     // Ez elkerüli a Tauri permissions problémát
     const backupFiles = await invoke<[string, string, string, number][]>("list_backup_files");
     
-    if (import.meta.env.DEV) {
-      console.log("📝 Talált backup fájlok:", backupFiles.length);
-    }
-
+    // Debug logok eltávolítva a teljesítmény javítása érdekében
     const now = new Date();
     const history: BackupHistoryItem[] = [];
 
@@ -465,16 +462,6 @@ export async function getAutomaticBackupHistory(): Promise<BackupHistoryItem[]> 
           const daysOld = getDaysDifference(backupDate, now);
           
           const willBeDeletedIn = Math.max(0, 5 - daysOld); // 5 nap után törlődik
-          
-          if (import.meta.env.DEV && daysOld === 0) {
-            console.log(`📅 Backup dátum számítás:`, {
-              fileName,
-              backupDate: backupDate.toISOString(),
-              now: now.toISOString(),
-              daysOld,
-              willBeDeletedIn
-            });
-          }
           
           history.push({
             fileName,
@@ -492,10 +479,6 @@ export async function getAutomaticBackupHistory(): Promise<BackupHistoryItem[]> 
 
     // Rendezés dátum szerint (legújabb először) - a backend már rendezi, de biztosra megyünk
     history.sort((a, b) => b.date.getTime() - a.date.getTime());
-
-    if (import.meta.env.DEV) {
-      console.log("✅ Backup history betöltve:", history.length, "fájl");
-    }
 
     return history;
   } catch (error) {

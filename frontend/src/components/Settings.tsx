@@ -70,6 +70,8 @@ interface Props {
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
   onFactoryReset?: () => void; // Callback a Factory Reset után
+  initialModal?: "log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history" | null;
+  onModalOpened?: () => void;
 }
 
 export const SettingsPage: React.FC<Props> = ({ 
@@ -83,7 +85,9 @@ export const SettingsPage: React.FC<Props> = ({
   setOffers,
   theme,
   themeStyles,
-  onFactoryReset
+  onFactoryReset,
+  initialModal,
+  onModalOpened
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
@@ -109,6 +113,7 @@ export const SettingsPage: React.FC<Props> = ({
   const [showSystemDiagnostics, setShowSystemDiagnostics] = useState(false);
   const [logViewerOpen, setLogViewerOpen] = useState(false);
   const [auditLogViewerOpen, setAuditLogViewerOpen] = useState(false);
+  const lastInitialModalRef = useRef<typeof initialModal>(null); // Utolsó initialModal érték
   const [selectedLogFile, setSelectedLogFile] = useState<{ path: string; name: string } | null>(null);
   const [selectedAuditLogFile, setSelectedAuditLogFile] = useState<{ path: string; name: string } | null>(null);
   type LibraryDraft = {
@@ -311,13 +316,19 @@ export const SettingsPage: React.FC<Props> = ({
     }
   }, []);
 
-  // Log history betöltése - betöltéskor és 30 másodpercenkénti frissítés
+  // Log history betöltése - betöltjük amikor a Settings oldal megnyílik
   useEffect(() => {
+    // Betöltjük egyszer, amikor a komponens mountolódik
     loadLogHistory();
-    // Frissítjük 30 másodpercenként
-    const interval = setInterval(loadLogHistory, 30000);
+    
+    // Csak akkor frissítjük periodikusan, ha a log viewer nyitva van
+    const interval = setInterval(() => {
+      if (logViewerOpen) {
+        loadLogHistory();
+      }
+    }, 60000); // 60 másodpercenként csak ha nyitva van
     return () => clearInterval(interval);
-  }, [loadLogHistory]);
+  }, [loadLogHistory, logViewerOpen]);
 
   // Helper függvény az audit log history betöltéséhez
   const loadAuditLogHistory = useCallback(async () => {
@@ -330,13 +341,143 @@ export const SettingsPage: React.FC<Props> = ({
     }
   }, []);
 
-  // Audit log history betöltése - betöltéskor és 30 másodpercenkénti frissítés
+  // Audit log history betöltése - betöltjük amikor a Settings oldal megnyílik
   useEffect(() => {
+    // Betöltjük egyszer, amikor a komponens mountolódik
     loadAuditLogHistory();
-    // Frissítjük 30 másodpercenként
-    const interval = setInterval(loadAuditLogHistory, 30000);
+    
+    // Csak akkor frissítjük periodikusan, ha az audit log viewer nyitva van
+    const interval = setInterval(() => {
+      if (auditLogViewerOpen) {
+        loadAuditLogHistory();
+      }
+    }, 60000); // 60 másodpercenként csak ha nyitva van
     return () => clearInterval(interval);
-  }, [loadAuditLogHistory]);
+  }, [loadAuditLogHistory, auditLogViewerOpen]);
+
+  // Automatikusan megnyitjuk a megfelelő modalt, ha van initialModal prop
+  useEffect(() => {
+    if (!initialModal) {
+      // Ha nincs initialModal, reseteljük a ref-et
+      lastInitialModalRef.current = null;
+      return;
+    }
+
+    // Ha az initialModal nem változott, ne nyissa meg újra
+    if (lastInitialModalRef.current === initialModal) {
+      return;
+    }
+
+    console.log("[Settings] initialModal beállítva:", initialModal);
+
+    // Először beállítjuk az activeTab-ot, hogy a megfelelő tab látszódjon
+    switch (initialModal) {
+      case "log-viewer":
+      case "audit-log-viewer":
+      case "backup-history":
+        console.log("[Settings] ActiveTab beállítva: data");
+        setActiveTab("data");
+        break;
+      case "system-diagnostics":
+        console.log("[Settings] ActiveTab beállítva: advanced");
+        setActiveTab("advanced");
+        break;
+    }
+
+    // Segédfüggvény a modal megnyitásához
+    const openModal = async () => {
+      console.log("[Settings] openModal hívva, initialModal:", initialModal);
+      
+      // Ha az initialModal nullázódott vagy változott azóta, ne nyissa meg
+      if (!initialModal) {
+        console.log("[Settings] initialModal null, kilépünk");
+        return;
+      }
+
+      // Most frissítjük a ref-et, hogy ne nyílljon meg újra
+      lastInitialModalRef.current = initialModal;
+
+      switch (initialModal) {
+        case "log-viewer":
+          console.log("[Settings] Log viewer megnyitása...");
+          // Közvetlenül betöltjük a log history-t
+          try {
+            const historyToUse = await getLogHistory();
+            console.log("[Settings] Betöltött log fájlok száma:", historyToUse.length);
+            // Újra ellenőrizzük, hogy az initialModal még mindig érvényes
+            if (!initialModal || lastInitialModalRef.current !== initialModal) {
+              console.log("[Settings] initialModal érvénytelenné vált, kilépünk");
+              return;
+            }
+            // Frissítjük a state-et is
+            if (historyToUse.length > 0) {
+              setLogHistory(historyToUse);
+            }
+            // Megnyitjuk a log viewer-t, ha van log fájl
+            if (historyToUse.length > 0) {
+              const latestLog = historyToUse[0];
+              console.log("[Settings] Log viewer megnyitása:", latestLog.fileName);
+              setSelectedLogFile({ path: latestLog.filePath, name: latestLog.fileName });
+              setLogViewerOpen(true);
+            } else {
+              console.warn("[Settings] Nincs log fájl a megnyitáshoz");
+            }
+          } catch (error) {
+            console.error("[Settings] Hiba a log history betöltésekor:", error);
+          }
+          break;
+        case "audit-log-viewer":
+          console.log("[Settings] Audit log viewer megnyitása...");
+          // Közvetlenül betöltjük az audit log history-t
+          try {
+            const auditHistoryToUse = await listAuditLogs();
+            console.log("[Settings] Betöltött audit log fájlok száma:", auditHistoryToUse.length);
+            // Újra ellenőrizzük, hogy az initialModal még mindig érvényes
+            if (!initialModal || lastInitialModalRef.current !== initialModal) {
+              console.log("[Settings] initialModal érvénytelenné vált, kilépünk");
+              return;
+            }
+            // Frissítjük a state-et is
+            if (auditHistoryToUse.length > 0) {
+              setAuditLogHistory(auditHistoryToUse);
+            }
+            // Megnyitjuk az audit log viewer-t, ha van audit log fájl
+            if (auditHistoryToUse.length > 0) {
+              const latestAuditLog = auditHistoryToUse[0];
+              console.log("[Settings] Audit log viewer megnyitása:", latestAuditLog.fileName);
+              setSelectedAuditLogFile({ path: latestAuditLog.filePath, name: latestAuditLog.fileName });
+              setAuditLogViewerOpen(true);
+            } else {
+              console.warn("[Settings] Nincs audit log fájl a megnyitáshoz");
+            }
+          } catch (error) {
+            console.error("[Settings] Hiba az audit log history betöltésekor:", error);
+          }
+          break;
+        case "system-diagnostics":
+          console.log("[Settings] System diagnostics megnyitása");
+          setShowSystemDiagnostics(true);
+          break;
+        case "backup-history":
+          console.log("[Settings] Backup history tab megnyitása");
+          // A backup history a data tab-ban van, csak váltunk tab-ra
+          break;
+      }
+    };
+
+    // Kis késleltetés, hogy a komponens teljesen betöltődjön és az activeTab beállítódjon
+    const timeout = setTimeout(() => {
+      console.log("[Settings] Timeout lejárt, modal megnyitása...");
+      openModal();
+    }, 800);
+
+    return () => {
+      console.log("[Settings] useEffect cleanup");
+      clearTimeout(timeout);
+    };
+    // Csak az initialModal változásakor fusson le, ne a logHistory/auditLogHistory változásakor
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialModal]);
 
   const ensureThemeSettings = (overrides?: Partial<ThemeSettings>): ThemeSettings => {
     const base: ThemeSettings = {
@@ -5656,7 +5797,13 @@ export const SettingsPage: React.FC<Props> = ({
       {/* System Diagnostics Modal */}
       <SystemDiagnostics
         isOpen={showSystemDiagnostics}
-        onClose={() => setShowSystemDiagnostics(false)}
+        onClose={() => {
+          setShowSystemDiagnostics(false);
+          // Nullázzuk ki az initialModal-t, hogy ne nyílljon meg újra
+          if (initialModal === "system-diagnostics") {
+            onModalOpened?.();
+          }
+        }}
         settings={settings}
         theme={theme}
         themeStyles={themeStyles}
@@ -5669,6 +5816,10 @@ export const SettingsPage: React.FC<Props> = ({
           onClose={() => {
             setLogViewerOpen(false);
             setSelectedLogFile(null);
+            // Nullázzuk ki az initialModal-t, hogy ne nyílljon meg újra
+            if (initialModal === "log-viewer") {
+              onModalOpened?.();
+            }
           }}
           logFilePath={selectedLogFile.path}
           logFileName={selectedLogFile.name}
@@ -5684,6 +5835,10 @@ export const SettingsPage: React.FC<Props> = ({
           onClose={() => {
             setAuditLogViewerOpen(false);
             setSelectedAuditLogFile(null);
+            // Nullázzuk ki az initialModal-t, hogy ne nyílljon meg újra
+            if (initialModal === "audit-log-viewer") {
+              onModalOpened?.();
+            }
           }}
           auditLogFilePath={selectedAuditLogFile.path}
           auditLogFileName={selectedAuditLogFile.name}

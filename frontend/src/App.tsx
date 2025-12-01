@@ -18,11 +18,13 @@ const Offers = lazy(() => import("./components/Offers").then(module => ({ defaul
 const Customers = lazy(() => import("./components/Customers").then(module => ({ default: module.Customers })));
 const PriceTrends = lazy(() => import("./components/PriceTrends").then(module => ({ default: module.PriceTrends })));
 const Calendar = lazy(() => import("./components/Calendar").then(module => ({ default: module.Calendar })));
+const Projects = lazy(() => import("./components/Projects").then(module => ({ default: module.Projects })));
+const Tasks = lazy(() => import("./components/Tasks").then(module => ({ default: module.Tasks })));
 const SettingsPage = lazy(() => import("./components/Settings").then(module => ({ default: module.SettingsPage })));
 const Console = lazy(() => import("./components/Console").then(module => ({ default: module.Console })));
-import type { Printer, Settings, Filament, Offer, Customer, ThemeName } from "./types";
+import type { Printer, Settings, Filament, Offer, Customer, ThemeName, Project, Task } from "./types";
 import { defaultSettings } from "./types";
-import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers, resetStoreInstance } from "./utils/store";
+import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers, loadProjects, loadTasks, resetStoreInstance } from "./utils/store";
 import { createAutomaticBackup, cleanupOldBackups } from "./utils/backup";
 import { cleanupOldLogs } from "./utils/logCleanup";
 import { cleanupOldAuditLogs } from "./utils/auditLogCleanup";
@@ -51,6 +53,8 @@ export default function App() {
   const [filaments, setFilaments] = useState<Filament[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -64,6 +68,7 @@ export default function App() {
   const [tutorialWillOpen, setTutorialWillOpen] = useState(false); // Jelzi, hogy a tutorial meg fog nyílni (még mielőtt megnyílik)
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const [languageSelected, setLanguageSelected] = useState(false);
+  const [settingsInitialModal, setSettingsInitialModal] = useState<"log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history" | null>(null);
   const t = useTranslation(settings.language);
 
   // 🔹 Log settings frissítése, amikor a settings változik
@@ -157,6 +162,8 @@ export default function App() {
     setFilaments([]);
     setOffers([]);
     setCustomers([]);
+    setProjects([]);
+    setTasks([]);
     // Explicit módon nullázzuk ki a lastBackupDate-et is a Factory Reset után
     setSettings({ ...defaultSettings, lastBackupDate: undefined });
     setIsInitialized(false);
@@ -201,6 +208,14 @@ export default function App() {
       if (loadedCustomers.length > 0) {
         setCustomers(loadedCustomers);
       }
+      const loadedProjects = await loadProjects();
+      if (loadedProjects.length > 0) {
+        setProjects(loadedProjects);
+      }
+      const loadedTasks = await loadTasks();
+      if (loadedTasks.length > 0) {
+        setTasks(loadedTasks);
+      }
       console.log("✅ Adatok újratöltve demo adatok generálása után");
     } catch (error) {
       console.error("❌ Hiba az adatok újratöltésekor:", error);
@@ -244,6 +259,8 @@ export default function App() {
       let loadedFilamentsCount = 0;
       let loadedOffersCount = 0;
       let loadedCustomersCount = 0;
+      let loadedProjectsCount = 0;
+      let loadedTasksCount = 0;
       
       try {
         // 1. Beállítások betöltése (Performance metrikákkal)
@@ -477,8 +494,80 @@ export default function App() {
           loadedCustomersCount = 0;
         }
 
-        // 6. Inicializálás
+        // 6. Projektek betöltése
         setLoadingStep(5);
+        setLoadingProgress(90);
+        await writeFrontendLog('INFO', "📥 [MODUL: Projektek] Betöltés indítása...");
+        
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        let projectsStatus: "success" | "warning" | "error" = "success";
+        const projectsTimer = new PerformanceTimer("Projektek betöltése", "loading", false);
+        try {
+          const loadedProjects = await loadProjects();
+          const projectsMetric = await projectsTimer.stop();
+          performanceMetrics.push(projectsMetric);
+          
+          loadedProjectsCount = loadedProjects.length;
+          
+          if (loadedProjects.length > 0) {
+            setProjects(loadedProjects);
+            await writeFrontendLog('INFO', `✅ [MODUL: Projektek] Betöltve - ${loadedProjects.length} projekt`);
+            await writeFrontendLog('INFO', "✅ [MODUL: Projektek] Státusz: Minden rendben");
+          } else {
+            projectsStatus = "warning";
+            await writeFrontendLog('INFO', "ℹ️ [MODUL: Projektek] Nincs mentett projekt");
+            await writeFrontendLog('WARN', "⚠️ [MODUL: Projektek] Státusz: Figyelmeztetés - Nincs mentett projekt");
+          }
+        } catch (error) {
+          projectsStatus = "error";
+          await projectsTimer.stopWithError(error);
+          const errorMsg = `❌ [MODUL: Projektek] HIBA: ${error instanceof Error ? error.message : String(error)}`;
+          await writeFrontendLog('ERROR', errorMsg);
+          await writeFrontendLog('ERROR', "❌ [MODUL: Projektek] Státusz: Hiba");
+          console.error("❌ Hiba a projektek betöltésekor:", error);
+          setProjects([]);
+          loadedProjectsCount = 0;
+        }
+
+        // 7. Feladatok betöltése
+        setLoadingStep(6);
+        setLoadingProgress(95);
+        await writeFrontendLog('INFO', "📥 [MODUL: Feladatok] Betöltés indítása...");
+        
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        let tasksStatus: "success" | "warning" | "error" = "success";
+        const tasksTimer = new PerformanceTimer("Feladatok betöltése", "loading", false);
+        try {
+          const loadedTasks = await loadTasks();
+          const tasksMetric = await tasksTimer.stop();
+          performanceMetrics.push(tasksMetric);
+          
+          loadedTasksCount = loadedTasks.length;
+          
+          if (loadedTasks.length > 0) {
+            setTasks(loadedTasks);
+            await writeFrontendLog('INFO', `✅ [MODUL: Feladatok] Betöltve - ${loadedTasks.length} feladat`);
+            await writeFrontendLog('INFO', "✅ [MODUL: Feladatok] Státusz: Minden rendben");
+          } else {
+            tasksStatus = "warning";
+            await writeFrontendLog('INFO', "ℹ️ [MODUL: Feladatok] Nincs mentett feladat");
+            await writeFrontendLog('WARN', "⚠️ [MODUL: Feladatok] Státusz: Figyelmeztetés - Nincs mentett feladat");
+          }
+        } catch (error) {
+          tasksStatus = "error";
+          await tasksTimer.stopWithError(error);
+          const errorMsg = `❌ [MODUL: Feladatok] HIBA: ${error instanceof Error ? error.message : String(error)}`;
+          await writeFrontendLog('ERROR', errorMsg);
+          await writeFrontendLog('ERROR', "❌ [MODUL: Feladatok] Státusz: Hiba");
+          console.error("❌ Hiba a feladatok betöltésekor:", error);
+          setTasks([]);
+          loadedTasksCount = 0;
+        }
+
+        // 8. Inicializálás
+        setLoadingStep(7);
         setLoadingProgress(100);
         await writeFrontendLog('INFO', "📥 [MODUL: Inicializálás] Alkalmazás inicializálása...");
         
@@ -491,6 +580,8 @@ export default function App() {
           filaments: filamentsStatus,
           offers: offersStatus,
           customers: customersStatus,
+          projects: projectsStatus,
+          tasks: tasksStatus,
         };
         
         const hasWarnings = Object.values(statusSummary).some(s => s === "warning");
@@ -504,9 +595,9 @@ export default function App() {
         }
         
         await writeFrontendLog('INFO', '─────────────────────────────────────────────────────────────────');
-        const summaryMsg = `✅ Alkalmazás betöltés befejezve - Nyomtatók: ${loadedPrintersCount}, Filamentek: ${loadedFilamentsCount}, Árajánlatok: ${loadedOffersCount}, Ügyfelek: ${loadedCustomersCount}, Beállítások: ${loadedSettings ? "✅" : "⚠️ Alapértelmezett"}`;
+        const summaryMsg = `✅ Alkalmazás betöltés befejezve - Nyomtatók: ${loadedPrintersCount}, Filamentek: ${loadedFilamentsCount}, Árajánlatok: ${loadedOffersCount}, Ügyfelek: ${loadedCustomersCount}, Projektek: ${loadedProjectsCount}, Feladatok: ${loadedTasksCount}, Beállítások: ${loadedSettings ? "✅" : "⚠️ Alapértelmezett"}`;
         const statusMsg = `📊 Betöltési összefoglaló: ${summaryStatus}`;
-        const detailMsg = `📊 Részletes státuszok - Beállítások: ${settingsStatus}, Nyomtatók: ${printersStatus}, Filamentek: ${filamentsStatus}, Árajánlatok: ${offersStatus}, Ügyfelek: ${customersStatus}`;
+        const detailMsg = `📊 Részletes státuszok - Beállítások: ${settingsStatus}, Nyomtatók: ${printersStatus}, Filamentek: ${filamentsStatus}, Árajánlatok: ${offersStatus}, Ügyfelek: ${customersStatus}, Projektek: ${projectsStatus}, Feladatok: ${tasksStatus}`;
         
         // Közvetlenül fájlba írunk, nem frontendLogger-rel (hogy ne legyen duplikáció)
         await writeFrontendLog('INFO', summaryMsg);
@@ -1187,6 +1278,31 @@ export default function App() {
             themeStyles={themeStyles}
           />
         );
+      case "projects":
+        return (
+          <Projects
+            projects={projects}
+            setProjects={setProjects}
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+            offers={offers}
+            triggerAddForm={quickActionTrigger === 'add-project'}
+          />
+        );
+      case "tasks":
+        return (
+          <Tasks
+            tasks={tasks}
+            setTasks={setTasks}
+            settings={settings}
+            theme={currentTheme}
+            themeStyles={themeStyles}
+            offers={offers}
+            projects={projects}
+            triggerAddForm={quickActionTrigger === 'add-task'}
+          />
+        );
       case "settings": 
         return (
           <SettingsPage 
@@ -1214,6 +1330,8 @@ export default function App() {
             theme={currentTheme}
             themeStyles={themeStyles}
             onFactoryReset={handleFactoryReset}
+            initialModal={settingsInitialModal}
+            onModalOpened={() => setSettingsInitialModal(null)}
           />
         );
       case "console":
@@ -1224,15 +1342,24 @@ export default function App() {
           offers={offers} 
           filaments={filaments}
           printers={printers}
+          projects={projects}
+          tasks={tasks}
           theme={currentTheme} 
           onSettingsChange={(newSettings) => {
             setSettings(newSettings);
             // A Home komponensben az onLayoutChange már meghívja a saveSettings-t
           }}
-          onNavigate={setActivePage}
+          onNavigate={(page: string, modal?: "log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history") => {
+            setActivePage(page);
+            if (modal && page === "settings") {
+              setSettingsInitialModal(modal);
+            } else {
+              setSettingsInitialModal(null);
+            }
+          }}
         />;
     }
-  }, [activePage, filaments, printers, offers, customers, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers, quickActionTrigger]);
+  }, [activePage, filaments, printers, offers, customers, projects, tasks, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers, setProjects, setTasks, quickActionTrigger]);
 
   // Determine if this is a beta build from environment variable (set at build time)
   const isBeta = import.meta.env.VITE_IS_BETA === 'true';
@@ -1250,14 +1377,16 @@ export default function App() {
       return Math.min(100, Math.max(0, progressInStep));
     };
 
-    const totalSteps = 6;
+    const totalSteps = 8;
     return [
       { label: t("loading.settings"), progress: calculateStepProgress(0, totalSteps) },
       { label: t("loading.printers"), progress: calculateStepProgress(1, totalSteps) },
       { label: t("loading.filaments"), progress: calculateStepProgress(2, totalSteps) },
       { label: t("loading.offers"), progress: calculateStepProgress(3, totalSteps) },
       { label: t("loading.customers"), progress: calculateStepProgress(4, totalSteps) },
-      { label: t("loading.initialization"), progress: calculateStepProgress(5, totalSteps) },
+      { label: t("loading.projects") || "Projektek betöltése...", progress: calculateStepProgress(5, totalSteps) },
+      { label: t("loading.tasks") || "Feladatok betöltése...", progress: calculateStepProgress(6, totalSteps) },
+      { label: t("loading.initialization"), progress: calculateStepProgress(7, totalSteps) },
     ];
   }, [loadingProgress, t]);
 

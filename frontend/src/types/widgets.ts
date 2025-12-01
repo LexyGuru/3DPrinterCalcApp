@@ -22,6 +22,13 @@ export type WidgetType =
   | "active-projects"
   | "filament-stock-alert"
   | "scheduled-tasks"
+  | "backup-status"
+  | "error-summary"
+  | "log-viewer"
+  | "audit-log"
+  | "system-diagnostics"
+  | "performance-metrics"
+  | "console"
   | "widget-group";
 
 export type WidgetSize = "small" | "medium" | "large";

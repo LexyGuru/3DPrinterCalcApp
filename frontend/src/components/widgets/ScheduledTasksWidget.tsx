@@ -1,24 +1,14 @@
 import React from "react";
 import type { WidgetConfig } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
-import type { Settings } from "../../types";
+import type { Settings, Task } from "../../types";
 import { useTranslation } from "../../utils/translations";
-
-interface ScheduledTask {
-  id: number;
-  title: string;
-  description?: string;
-  dueDate: string;
-  priority: "high" | "medium" | "low";
-  status: "pending" | "in-progress" | "completed";
-  relatedOfferId?: number;
-}
 
 interface ScheduledTasksWidgetProps {
   widget: WidgetConfig;
   theme: Theme;
   settings: Settings;
-  tasks: ScheduledTask[];
+  tasks: Task[];
   onTaskClick?: (taskId: number) => void;
 }
 

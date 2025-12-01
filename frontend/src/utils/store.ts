@@ -1,5 +1,5 @@
 import { Store } from "@tauri-apps/plugin-store";
-import type { Printer, Filament, Settings, Offer, CalculationTemplate, Customer, PriceHistory } from "../types";
+import type { Printer, Filament, Settings, Offer, CalculationTemplate, Customer, PriceHistory, Project, Task } from "../types";
 // deleteAllAutomaticBackups import eltávolítva - a FactoryResetProgress modal kezeli a backup fájlok törlését
 import { remove, exists } from "@tauri-apps/plugin-fs";
 import { BaseDirectory } from "@tauri-apps/plugin-fs";
@@ -326,6 +326,78 @@ export async function loadPriceHistory(): Promise<PriceHistory[]> {
   }
 }
 
+// Projects
+export async function saveProjects(projects: Project[]): Promise<void> {
+  try {
+    if (import.meta.env.DEV) {
+      console.log("💾 Projektek mentése...", { count: projects.length });
+    }
+    const store = await getStore();
+    await store.set("projects", projects);
+    await store.save();
+    if (import.meta.env.DEV) {
+      console.log("✅ Projektek sikeresen mentve", { count: projects.length });
+    }
+  } catch (error) {
+    console.error("❌ Hiba a projektek mentésekor:", error);
+    throw error;
+  }
+}
+
+export async function loadProjects(): Promise<Project[]> {
+  const store = await getStore();
+  try {
+    if (import.meta.env.DEV) {
+      console.log("📥 Projektek betöltése...");
+    }
+    const data = await store.get("projects");
+    const projects = Array.isArray(data) ? data : [];
+    if (import.meta.env.DEV) {
+      console.log("✅ Projektek betöltve", { count: projects.length });
+    }
+    return projects;
+  } catch (error) {
+    console.error("❌ Hiba a projektek betöltésekor:", error);
+    return [];
+  }
+}
+
+// Tasks
+export async function saveTasks(tasks: Task[]): Promise<void> {
+  try {
+    if (import.meta.env.DEV) {
+      console.log("💾 Feladatok mentése...", { count: tasks.length });
+    }
+    const store = await getStore();
+    await store.set("tasks", tasks);
+    await store.save();
+    if (import.meta.env.DEV) {
+      console.log("✅ Feladatok sikeresen mentve", { count: tasks.length });
+    }
+  } catch (error) {
+    console.error("❌ Hiba a feladatok mentésekor:", error);
+    throw error;
+  }
+}
+
+export async function loadTasks(): Promise<Task[]> {
+  const store = await getStore();
+  try {
+    if (import.meta.env.DEV) {
+      console.log("📥 Feladatok betöltése...");
+    }
+    const data = await store.get("tasks");
+    const tasks = Array.isArray(data) ? data : [];
+    if (import.meta.env.DEV) {
+      console.log("✅ Feladatok betöltve", { count: tasks.length });
+    }
+    return tasks;
+  } catch (error) {
+    console.error("❌ Hiba a feladatok betöltésekor:", error);
+    return [];
+  }
+}
+
 // Clear all data - Factory reset
 export async function clearAllData(): Promise<void> {
   try {
@@ -342,6 +414,8 @@ export async function clearAllData(): Promise<void> {
     await store.delete("settings");
     await store.delete("templates");
     await store.delete("priceHistory");
+    await store.delete("projects");
+    await store.delete("tasks");
     
     // MEGJEGYZÉS: A backup és log fájlok törlése a FactoryResetProgress komponensben történik
     // Itt nem töröljük őket, hogy a progress modal-ban külön kezelhessük őket
