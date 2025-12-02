@@ -74,35 +74,35 @@ export const Header: React.FC<Props> = ({
   const formatLastSaved = (date: Date | null, autosaveEnabled: boolean, lastBackupDate?: string | null): string => {
     // Ha az autosave be van kapcsolva, mutatjuk a következő mentésig hátralévő időt
     if (autosaveEnabled) {
-      if (!date) {
+    if (!date) {
         return t("header.autosave.notSavedYet");
-      }
-      // Használjuk a currentDate-et a relatív idő számításához, hogy frissüljön
-      const diffMs = currentDate.getTime() - date.getTime();
-      const diffSeconds = Math.floor(diffMs / 1000);
-      
-      // Visszafelé számolunk: a következő mentésig hátralévő idő
-      // Ha eltelt az autosave intervallum, akkor újraindítjuk a számlálót (modulo)
-      const timeUntilNextSave = ((autosaveInterval - (diffSeconds % autosaveInterval)) % autosaveInterval) || autosaveInterval;
-      
-      // Ha éppen most mentettünk (0-2 másodperc), akkor "Most mentve"
-      if (diffSeconds < 2) {
+    }
+    // Használjuk a currentDate-et a relatív idő számításához, hogy frissüljön
+    const diffMs = currentDate.getTime() - date.getTime();
+    const diffSeconds = Math.floor(diffMs / 1000);
+    
+    // Visszafelé számolunk: a következő mentésig hátralévő idő
+    // Ha eltelt az autosave intervallum, akkor újraindítjuk a számlálót (modulo)
+    const timeUntilNextSave = ((autosaveInterval - (diffSeconds % autosaveInterval)) % autosaveInterval) || autosaveInterval;
+    
+    // Ha éppen most mentettünk (0-2 másodperc), akkor "Most mentve"
+    if (diffSeconds < 2) {
         return t("header.autosave.justSaved");
-      }
-      
-      // Visszafelé számolás: hátralévő idő a következő mentésig
-      if (timeUntilNextSave < 60) {
-        // Másodpercek - ne használjunk padStart-ot, hogy ne legyen mindig 2 jegyű
+    }
+    
+    // Visszafelé számolás: hátralévő idő a következő mentésig
+    if (timeUntilNextSave < 60) {
+      // Másodpercek - ne használjunk padStart-ot, hogy ne legyen mindig 2 jegyű
         return t("header.autosave.saveInSeconds", { seconds: timeUntilNextSave });
-      } else {
-        // Percek
-        const minutes = Math.floor(timeUntilNextSave / 60);
-        const seconds = timeUntilNextSave % 60;
-        if (seconds === 0) {
+    } else {
+      // Percek
+      const minutes = Math.floor(timeUntilNextSave / 60);
+      const seconds = timeUntilNextSave % 60;
+      if (seconds === 0) {
           return t("header.autosave.saveInMinutes", { minutes });
-        } else {
-          // Csak akkor használjunk padStart-ot, ha a másodpercek 2 jegyűek (10-59)
-          const secondsStr = seconds < 10 ? seconds.toString() : seconds.toString().padStart(2, '0');
+      } else {
+        // Csak akkor használjunk padStart-ot, ha a másodpercek 2 jegyűek (10-59)
+        const secondsStr = seconds < 10 ? seconds.toString() : seconds.toString().padStart(2, '0');
           return t("header.autosave.saveInMinutesSeconds", { minutes, seconds: secondsStr });
         }
       }

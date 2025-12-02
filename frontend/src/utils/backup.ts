@@ -3,6 +3,7 @@ import { writeTextFile, readTextFile, readDir, exists } from "@tauri-apps/plugin
 import { join } from "@tauri-apps/api/path";
 import { invoke } from "@tauri-apps/api/core";
 import type { Printer, Filament, Offer, Settings } from "../types";
+import { auditBackup } from "./auditLog";
 
 // Lock mechanizmus a párhuzamos backupok megelőzésére
 let isCreatingBackup = false;
@@ -58,6 +59,20 @@ export async function createBackup(
     await writeTextFile(filePath, JSON.stringify(backupData, null, 2));
     console.log("✅ Backup sikeresen létrehozva", { filePath, timestamp });
 
+    // Audit log
+    try {
+      const fileName = filePath.split(/[/\\]/).pop() || "backup.json";
+      await auditBackup("backup_create", fileName, {
+        filePath,
+        timestamp,
+        printersCount: printers.length,
+        filamentsCount: filaments.length,
+        offersCount: offers.length,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
+
     return { filePath, timestamp };
   } catch (error) {
     console.error("❌ Hiba a backup létrehozásakor:", error);
@@ -98,6 +113,21 @@ export async function restoreBackup(): Promise<BackupData | null> {
       filaments: backupData.filaments?.length || 0,
       offers: backupData.offers?.length || 0,
     });
+
+    // Audit log
+    try {
+      const fileName = typeof filePath === "string" ? filePath.split(/[/\\]/).pop() || "backup.json" : "backup.json";
+      await auditBackup("backup_restore", fileName, {
+        filePath: typeof filePath === "string" ? filePath : undefined,
+        version: backupData.version,
+        timestamp: backupData.timestamp,
+        printersCount: backupData.printers?.length || 0,
+        filamentsCount: backupData.filaments?.length || 0,
+        offersCount: backupData.offers?.length || 0,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
 
     return backupData;
   } catch (error) {
@@ -418,10 +448,7 @@ export async function getAutomaticBackupHistory(): Promise<BackupHistoryItem[]> 
     // Ez elkerüli a Tauri permissions problémát
     const backupFiles = await invoke<[string, string, string, number][]>("list_backup_files");
     
-    if (import.meta.env.DEV) {
-      console.log("📝 Talált backup fájlok:", backupFiles.length);
-    }
-
+    // Debug logok eltávolítva a teljesítmény javítása érdekében
     const now = new Date();
     const history: BackupHistoryItem[] = [];
 
@@ -435,16 +462,6 @@ export async function getAutomaticBackupHistory(): Promise<BackupHistoryItem[]> 
           const daysOld = getDaysDifference(backupDate, now);
           
           const willBeDeletedIn = Math.max(0, 5 - daysOld); // 5 nap után törlődik
-          
-          if (import.meta.env.DEV && daysOld === 0) {
-            console.log(`📅 Backup dátum számítás:`, {
-              fileName,
-              backupDate: backupDate.toISOString(),
-              now: now.toISOString(),
-              daysOld,
-              willBeDeletedIn
-            });
-          }
           
           history.push({
             fileName,
@@ -462,10 +479,6 @@ export async function getAutomaticBackupHistory(): Promise<BackupHistoryItem[]> 
 
     // Rendezés dátum szerint (legújabb először) - a backend már rendezi, de biztosra megyünk
     history.sort((a, b) => b.date.getTime() - a.date.getTime());
-
-    if (import.meta.env.DEV) {
-      console.log("✅ Backup history betöltve:", history.length, "fájl");
-    }
 
     return history;
   } catch (error) {

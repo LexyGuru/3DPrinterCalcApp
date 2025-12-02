@@ -282,6 +282,44 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+## v2.0.0 (2025) - 🚀 Performance Monitoring & Audit Log System
+
+### ⚡ Performance Metrics Logging
+- **Performance Timer class** - Manual timing for operations
+- **Loading time measurement** - All module loading times recorded (Settings, Printers, Filaments, Offers, Customers)
+- **Operation time measurement** - Automatic timing for async and sync operations
+- **Memory usage monitoring** - JavaScript heap memory tracking and logging
+- **CPU usage monitoring** - Regular CPU usage measurement every 5 minutes
+- **Performance summary** - Aggregated statistics for loading and operation times
+- **Structured log messages** - Detailed display of CPU percentage and memory values
+- **Backend performance commands** - `get_performance_metrics` backend command for CPU and memory data
+
+### 🔐 Audit Log Implementation
+- **Audit log infrastructure** - Separate audit log file (`audit-YYYY-MM-DD.json`)
+- **Critical operations logging**:
+  - CRUD operations (Create/Update/Delete for Filaments, Printers, Offers, Customers)
+  - Settings changes (theme, language, log settings, autosave, etc.)
+  - Backup operations (create, restore)
+  - Factory Reset operations
+  - Error recording
+- **Audit Log Viewer** - Virtual scroll for large files, with filtering, searching, and export capabilities
+- **Automatic cleanup** - Old audit log files automatically deleted based on configurable retention days
+- **Backend commands** - `write_audit_log`, `list_audit_logs`, `read_audit_log_file`, `delete_old_audit_logs`
+- **Full localization** - All 13 supported languages
+
+### 🎯 UI/UX Improvements
+- **Audit Log History** - Two-column layout in Settings → Log Management section
+- **Performance metrics display** - In System Diagnostics modal
+- **Log Viewer real-time updates** - Auto-refresh toggle, hash-based change detection
+- **Auto-scroll refinement** - User scroll position awareness
+
+### 🔧 Technical Improvements
+- **GitHub update check optimization** - On startup and every 5 hours (localStorage-based)
+- **Beta tag format** - Separate `beta-v2.0.0` tag for beta releases (doesn't overwrite main release)
+- **Version checker logic** - Beta version search based on `beta-v` prefix
+
+---
+
 ### v1.9.0 (2025) - 🔍 System Diagnostics & Performance Improvements
 
 - 🔍 **System Diagnostics** - Comprehensive system health-check tool:

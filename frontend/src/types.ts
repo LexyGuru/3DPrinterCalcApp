@@ -204,7 +204,10 @@ export interface Settings {
   offerSortConfig?: Array<{ key: "date" | "amount" | "status" | "customer" | "id"; direction: "asc" | "desc" }>; // Offers lista rendezési beállításai
   showTutorialOnStartup?: boolean; // Kezdő tutorial megjelenítése indításkor
   tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
+  showWelcomeMessageOnStartup?: boolean; // Üdvözlő üzenet megjelenítése indításkor
+  showHelpInMenu?: boolean; // Help menüpont megjelenítése a Sidebar-ban
   logRetentionDays?: number; // Log fájlok megtartása napokban (0 = soha ne törölje)
+  auditLogRetentionDays?: number; // Audit log fájlok megtartása napokban (0 = soha ne törölje)
   logFormat?: "text" | "json"; // Log fájl formátum (szöveges vagy JSON) - v1.8.0
   logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR"; // Minimum log szint (csak e feletti szintű logok kerülnek fájlba) - v1.8.0
   hideMacOSNotificationWarning?: boolean; // macOS értesítési figyelmeztetés elrejtése
@@ -240,6 +243,8 @@ export const defaultSettings: Settings = {
   calendarProvider: "google", // Alapértelmezett naptár szolgáltató
   showTutorialOnStartup: true, // Alapértelmezetten mutassa a tutorialt
   tutorialCompleted: false, // Alapértelmezetten nem tekintették meg
+  showWelcomeMessageOnStartup: true, // Alapértelmezetten mutassa az üdvözlő üzenetet
+  showHelpInMenu: true, // Alapértelmezetten mutassa a Help menüpontot
   logFormat: "text", // Alapértelmezett log formátum: szöveges (v1.8.0)
   logLevel: "INFO", // Alapértelmezett minimum log szint: INFO (v1.8.0)
 };
@@ -314,6 +319,7 @@ export interface Offer {
   status?: OfferStatus; // Árajánlat státusz
   statusHistory?: OfferStatusHistory[]; // Státusz előzmények
   statusUpdatedAt?: string; // Utolsó státuszváltás dátuma
+  paymentStatus?: "paid" | "unpaid" | "gift"; // Fizetési státusz (csak completed státusz esetén releváns)
   totalFilamentWeightSummary?: {
     perExtruder?: number[];
     total?: number;
@@ -410,4 +416,48 @@ export interface FilamentPriceHistory {
   minPrice?: number; // Minimum ár
   maxPrice?: number; // Maximum ár
   priceTrend?: "increasing" | "decreasing" | "stable"; // Ár trend
+}
+
+// Projekt adatstruktúra
+export type ProjectStatus = "active" | "on-hold" | "completed" | "cancelled";
+
+export interface Project {
+  id: number;
+  name: string;
+  description?: string;
+  status: ProjectStatus;
+  progress: number; // 0-100%
+  deadline?: string; // ISO date string
+  offerIds: number[]; // Kapcsolt árajánlatok ID-k
+  budget?: number; // Költségvetés (EUR)
+  actualCost?: number; // Tényleges költség (EUR)
+  tags?: string[]; // Projekt címkék/kategóriák
+  assignee?: string; // Opcionális: felelős személy (ha multi-user lesz később)
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  startedAt?: string; // ISO date string - projekt kezdés dátuma
+  completedAt?: string; // ISO date string - projekt befejezés dátuma
+}
+
+// Feladat adatstruktúra
+export type TaskPriority = "high" | "medium" | "low";
+export type TaskStatus = "pending" | "in-progress" | "completed" | "cancelled";
+
+export interface Task {
+  id: number;
+  title: string;
+  description?: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  dueDate: string; // ISO date string
+  relatedOfferId?: number; // Kapcsolt árajánlat ID (opcionális)
+  relatedProjectId?: number; // Kapcsolt projekt ID (opcionális)
+  tags?: string[]; // Feladat kategóriák/címkék
+  assignee?: string; // Opcionális: felelős személy (ha multi-user lesz később)
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  completedAt?: string; // ISO date string - feladat befejezés dátuma
+  isRecurring?: boolean; // Opcionális: ismétlődő feladat
+  recurringPattern?: string; // Opcionális: ismétlődési minta (daily, weekly, monthly, stb.)
+  nextRecurrenceDate?: string; // Opcionális: következő ismétlődés dátuma
 }

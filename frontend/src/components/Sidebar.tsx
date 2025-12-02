@@ -51,6 +51,7 @@ interface Props {
   isBeta?: boolean;
   theme: Theme;
   isOpen: boolean;
+  onHelpClick?: () => void; // Callback a Help menüpontra kattintáskor
 }
 
 interface MenuSection {
@@ -62,7 +63,7 @@ interface MenuSection {
   }>;
 }
 
-export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, isBeta = false, theme, isOpen }) => {
+export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, isBeta = false, theme, isOpen, onHelpClick }) => {
   const t = useTranslation(settings.language);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["main"]));
 
@@ -98,12 +99,15 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
         { key: "filament-stock", label: t("sidebar.filamentStock") || "Készletnyilvántartás", icon: "📦" },
         { key: "customers", label: t("sidebar.customers"), icon: "👥" },
         { key: "offers", label: t("sidebar.offers"), icon: "📋" },
+        { key: "projects", label: t("sidebar.projects") || "Projektek", icon: "📁" },
+        { key: "tasks", label: t("sidebar.tasks") || "Feladatok", icon: "✅" },
       ],
     },
     {
       title: t("sidebar.section.analytics") || "ANALYTICS",
       items: [
         { key: "priceTrends", label: t("sidebar.priceTrends"), icon: "📈" },
+        { key: "budget", label: t("sidebar.budget") || "Költségvetés", icon: "💰" },
         { key: "calendar", label: t("sidebar.calendar") || "Naptár", icon: "📅" },
       ],
     },
@@ -111,10 +115,11 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
       title: t("sidebar.section.system") || "SYSTEM",
       items: [
         { key: "settings", label: t("sidebar.settings"), icon: "⚙️" },
+        ...(settings.showHelpInMenu !== false ? [{ key: "help", label: t("sidebar.help") || "Súgó", icon: "❓" }] : []),
         ...(settings.showConsole ? [{ key: "console", label: t("sidebar.console"), icon: "🖥️" }] : []),
       ],
     },
-  ], [t, settings.language, settings.showConsole]);
+  ], [t, settings.language, settings.showConsole, settings.showHelpInMenu]);
 
   const toggleSection = (sectionTitle: string) => {
     setExpandedSections((prev) => {
@@ -371,11 +376,21 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                           return (
                             <div
                               key={item.key}
-                              onClick={() => setActivePage(item.key)}
+                              onClick={() => {
+                                if (item.key === "help" && onHelpClick) {
+                                  onHelpClick();
+                                } else {
+                                  setActivePage(item.key);
+                                }
+                              }}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter" || e.key === " ") {
                                   e.preventDefault();
-                                  setActivePage(item.key);
+                                  if (item.key === "help" && onHelpClick) {
+                                    onHelpClick();
+                                  } else {
+                                    setActivePage(item.key);
+                                  }
                                 }
                               }}
                               role="button"

@@ -71,8 +71,8 @@ Magas prioritás – rövid, fejlesztői TODO lista
 [x] Rendszer diagnosztika funkció implementálása (System Diagnostics modal, Settings → Factory Reset alatt) – **KÉSZ v1.8.0 (SystemDiagnostics.tsx komponens: rendszer info, memória, fájlok, modulok, adattárolás ellenőrzése, progress bar, összefoglaló, újrafuttatás gomb, 13 nyelv fordítás)**
 [x] SystemDiagnostics modal végtelen renderelési ciklus javítása (Maximum update depth exceeded hiba) – **KÉSZ v1.8.0 (useCallback ref-ekkel, hasRunRef és isRunningRef megakadályozza a többszöri futtatást, useEffect csak isOpen-től függ)**
 [x] SystemDiagnostics modal középre pozicionálása és zárás megakadályozása véletlen kattintás esetén – **KÉSZ v1.8.0 (flexbox konténer alignItems/justifyContent középre, onClick eltávolítva backdrop-ról, stopPropagation a modal tartalmán)**
-[ ] Performance metrikák logolása (betöltési idők, műveleti idők, memória használat) – **TERVEZETT v1.8.0+**
-[ ] Audit log implementálása kritikus műveletekhez (bejelentkezés, adatváltozások, beállítások módosítása) – **TERVEZETT v1.8.0+**
+[x] Performance metrikák logolása (betöltési idők, műveleti idők, memória használat) – **KÉSZ v2.0.0 (performance.ts: PerformanceTimer, logPerformanceMetric, logMemoryUsage, logPerformanceSummary, logPeriodicPerformanceMetrics, betöltési idők logolása App.tsx-ben, rendszeres CPU/memória logolás 5 percenként, részletes üzenetek CPU százalékkal és memória értékekkel)**
+[x] Audit log implementálása kritikus műveletekhez (bejelentkezés, adatváltozások, beállítások módosítása) – **KÉSZ v2.0.0 (auditLog.ts: auditCreate, auditUpdate, auditDelete, auditSettingsChange, auditBackup, auditFactoryReset, auditError, backend commands, AuditLogViewer komponens virtuális scroll-lal, Settings-ben audit log history, automatikus cleanup, 13 nyelv fordítás)**
 
 5. Középtávú technikai/biztonsági fejlesztések (összefoglalva a fejlesztési összefoglalóból)
 [ ] Ügyféladat titkosítás (AES-256-GCM, `encryption.rs`, jelszó dialógus)
@@ -83,14 +83,676 @@ Magas prioritás – rövid, fejlesztői TODO lista
 [ ] API / integrációs réteg (REST API, későbbi mobil/egyéb integrációkhoz)
 
 6. Projekt / feladat modulok (a meglévő widgetek mögé)
-[ ] Projektkezelő modul (ActiveProjectsWidget mögötti domain logika)
-[ ] Feladatkezelő modul (ScheduledTasksWidget mögötti domain logika)
+[x] Projektkezelő modul (ActiveProjectsWidget mögötti domain logika) – **KÉSZ v2.0.0 (Project interface, CRUD műveletek, tárolás, UI komponens, widget integráció, 13 nyelv fordítás, form mezők egyenlő méretűek)**
+[x] Feladatkezelő modul (ScheduledTasksWidget mögötti domain logika) – **KÉSZ v2.0.0 (Task interface, CRUD műveletek, tárolás, UI komponens, widget integráció, 13 nyelv fordítás, form mezők kisebbek)**
+[x] Költségvetés modul – **KÉSZ v2.0.0 (BudgetManagement komponens, befejezett árajánlatok fizetési státuszának kezelése, paymentStatus mező, bevétel számítások módosítva, integráció App.tsx és Sidebar-ba, 13 nyelv fordítás)**
 [ ] További performance optimalizálás (mélyebb code splitting, virtual scroll több helyen)
 
-7. Tutorial / Demo frissítés
+**Megjegyzés v2.0.0 projekt/feladat modulokhoz:**
+- ✅ Alapvető CRUD műveletek teljesen implementálva (létrehozás, szerkesztés, törlés)
+- ✅ Projekt-Feladat kapcsolatok (feladatok hozzárendelhetők projektekhez)
+- ✅ Projekt-Árajánlat kapcsolatok (árajánlatok hozzárendelhetők projektekhez)
+- ✅ Automatikus progress számítás projektekhez kapcsolt árajánlatok alapján
+- ✅ Undo/Redo funkcionalitás mindkét modulhoz
+- ✅ Keresés, szűrés, rendezés funkciók
+- ✅ TypeScript hibák és warning-ok javítva
+- ❌ Gantt chart megjelenítés (későbbi verzióhoz)
+- ❌ Recurring tasks támogatás (későbbi verzióhoz)
+- ❌ Automatikus feladat generálás árajánlatok határidejéből (manuális hozzárendelés lehetséges)
+
+**Megjegyzés költségvetés modulhoz v2.0.0:**
+- ✅ PaymentStatus mező hozzáadva az Offer típushoz (paid/unpaid/gift)
+- ✅ BudgetManagement komponens létrehozva befejezett árajánlatok fizetési státuszának kezelésére
+- ✅ Bevétel számítások módosítva: csak "paid" és "completed" árajánlatok számolódnak bele a bevételbe
+- ✅ Költségek minden "completed" árajánlatból számolódnak, függetlenül a paymentStatus-től
+- ✅ Statisztikák megjelenítése (fizetve/nem fizetve/ajándék számláló, összbevétel, nettó profit)
+- ✅ Integráció App.tsx-be (lazy loading) és Sidebar-ba (ANALYTICS szekció)
+- ✅ 13 nyelv fordítás hozzáadva (sidebar.budget, budget.* kulcsok)
+- ✅ Nem használt importok eltávolítva (useState, AnimatePresence)
+
+**Megjegyzés form mezők javításokhoz v2.0.0:**
+- ✅ Projects modal: "Státusz, Haladás (%), Határidő, Költségvetés (EUR)" mezők egyenlő méretűek (4 oszlopos grid)
+- ✅ Tasks modal: "Cím, Leírás, Határidő" mezők kisebbek (kisebb padding: 8px, font size: 13px, gap: 12px)
+
+**Megjegyzés hibajavításokhoz v2.0.0:**
+- ✅ Customers.tsx: JSX struktúra hibák javítva (virtual scroll fragment záró tagok, bottomSpacer hozzáadva)
+- ✅ Nyelvi fájlok: hiányzó vesszők javítva minden nyelvi fájlban (budget.notIncludedInRevenue után)
+- ✅ BudgetManagement.tsx: nem használt importok eltávolítva (useState, AnimatePresence)
+
+7. Widget integráció hiányzó funkciókkal
+[x] Log Viewer Widget – **KÉSZ v2.0.0 (LogViewerWidget komponens létrehozva, Dashboard-ba integrálva, widget-en keresztül megnyitható modal, performance optimalizálva)**
+  - Log fájlok listázása widget formában ✅
+  - Legutóbbi logok megjelenítése (utolsó N bejegyzés) ✅
+  - Szűrés szint szerint (INFO/WARN/ERROR/DEBUG) widget-en belül ✅
+  - Kattintás → teljes LogViewer modal megnyitása ✅
+  - Real-time log frissítés opcionális ✅
+  - **Tárhely**: `frontend/src/components/widgets/LogViewerWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] Audit Log Widget – **KÉSZ v2.0.0 (AuditLogWidget komponens létrehozva, Dashboard-ba integrálva, widget-en keresztül megnyitható modal, human-readable setting names, performance optimalizálva)**
+  - Legutóbbi audit log bejegyzések megjelenítése (utolsó N művelet) ✅
+  - Kritikus műveletek kiemelése (Factory Reset, Backup, Settings változások) ✅
+  - Szűrés entitás szerint (Filament, Printer, Offer, Customer, Project, Task) ✅
+  - Szűrés akció szerint (Create, Update, Delete, Settings Change) ✅
+  - Kattintás → teljes AuditLogViewer modal megnyitása ✅
+  - **Tárhely**: `frontend/src/components/widgets/AuditLogWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] System Diagnostics Widget – **KÉSZ v2.0.0 (SystemDiagnosticsWidget komponens létrehozva, Dashboard-ba integrálva, widget-en keresztül megnyitható modal, performance optimalizálva)**
+  - Rendszer információ összefoglaló (CPU, memória, disk) ✅
+  - Log fájlok statisztikái (fájlok száma, összméret) ✅
+  - Backup fájlok statisztikái (fájlok száma, összméret, legutóbbi backup dátum) ✅
+  - Adattárolás információk (Store méret, adatbázis állapot) ✅
+  - Kattintás → teljes System Diagnostics modal megnyitása ✅
+  - **Tárhely**: `frontend/src/components/widgets/SystemDiagnosticsWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] Performance Metrics Widget – **KÉSZ v2.0.0 (PerformanceMetricsWidget komponens létrehozva, Dashboard-ba integrálva, real-time CPU és memória megjelenítés)**
+  - Betöltési idők megjelenítése (app indítás, modul betöltések) ✅
+  - Memória használat grafikon (real-time vagy időbeli trend) ✅
+  - CPU használat százalék (ha elérhető) ✅
+  - Performance trend analízis (utolsó X nap) ✅
+  - **Tárhely**: `frontend/src/components/widgets/PerformanceMetricsWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] Console Widget – **KÉSZ v2.0.0 (ConsoleWidget komponens létrehozva, Dashboard-ba integrálva, real-time console logok megjelenítése)**
+  - Console logok megjelenítése widget formában ✅
+  - Real-time log streaming ✅
+  - Szűrés szint szerint (log/info/warn/error/debug) ✅
+  - Auto-scroll opció ✅
+  - Kattintás → teljes Console oldal megnyitása ✅
+  - **Tárhely**: `frontend/src/components/widgets/ConsoleWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] Backup Status Widget – **KÉSZ v2.0.0 (BackupStatusWidget komponens létrehozva, Dashboard-ba integrálva, backup történet és törlési számláló megjelenítése, performance optimalizálva)**
+  - Legutóbbi backup információ (dátum, idő, állapot) ✅
+  - Backup történet összefoglaló (utolsó 5-10 backup) ✅
+  - Backup fájlok száma és összmérete ✅
+  - Automatikus backup állapot (bekapcsolva/kikapcsolva) ✅
+  - Következő backup emlékeztető (ha be van kapcsolva) ✅
+  - Gyors backup készítés gomb (ha lehetséges) ✅
+  - **Tárhely**: `frontend/src/components/widgets/BackupStatusWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+[x] Error Summary Widget – **KÉSZ v2.0.0 (ErrorSummaryWidget komponens létrehozva, Dashboard-ba integrálva, hibák és figyelmeztetések összefoglalója)**
+  - Hibák összefoglalója (utolsó 24 óra/heti/havi) ✅
+  - Hiba típusok bontása (ERROR vs WARN) ✅
+  - Leggyakoribb hibák listája ✅
+  - Kritikus hibák kiemelése ✅
+  - Kattintás → Log Viewer hibák szűrésével ✅
+  - **Tárhely**: `frontend/src/components/widgets/ErrorSummaryWidget.tsx` ✅
+  - **Tárhely**: `frontend/src/components/widgets/Dashboard.tsx` ✅
+
+**Megjegyzés widget integrációkhoz:**
+- ✅ Minden logolási/audit/diagnosztika funkció már létezik komponens vagy utility formában
+- ✅ Minden widget létrehozva és integrálva a Dashboard-ba v2.0.0
+- ✅ Widget-ek követik a meglévő widget architektúrát (WidgetContainer, WidgetConfig)
+- ✅ Widget-ek támogatják a resizable/moveable funkcionalitást
+- ✅ Widget-ek integrálva vannak a widget konfiguráció rendszerbe (createDefaultWidgets, widget típusok)
+- ✅ Widget címek fordítása javítva (WidgetContainer.tsx-ben minden widget típus fordítva)
+- ✅ Widget-en keresztül megnyitott modal-ok bezárási problémája javítva (Settings.tsx initialModal kezelés)
+- ✅ RecentOffersWidget szépséghibák javítva (status fordítása, duplikált cím eltávolítva)
+- ✅ Performance optimalizációk (timeout-ok, visibility checks, refresh interval-ek növelése)
+
+**Megjegyzés költségvetés modulhoz v2.0.0:**
+- ✅ PaymentStatus mező hozzáadva az Offer típushoz (paid/unpaid/gift)
+- ✅ BudgetManagement komponens létrehozva befejezett árajánlatok fizetési státuszának kezelésére
+- ✅ Bevétel számítások módosítva: csak "paid" és "completed" árajánlatok számolódnak bele a bevételbe
+- ✅ Költségek minden "completed" árajánlatból számolódnak, függetlenül a paymentStatus-től
+- ✅ Statisztikák megjelenítése (fizetve/nem fizetve/ajándék számláló, összbevétel, nettó profit)
+- ✅ Integráció App.tsx-be (lazy loading) és Sidebar-ba (ANALYTICS szekció)
+- ✅ 13 nyelv fordítás hozzáadva (sidebar.budget, budget.* kulcsok)
+- ✅ Nem használt importok eltávolítva (useState, AnimatePresence)
+
+**Megjegyzés form mezők javításokhoz v2.0.0:**
+- ✅ Projects modal: "Státusz, Haladás (%), Határidő, Költségvetés (EUR)" mezők egyenlő méretűek (4 oszlopos grid)
+- ✅ Tasks modal: "Cím, Leírás, Határidő" mezők kisebbek (kisebb padding, font size, gap)
+
+**Megjegyzés hibajavításokhoz v2.0.0:**
+- ✅ Customers.tsx: JSX struktúra hibák javítva (virtual scroll fragment záró tagok)
+- ✅ Nyelvi fájlok: hiányzó vesszők javítva (language_pl.ts, language_sk.ts, language_uk.ts, language_zh.ts, language_cs.ts, language_de.ts, language_en.ts, language_es.ts, language_fr.ts, language_it.ts, language_ru.ts)
+- ✅ BudgetManagement.tsx: nem használt importok eltávolítva (useState, AnimatePresence)
+
+**Megjegyzés költségvetés modulhoz v2.0.0:**
+- ✅ PaymentStatus mező hozzáadva az Offer típushoz (paid/unpaid/gift)
+- ✅ BudgetManagement komponens létrehozva befejezett árajánlatok fizetési státuszának kezelésére
+- ✅ Bevétel számítások módosítva: csak "paid" és "completed" árajánlatok számolódnak bele a bevételbe
+- ✅ Költségek minden "completed" árajánlatból számolódnak, függetlenül a paymentStatus-től
+- ✅ Statisztikák megjelenítése (fizetve/nem fizetve/ajándék számláló, összbevétel, nettó profit)
+- ✅ Integráció App.tsx-be (lazy loading) és Sidebar-ba (ANALYTICS szekció)
+- ✅ 13 nyelv fordítás hozzáadva (sidebar.budget, budget.* kulcsok)
+- ✅ Nem használt importok eltávolítva (useState, AnimatePresence)
+
+**Megjegyzés form mezők javításokhoz v2.0.0:**
+- ✅ Projects modal: "Státusz, Haladás (%), Határidő, Költségvetés (EUR)" mezők egyenlő méretűek (4 oszlopos grid)
+- ✅ Tasks modal: "Cím, Leírás, Határidő" mezők kisebbek (kisebb padding, font size, gap)
+
+**Megjegyzés hibajavításokhoz v2.0.0:**
+- ✅ Customers.tsx: JSX struktúra hibák javítva (virtual scroll fragment záró tagok)
+- ✅ Nyelvi fájlok: hiányzó vesszők javítva (language_pl.ts, language_sk.ts, language_uk.ts, language_zh.ts, language_cs.ts, language_de.ts, language_en.ts, language_es.ts, language_fr.ts, language_it.ts, language_ru.ts)
+- ✅ BudgetManagement.tsx: nem használt importok eltávolítva (useState, AnimatePresence)
+
+8. Tutorial / Demo frissítés
 [x] Tutorial lépések frissítése az 1.6.0 és 1.7.0 újdonságokkal (widget interaktivitás, táblázat szűrés/rendezés, virtual scroll, backup rendszer, filament többnyelvű színek) – **KÉSZ v1.7.0 (Tutorial.tsx: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang lépések hozzáadva)**
 [x] Tutorial demo adatok bővítése (nagyobb Offers/Filaments lista, több minta projekt/ügyfél az új funkciók bemutatásához) – **KÉSZ v1.7.0 (tutorialDemoData.ts: 6 filament → 11 filament, 3 árajánlat → 5 árajánlat)**
 [x] Tutorial fordítási kulcsok hozzáadása minden nyelvhez – **KÉSZ v1.7.0 (13 nyelv: widgetInteractivity, filamentLibraryMultilang, tableSorting, autosaveBackup kulcsok hozzáadva)**
 
+9. Új funkciók v2.0.0-hoz (két ötlet)
+[ ] Üdvözlő üzenet új indításkor – **TERVEZVE v2.0.0**
+  - Tutorial előtt jelenik meg (ha be van kapcsolva) ✅
+  - Beállításokban ki/be kapcsolható (showWelcomeMessageOnStartup) ✅
+  - Tartalom:
+    - Kis leírás a programról ✅
+    - GitHub elérhetőségek (main/beta release linkek) ✅
+    - Jelenlegi verzió megjelenítése (version.ts-ből) ✅
+    - Hiba jelentés gomb (GitHub issue létrehozása) ✅
+  - Sorrend: Nyelvválasztó → Üdvözlő üzenet (ha be van kapcsolva) → Tutorial (ha be van kapcsolva) ✅
+  - **Tárhely**: `frontend/src/components/WelcomeMessage.tsx` (új fájl)
+  - **Tárhely**: `frontend/src/types.ts` (showWelcomeMessageOnStartup beállítás)
+  - **Tárhely**: `frontend/src/App.tsx` (integráció nyelvválasztó után, tutorial előtt)
+  - **Tárhely**: `frontend/src/components/Settings.tsx` (beállításokban ki/be kapcsolható)
+  - **Tárhely**: `frontend/src/utils/languages/*.ts` (fordítások 13 nyelvre)
+
+[ ] Helper menü / Súgó rendszer – **TERVEZVE v2.0.0**
+  - F1 billentyű vagy Help menüpontból nyitható ✅
+  - Beállításokban ki lehet kapcsolni a menüben (showHelpInMenu), de az F1 mindig működik ✅
+  - Tartalom:
+    - Segítség az összes jelenlegi funkcióról ✅
+    - Részletes leírások: mi mire való, hogyan használható ✅
+    - Kategóriák szerint szervezve (Kalkulátor, Árajánlatok, Nyomtatók, Filamentek, Projektek, Feladatok, Dashboard, Beállítások, stb.) ✅
+    - Kereshető tartalom ✅
+    - Linkek a különböző funkciókhoz (ha lehetséges) ✅
+  - **Tárhely**: `frontend/src/components/HelpMenu.tsx` (új fájl)
+  - **Tárhely**: `frontend/src/types.ts` (showHelpInMenu beállítás)
+  - **Tárhely**: `frontend/src/App.tsx` (F1 billentyű kezelés, Help menüpont Sidebar-ba)
+  - **Tárhely**: `frontend/src/components/Sidebar.tsx` (Help menüpont hozzáadása, feltételes megjelenítés)
+  - **Tárhely**: `frontend/src/utils/keyboardShortcuts.ts` (F1 billentyű regisztrálása)
+  - **Tárhely**: `frontend/src/utils/languages/*.ts` (fordítások 13 nyelvre, segítség szövegek)
+
+8. Dokumentáció kezelés és verziótörténet szervezés
+[x] RELEASE.md fájlok létrehozása minden támogatott nyelvhez – **KÉSZ (RELEASE.hu.md, RELEASE.en.md, RELEASE.de.md, RELEASE.es.md, RELEASE.it.md, RELEASE.pl.md, RELEASE.cs.md, RELEASE.sk.md, RELEASE.pt.md, RELEASE.fr.md, RELEASE.zh.md, RELEASE.uk.md, RELEASE.ru.md - összesen 13 nyelv)**
+[x] Verziótörténetek kiemelése a README fájlokból a RELEASE fájlokba (v0.1.55-től v2.0.0-ig minden verzió) – **KÉSZ (minden nyelvi RELEASE fájl tartalmazza a részletes verziótörténetet)**
+[x] README fájlok frissítése - részletes verziótörténet eltávolítása, csak hivatkozás a RELEASE fájlokra – **KÉSZ (README.hu.md, README.en.md és minden nyelvi README fájlban csak hivatkozás maradt: "For detailed version history and changelog, please see [RELEASE.xx.md](RELEASE.xx.md)")**
+[x] Changelog szakaszok eltávolítása a README fájlokból – **KÉSZ (mind a 13 nyelvi README fájlból eltávolítva a részletes Changelog/Verziótörténet szakaszok)**
+[x] GitHub Actions workflow fájlok módosítása - RELEASE fájlokból olvassa a changelog-ot – **KÉSZ (build.yml és build-beta.yml: extract_changelog függvény frissítve RELEASE.hu.md és RELEASE.en.md olvasására stabil és beta release-ekhez)**
+
+9. Console üzenetek lokalizálása
+[x] Console üzenetek fordítása minden nyelvre – **KÉSZ v2.0.0 (összes console üzenet fordítva 13 nyelven)**
+  - Store műveletek üzenetei (betöltés, mentés, hibák) ✅
+  - Backup üzenetek (napi backup ellenőrzés, backup létrehozás, rotáció) ✅
+  - Log rotációs üzenetek (log és audit log rotáció) ✅
+  - Performance metrikák üzenetei (CPU, memória, rendszeres logolás) ✅
+  - Rendszerüzenetek (alkalmazás inicializálás, frontend log inicializálás, üdvözlő üzenet) ✅
+  - Többrészes console üzenetek fordítása (dátum, timestamp, fájl, már létezett, új) ✅
+  - Console.tsx komponens módosítása translateLogMessage függvénnyel ✅
+  - Új fordítási kulcsok hozzáadása minden nyelvhez (console.*, store.* kulcsok) ✅
+  - Log data tömb elemeinek fordítása (dátum:, timestamp:, fájl, (már létezett), (új)) ✅
+
 Megjegyzés: a részletesebb motivációk, becsült idők, prioritások a `FEJLESZTESI_OSSZEFOGLALO.md` backlog részében vannak dokumentálva.
+
+---
+
+## 🚀 v2.0.0 Tervezett Nagyverzió - Főbb Funkciók és Fejlesztések
+
+### 📋 Áttekintés
+A v2.0.0 egy major verzió, amely jelentős új funkciókat, biztonsági fejlesztéseket, teszt infrastruktúrát és projekt/feladat modulokat tartalmaz. Ez a verzió nagyobb változtatásokat és esetleges breaking change-eket is jelenthet.
+
+### ✅ Kivitelezhetőség Elemzése
+
+**Jelenlegi helyzet:**
+- ✅ Widget UI komponensek már léteznek (ActiveProjectsWidget, ScheduledTasksWidget)
+- ✅ Alapvető adatstruktúrák definiálva vannak (interfészek)
+- ✅ Backend infrastruktúra készen áll (Tauri commands, Store plugin)
+- ✅ Logolási rendszer és diagnosztika már implementálva
+- ✅ Fordítási rendszer minden nyelvre kiterjedve
+
+**Hiányzó részek:**
+- ❌ Projekt/feladat domain logika és backend adatkezelés
+- ❌ Titkosítási infrastruktúra (Rust crypto crates)
+- ❌ Jelszavas védelem rendszer
+- ❌ Teszt infrastruktúra (Vitest/Jest, Playwright)
+- ❌ Performance monitoring és audit log
+- ❌ API réteg tervezése
+
+---
+
+### 🔒 1. Biztonság és Adatvédelem
+
+#### 1.1. Ügyféladat Titkosítás
+- [ ] **Backend titkosítás modul (`src-tauri/src/encryption.rs`)**
+  - AES-256-GCM titkosítás implementálása Rust-ban
+  - Kulcs generálás és kezelés (PBKDF2/Argon2)
+  - Titkosított adatok tárolása külön fájlban vagy jelszóval védett Store-ban
+  - **Függőségek**: `aes-gcm`, `pbkdf2`, `rand` crates hozzáadása `Cargo.toml`-hez
+  - **Tárhely**: `src-tauri/src/encryption.rs` (új fájl)
+
+- [ ] **Frontend titkosítás kezelés (`frontend/src/utils/encryption.ts`)**
+  - Jelszó dialógus komponens (`PasswordDialog.tsx`)
+  - Jelszó beállítás/módosítás UI (Settings-ben)
+  - Automatikus titkosítás/visszafejtés ügyfél adatoknál
+  - Jelszó recovery/megjegyzés opció
+  - **Tárhely**: `frontend/src/components/PasswordDialog.tsx` (új fájl)
+  - **Tárhely**: `frontend/src/utils/encryption.ts` (új fájl)
+
+- [ ] **Settings interface bővítése**
+  - `encryptionEnabled: boolean` - Titkosítás be/kikapcsolása
+  - `encryptionPassword: string | null` - Jelszó hash (nem plain text!)
+  - `encryptedCustomerData: boolean` - Jelzi, hogy a customer adatok titkosítottak-e
+  - **Tárhely**: `frontend/src/types.ts` (Settings interface)
+
+- [ ] **Backend commands hozzáadása**
+  - `encrypt_data(data: String, password: String) -> String` - Adatok titkosítása
+  - `decrypt_data(encrypted: String, password: String) -> String` - Adatok visszafejtése
+  - `verify_password(password: String, hash: String) -> bool` - Jelszó ellenőrzés
+  - `hash_password(password: String) -> String` - Jelszó hash generálás
+  - **Tárhely**: `src-tauri/src/commands.rs`
+
+- [ ] **Fordítások minden nyelvre**
+  - Jelszó dialógus szövegek (13 nyelv)
+  - Settings titkosítás beállítások (13 nyelv)
+  - Hibaüzenetek titkosítás/visszafejtés esetén (13 nyelv)
+  - **Tárhely**: `frontend/src/utils/languages/*.ts`
+
+#### 1.2. App Jelszavas Védelem
+- [ ] **Jelszavas védelem rendszer**
+  - Opcionális jelszavas védelem az app indításakor
+  - Jelszó beállítása első indításkor vagy Settings-ben
+  - Auto-lock funkció (inaktivitás után X perc)
+  - Biometrikus hitelesítés támogatás (ha lehetséges platformon)
+  - Jelszó recovery mechanizmus (biztonsági kérdések vagy backup kulcs)
+  - **Tárhely**: `frontend/src/components/AuthGuard.tsx` (új fájl)
+  - **Tárhely**: `frontend/src/utils/auth.ts` (új fájl)
+
+- [ ] **Backend commands hozzáadása**
+  - `verify_app_password(password: String) -> bool`
+  - `set_app_password(password: String) -> Result<()>`
+  - `clear_app_password() -> Result<()>`
+  - **Tárhely**: `src-tauri/src/commands.rs`
+
+- [ ] **Settings interface bővítése**
+  - `appPasswordEnabled: boolean` - App jelszavas védelem be/kikapcsolása
+  - `autoLockMinutes: number` - Auto-lock időtartama (0 = nincs auto-lock)
+  - `appPasswordHash: string | null` - Jelszó hash tárolása
+  - **Tárhely**: `frontend/src/types.ts`
+
+---
+
+### 🧪 2. Minőségbiztosítás és Tesztelés
+
+#### 2.1. TypeScript Strict Mode
+- [ ] **TypeScript konfiguráció frissítése**
+  - `tsconfig.json`: `"strict": true` bekapcsolása
+  - `"noImplicitAny": true`, `"strictNullChecks": true`, `"strictFunctionTypes": true`, stb.
+  - **Tárhely**: `frontend/tsconfig.json`
+
+- [ ] **Típusok takarítása és javítása**
+  - Implicit `any` típusok megszüntetése
+  - Null/undefined kezelés javítása
+  - Típus definíciók bővítése hiányzó interface-ekkel
+  - Generic típusok finomhangolása
+  - **Tárhely**: Minden TypeScript fájl átnézése és javítása
+
+#### 2.2. Unit Tesztek (Vitest/Jest)
+- [ ] **Teszt infrastruktúra beállítása**
+  - Vitest telepítése és konfigurálása (`pnpm add -D vitest @vitest/ui`)
+  - `vitest.config.ts` létrehozása
+  - Test utilities létrehozása (mock helpers, test data generators)
+  - **Tárhely**: `frontend/vitest.config.ts` (új fájl)
+  - **Tárhely**: `frontend/src/__tests__/utils/` (új mappa)
+
+- [ ] **Kritikus számítások tesztelése**
+  - Kalkulátor logika tesztek (`calculator.test.ts`)
+    - Filament költség számítás (EUR, HUF, stb.)
+    - Áramköltség számítás
+    - Szárítás költségek
+    - Profit számítás (különböző százalékokkal)
+  - Pénznem konverzió tesztek (`currency.test.ts`)
+  - Ártrend számítások tesztek (`priceTrends.test.ts`)
+  - **Tárhely**: `frontend/src/__tests__/utils/calculator.test.ts` (új fájl)
+  - **Tárhely**: `frontend/src/__tests__/utils/currency.test.ts` (új fájl)
+  - **Tárhely**: `frontend/src/__tests__/utils/priceTrends.test.ts` (új fájl)
+
+- [ ] **Utility függvények tesztelése**
+  - Backup logika tesztek (`backup.test.ts`)
+  - Date/time utility tesztek
+  - Filament library tesztek
+  - Translation helper tesztek
+  - **Tárhely**: `frontend/src/__tests__/utils/*.test.ts`
+
+- [ ] **CI/CD integráció**
+  - GitHub Actions workflow hozzáadása unit tesztek futtatásához
+  - Coverage jelentés generálása
+  - **Tárhely**: `.github/workflows/tests.yml` (új fájl)
+
+#### 2.3. E2E Tesztek (Playwright)
+- [ ] **Playwright telepítése és konfigurálása**
+  - `pnpm add -D @playwright/test`
+  - `playwright.config.ts` létrehozása
+  - Tauri app indítási script teszt környezethez
+  - **Tárhely**: `frontend/playwright.config.ts` (új fájl)
+  - **Tárhely**: `tests/e2e/` (új mappa)
+
+- [ ] **Fő felhasználói folyamatok tesztelése**
+  - Árajánlat létrehozás folyamat (`offer-creation.spec.ts`)
+    - Nyomtató kiválasztása
+    - Filamentek hozzáadása
+    - Kalkuláció ellenőrzése
+    - Árajánlat mentése
+  - PDF export folyamat (`pdf-export.spec.ts`)
+  - G-code import folyamat (`gcode-import.spec.ts`)
+  - Backup/restore folyamat (`backup-restore.spec.ts`)
+  - Factory Reset folyamat (`factory-reset.spec.ts`)
+  - **Tárhely**: `tests/e2e/*.spec.ts`
+
+- [ ] **CI/CD integráció**
+  - GitHub Actions workflow E2E tesztekhez
+  - Cross-platform tesztelés (macOS, Windows, Linux)
+  - **Tárhely**: `.github/workflows/e2e-tests.yml` (új fájl)
+
+---
+
+### 📊 3. Logolás Bővítése
+
+#### 3.1. Performance Metrikák Logolása
+- [x] **Performance monitoring rendszer** – **KÉSZ v2.0.0**
+  - Betöltési idők mérése minden modulnál ✅
+  - Műveleti idők mérése (mentés, export, import, stb.) ✅
+  - Memória használat monitorozása (real-time) ✅
+  - CPU használat monitorozása (opcionális) ✅
+  - **Tárhely**: `frontend/src/utils/performance.ts` ✅
+
+- [x] **Performance log formátum** – **KÉSZ v2.0.0**
+  - Strukturált JSON logok performance adatokkal ✅
+  - Metrikák kategóriázása (loading, operations, memory, stb.) ✅
+  - Performance trend analízis lehetőség ✅ (log fájlokban kereshető)
+  - **Tárhely**: `frontend/src/utils/performance.ts` ✅
+
+- [x] **Backend performance commands** – **KÉSZ v2.0.0**
+  - `get_performance_metrics() -> PerformanceMetrics` - Aktuális metrikák lekérése ✅
+  - Performance adatok rendszeres logolása (5 percenként) ✅
+  - **Tárhely**: `src-tauri/src/commands.rs` ✅
+
+- [x] **UI megjelenítés** – **KÉSZ v2.0.0**
+  - Performance dashboard widget (opcionális) – **KIHAGYVA (nem prioritás)**
+  - Performance metrikák megjelenítése System Diagnostics-ban ✅
+  - **Tárhely**: `frontend/src/components/SystemDiagnostics.tsx` ✅
+
+#### 3.2. Audit Log Implementálása
+- [x] **Audit log infrastruktúra** – **KÉSZ v2.0.0**
+  - Külön audit log fájl (`audit-YYYY-MM-DD.json`) ✅
+  - Strukturált audit log entry formátum ✅
+  - Immutable audit log (append-only, nem módosítható) ✅
+  - **Tárhely**: `frontend/src/utils/auditLog.ts` ✅
+  - **Tárhely**: `src-tauri/src/commands.rs` ✅
+
+- [x] **Kritikus műveletek audit logolása** – **KÉSZ v2.0.0**
+  - Bejelentkezés/kijelentkezés (ha app jelszavas védelem be van kapcsolva) – **VÁRHAT (v2.0.0 jelszavas védelem)**
+  - Adatváltozások (CRUD műveletek: create, update, delete) ✅
+    - Filamentek hozzáadása/módosítása/törlése ✅
+    - Nyomtatók hozzáadása/módosítása/törlése ✅
+    - Árajánlatok létrehozása/módosítása/törlése ✅
+    - Ügyfelek hozzáadása/módosítása/törlése ✅
+  - Beállítások módosítása ✅
+    - Téma változtatás ✅
+    - Nyelv változtatás ✅
+    - Titkosítás be/kikapcsolása – **VÁRHAT (v2.0.0 titkosítás)**
+    - Factory Reset ✅
+  - Backup műveletek (létrehozás, visszaállítás) ✅
+  - **Tárhely**: Minden releváns komponensben audit log hívások hozzáadva ✅
+
+- [x] **Audit log viewer** – **KÉSZ v2.0.0**
+  - Audit log fájlok listázása (Settings-ben) ✅
+  - Audit log tartalom megjelenítése (filterezhető, kereshető) ✅
+  - Export funkció audit logokhoz ✅
+  - Virtuális scroll nagy fájlokhoz ✅
+  - **Tárhely**: `frontend/src/components/AuditLogViewer.tsx` ✅
+
+- [x] **Backend commands** – **KÉSZ v2.0.0**
+  - `write_audit_log(entry: AuditLogEntry) -> Result<()>` - Audit log írása ✅
+  - `list_audit_logs() -> Vec<(String, String, u64)>` - Audit log fájlok listázása ✅
+  - `read_audit_log_file(file_path: String) -> String` - Audit log fájl olvasása ✅
+  - `delete_old_audit_logs(retention_days: u32) -> Result<u32>` - Régi audit logok törlése ✅
+  - **Tárhely**: `src-tauri/src/commands.rs` ✅
+
+---
+
+### 📁 4. Projekt / Feladat Modulok
+
+#### 4.1. Projektkezelő Modul
+- [x] **Domain logika implementálása** – **KÉSZ v2.0.0**
+  - Projekt adatstruktúra bővítése (`types.ts`)
+    - Projekt ID, név, leírás ✅
+    - Státusz (active, on-hold, completed, cancelled) ✅
+    - Progress tracking (0-100%) ✅
+    - Deadline ✅
+    - Kapcsolt árajánlatok (offer IDs) ✅
+    - Költségvetés és tényleges költség ✅
+    - Projekt tags/assignees (ha multi-user lesz később) – **KIHAGYVA (nem prioritás)**
+  - **Tárhely**: `frontend/src/types.ts` (Project interface hozzáadása) ✅
+
+- [x] **Projekt CRUD műveletek** – **KÉSZ v2.0.0**
+  - Projekt létrehozása, szerkesztése, törlése ✅
+  - Projekt-árajánlat kapcsolatok kezelése ✅
+  - Progress automatikus számítása kapcsolt árajánlatok alapján ✅
+  - **Tárhely**: `frontend/src/utils/projects.ts` (új fájl) ✅
+
+- [x] **Projekt tárolás** – **KÉSZ v2.0.0**
+  - Projektek mentése Store-ban (`projects.json` vagy Store kulcs) ✅
+  - Projekt verziózás (ha szükséges) – **KIHAGYVA (nem prioritás)**
+  - **Tárhely**: `frontend/src/utils/store.ts` (módosítás) ✅
+
+- [x] **Projekt UI komponens** – **KÉSZ v2.0.0**
+  - Projektek listázása (új oldal vagy Dashboard bővítés) ✅
+  - Projekt részletes nézet modal ✅
+  - Projekt létrehozás/szerkesztés form ✅
+  - Gantt chart megjelenítés (opcionális, későbbi verzióhoz) – **KIHAGYVA (nem prioritás)**
+  - **Tárhely**: `frontend/src/components/Projects.tsx` (új fájl) ✅
+
+- [x] **ActiveProjectsWidget integráció** – **KÉSZ v2.0.0**
+  - Widget valódi projekt adatokkal való feltöltése ✅
+  - Projekt kattintás → projekt részletes nézet megnyitása ✅
+  - **Tárhely**: `frontend/src/components/widgets/ActiveProjectsWidget.tsx` (módosítás) ✅
+  - **Tárhely**: `frontend/src/components/Dashboard.tsx` (módosítás) ✅
+
+- [x] **Fordítások** – **KÉSZ v2.0.0**
+  - Projektkezelés szövegek (13 nyelv) ✅
+  - Projekt státuszok, címkék (13 nyelv) ✅
+  - **Tárhely**: `frontend/src/utils/languages/*.ts` ✅
+
+#### 4.2. Feladatkezelő Modul
+- [x] **Domain logika implementálása** – **KÉSZ v2.0.0**
+  - Feladat adatstruktúra bővítése (`types.ts`)
+    - Feladat ID, cím, leírás ✅
+    - Prioritás (high, medium, low) ✅
+    - Státusz (pending, in-progress, completed, cancelled) ✅
+    - Határidő (due date) ✅
+    - Kapcsolt árajánlat ID (opcionális) ✅
+    - Feladat kategóriák/tags – **KIHAGYVA (nem prioritás)**
+    - Feladat assignee (ha multi-user lesz később) – **KIHAGYVA (nem prioritás)**
+    - Recurring tasks támogatás (opcionális) – **KIHAGYVA (nem prioritás)**
+  - **Tárhely**: `frontend/src/types.ts` (Task interface hozzáadása) ✅
+
+- [x] **Feladat CRUD műveletek** – **KÉSZ v2.0.0**
+  - Feladat létrehozása, szerkesztése, törlése ✅
+  - Feladat státusz változtatás ✅
+  - Határidő kezelés és emlékeztetők ✅
+  - **Tárhely**: `frontend/src/utils/tasks.ts` (új fájl) ✅
+
+- [x] **Feladat tárolás** – **KÉSZ v2.0.0**
+  - Feladatok mentése Store-ban (`tasks.json` vagy Store kulcs) ✅
+  - Feladat szűrés és rendezés ✅
+  - **Tárhely**: `frontend/src/utils/store.ts` (módosítás) ✅
+
+- [x] **Feladat UI komponens** – **KÉSZ v2.0.0**
+  - Feladatok listázása (új oldal vagy Dashboard bővítés) ✅
+  - Feladat részletes nézet modal ✅
+  - Feladat létrehozás/szerkesztés form ✅
+  - Naptár nézet feladatokkal (opcionális) – **KIHAGYVA (nem prioritás)**
+  - **Tárhely**: `frontend/src/components/Tasks.tsx` (új fájl) ✅
+
+- [x] **ScheduledTasksWidget integráció** – **KÉSZ v2.0.0**
+  - Widget valódi feladat adatokkal való feltöltése ✅
+  - Feladat kattintás → feladat részletes nézet megnyitása ✅
+  - Automatikus feladat generálás árajánlatok határidejéből – **KIHAGYVA (nem prioritás, manuális hozzárendelés lehetséges)**
+  - **Tárhely**: `frontend/src/components/widgets/ScheduledTasksWidget.tsx` (módosítás) ✅
+  - **Tárhely**: `frontend/src/components/Dashboard.tsx` (módosítás) ✅
+
+- [x] **Fordítások** – **KÉSZ v2.0.0**
+  - Feladatkezelés szövegek (13 nyelv) ✅
+  - Feladat prioritások, státuszok (13 nyelv) ✅
+  - **Tárhely**: `frontend/src/utils/languages/*.ts` ✅
+
+---
+
+### ⚡ 5. Performance Optimalizálás
+
+#### 5.1. Code Splitting Finomhangolás
+- [x] **Lazy loading bővítése** – **KÉSZ v2.0.0 (nagyobb komponensek már lazy loading-gal vannak, BudgetManagement is lazy loading-gal)**
+  - További komponensek lazy loading-ja ✅
+  - Route-based code splitting (ha routing lesz később) – **NEM SZÜKSÉGES (jelenlegi struktúra elég)**
+  - Dinamikus import optimalizálás ✅
+  - **Tárhely**: Minden nagyobb komponens átnézése ✅
+
+#### 5.2. Virtual Scroll További Implementációk
+- [x] **Virtual scroll hozzáadása további listákhoz** – **KÉSZ v2.0.0**
+  - Customers lista ✅ (50+ ügyfél esetén aktiválódik)
+  - Printers lista ✅ (50+ nyomtató esetén aktiválódik)
+  - Projects lista ✅ (30+ projekt esetén aktiválódik)
+  - Tasks lista – **FOLYAMATBAN (következő lépés)**
+  - **Tárhely**: `frontend/src/hooks/useVirtualScroll.ts` (módosítás, ha szükséges)
+  - **Tárhely**: Minden releváns lista komponens ✅
+
+#### 5.3. Memoization Finomhangolás
+- [ ] **useMemo és useCallback optimalizálás**
+  - Nagy számítások memoizálása
+  - Callback függvények stabilizálása
+  - Dependency array-ek ellenőrzése
+  - **Tárhely**: Minden komponens átnézése és optimalizálása
+
+---
+
+### 🔌 6. API / Integrációs Réteg (Opcionális)
+
+#### 6.1. REST API Tervezés
+- [ ] **API architektúra tervezése**
+  - Endpoint struktúra tervezése
+  - Request/Response formátumok definiálása
+  - Authentication/Authorization mechanizmus
+  - **Tárhely**: Dokumentáció (`docs/API_DESIGN.md` - új fájl)
+
+- [ ] **Backend API server implementálása (későbbi verzióhoz)**
+  - Tauri backend-en REST API endpoint-ok
+  - Vagy külön HTTP server (ha szükséges)
+  - **Tárhely**: `src-tauri/src/api/` (új mappa, későbbi verzióhoz)
+
+- [ ] **API dokumentáció**
+  - OpenAPI/Swagger spec generálása
+  - API endpoint dokumentáció
+  - **Tárhely**: `docs/API.md` (új fájl)
+
+---
+
+### 📚 7. Dokumentáció és Fordítások
+
+- [ ] **v2.0.0 changelog összeállítása**
+  - Minden új funkció dokumentálása
+  - Breaking changes dokumentálása (ha vannak)
+  - Migration guide (ha szükséges)
+  - **Tárhely**: README fájlok frissítése
+
+- [ ] **Új fordítási kulcsok**
+  - Titkosítás kapcsolatos szövegek (13 nyelv)
+  - Jelszavas védelem szövegek (13 nyelv)
+  - Projektkezelés szövegek (13 nyelv)
+  - Feladatkezelés szövegek (13 nyelv)
+  - Audit log szövegek (13 nyelv)
+  - Performance metrikák szövegek (13 nyelv)
+  - **Tárhely**: `frontend/src/utils/languages/*.ts`
+
+- [ ] **API dokumentáció (ha API réteg lesz)**
+  - Endpoint dokumentáció
+  - Request/Response példák
+  - Authentication guide
+
+---
+
+### 🛠️ 8. Technikai Előfeltételek és Függőségek
+
+#### 8.1. Új Rust Crates (`Cargo.toml`)
+- [ ] **Titkosításhoz**
+  - `aes-gcm = "0.10"` - AES-256-GCM titkosítás
+  - `pbkdf2 = "0.12"` vagy `argon2 = "0.5"` - Jelszó hash
+  - `rand = "0.8"` - Random generálás kulcsokhoz
+  - `base64 = "0.21"` - Base64 encoding/decoding
+
+#### 8.2. Új Frontend Dependencies (`package.json`)
+- [ ] **Teszteléshez**
+  - `vitest = "^1.0.0"` - Unit teszt framework
+  - `@vitest/ui = "^1.0.0"` - Vitest UI
+  - `@playwright/test = "^1.40.0"` - E2E tesztelés
+  - `@testing-library/react = "^14.0.0"` - React komponens tesztekhez
+  - `@testing-library/user-event = "^14.5.0"` - User interaction szimuláció
+
+#### 8.3. Build Konfiguráció Módosítások
+- [ ] **Vitest konfiguráció**
+  - `vitest.config.ts` létrehozása
+  - Coverage konfiguráció
+  - Test environment beállítás
+
+- [ ] **Playwright konfiguráció**
+  - `playwright.config.ts` létrehozása
+  - Tauri app indítási script
+  - Cross-platform tesztelés beállítása
+
+---
+
+### 📊 9. Becsült Erőforrásigény és Időtartam
+
+**Összesített becslés (nagy áttekintés):**
+- 🔒 **Biztonság és titkosítás**: ~2-3 hét
+  - Backend titkosítás: 1 hét
+  - Frontend integráció: 1 hét
+  - Jelszavas védelem: 3-5 nap
+- 🧪 **Teszt infrastruktúra**: ~2-3 hét
+  - TypeScript strict mode: 1 hét
+  - Unit tesztek: 1 hét
+  - E2E tesztek: 1 hét
+- 📊 **Logolás bővítése**: ~1 hét
+  - Performance metrikák: 3-4 nap
+  - Audit log: 3-4 nap
+- 📁 **Projekt/Feladat modulok**: ~3-4 hét
+  - Projekt modul: 2 hét
+  - Feladat modul: 2 hét
+- ⚡ **Performance optimalizálás**: ~1 hét
+- 📚 **Dokumentáció és fordítások**: ~1 hét
+
+**Összesen: ~10-13 hét (2.5-3 hónap)** koncentrált fejlesztési munkával
+
+---
+
+### ✅ Következő Lépések v2.0.0-hoz
+
+1. **Előzetes tervezés és validálás**
+   - Projekt/Feladat modul adatstruktúrák finomhangolása
+   - Titkosítási algoritmusok és kulcskezelés tervezése
+   - API réteg tervezése (ha szükséges)
+
+2. **Prioritás meghatározása**
+   - Mely funkciók kritikusak a v2.0.0-hoz?
+   - Melyek opcionálisak és későbbi minor verziókba kerülhetnek?
+
+3. **Prototípusok készítése**
+   - Projekt modul UI prototípus
+   - Titkosítási flow tesztelése
+   - Teszt infrastruktúra beállítása
+
+4. **Fázisos implementáció**
+   - Fase 1: Biztonsági fejlesztések
+   - Fase 2: Teszt infrastruktúra
+   - Fase 3: Projekt/Feladat modulok
+   - Fase 4: Performance és optimalizálás
+
+---
+
+**Megjegyzés**: A v2.0.0 egy ambiciózus verzió, amely jelentős új funkciókat és infrastrukturális fejlesztéseket tartalmaz. Javasolt, hogy fázisokban implementáljuk, és fontos, hogy az egyes fázisok után teszteljük és validáljuk az eredményeket.
 

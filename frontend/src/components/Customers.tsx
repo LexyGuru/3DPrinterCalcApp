@@ -9,6 +9,7 @@ import { Tooltip } from "./Tooltip";
 import { saveCustomers } from "../utils/store";
 import { useUndoRedo } from "../hooks/useUndoRedo";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
+import { auditCreate, auditUpdate, auditDelete } from "../utils/auditLog";
 
 const LANGUAGE_LOCALES: Record<string, string> = {
   hu: "hu-HU",
@@ -107,6 +108,16 @@ export const Customers: React.FC<Props> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<number>>(new Set());
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  
+  // Virtual scroll beállítások
+  const CUSTOMER_VIRTUAL_THRESHOLD = 50; // Ha több mint 50 ügyfél van, virtualizáljuk
+  const CUSTOMER_ROW_HEIGHT = 200; // px, átlagos kártya magasság + gap
+  const CUSTOMER_OVERSCAN = 5;
+  const customersListContainerRef = useRef<HTMLDivElement>(null);
+  const [visibleCustomerRange, setVisibleCustomerRange] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: CUSTOMER_VIRTUAL_THRESHOLD,
+  });
 
   // Undo/Redo keyboard shortcuts
   useKeyboardShortcut("z", () => {
@@ -211,6 +222,16 @@ export const Customers: React.FC<Props> = ({
     setCustomersWithHistory(updatedCustomers);
     await saveCustomers(updatedCustomers);
     
+    // Audit log
+    try {
+      await auditCreate("customer", newId, newCustomer.name, {
+        contact: newCustomer.contact,
+        company: newCustomer.company,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
+    
     showToast(t("customers.toast.added"), "success");
     setName(""); 
     setContact(""); 
@@ -227,6 +248,18 @@ export const Customers: React.FC<Props> = ({
   const confirmDelete = async () => {
     if (deleteConfirmId === null) return;
     const id = deleteConfirmId;
+    const customerToDelete = customers.find(c => c.id === id);
+    
+    // Audit log
+    try {
+      await auditDelete("customer", id, customerToDelete?.name || "Unknown", {
+        contact: customerToDelete?.contact,
+        company: customerToDelete?.company,
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
+    
     const updatedCustomers = customers.filter(c => c.id !== id);
     setCustomersWithHistory(updatedCustomers);
     await saveCustomers(updatedCustomers);
@@ -256,6 +289,8 @@ export const Customers: React.FC<Props> = ({
       return;
     }
 
+    const oldCustomer = customers.find(c => c.id === customerId);
+    
     const updatedCustomers = customers.map(c => 
       c.id === customerId
         ? {
@@ -269,6 +304,24 @@ export const Customers: React.FC<Props> = ({
           }
         : c
     );
+    
+    // Audit log
+    try {
+      await auditUpdate("customer", customerId, editingCustomer.name!.trim(), {
+        oldValues: oldCustomer ? {
+          name: oldCustomer.name,
+          contact: oldCustomer.contact,
+          company: oldCustomer.company,
+        } : undefined,
+        newValues: {
+          name: editingCustomer.name!.trim(),
+          contact: editingCustomer.contact?.trim(),
+          company: editingCustomer.company?.trim(),
+        },
+      });
+    } catch (error) {
+      console.warn("Audit log hiba:", error);
+    }
     
     setCustomersWithHistory(updatedCustomers);
     await saveCustomers(updatedCustomers);
@@ -741,8 +794,63 @@ export const Customers: React.FC<Props> = ({
             </div>
           )}
           
-          <div style={{ display: "grid", gap: "16px" }}>
-            {filteredCustomers.map((customer) => (
+          <div
+            ref={customersListContainerRef}
+            style={{
+              display: "grid",
+              gap: "16px",
+              maxHeight: filteredCustomers.length > CUSTOMER_VIRTUAL_THRESHOLD ? "600px" : "none",
+              overflowY: filteredCustomers.length > CUSTOMER_VIRTUAL_THRESHOLD ? "auto" : "visible",
+            }}
+            onScroll={() => {
+              if (!customersListContainerRef.current) return;
+              if (filteredCustomers.length <= CUSTOMER_VIRTUAL_THRESHOLD) return;
+              const container = customersListContainerRef.current;
+              const scrollTop = container.scrollTop;
+              const clientHeight = container.clientHeight;
+              const start = Math.max(0, Math.floor(scrollTop / CUSTOMER_ROW_HEIGHT) - CUSTOMER_OVERSCAN);
+              const end = Math.min(
+                filteredCustomers.length - 1,
+                Math.ceil((scrollTop + clientHeight) / CUSTOMER_ROW_HEIGHT) + CUSTOMER_OVERSCAN
+              );
+              setVisibleCustomerRange((prev) => {
+                if (prev.start === start && prev.end === end) {
+                  return prev;
+                }
+                return { start, end };
+              });
+            }}
+          >
+            {(() => {
+              const shouldVirtualize = filteredCustomers.length > CUSTOMER_VIRTUAL_THRESHOLD;
+              const customersToRender = shouldVirtualize
+                ? filteredCustomers.slice(
+                    Math.max(0, visibleCustomerRange.start),
+                    Math.min(filteredCustomers.length, visibleCustomerRange.end + 1)
+                  )
+                : filteredCustomers;
+              const topSpacer = shouldVirtualize
+                ? Math.max(0, visibleCustomerRange.start) * CUSTOMER_ROW_HEIGHT
+                : 0;
+              const bottomSpacer = shouldVirtualize
+                ? Math.max(
+                    0,
+                    (filteredCustomers.length - (visibleCustomerRange.end + 1)) * CUSTOMER_ROW_HEIGHT
+                  )
+                : 0;
+
+              return (
+                <>
+                  {topSpacer > 0 && (
+                    <div
+                      key="top-spacer"
+                      style={{
+                        height: `${topSpacer}px`,
+                        gridColumn: "1 / -1",
+                      }}
+                    />
+                  )}
+                  {customersToRender.map((customer) => (
             <div
               key={customer.id}
               style={{
@@ -925,6 +1033,18 @@ export const Customers: React.FC<Props> = ({
               )}
             </div>
           ))}
+                  {bottomSpacer > 0 && (
+                    <div
+                      key="bottom-spacer"
+                      style={{
+                        height: `${bottomSpacer}px`,
+                        gridColumn: "1 / -1",
+                      }}
+                    />
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

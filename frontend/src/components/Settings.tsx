@@ -27,11 +27,14 @@ import {
 } from "../utils/themes";
 import { createBackup, restoreBackup, getAutomaticBackupHistory, getDeletionCountdown, type BackupHistoryItem } from "../utils/backup";
 import { getLogHistory, type LogHistoryItem } from "../utils/logHistory";
+import { listAuditLogs, type AuditLogHistoryItem, auditSettingsChange } from "../utils/auditLog";
+import { cleanupOldAuditLogs } from "../utils/auditLogCleanup";
 import { ShortcutHelp } from "./ShortcutHelp";
 import { Tooltip } from "./Tooltip";
 import { VersionHistory } from "./VersionHistory";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { LogViewer } from "./LogViewer";
+import { AuditLogViewer } from "./AuditLogViewer";
 import { FactoryResetProgress } from "./FactoryResetProgress";
 import { SystemDiagnostics } from "./SystemDiagnostics";
 import type { RawLibraryEntry } from "../utils/filamentLibrary";
@@ -67,6 +70,8 @@ interface Props {
   theme: Theme;
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
   onFactoryReset?: () => void; // Callback a Factory Reset után
+  initialModal?: "log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history" | null;
+  onModalOpened?: () => void;
 }
 
 export const SettingsPage: React.FC<Props> = ({ 
@@ -80,7 +85,9 @@ export const SettingsPage: React.FC<Props> = ({
   setOffers,
   theme,
   themeStyles,
-  onFactoryReset
+  onFactoryReset,
+  initialModal,
+  onModalOpened
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
@@ -100,11 +107,15 @@ export const SettingsPage: React.FC<Props> = ({
   const [showAutosaveModal, setShowAutosaveModal] = useState(false);
   const [backupHistory, setBackupHistory] = useState<BackupHistoryItem[]>([]);
   const [logHistory, setLogHistory] = useState<LogHistoryItem[]>([]);
+  const [auditLogHistory, setAuditLogHistory] = useState<AuditLogHistoryItem[]>([]);
   const [previousAutosaveState, setPreviousAutosaveState] = useState<boolean | undefined>(settings.autosave);
   const [showFactoryResetProgress, setShowFactoryResetProgress] = useState(false);
   const [showSystemDiagnostics, setShowSystemDiagnostics] = useState(false);
   const [logViewerOpen, setLogViewerOpen] = useState(false);
+  const [auditLogViewerOpen, setAuditLogViewerOpen] = useState(false);
+  const lastInitialModalRef = useRef<typeof initialModal>(null); // Utolsó initialModal érték
   const [selectedLogFile, setSelectedLogFile] = useState<{ path: string; name: string } | null>(null);
+  const [selectedAuditLogFile, setSelectedAuditLogFile] = useState<{ path: string; name: string } | null>(null);
   type LibraryDraft = {
     manufacturer: string;
     material: string;
@@ -305,13 +316,168 @@ export const SettingsPage: React.FC<Props> = ({
     }
   }, []);
 
-  // Log history betöltése - betöltéskor és 30 másodpercenkénti frissítés
+  // Log history betöltése - betöltjük amikor a Settings oldal megnyílik
   useEffect(() => {
+    // Betöltjük egyszer, amikor a komponens mountolódik
     loadLogHistory();
-    // Frissítjük 30 másodpercenként
-    const interval = setInterval(loadLogHistory, 30000);
+    
+    // Csak akkor frissítjük periodikusan, ha a log viewer nyitva van
+    const interval = setInterval(() => {
+      if (logViewerOpen) {
+        loadLogHistory();
+      }
+    }, 60000); // 60 másodpercenként csak ha nyitva van
     return () => clearInterval(interval);
-  }, [loadLogHistory]);
+  }, [loadLogHistory, logViewerOpen]);
+
+  // Helper függvény az audit log history betöltéséhez
+  const loadAuditLogHistory = useCallback(async () => {
+    try {
+      const history = await listAuditLogs();
+      setAuditLogHistory(history);
+    } catch (error) {
+      console.error("❌ Hiba az audit log history betöltésekor:", error);
+      setAuditLogHistory([]);
+    }
+  }, []);
+
+  // Audit log history betöltése - betöltjük amikor a Settings oldal megnyílik
+  useEffect(() => {
+    // Betöltjük egyszer, amikor a komponens mountolódik
+    loadAuditLogHistory();
+    
+    // Csak akkor frissítjük periodikusan, ha az audit log viewer nyitva van
+    const interval = setInterval(() => {
+      if (auditLogViewerOpen) {
+        loadAuditLogHistory();
+      }
+    }, 60000); // 60 másodpercenként csak ha nyitva van
+    return () => clearInterval(interval);
+  }, [loadAuditLogHistory, auditLogViewerOpen]);
+
+  // Automatikusan megnyitjuk a megfelelő modalt, ha van initialModal prop
+  useEffect(() => {
+    if (!initialModal) {
+      // Ha nincs initialModal, reseteljük a ref-et
+      lastInitialModalRef.current = null;
+      return;
+    }
+
+    // Ha az initialModal nem változott, ne nyissa meg újra
+    if (lastInitialModalRef.current === initialModal) {
+      return;
+    }
+
+    console.log("[Settings] initialModal beállítva:", initialModal);
+
+    // Először beállítjuk az activeTab-ot, hogy a megfelelő tab látszódjon
+    switch (initialModal) {
+      case "log-viewer":
+      case "audit-log-viewer":
+      case "backup-history":
+        console.log("[Settings] ActiveTab beállítva: data");
+        setActiveTab("data");
+        break;
+      case "system-diagnostics":
+        console.log("[Settings] ActiveTab beállítva: advanced");
+        setActiveTab("advanced");
+        break;
+    }
+
+    // Segédfüggvény a modal megnyitásához
+    const openModal = async () => {
+      console.log("[Settings] openModal hívva, initialModal:", initialModal);
+      
+      // Ha az initialModal nullázódott vagy változott azóta, ne nyissa meg
+      if (!initialModal) {
+        console.log("[Settings] initialModal null, kilépünk");
+        return;
+      }
+
+      // Most frissítjük a ref-et, hogy ne nyílljon meg újra
+      lastInitialModalRef.current = initialModal;
+
+      switch (initialModal) {
+        case "log-viewer":
+          console.log("[Settings] Log viewer megnyitása...");
+          // Közvetlenül betöltjük a log history-t
+          try {
+            const historyToUse = await getLogHistory();
+            console.log("[Settings] Betöltött log fájlok száma:", historyToUse.length);
+            // Újra ellenőrizzük, hogy az initialModal még mindig érvényes
+            if (!initialModal || lastInitialModalRef.current !== initialModal) {
+              console.log("[Settings] initialModal érvénytelenné vált, kilépünk");
+              return;
+            }
+            // Frissítjük a state-et is
+            if (historyToUse.length > 0) {
+              setLogHistory(historyToUse);
+            }
+            // Megnyitjuk a log viewer-t, ha van log fájl
+            if (historyToUse.length > 0) {
+              const latestLog = historyToUse[0];
+              console.log("[Settings] Log viewer megnyitása:", latestLog.fileName);
+              setSelectedLogFile({ path: latestLog.filePath, name: latestLog.fileName });
+              setLogViewerOpen(true);
+            } else {
+              console.warn("[Settings] Nincs log fájl a megnyitáshoz");
+            }
+          } catch (error) {
+            console.error("[Settings] Hiba a log history betöltésekor:", error);
+          }
+          break;
+        case "audit-log-viewer":
+          console.log("[Settings] Audit log viewer megnyitása...");
+          // Közvetlenül betöltjük az audit log history-t
+          try {
+            const auditHistoryToUse = await listAuditLogs();
+            console.log("[Settings] Betöltött audit log fájlok száma:", auditHistoryToUse.length);
+            // Újra ellenőrizzük, hogy az initialModal még mindig érvényes
+            if (!initialModal || lastInitialModalRef.current !== initialModal) {
+              console.log("[Settings] initialModal érvénytelenné vált, kilépünk");
+              return;
+            }
+            // Frissítjük a state-et is
+            if (auditHistoryToUse.length > 0) {
+              setAuditLogHistory(auditHistoryToUse);
+            }
+            // Megnyitjuk az audit log viewer-t, ha van audit log fájl
+            if (auditHistoryToUse.length > 0) {
+              const latestAuditLog = auditHistoryToUse[0];
+              console.log("[Settings] Audit log viewer megnyitása:", latestAuditLog.fileName);
+              setSelectedAuditLogFile({ path: latestAuditLog.filePath, name: latestAuditLog.fileName });
+              setAuditLogViewerOpen(true);
+            } else {
+              console.warn("[Settings] Nincs audit log fájl a megnyitáshoz");
+            }
+          } catch (error) {
+            console.error("[Settings] Hiba az audit log history betöltésekor:", error);
+          }
+          break;
+        case "system-diagnostics":
+          console.log("[Settings] System diagnostics megnyitása");
+          setShowSystemDiagnostics(true);
+          break;
+        case "backup-history":
+          console.log("[Settings] Backup history tab megnyitása");
+          // A backup history a data tab-ban van, csak váltunk tab-ra
+          break;
+      }
+    };
+
+    // Kis késleltetés, hogy a komponens teljesen betöltődjön és az activeTab beállítódjon
+    const timeout = setTimeout(() => {
+      console.log("[Settings] Timeout lejárt, modal megnyitása...");
+      openModal();
+    }, 800);
+
+    return () => {
+      console.log("[Settings] useEffect cleanup");
+      clearTimeout(timeout);
+    };
+    // Csak az initialModal változásakor fusson le, ne a logHistory/auditLogHistory változásakor
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialModal]);
 
   const ensureThemeSettings = (overrides?: Partial<ThemeSettings>): ThemeSettings => {
     const base: ThemeSettings = {
@@ -363,6 +529,15 @@ export const SettingsPage: React.FC<Props> = ({
     // Azonnal mentjük a téma változást, hogy ne veszítse el az autosave backup során
     try {
       await saveSettings(newSettings);
+      // Audit log
+      try {
+        await auditSettingsChange("theme", settings.theme, themeName, {
+          previousTheme: settings.theme,
+          newTheme: themeName,
+        });
+      } catch (error) {
+        console.warn("Audit log hiba:", error);
+      }
       if (import.meta.env.DEV) {
         console.log("✅ Téma változtatva és azonnal mentve:", themeName);
       }
@@ -1312,11 +1487,28 @@ export const SettingsPage: React.FC<Props> = ({
     return convertCurrencyFromTo(value, settings.currency, "HUF");
   };
 
-  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCurrencyChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCurrency = e.target.value as Settings["currency"];
+    const oldCurrency = settings.currency;
     // Pénznem váltáskor az áram árat is át kell konvertálni
     // Az új pénznemben ugyanazt az értéket mutatjuk
-    onChange({ ...settings, currency: newCurrency });
+    const newSettings = { ...settings, currency: newCurrency };
+    onChange(newSettings);
+    // Azonnal mentjük a pénznem változást
+    try {
+      await saveSettings(newSettings);
+      // Audit log
+      try {
+        await auditSettingsChange("currency", oldCurrency, newCurrency, {
+          previousCurrency: oldCurrency,
+          newCurrency: newCurrency,
+        });
+      } catch (error) {
+        console.warn("Audit log hiba:", error);
+      }
+    } catch (error) {
+      console.error("❌ Hiba a pénznem mentésekor:", error);
+    }
   };
 
   const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -1326,6 +1518,15 @@ export const SettingsPage: React.FC<Props> = ({
     // Azonnal mentjük a nyelv változást, hogy azonnal érvénybe lépjen
     try {
       await saveSettings(newSettings);
+      // Audit log
+      try {
+        await auditSettingsChange("language", settings.language, newLanguage, {
+          previousLanguage: settings.language,
+          newLanguage: newLanguage,
+        });
+      } catch (error) {
+        console.warn("Audit log hiba:", error);
+      }
       if (import.meta.env.DEV) {
         console.log("✅ Nyelv változtatva és mentve:", newLanguage);
       }
@@ -3126,7 +3327,17 @@ export const SettingsPage: React.FC<Props> = ({
                   if (newValue && !previousAutosaveState) {
                     setShowAutosaveModal(true);
                   } else {
-                    onChange({ ...settings, autosave: newValue });
+                    const newSettings = { ...settings, autosave: newValue };
+                    onChange(newSettings);
+                    // Audit log
+                    try {
+                      await auditSettingsChange("autosave", settings.autosave, newValue, {
+                        previousAutosave: settings.autosave,
+                        newAutosave: newValue,
+                      });
+                    } catch (error) {
+                      console.warn("Audit log hiba:", error);
+                    }
                     // Ha bekapcsoljuk az autosave-t, azonnal betöltjük a backup history-t
                   // Mindig betöltjük a backup history-t, függetlenül az autosave állapotától
                   // Kis késleltetés, hogy biztosan betöltődjön
@@ -3486,6 +3697,90 @@ export const SettingsPage: React.FC<Props> = ({
               </p>
             )}
           </div>
+        </div>
+
+        {/* Welcome Message beállítások */}
+        <div style={{ marginBottom: "24px" }}>
+          <Tooltip content={t("settings.showWelcomeMessageOnStartupDescription") || "Ha be van pipálva, az első indításkor megjelenik az üdvözlő üzenet, amely információkat tartalmaz az alkalmazásról."}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer" 
+            }}>
+              <input
+                type="checkbox"
+                checked={settings.showWelcomeMessageOnStartup !== false}
+                onChange={async (e) => {
+                  const checked = e.target.checked;
+                  const newSettings = { 
+                    ...settings, 
+                    showWelcomeMessageOnStartup: checked,
+                  };
+                  onChange(newSettings);
+                  // Azonnal mentjük
+                  try {
+                    await saveSettings(newSettings);
+                    if (import.meta.env.DEV) {
+                      console.log("✅ Welcome Message beállítás azonnal mentve:", checked);
+                    }
+                  } catch (error) {
+                    console.error("❌ Hiba a welcome message beállítás mentésekor:", error);
+                  }
+                }}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>👋 {t("settings.showWelcomeMessageOnStartup") || "Üdvözlő üzenet megjelenítése indításkor:"}</span>
+            </label>
+          </Tooltip>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.showWelcomeMessageOnStartupDescription") || "Ha be van pipálva, az első indításkor megjelenik az üdvözlő üzenet, amely információkat tartalmaz az alkalmazásról, verzióról és GitHub linkekről."}
+          </p>
+        </div>
+
+        {/* Help Menu beállítások */}
+        <div style={{ marginBottom: "24px" }}>
+          <Tooltip content={t("settings.showHelpInMenuDescription") || "Ha be van pipálva, a Help menüpont megjelenik a Sidebar SYSTEM szekciójában."}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer" 
+            }}>
+              <input
+                type="checkbox"
+                checked={settings.showHelpInMenu !== false}
+                onChange={async (e) => {
+                  const checked = e.target.checked;
+                  const newSettings = { 
+                    ...settings, 
+                    showHelpInMenu: checked,
+                  };
+                  onChange(newSettings);
+                  // Azonnal mentjük
+                  try {
+                    await saveSettings(newSettings);
+                    if (import.meta.env.DEV) {
+                      console.log("✅ Help Menu beállítás azonnal mentve:", checked);
+                    }
+                  } catch (error) {
+                    console.error("❌ Hiba a help menu beállítás mentésekor:", error);
+                  }
+                }}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>❓ {t("settings.showHelpInMenu") || "Help menüpont megjelenítése a Sidebar-ban:"}</span>
+            </label>
+          </Tooltip>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.showHelpInMenuDescription") || "Ha be van pipálva, a Help menüpont megjelenik a Sidebar SYSTEM szekciójában. Az F1 billentyű mindig elérhető marad a Help menü megnyitásához."}
+          </p>
         </div>
 
         {/* Értesítések */}
@@ -3931,25 +4226,44 @@ export const SettingsPage: React.FC<Props> = ({
           
         </div>
 
-        {/* Log Management */}
+        {/* Log Management - két oszlopos layout */}
         <div style={{ 
           ...themeStyles.card, 
           marginTop: "32px",
         }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: "12px", 
-            fontWeight: "600", 
-            fontSize: "18px", 
-            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+          {/* Cím és leírás */}
+          <div style={{ marginBottom: "24px" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "12px", 
+              fontWeight: "600", 
+              fontSize: "18px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
+            }}>
+              📋 {settings.language === "hu" ? "Log és Audit Log kezelés" : settings.language === "de" ? "Log- und Audit-Log-Verwaltung" : "Log & Audit Log Management"}
+            </label>
+            <p style={{ marginBottom: "20px", fontSize: "14px", color: theme.colors.textMuted }}>
+              {t("settings.logs.description")}
+            </p>
+          </div>
+
+          {/* Két oszlopos layout */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "1fr 1fr", 
+            gap: "24px",
           }}>
-            📋 {t("settings.logs.title")}
-          </label>
-          <p style={{ marginBottom: "20px", fontSize: "14px", color: theme.colors.textMuted }}>
-            {t("settings.logs.description")}
-          </p>
-          
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* BAL OSZLOP: Log Management */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <h3 style={{ 
+                fontSize: "16px", 
+                fontWeight: 600, 
+                color: theme.colors.text,
+                marginBottom: "8px"
+              }}>
+                📋 {t("settings.logs.title")}
+              </h3>
+              
             {/* Log törlési beállítás */}
             <div>
               <label style={{ 
@@ -3968,6 +4282,16 @@ export const SettingsPage: React.FC<Props> = ({
                   const newSettings = { ...settings, logRetentionDays: days };
                   onChange(newSettings);
                   await saveSettings(newSettings);
+                  
+                  // Audit log
+                  try {
+                    await auditSettingsChange("logRetentionDays", settings.logRetentionDays ?? 0, days, {
+                      previousLogRetentionDays: settings.logRetentionDays ?? 0,
+                      newLogRetentionDays: days,
+                    });
+                  } catch (error) {
+                    console.warn("Audit log hiba:", error);
+                  }
                   
                   // Ha nem 0, akkor azonnal töröljük a régi logokat
                   if (days > 0) {
@@ -4032,6 +4356,17 @@ export const SettingsPage: React.FC<Props> = ({
                   const newSettings = { ...settings, logFormat: format };
                   onChange(newSettings);
                   await saveSettings(newSettings);
+                  
+                  // Audit log
+                  try {
+                    await auditSettingsChange("logFormat", settings.logFormat || "text", format, {
+                      previousLogFormat: settings.logFormat || "text",
+                      newLogFormat: format,
+                    });
+                  } catch (error) {
+                    console.warn("Audit log hiba:", error);
+                  }
+                  
                   showToast(
                     settings.language === "hu" 
                       ? `Log formátum módosítva: ${format === "json" ? "JSON" : "Szöveges"}`
@@ -4075,6 +4410,17 @@ export const SettingsPage: React.FC<Props> = ({
                   const newSettings = { ...settings, logLevel: level };
                   onChange(newSettings);
                   await saveSettings(newSettings);
+                  
+                  // Audit log
+                  try {
+                    await auditSettingsChange("logLevel", settings.logLevel || "INFO", level, {
+                      previousLogLevel: settings.logLevel || "INFO",
+                      newLogLevel: level,
+                    });
+                  } catch (error) {
+                    console.warn("Audit log hiba:", error);
+                  }
+                  
                   showToast(
                     settings.language === "hu" 
                       ? `Log szint módosítva: ${level}`
@@ -4146,18 +4492,17 @@ export const SettingsPage: React.FC<Props> = ({
                 </button>
               </Tooltip>
             </div>
-          </div>
 
-          {/* Log History - log fájlok listája */}
-          <div style={{ marginTop: "24px" }}>
-            <h3 style={{ 
-              fontSize: "16px", 
-              fontWeight: 600, 
-              color: theme.colors.text,
-              marginBottom: "12px"
-            }}>
-              📋 {settings.language === "hu" ? "Log történet" : settings.language === "de" ? "Log-Verlauf" : "Log History"}
-            </h3>
+              {/* Log History - log fájlok listája */}
+              <div style={{ marginTop: "24px" }}>
+                <h3 style={{ 
+                  fontSize: "16px", 
+                  fontWeight: 600, 
+                  color: theme.colors.text,
+                  marginBottom: "12px"
+                }}>
+                  📋 {settings.language === "hu" ? "Log történet" : settings.language === "de" ? "Log-Verlauf" : "Log History"}
+                </h3>
             {logHistory.length > 0 ? (
               <div style={{
                 display: "flex",
@@ -4248,48 +4593,291 @@ export const SettingsPage: React.FC<Props> = ({
                   : settings.language === "de"
                   ? "Noch keine Log-Dateien vorhanden. Log-Dateien werden automatisch erstellt, wenn die Anwendung verwendet wird."
                   : "No log files yet. Log files will be created automatically when the application is in use."}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
-          
-          {/* System Diagnostics - Log Management szekcióban */}
-          <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: `1px solid ${theme.colors.border}` }}>
+
+          {/* JOBB OSZLOP: Audit Log Management */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <h3 style={{ 
               fontSize: "16px", 
               fontWeight: 600, 
               color: theme.colors.text,
-              marginBottom: "12px"
+              marginBottom: "8px"
             }}>
-              🔍 {t("settings.backup.systemDiagnostics") || "Rendszer Diagnosztika"}
+              🔐 {settings.language === "hu" ? "Audit Logok" : settings.language === "de" ? "Audit-Logs" : "Audit Logs"}
             </h3>
-            <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
-              {t("settings.backup.systemDiagnosticsTooltip") || "Rendszer diagnosztika és stabilitás ellenőrzése"}
-            </p>
-            <Tooltip content={t("settings.backup.systemDiagnosticsTooltip") || "Rendszer diagnosztika és stabilitás ellenőrzése"}>
-              <button
-                onClick={() => setShowSystemDiagnostics(true)}
+            
+            {/* Audit log törlési beállítás */}
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontWeight: "500", 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              }}>
+                {settings.language === "hu" ? "Törlés régebbi audit log fájlok" : settings.language === "de" ? "Ältere Audit-Log-Dateien löschen" : "Delete older audit log files"}
+              </label>
+              <select
+                value={settings.auditLogRetentionDays ?? 0}
+                onChange={async (e) => {
+                  const days = parseInt(e.target.value) || 0;
+                  const newSettings = { ...settings, auditLogRetentionDays: days };
+                  onChange(newSettings);
+                  await saveSettings(newSettings);
+                  
+                  // Audit log
+                  try {
+                    await auditSettingsChange("auditLogRetentionDays", settings.auditLogRetentionDays ?? 0, days, {
+                      previousAuditLogRetentionDays: settings.auditLogRetentionDays ?? 0,
+                      newAuditLogRetentionDays: days,
+                    });
+                  } catch (error) {
+                    console.warn("Audit log hiba:", error);
+                  }
+                  
+                  // Ha nem 0, akkor azonnal töröljük a régi audit logokat
+                  if (days > 0) {
+                    try {
+                      const deletedCount = await cleanupOldAuditLogs(days);
+                      if (deletedCount > 0) {
+                        showToast(
+                          settings.language === "hu" 
+                            ? `${deletedCount} régi audit log fájl törölve`
+                            : settings.language === "de"
+                            ? `${deletedCount} alte Audit-Log-Dateien gelöscht`
+                            : `${deletedCount} old audit log files deleted`,
+                          "success"
+                        );
+                        // Frissítjük az audit log history-t
+                        loadAuditLogHistory();
+                      }
+                    } catch (error) {
+                      console.error("Audit log törlési hiba:", error);
+                      showToast(
+                        settings.language === "hu" 
+                          ? "Hiba az audit log fájlok törlésekor"
+                          : settings.language === "de"
+                          ? "Fehler beim Löschen der Audit-Log-Dateien"
+                          : "Error deleting audit log files",
+                        "error"
+                      );
+                    }
+                  }
+                }}
                 style={{
-                  ...themeStyles.button,
-                  backgroundColor: theme.colors.primary || "#4f46e5",
-                  color: "#ffffff",
-                  border: `1px solid ${theme.colors.primary || "#4f46e5"}`,
-                  padding: "10px 20px",
+                  ...themeStyles.input,
+                  padding: "10px 14px",
                   fontSize: "14px",
-                  fontWeight: "600",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = theme.colors.primaryHover || "#4338ca";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = theme.colors.primary || "#4f46e5";
-                  e.currentTarget.style.transform = "translateY(0)";
+                  width: "100%",
+                  maxWidth: "300px",
+                  marginBottom: "12px",
                 }}
               >
-                🔍 {t("settings.backup.systemDiagnostics") || "Rendszer Diagnosztika"}
-              </button>
-            </Tooltip>
+                <option value="0">{t("settings.logs.neverDelete")}</option>
+                <option value="5">5 {t("settings.logs.daysOrOlder")}</option>
+                <option value="10">10 {t("settings.logs.daysOrOlder")}</option>
+                <option value="15">15 {t("settings.logs.daysOrOlder")}</option>
+                <option value="30">30 {t("settings.logs.daysOrOlder")}</option>
+                <option value="60">60 {t("settings.logs.daysOrOlder")}</option>
+                <option value="90">90 {t("settings.logs.daysOrOlder")}</option>
+              </select>
+            </div>
+
+            {/* Audit log mappa megnyitása */}
+            <div>
+              <label style={{ 
+                display: "block", 
+                marginBottom: "8px", 
+                fontWeight: "500", 
+                fontSize: "14px", 
+                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              }}>
+                {settings.language === "hu" ? "Mappa helye" : settings.language === "de" ? "Ordnerstandort" : "Folder Location"}
+              </label>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <Tooltip content={settings.language === "hu" 
+                ? "Audit log mappa megnyitása a fájlkezelőben" 
+                : settings.language === "de"
+                ? "Audit-Log-Ordner im Datei-Explorer öffnen"
+                : "Open audit log folder in file manager"}>
+                <button
+                  onClick={async () => {
+                    try {
+                      const auditLogDirPath = await invoke<string>("get_audit_log_directory_path");
+                      await invoke("open_directory", { path: auditLogDirPath });
+                    } catch (error) {
+                      console.error("Audit log mappa megnyitási hiba:", error);
+                      showToast(
+                        settings.language === "hu" 
+                          ? "Hiba az audit log mappa megnyitásakor"
+                          : settings.language === "de"
+                          ? "Fehler beim Öffnen des Audit-Log-Ordners"
+                          : "Error opening audit log folder",
+                        "error"
+                      );
+                    }
+                  }}
+                  style={{
+                    ...themeStyles.button,
+                    ...themeStyles.buttonSecondary,
+                    padding: "6px 14px",
+                    fontSize: "12px",
+                  }}
+                >
+                  📁 {settings.language === "hu" ? "Mappa megnyitása" : settings.language === "de" ? "Ordner öffnen" : "Open Folder"}
+                </button>
+              </Tooltip>
+              </div>
+            </div>
+
+            {/* Audit Log History - audit log fájlok listája */}
+            <div style={{ marginTop: "24px" }}>
+              <h3 style={{ 
+                fontSize: "16px", 
+                fontWeight: 600, 
+                color: theme.colors.text,
+                marginBottom: "12px"
+              }}>
+                🔐 {settings.language === "hu" ? "Audit Log történet" : settings.language === "de" ? "Audit-Log-Verlauf" : "Audit Log History"}
+              </h3>
+              {auditLogHistory.length > 0 ? (
+              <div style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                maxHeight: "300px",
+                overflowY: "auto",
+                padding: "8px",
+                backgroundColor: theme.colors.surface,
+                borderRadius: "8px",
+                border: `1px solid ${theme.colors.border}`,
+              }}>
+                {auditLogHistory.map((item, index) => {
+                  const dateStr = item.date.toLocaleDateString(settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                  });
+
+                  return (
+                    <div
+                      key={index}
+                      onClick={() => {
+                        setSelectedAuditLogFile({ path: item.filePath, name: item.fileName });
+                        setAuditLogViewerOpen(true);
+                      }}
+                      style={{
+                        padding: "12px",
+                        borderRadius: "6px",
+                        backgroundColor: theme.colors.background,
+                        border: `1px solid ${theme.colors.border}`,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.colors.surface;
+                        e.currentTarget.style.transform = "translateX(4px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.colors.background;
+                        e.currentTarget.style.transform = "translateX(0)";
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ 
+                          fontSize: "13px", 
+                          fontWeight: 600, 
+                          color: theme.colors.text,
+                          marginBottom: "4px"
+                        }}>
+                          {settings.language === "hu" ? "Audit Log" : settings.language === "de" ? "Audit-Log" : "Audit Log"}
+                        </div>
+                        <div style={{ 
+                          fontSize: "11px", 
+                          color: theme.colors.textMuted 
+                        }}>
+                          {dateStr} • {item.fileName} • {item.size}
+                        </div>
+                      </div>
+                      <div style={{ 
+                        fontSize: "16px", 
+                        color: theme.colors.textMuted,
+                        marginLeft: "8px"
+                      }}>
+                        📂
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{
+                padding: "16px",
+                backgroundColor: theme.colors.surface,
+                borderRadius: "8px",
+                border: `1px solid ${theme.colors.border}`,
+                textAlign: "center",
+                color: theme.colors.textMuted,
+                fontSize: "14px",
+              }}>
+                {settings.language === "hu" 
+                  ? "Még nincsenek audit log fájlok. Az audit log fájlok automatikusan létrejönnek, amikor kritikus műveletek történnek." 
+                  : settings.language === "de"
+                  ? "Noch keine Audit-Log-Dateien vorhanden. Audit-Log-Dateien werden automatisch erstellt, wenn kritische Aktionen durchgeführt werden."
+                  : "No audit log files yet. Audit log files will be created automatically when critical actions are performed."}
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+        </div>
+
+        {/* System Diagnostics - Log Management szekcióban */}
+        <div style={{ 
+          ...themeStyles.card,
+          marginTop: "32px",
+        }}>
+          <h3 style={{ 
+            fontSize: "16px", 
+            fontWeight: 600, 
+            color: theme.colors.text,
+            marginBottom: "12px"
+          }}>
+            🔍 {t("settings.backup.systemDiagnostics") || "Rendszer Diagnosztika"}
+          </h3>
+          <p style={{ marginBottom: "16px", fontSize: "14px", color: theme.colors.textMuted }}>
+            {t("settings.backup.systemDiagnosticsTooltip") || "Rendszer diagnosztika és stabilitás ellenőrzése"}
+          </p>
+          <Tooltip content={t("settings.backup.systemDiagnosticsTooltip") || "Rendszer diagnosztika és stabilitás ellenőrzése"}>
+            <button
+              onClick={() => setShowSystemDiagnostics(true)}
+              style={{
+                ...themeStyles.button,
+                backgroundColor: theme.colors.primary || "#4f46e5",
+                color: "#ffffff",
+                border: `1px solid ${theme.colors.primary || "#4f46e5"}`,
+                padding: "10px 20px",
+                fontSize: "14px",
+                fontWeight: "600",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.primaryHover || "#4338ca";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.primary || "#4f46e5";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              🔍 {t("settings.backup.systemDiagnostics") || "Rendszer Diagnosztika"}
+            </button>
+          </Tooltip>
         </div>
 
         {/* Export/Import Data Section - 2 oszlop */}
@@ -5244,7 +5832,19 @@ export const SettingsPage: React.FC<Props> = ({
                 </button>
                 <button
                   onClick={async () => {
-                    onChange({ ...settings, autosave: true });
+                    const newSettings = { ...settings, autosave: true };
+                    onChange(newSettings);
+                    await saveSettings(newSettings);
+                    // Audit log
+                    try {
+                      await auditSettingsChange("autosave", settings.autosave, true, {
+                        previousAutosave: settings.autosave,
+                        newAutosave: true,
+                        enabled: true,
+                      });
+                    } catch (error) {
+                      console.warn("Audit log hiba:", error);
+                    }
                     setShowAutosaveModal(false);
                     // Azonnal betöltjük a backup history-t (kis késleltetéssel, hogy biztosan betöltődjön)
                     setTimeout(() => {
@@ -5281,7 +5881,13 @@ export const SettingsPage: React.FC<Props> = ({
       {/* System Diagnostics Modal */}
       <SystemDiagnostics
         isOpen={showSystemDiagnostics}
-        onClose={() => setShowSystemDiagnostics(false)}
+        onClose={() => {
+          setShowSystemDiagnostics(false);
+          // Nullázzuk ki az initialModal-t, hogy ne nyílljon meg újra
+          if (initialModal === "system-diagnostics") {
+            onModalOpened?.();
+          }
+        }}
         settings={settings}
         theme={theme}
         themeStyles={themeStyles}
@@ -5294,9 +5900,32 @@ export const SettingsPage: React.FC<Props> = ({
           onClose={() => {
             setLogViewerOpen(false);
             setSelectedLogFile(null);
+            // Nullázzuk ki az initialModal-t, hogy ne nyílljon meg újra
+            if (initialModal === "log-viewer") {
+              onModalOpened?.();
+            }
           }}
           logFilePath={selectedLogFile.path}
           logFileName={selectedLogFile.name}
+          theme={theme}
+          settings={settings}
+        />
+      )}
+
+      {/* Audit Log Viewer Modal */}
+      {selectedAuditLogFile && (
+        <AuditLogViewer
+          isOpen={auditLogViewerOpen}
+          onClose={() => {
+            setAuditLogViewerOpen(false);
+            setSelectedAuditLogFile(null);
+            // Nullázzuk ki az initialModal-t, hogy ne nyílljon meg újra
+            if (initialModal === "audit-log-viewer") {
+              onModalOpened?.();
+            }
+          }}
+          auditLogFilePath={selectedAuditLogFile.path}
+          auditLogFileName={selectedAuditLogFile.name}
           theme={theme}
           settings={settings}
         />

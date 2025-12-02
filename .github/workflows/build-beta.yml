@@ -235,6 +235,9 @@ jobs:
           
           version = "${version}"
           patterns = [
+              rf"^## v{re.escape(version)} ",
+              rf"^## v{re.escape(version)}$",
+              rf"^## {re.escape(version)} ",
               rf"^### v{re.escape(version)} ",
               rf"^### v{re.escape(version)}$",
               rf"^### {re.escape(version)} "
@@ -255,13 +258,13 @@ jobs:
                       # Find the end (next version header)
                       end_idx = len(lines)
                       for i in range(start_idx + 1, len(lines)):
-                          if re.match(r"^### v[0-9]", lines[i]):
+                          if re.match(r"^## v[0-9]", lines[i]) or re.match(r"^### v[0-9]", lines[i]):
                               end_idx = i
                               break
                       
                       # Extract the changelog (excluding the last line if it's the next version header)
                       changelog_lines = lines[start_idx:end_idx]
-                      if changelog_lines and re.match(r"^### v[0-9]", changelog_lines[-1]):
+                      if changelog_lines and (re.match(r"^## v[0-9]", changelog_lines[-1]) or re.match(r"^### v[0-9]", changelog_lines[-1])):
                           changelog_lines = changelog_lines[:-1]
                       
                       result = "".join(changelog_lines).strip()
@@ -277,9 +280,9 @@ jobs:
             echo "$result"
           }
           
-          # Extract changelogs
-          CHANGELOG_HU=$(extract_changelog "README.hu.md" "${VERSION}")
-          CHANGELOG_EN=$(extract_changelog "README.en.md" "${VERSION}")
+          # Extract changelogs from RELEASE files
+          CHANGELOG_HU=$(extract_changelog "RELEASE.hu.md" "${VERSION}")
+          CHANGELOG_EN=$(extract_changelog "RELEASE.en.md" "${VERSION}")
           
           echo "Hungarian changelog found: $([ -n "$CHANGELOG_HU" ] && echo "yes" || echo "no")"
           echo "English changelog found: $([ -n "$CHANGELOG_EN" ] && echo "yes" || echo "no")"
@@ -294,7 +297,7 @@ jobs:
           elif [ -n "$CHANGELOG_EN" ]; then
             COMBINED_CHANGELOG="## 🇬🇧 English Changes"$'\n\n'"${CHANGELOG_EN}"
           else
-            COMBINED_CHANGELOG="## Beta Release v${VERSION}"$'\n\n'"No changelog found in README files for this version."
+            COMBINED_CHANGELOG="## Beta Release v${VERSION}"$'\n\n'"No changelog found in RELEASE files for this version."
           fi
           
           # Save to output (escape newlines for GitHub Actions)
@@ -311,7 +314,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.get-version.outputs.version }}
+          tag_name: beta-v${{ steps.get-version.outputs.version }}
           name: Beta v${{ steps.get-version.outputs.version }}
           body: |
             ## 🧪 Beta Release v${{ steps.get-version.outputs.version }}

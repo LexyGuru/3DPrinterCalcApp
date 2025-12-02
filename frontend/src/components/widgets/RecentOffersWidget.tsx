@@ -30,6 +30,14 @@ const STATUS_ICONS: Record<string, string> = {
   completed: "✔️",
 };
 
+const STATUS_LABEL_KEYS: Record<string, import("../../utils/languages/types").TranslationKey> = {
+  draft: "offers.status.draft",
+  sent: "offers.status.sent",
+  accepted: "offers.status.accepted",
+  rejected: "offers.status.rejected",
+  completed: "offers.status.completed",
+};
+
 export const RecentOffersWidget: React.FC<RecentOffersWidgetProps> = ({
   widget,
   theme,
@@ -49,7 +57,6 @@ export const RecentOffersWidget: React.FC<RecentOffersWidgetProps> = ({
   
   const padding = isSmall ? "12px" : isMedium ? "16px" : "20px";
   const fontSize = isSmall ? "11px" : isMedium ? "13px" : "14px";
-  const titleFontSize = isSmall ? "12px" : isMedium ? "14px" : "16px";
 
   // Rendezzük dátum szerint (legújabb először) és csak az első maxItems-et
   const recentOffers = [...offers]
@@ -133,14 +140,6 @@ export const RecentOffersWidget: React.FC<RecentOffersWidgetProps> = ({
         gap: isSmall ? "8px" : "12px",
       }}>
         <div style={{
-          fontSize: titleFontSize,
-          fontWeight: "700",
-          color: theme.colors.text,
-          marginBottom: isSmall ? "4px" : "8px",
-        }}>
-          {t("widget.title.recentOffers") || "Recent Offers"}
-        </div>
-        <div style={{
           flex: 1,
           overflowY: "auto",
           display: "flex",
@@ -152,6 +151,7 @@ export const RecentOffersWidget: React.FC<RecentOffersWidgetProps> = ({
             const status = offer.status || "draft";
             const statusColor = STATUS_COLORS[status] || STATUS_COLORS.draft;
             const statusIcon = STATUS_ICONS[status] || STATUS_ICONS.draft;
+            const statusLabel = t(STATUS_LABEL_KEYS[status] || STATUS_LABEL_KEYS.draft);
             const totalCost = offer.costs?.totalCost || 0;
 
             return (
@@ -241,7 +241,7 @@ export const RecentOffersWidget: React.FC<RecentOffersWidgetProps> = ({
                     fontSize: isSmall ? "9px" : "10px",
                     fontWeight: "600",
                   }}>
-                    {status}
+                    {statusLabel}
                   </span>
                 </div>
               </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { ErrorInfo } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
-import type { Settings, Offer, Filament, Printer } from "../types";
+import type { Settings, Offer, Filament, Printer, Project, Task } from "../types";
 import { defaultAnimationSettings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
@@ -124,12 +124,14 @@ interface Props {
   offers: Offer[];
   filaments?: Filament[];
   printers?: Printer[];
+  projects?: Project[];
+  tasks?: Task[];
   theme: Theme;
   onSettingsChange?: (newSettings: Settings) => void;
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: string, modal?: "log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history") => void;
 }
 
-export const Home: React.FC<Props> = ({ settings, offers, filaments = [], theme, onSettingsChange, onNavigate }) => {
+export const Home: React.FC<Props> = ({ settings, offers, filaments = [], projects = [], tasks = [], theme, onSettingsChange, onNavigate }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [exportFormat, setExportFormat] = useState<"json" | "csv">("json");
@@ -317,16 +319,29 @@ export const Home: React.FC<Props> = ({ settings, offers, filaments = [], theme,
       };
     }
 
-    const profitPercentage = offer.profitPercentage ?? 30;
-    const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
-    const revenueEUR = convertCurrencyFromTo(revenueInOfferCurrency, offer.currency, "EUR");
-
     const filamentCostEUR = convertCurrencyFromTo(offer.costs.filamentCost, offer.currency, "EUR");
     const electricityCostEUR = convertCurrencyFromTo(offer.costs.electricityCost, offer.currency, "EUR");
     const dryingCostEUR = convertCurrencyFromTo(offer.costs.dryingCost, offer.currency, "EUR");
     const usageCostEUR = convertCurrencyFromTo(offer.costs.usageCost, offer.currency, "EUR");
 
     const totalCostsEUR = filamentCostEUR + electricityCostEUR + dryingCostEUR + usageCostEUR;
+    
+    // Bevétel csak akkor, ha completed ÉS paid (vagy nincs paymentStatus, akkor paid-nek számít)
+    let revenueEUR = 0;
+    if (offer.status === "completed") {
+      const paymentStatus = offer.paymentStatus || "paid";
+      if (paymentStatus === "paid") {
+        const profitPercentage = offer.profitPercentage ?? 30;
+        const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
+        revenueEUR = convertCurrencyFromTo(revenueInOfferCurrency, offer.currency, "EUR");
+      }
+    } else {
+      // Ha nincs completed státusz, akkor is számoljuk (régi viselkedés kompatibilitás miatt)
+      const profitPercentage = offer.profitPercentage ?? 30;
+      const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
+      revenueEUR = convertCurrencyFromTo(revenueInOfferCurrency, offer.currency, "EUR");
+    }
+    
     const profitEUR = revenueEUR - totalCostsEUR;
 
     return {
@@ -1907,19 +1922,13 @@ export const Home: React.FC<Props> = ({ settings, offers, filaments = [], theme,
                   margin: point.revenue > 0 ? (point.profit / point.revenue) * 100 : 0,
                 })),
               }}
-              activeProjects={offers
-                .filter(offer => offer.status === "accepted" || offer.status === "sent")
-                .map((offer) => ({
-                  id: offer.id,
-                  name: offer.customerName || t("common.unknown") || "Unknown",
-                  status: offer.status === "accepted" ? "active" as const : "on-hold" as const,
-                  progress: offer.status === "accepted" ? 75 : offer.status === "sent" ? 50 : 25,
-                  deadline: offer.printDueDate,
-                  offerCount: 1,
-                  totalRevenue: offer.costs?.totalCost ? offer.costs.totalCost * (1 + (offer.profitPercentage || 30) / 100) : 0,
-                }))
+              activeProjects={projects
+                .filter(p => p.status === "active" || p.status === "on-hold")
                 .slice(0, 5)}
-              scheduledTasks={buildScheduledTasksFromOffers(offers, t)}
+              scheduledTasks={tasks
+                .filter(t => t.status !== "completed" && t.status !== "cancelled")
+                .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                .slice(0, 5)}
               onNavigate={onNavigate}
               onOfferClick={() => {
                 onNavigate?.("offers");
@@ -1939,6 +1948,24 @@ export const Home: React.FC<Props> = ({ settings, offers, filaments = [], theme,
               }}
               onPeriodChange={(period) => {
                 setSelectedPeriod(period === "week" ? "week" : period === "month" ? "month" : period === "year" ? "year" : "all");
+              }}
+              onViewFullHistory={() => {
+                onNavigate?.("settings", "backup-history");
+              }}
+              onViewLogs={() => {
+                onNavigate?.("settings", "log-viewer");
+              }}
+              onViewFullLogs={() => {
+                onNavigate?.("settings", "log-viewer");
+              }}
+              onViewFullAuditLog={() => {
+                onNavigate?.("settings", "audit-log-viewer");
+              }}
+              onViewFullDiagnostics={() => {
+                onNavigate?.("settings", "system-diagnostics");
+              }}
+              onViewFullConsole={() => {
+                onNavigate?.("console");
               }}
             />
           </ErrorBoundary>

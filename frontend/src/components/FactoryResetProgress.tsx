@@ -207,6 +207,18 @@ export const FactoryResetProgress: React.FC<FactoryResetProgressProps> = ({
 
         await new Promise(resolve => setTimeout(resolve, 1000));
 
+        // Audit log (Factory Reset befejezve)
+        try {
+          // Dinamikus import, hogy elkerüljük a circular dependency-t
+          const { auditFactoryReset } = await import("../utils/auditLog");
+          await auditFactoryReset({
+            deletedBackupCount: await invoke<number>("delete_all_backups").catch(() => 0),
+            deletedLogCount: await invoke<number>("delete_all_logs").catch(() => 0),
+          });
+        } catch (error) {
+          // Csendben ignoráljuk, mert a logolás ki van kapcsolva
+        }
+
         // Összes lépés kész
         setAllComplete(true);
 
