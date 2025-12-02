@@ -6,6 +6,16 @@ Ce document contient le journal des modifications détaillé pour toutes les ver
 
 ## v2.0.0 (2025) - 🚀 Surveillance des Performances & Système d'Enregistrement d'Audit
 
+### 🌐 Localisation des Messages de la Console
+- **Localisation complète de la console** - Tous les messages de la console sont affichés dans la langue sélectionnée
+- **Traduction des opérations de stockage** - Messages de chargement et de sauvegarde (imprimantes, filaments, paramètres, offres, clients, projets, tâches)
+- **Traduction des messages de sauvegarde** - Vérification quotidienne de la sauvegarde, création de sauvegarde, messages de rotation
+- **Traduction des messages de rotation des journaux** - Messages de rotation des journaux et des journaux d'audit avec parties dynamiques
+- **Traduction des métriques de performance** - Métriques CPU et mémoire, messages de journalisation réguliers
+- **Traduction des messages système** - Initialisation de l'application, initialisation du journal frontend, message de bienvenue
+- **Traduction des messages multi-parties** - Traduction des parties de données des messages de la console (date, horodatage, fichier, informations de statut)
+- **Support de 13 langues** - Tous les messages de la console traduits en anglais, hongrois, allemand, espagnol, italien, polonais, portugais, russe, ukrainien, tchèque, slovaque et chinois
+
 ### ⚡ Enregistrement des Métriques de Performance
 - **Classe Performance Timer** - Chronométrage manuel pour les opérations
 - **Mesure du temps de chargement** - Tous les temps de chargement des modules enregistrés (Settings, Printers, Filaments, Offers, Customers)

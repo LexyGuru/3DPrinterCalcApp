@@ -6,6 +6,16 @@ Este documento contiene el registro detallado de cambios para todas las versione
 
 ## v2.0.0 (2025) - 🚀 Monitoreo de Rendimiento & Sistema de Registro de Auditoría
 
+### 🌐 Localización de Mensajes de la Consola
+- **Localización completa de la consola** - Todos los mensajes de la consola se muestran en el idioma seleccionado
+- **Traducción de operaciones de almacenamiento** - Mensajes de carga y guardado (impresoras, filamentos, configuración, ofertas, clientes, proyectos, tareas)
+- **Traducción de mensajes de respaldo** - Verificación diaria de respaldo, creación de respaldo, mensajes de rotación
+- **Traducción de mensajes de rotación de registros** - Mensajes de rotación de registros y registros de auditoría con partes dinámicas
+- **Traducción de métricas de rendimiento** - Métricas de CPU y memoria, mensajes de registro regulares
+- **Traducción de mensajes del sistema** - Inicialización de la aplicación, inicialización del registro frontend, mensaje de bienvenida
+- **Traducción de mensajes de múltiples partes** - Traducción de partes de datos de mensajes de la consola (fecha, marca de tiempo, archivo, información de estado)
+- **Soporte para 13 idiomas** - Todos los mensajes de la consola traducidos al inglés, húngaro, alemán, español, italiano, polaco, portugués, ruso, ucraniano, checo, eslovaco y chino
+
 ### ⚡ Registro de Métricas de Rendimiento
 - **Clase Performance Timer** - Temporización manual para operaciones
 - **Medición de tiempo de carga** - Se registran todos los tiempos de carga de módulos (Settings, Printers, Filaments, Offers, Customers)

@@ -6,6 +6,16 @@ Ten dokument zawiera szczegółowy dziennik zmian dla wszystkich wersji aplikacj
 
 ## v2.0.0 (2025) - 🚀 Monitorowanie Wydajności & System Dzienników Audytu
 
+### 🌐 Lokalizacja Komunikatów Konsoli
+- **Pełna lokalizacja konsoli** - Wszystkie komunikaty konsoli wyświetlane są w wybranym języku
+- **Tłumaczenie operacji magazynu** - Komunikaty ładowania i zapisywania (drukarki, filamenty, ustawienia, oferty, klienci, projekty, zadania)
+- **Tłumaczenie komunikatów kopii zapasowej** - Codzienna kontrola kopii zapasowej, tworzenie kopii zapasowej, komunikaty rotacji
+- **Tłumaczenie komunikatów rotacji dziennika** - Komunikaty rotacji dziennika i dziennika audytu z dynamicznymi częściami
+- **Tłumaczenie metryk wydajności** - Metryki CPU i pamięci, regularne komunikaty dziennika
+- **Tłumaczenie komunikatów systemowych** - Inicjalizacja aplikacji, inicjalizacja dziennika frontendu, komunikat powitalny
+- **Tłumaczenie komunikatów wieloczęściowych** - Tłumaczenie części danych komunikatów konsoli (data, znacznik czasu, plik, informacje o statusie)
+- **Wsparcie dla 13 języków** - Wszystkie komunikaty konsoli przetłumaczone na angielski, węgierski, niemiecki, hiszpański, włoski, polski, portugalski, rosyjski, ukraiński, czeski, słowacki i chiński
+
 ### ⚡ Rejestrowanie Metryk Wydajności
 - **Klasa Performance Timer** - Ręczne mierzenie czasu operacji
 - **Pomiar czasu ładowania** - Rejestrowane są wszystkie czasy ładowania modułów (Settings, Printers, Filaments, Offers, Customers)

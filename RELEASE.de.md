@@ -6,6 +6,16 @@ Dieses Dokument enthält detaillierte Änderungsprotokolle für alle Versionen d
 
 ## v2.0.0 (2025) - 🚀 Performance-Überwachung & Audit-Log-System
 
+### 🌐 Lokalisierung von Konsolennachrichten
+- **Vollständige Konsolenlokalisierung** - Alle Konsolennachrichten werden in der ausgewählten Sprache angezeigt
+- **Übersetzung von Speicheroperationen** - Lade- und Speichernachrichten (Drucker, Filamente, Einstellungen, Angebote, Kunden, Projekte, Aufgaben)
+- **Übersetzung von Backup-Nachrichten** - Tägliche Backup-Prüfung, Backup-Erstellung, Rotationsnachrichten
+- **Übersetzung von Log-Rotationsnachrichten** - Log- und Audit-Log-Rotationsnachrichten mit dynamischen Teilen
+- **Übersetzung von Leistungsmetriken** - CPU- und Speichermetriken, regelmäßige Protokollnachrichten
+- **Übersetzung von Systemnachrichten** - Anwendungsinitialisierung, Frontend-Log-Initialisierung, Willkommensnachricht
+- **Übersetzung von mehrteiligen Nachrichten** - Übersetzung von Konsolennachrichtendatenteilen (Datum, Zeitstempel, Datei, Statusinformationen)
+- **Unterstützung für 13 Sprachen** - Alle Konsolennachrichten übersetzt ins Englische, Ungarische, Deutsche, Spanische, Italienische, Polnische, Portugiesische, Russische, Ukrainische, Tschechische, Slowakische und Chinesische
+
 ### ⚡ Performance-Metriken-Protokollierung
 - **Performance-Timer-Klasse** - Manuelle Zeitmessung für Operationen
 - **Ladezeit-Messung** - Alle Modul-Ladezeiten werden aufgezeichnet (Settings, Printers, Filaments, Offers, Customers)

@@ -319,16 +319,29 @@ export const Home: React.FC<Props> = ({ settings, offers, filaments = [], projec
       };
     }
 
-    const profitPercentage = offer.profitPercentage ?? 30;
-    const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
-    const revenueEUR = convertCurrencyFromTo(revenueInOfferCurrency, offer.currency, "EUR");
-
     const filamentCostEUR = convertCurrencyFromTo(offer.costs.filamentCost, offer.currency, "EUR");
     const electricityCostEUR = convertCurrencyFromTo(offer.costs.electricityCost, offer.currency, "EUR");
     const dryingCostEUR = convertCurrencyFromTo(offer.costs.dryingCost, offer.currency, "EUR");
     const usageCostEUR = convertCurrencyFromTo(offer.costs.usageCost, offer.currency, "EUR");
 
     const totalCostsEUR = filamentCostEUR + electricityCostEUR + dryingCostEUR + usageCostEUR;
+    
+    // Bevétel csak akkor, ha completed ÉS paid (vagy nincs paymentStatus, akkor paid-nek számít)
+    let revenueEUR = 0;
+    if (offer.status === "completed") {
+      const paymentStatus = offer.paymentStatus || "paid";
+      if (paymentStatus === "paid") {
+        const profitPercentage = offer.profitPercentage ?? 30;
+        const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
+        revenueEUR = convertCurrencyFromTo(revenueInOfferCurrency, offer.currency, "EUR");
+      }
+    } else {
+      // Ha nincs completed státusz, akkor is számoljuk (régi viselkedés kompatibilitás miatt)
+      const profitPercentage = offer.profitPercentage ?? 30;
+      const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
+      revenueEUR = convertCurrencyFromTo(revenueInOfferCurrency, offer.currency, "EUR");
+    }
+    
     const profitEUR = revenueEUR - totalCostsEUR;
 
     return {

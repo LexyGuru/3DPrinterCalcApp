@@ -6,6 +6,16 @@ Ez a dokumentum tartalmazza a 3D Printer Calculator App verzióinak részletes v
 
 ## v2.0.0 (2025) - 🚀 Performance Monitoring & Audit Log System
 
+### 🌐 Console Üzenetek Lokalizálása
+- **Teljes console lokalizáció** - Minden console üzenet a beállított nyelven jelenik meg
+- **Store műveletek fordítása** - Betöltési és mentési üzenetek (nyomtatók, filamentek, beállítások, árajánlatok, ügyfelek, projektek, feladatok)
+- **Backup üzenetek fordítása** - Napi backup ellenőrzés, backup létrehozás, rotációs üzenetek
+- **Log rotációs üzenetek fordítása** - Log és audit log rotációs üzenetek dinamikus részekkel
+- **Performance metrikák fordítása** - CPU és memória metrikák, rendszeres logolási üzenetek
+- **Rendszerüzenetek fordítása** - Alkalmazás inicializálás, frontend log inicializálás, üdvözlő üzenet
+- **Többrészes üzenetek fordítása** - Console üzenetek adat részeinek fordítása (dátum, timestamp, fájl, státusz információk)
+- **13 nyelv támogatás** - Minden console üzenet fordítva angol, magyar, német, spanyol, olasz, lengyel, portugál, orosz, ukrán, cseh, szlovák és kínai nyelven
+
 ### ⚡ Performance Metrikák Logolása
 - **Performance Timer osztály** - Manuális időmérés műveletekhez
 - **Betöltési idők mérése** - Minden modul betöltési ideje rögzítve (Settings, Printers, Filaments, Offers, Customers)

@@ -6,6 +6,16 @@ Questo documento contiene il changelog dettagliato per tutte le versioni dell'ap
 
 ## v2.0.0 (2025) - 🚀 Monitoraggio delle Prestazioni & Sistema di Audit Log
 
+### 🌐 Localizzazione dei Messaggi della Console
+- **Localizzazione completa della console** - Tutti i messaggi della console vengono visualizzati nella lingua selezionata
+- **Traduzione delle operazioni di archiviazione** - Messaggi di caricamento e salvataggio (stampanti, filamenti, impostazioni, offerte, clienti, progetti, attività)
+- **Traduzione dei messaggi di backup** - Controllo giornaliero del backup, creazione del backup, messaggi di rotazione
+- **Traduzione dei messaggi di rotazione dei log** - Messaggi di rotazione dei log e dei log di audit con parti dinamiche
+- **Traduzione delle metriche di performance** - Metriche CPU e memoria, messaggi di registrazione regolari
+- **Traduzione dei messaggi di sistema** - Inizializzazione dell'applicazione, inizializzazione del log frontend, messaggio di benvenuto
+- **Traduzione dei messaggi multi-parte** - Traduzione delle parti dati dei messaggi della console (data, timestamp, file, informazioni di stato)
+- **Supporto per 13 lingue** - Tutti i messaggi della console tradotti in inglese, ungherese, tedesco, spagnolo, italiano, polacco, portoghese, russo, ucraino, ceco, slovacco e cinese
+
 ### ⚡ Registrazione delle Metriche di Prestazione
 - **Classe Performance Timer** - Temporizzazione manuale per le operazioni
 - **Misurazione del tempo di caricamento** - Tutti i tempi di caricamento dei moduli registrati (Settings, Printers, Filaments, Offers, Customers)

@@ -6,6 +6,16 @@ This document contains detailed changelog for all versions of the 3D Printer Cal
 
 ## v2.0.0 (2025) - 🚀 Performance Monitoring & Audit Log System
 
+### 🌐 Console Messages Localization
+- **Full console localization** - All console messages are displayed in the selected language
+- **Store operations translation** - Loading and saving messages (printers, filaments, settings, offers, customers, projects, tasks)
+- **Backup messages translation** - Daily backup check, backup creation, rotation messages
+- **Log rotation messages translation** - Log and audit log rotation messages with dynamic parts
+- **Performance metrics translation** - CPU and memory metrics, regular logging messages
+- **System messages translation** - Application initialization, frontend log initialization, welcome message
+- **Multi-part messages translation** - Translation of console message data parts (date, timestamp, file, status information)
+- **13 language support** - All console messages translated to English, Hungarian, German, Spanish, Italian, Polish, Portuguese, Russian, Ukrainian, Czech, Slovak, and Chinese
+
 ### ⚡ Performance Metrics Logging
 - **Performance Timer class** - Manual timing for operations
 - **Loading time measurement** - All module loading times recorded (Settings, Printers, Filaments, Offers, Customers)

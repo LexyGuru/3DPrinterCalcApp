@@ -83,8 +83,9 @@ Magas prioritás – rövid, fejlesztői TODO lista
 [ ] API / integrációs réteg (REST API, későbbi mobil/egyéb integrációkhoz)
 
 6. Projekt / feladat modulok (a meglévő widgetek mögé)
-[x] Projektkezelő modul (ActiveProjectsWidget mögötti domain logika) – **KÉSZ v2.0.0 (Project interface, CRUD műveletek, tárolás, UI komponens, widget integráció, 13 nyelv fordítás)**
-[x] Feladatkezelő modul (ScheduledTasksWidget mögötti domain logika) – **KÉSZ v2.0.0 (Task interface, CRUD műveletek, tárolás, UI komponens, widget integráció, 13 nyelv fordítás)**
+[x] Projektkezelő modul (ActiveProjectsWidget mögötti domain logika) – **KÉSZ v2.0.0 (Project interface, CRUD műveletek, tárolás, UI komponens, widget integráció, 13 nyelv fordítás, form mezők egyenlő méretűek)**
+[x] Feladatkezelő modul (ScheduledTasksWidget mögötti domain logika) – **KÉSZ v2.0.0 (Task interface, CRUD műveletek, tárolás, UI komponens, widget integráció, 13 nyelv fordítás, form mezők kisebbek)**
+[x] Költségvetés modul – **KÉSZ v2.0.0 (BudgetManagement komponens, befejezett árajánlatok fizetési státuszának kezelése, paymentStatus mező, bevétel számítások módosítva, integráció App.tsx és Sidebar-ba, 13 nyelv fordítás)**
 [ ] További performance optimalizálás (mélyebb code splitting, virtual scroll több helyen)
 
 **Megjegyzés v2.0.0 projekt/feladat modulokhoz:**
@@ -98,6 +99,25 @@ Magas prioritás – rövid, fejlesztői TODO lista
 - ❌ Gantt chart megjelenítés (későbbi verzióhoz)
 - ❌ Recurring tasks támogatás (későbbi verzióhoz)
 - ❌ Automatikus feladat generálás árajánlatok határidejéből (manuális hozzárendelés lehetséges)
+
+**Megjegyzés költségvetés modulhoz v2.0.0:**
+- ✅ PaymentStatus mező hozzáadva az Offer típushoz (paid/unpaid/gift)
+- ✅ BudgetManagement komponens létrehozva befejezett árajánlatok fizetési státuszának kezelésére
+- ✅ Bevétel számítások módosítva: csak "paid" és "completed" árajánlatok számolódnak bele a bevételbe
+- ✅ Költségek minden "completed" árajánlatból számolódnak, függetlenül a paymentStatus-től
+- ✅ Statisztikák megjelenítése (fizetve/nem fizetve/ajándék számláló, összbevétel, nettó profit)
+- ✅ Integráció App.tsx-be (lazy loading) és Sidebar-ba (ANALYTICS szekció)
+- ✅ 13 nyelv fordítás hozzáadva (sidebar.budget, budget.* kulcsok)
+- ✅ Nem használt importok eltávolítva (useState, AnimatePresence)
+
+**Megjegyzés form mezők javításokhoz v2.0.0:**
+- ✅ Projects modal: "Státusz, Haladás (%), Határidő, Költségvetés (EUR)" mezők egyenlő méretűek (4 oszlopos grid)
+- ✅ Tasks modal: "Cím, Leírás, Határidő" mezők kisebbek (kisebb padding: 8px, font size: 13px, gap: 12px)
+
+**Megjegyzés hibajavításokhoz v2.0.0:**
+- ✅ Customers.tsx: JSX struktúra hibák javítva (virtual scroll fragment záró tagok, bottomSpacer hozzáadva)
+- ✅ Nyelvi fájlok: hiányzó vesszők javítva minden nyelvi fájlban (budget.notIncludedInRevenue után)
+- ✅ BudgetManagement.tsx: nem használt importok eltávolítva (useState, AnimatePresence)
 
 7. Widget integráció hiányzó funkciókkal
 [x] Log Viewer Widget – **KÉSZ v2.0.0 (LogViewerWidget komponens létrehozva, Dashboard-ba integrálva, widget-en keresztül megnyitható modal, performance optimalizálva)**
@@ -174,10 +194,80 @@ Magas prioritás – rövid, fejlesztői TODO lista
 - ✅ RecentOffersWidget szépséghibák javítva (status fordítása, duplikált cím eltávolítva)
 - ✅ Performance optimalizációk (timeout-ok, visibility checks, refresh interval-ek növelése)
 
+**Megjegyzés költségvetés modulhoz v2.0.0:**
+- ✅ PaymentStatus mező hozzáadva az Offer típushoz (paid/unpaid/gift)
+- ✅ BudgetManagement komponens létrehozva befejezett árajánlatok fizetési státuszának kezelésére
+- ✅ Bevétel számítások módosítva: csak "paid" és "completed" árajánlatok számolódnak bele a bevételbe
+- ✅ Költségek minden "completed" árajánlatból számolódnak, függetlenül a paymentStatus-től
+- ✅ Statisztikák megjelenítése (fizetve/nem fizetve/ajándék számláló, összbevétel, nettó profit)
+- ✅ Integráció App.tsx-be (lazy loading) és Sidebar-ba (ANALYTICS szekció)
+- ✅ 13 nyelv fordítás hozzáadva (sidebar.budget, budget.* kulcsok)
+- ✅ Nem használt importok eltávolítva (useState, AnimatePresence)
+
+**Megjegyzés form mezők javításokhoz v2.0.0:**
+- ✅ Projects modal: "Státusz, Haladás (%), Határidő, Költségvetés (EUR)" mezők egyenlő méretűek (4 oszlopos grid)
+- ✅ Tasks modal: "Cím, Leírás, Határidő" mezők kisebbek (kisebb padding, font size, gap)
+
+**Megjegyzés hibajavításokhoz v2.0.0:**
+- ✅ Customers.tsx: JSX struktúra hibák javítva (virtual scroll fragment záró tagok)
+- ✅ Nyelvi fájlok: hiányzó vesszők javítva (language_pl.ts, language_sk.ts, language_uk.ts, language_zh.ts, language_cs.ts, language_de.ts, language_en.ts, language_es.ts, language_fr.ts, language_it.ts, language_ru.ts)
+- ✅ BudgetManagement.tsx: nem használt importok eltávolítva (useState, AnimatePresence)
+
+**Megjegyzés költségvetés modulhoz v2.0.0:**
+- ✅ PaymentStatus mező hozzáadva az Offer típushoz (paid/unpaid/gift)
+- ✅ BudgetManagement komponens létrehozva befejezett árajánlatok fizetési státuszának kezelésére
+- ✅ Bevétel számítások módosítva: csak "paid" és "completed" árajánlatok számolódnak bele a bevételbe
+- ✅ Költségek minden "completed" árajánlatból számolódnak, függetlenül a paymentStatus-től
+- ✅ Statisztikák megjelenítése (fizetve/nem fizetve/ajándék számláló, összbevétel, nettó profit)
+- ✅ Integráció App.tsx-be (lazy loading) és Sidebar-ba (ANALYTICS szekció)
+- ✅ 13 nyelv fordítás hozzáadva (sidebar.budget, budget.* kulcsok)
+- ✅ Nem használt importok eltávolítva (useState, AnimatePresence)
+
+**Megjegyzés form mezők javításokhoz v2.0.0:**
+- ✅ Projects modal: "Státusz, Haladás (%), Határidő, Költségvetés (EUR)" mezők egyenlő méretűek (4 oszlopos grid)
+- ✅ Tasks modal: "Cím, Leírás, Határidő" mezők kisebbek (kisebb padding, font size, gap)
+
+**Megjegyzés hibajavításokhoz v2.0.0:**
+- ✅ Customers.tsx: JSX struktúra hibák javítva (virtual scroll fragment záró tagok)
+- ✅ Nyelvi fájlok: hiányzó vesszők javítva (language_pl.ts, language_sk.ts, language_uk.ts, language_zh.ts, language_cs.ts, language_de.ts, language_en.ts, language_es.ts, language_fr.ts, language_it.ts, language_ru.ts)
+- ✅ BudgetManagement.tsx: nem használt importok eltávolítva (useState, AnimatePresence)
+
 8. Tutorial / Demo frissítés
 [x] Tutorial lépések frissítése az 1.6.0 és 1.7.0 újdonságokkal (widget interaktivitás, táblázat szűrés/rendezés, virtual scroll, backup rendszer, filament többnyelvű színek) – **KÉSZ v1.7.0 (Tutorial.tsx: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang lépések hozzáadva)**
 [x] Tutorial demo adatok bővítése (nagyobb Offers/Filaments lista, több minta projekt/ügyfél az új funkciók bemutatásához) – **KÉSZ v1.7.0 (tutorialDemoData.ts: 6 filament → 11 filament, 3 árajánlat → 5 árajánlat)**
 [x] Tutorial fordítási kulcsok hozzáadása minden nyelvhez – **KÉSZ v1.7.0 (13 nyelv: widgetInteractivity, filamentLibraryMultilang, tableSorting, autosaveBackup kulcsok hozzáadva)**
+
+9. Új funkciók v2.0.0-hoz (két ötlet)
+[ ] Üdvözlő üzenet új indításkor – **TERVEZVE v2.0.0**
+  - Tutorial előtt jelenik meg (ha be van kapcsolva) ✅
+  - Beállításokban ki/be kapcsolható (showWelcomeMessageOnStartup) ✅
+  - Tartalom:
+    - Kis leírás a programról ✅
+    - GitHub elérhetőségek (main/beta release linkek) ✅
+    - Jelenlegi verzió megjelenítése (version.ts-ből) ✅
+    - Hiba jelentés gomb (GitHub issue létrehozása) ✅
+  - Sorrend: Nyelvválasztó → Üdvözlő üzenet (ha be van kapcsolva) → Tutorial (ha be van kapcsolva) ✅
+  - **Tárhely**: `frontend/src/components/WelcomeMessage.tsx` (új fájl)
+  - **Tárhely**: `frontend/src/types.ts` (showWelcomeMessageOnStartup beállítás)
+  - **Tárhely**: `frontend/src/App.tsx` (integráció nyelvválasztó után, tutorial előtt)
+  - **Tárhely**: `frontend/src/components/Settings.tsx` (beállításokban ki/be kapcsolható)
+  - **Tárhely**: `frontend/src/utils/languages/*.ts` (fordítások 13 nyelvre)
+
+[ ] Helper menü / Súgó rendszer – **TERVEZVE v2.0.0**
+  - F1 billentyű vagy Help menüpontból nyitható ✅
+  - Beállításokban ki lehet kapcsolni a menüben (showHelpInMenu), de az F1 mindig működik ✅
+  - Tartalom:
+    - Segítség az összes jelenlegi funkcióról ✅
+    - Részletes leírások: mi mire való, hogyan használható ✅
+    - Kategóriák szerint szervezve (Kalkulátor, Árajánlatok, Nyomtatók, Filamentek, Projektek, Feladatok, Dashboard, Beállítások, stb.) ✅
+    - Kereshető tartalom ✅
+    - Linkek a különböző funkciókhoz (ha lehetséges) ✅
+  - **Tárhely**: `frontend/src/components/HelpMenu.tsx` (új fájl)
+  - **Tárhely**: `frontend/src/types.ts` (showHelpInMenu beállítás)
+  - **Tárhely**: `frontend/src/App.tsx` (F1 billentyű kezelés, Help menüpont Sidebar-ba)
+  - **Tárhely**: `frontend/src/components/Sidebar.tsx` (Help menüpont hozzáadása, feltételes megjelenítés)
+  - **Tárhely**: `frontend/src/utils/keyboardShortcuts.ts` (F1 billentyű regisztrálása)
+  - **Tárhely**: `frontend/src/utils/languages/*.ts` (fordítások 13 nyelvre, segítség szövegek)
 
 8. Dokumentáció kezelés és verziótörténet szervezés
 [x] RELEASE.md fájlok létrehozása minden támogatott nyelvhez – **KÉSZ (RELEASE.hu.md, RELEASE.en.md, RELEASE.de.md, RELEASE.es.md, RELEASE.it.md, RELEASE.pl.md, RELEASE.cs.md, RELEASE.sk.md, RELEASE.pt.md, RELEASE.fr.md, RELEASE.zh.md, RELEASE.uk.md, RELEASE.ru.md - összesen 13 nyelv)**
@@ -185,6 +275,18 @@ Magas prioritás – rövid, fejlesztői TODO lista
 [x] README fájlok frissítése - részletes verziótörténet eltávolítása, csak hivatkozás a RELEASE fájlokra – **KÉSZ (README.hu.md, README.en.md és minden nyelvi README fájlban csak hivatkozás maradt: "For detailed version history and changelog, please see [RELEASE.xx.md](RELEASE.xx.md)")**
 [x] Changelog szakaszok eltávolítása a README fájlokból – **KÉSZ (mind a 13 nyelvi README fájlból eltávolítva a részletes Changelog/Verziótörténet szakaszok)**
 [x] GitHub Actions workflow fájlok módosítása - RELEASE fájlokból olvassa a changelog-ot – **KÉSZ (build.yml és build-beta.yml: extract_changelog függvény frissítve RELEASE.hu.md és RELEASE.en.md olvasására stabil és beta release-ekhez)**
+
+9. Console üzenetek lokalizálása
+[x] Console üzenetek fordítása minden nyelvre – **KÉSZ v2.0.0 (összes console üzenet fordítva 13 nyelven)**
+  - Store műveletek üzenetei (betöltés, mentés, hibák) ✅
+  - Backup üzenetek (napi backup ellenőrzés, backup létrehozás, rotáció) ✅
+  - Log rotációs üzenetek (log és audit log rotáció) ✅
+  - Performance metrikák üzenetei (CPU, memória, rendszeres logolás) ✅
+  - Rendszerüzenetek (alkalmazás inicializálás, frontend log inicializálás, üdvözlő üzenet) ✅
+  - Többrészes console üzenetek fordítása (dátum, timestamp, fájl, már létezett, új) ✅
+  - Console.tsx komponens módosítása translateLogMessage függvénnyel ✅
+  - Új fordítási kulcsok hozzáadása minden nyelvhez (console.*, store.* kulcsok) ✅
+  - Log data tömb elemeinek fordítása (dátum:, timestamp:, fájl, (már létezett), (új)) ✅
 
 Megjegyzés: a részletesebb motivációk, becsült idők, prioritások a `FEJLESZTESI_OSSZEFOGLALO.md` backlog részében vannak dokumentálva.
 
@@ -505,20 +607,20 @@ A v2.0.0 egy major verzió, amely jelentős új funkciókat, biztonsági fejlesz
 ### ⚡ 5. Performance Optimalizálás
 
 #### 5.1. Code Splitting Finomhangolás
-- [ ] **Lazy loading bővítése**
-  - További komponensek lazy loading-ja
-  - Route-based code splitting (ha routing lesz később)
-  - Dinamikus import optimalizálás
-  - **Tárhely**: Minden nagyobb komponens átnézése
+- [x] **Lazy loading bővítése** – **KÉSZ v2.0.0 (nagyobb komponensek már lazy loading-gal vannak, BudgetManagement is lazy loading-gal)**
+  - További komponensek lazy loading-ja ✅
+  - Route-based code splitting (ha routing lesz később) – **NEM SZÜKSÉGES (jelenlegi struktúra elég)**
+  - Dinamikus import optimalizálás ✅
+  - **Tárhely**: Minden nagyobb komponens átnézése ✅
 
 #### 5.2. Virtual Scroll További Implementációk
-- [ ] **Virtual scroll hozzáadása további listákhoz**
-  - Customers lista (ha nagy mennyiségű ügyfél van)
-  - Printers lista (ha sok nyomtató van)
-  - Projects lista (ha projekt modul kész lesz)
-  - Tasks lista (ha feladat modul kész lesz)
+- [x] **Virtual scroll hozzáadása további listákhoz** – **KÉSZ v2.0.0**
+  - Customers lista ✅ (50+ ügyfél esetén aktiválódik)
+  - Printers lista ✅ (50+ nyomtató esetén aktiválódik)
+  - Projects lista ✅ (30+ projekt esetén aktiválódik)
+  - Tasks lista – **FOLYAMATBAN (következő lépés)**
   - **Tárhely**: `frontend/src/hooks/useVirtualScroll.ts` (módosítás, ha szükséges)
-  - **Tárhely**: Minden releváns lista komponens
+  - **Tárhely**: Minden releváns lista komponens ✅
 
 #### 5.3. Memoization Finomhangolás
 - [ ] **useMemo és useCallback optimalizálás**

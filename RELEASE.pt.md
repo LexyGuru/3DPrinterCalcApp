@@ -6,6 +6,16 @@ Este documento contém o changelog detalhado para todas as versões do aplicativ
 
 ## v2.0.0 (2025) - 🚀 Monitoramento de Desempenho & Sistema de Registro de Auditoria
 
+### 🌐 Localização de Mensagens do Console
+- **Localização completa do console** - Todas as mensagens do console são exibidas no idioma selecionado
+- **Tradução de operações de armazenamento** - Mensagens de carregamento e salvamento (impressoras, filamentos, configurações, ofertas, clientes, projetos, tarefas)
+- **Tradução de mensagens de backup** - Verificação diária de backup, criação de backup, mensagens de rotação
+- **Tradução de mensagens de rotação de log** - Mensagens de rotação de log e log de auditoria com partes dinâmicas
+- **Tradução de métricas de desempenho** - Métricas de CPU e memória, mensagens de registro regulares
+- **Tradução de mensagens do sistema** - Inicialização da aplicação, inicialização do log frontend, mensagem de boas-vindas
+- **Tradução de mensagens de múltiplas partes** - Tradução de partes de dados de mensagens do console (data, timestamp, arquivo, informações de status)
+- **Suporte para 13 idiomas** - Todas as mensagens do console traduzidas para inglês, húngaro, alemão, espanhol, italiano, polonês, português, russo, ucraniano, tcheco, eslovaco e chinês
+
 ### ⚡ Registro de Métricas de Desempenho
 - **Classe Performance Timer** - Temporização manual para operações
 - **Medição de tempo de carregamento** - Todos os tempos de carregamento dos módulos registrados (Settings, Printers, Filaments, Offers, Customers)

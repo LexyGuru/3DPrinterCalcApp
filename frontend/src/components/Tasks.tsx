@@ -676,9 +676,9 @@ export const Tasks: React.FC<Props> = ({
                   : (t("tasks.addNew") || "Új feladat")}
               </h2>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div>
-                  <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
+                  <label style={{ display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "600", color: theme.colors.text }}>
                     {t("tasks.title") || "Cím"} *
                   </label>
                   <input
@@ -687,33 +687,33 @@ export const Tasks: React.FC<Props> = ({
                     onChange={(e) => setTitle(e.target.value)}
                     style={{
                       width: "100%",
-                      padding: "10px",
+                      padding: "8px",
                       borderRadius: "6px",
                       border: `1px solid ${theme.colors.border}`,
                       backgroundColor: cardBg,
                       color: theme.colors.text,
-                      fontSize: "14px",
+                      fontSize: "13px",
                     }}
                     autoFocus
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
+                  <label style={{ display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "600", color: theme.colors.text }}>
                     {t("tasks.description") || "Leírás"}
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
+                    rows={2}
                     style={{
                       width: "100%",
-                      padding: "10px",
+                      padding: "8px",
                       borderRadius: "6px",
                       border: `1px solid ${theme.colors.border}`,
                       backgroundColor: cardBg,
                       color: theme.colors.text,
-                      fontSize: "14px",
+                      fontSize: "13px",
                       resize: "vertical",
                     }}
                   />
@@ -771,7 +771,7 @@ export const Tasks: React.FC<Props> = ({
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
+                  <label style={{ display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: "600", color: theme.colors.text }}>
                     {t("common.dueDate") || "Határidő"} *
                   </label>
                   <input
@@ -780,12 +780,12 @@ export const Tasks: React.FC<Props> = ({
                     onChange={(e) => setDueDate(e.target.value)}
                     style={{
                       width: "100%",
-                      padding: "10px",
+                      padding: "8px",
                       borderRadius: "6px",
                       border: `1px solid ${theme.colors.border}`,
                       backgroundColor: cardBg,
                       color: theme.colors.text,
-                      fontSize: "14px",
+                      fontSize: "13px",
                     }}
                   />
                 </div>

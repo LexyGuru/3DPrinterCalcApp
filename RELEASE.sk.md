@@ -6,6 +6,16 @@ Tento dokument obsahuje podrobný changelog pre všetky verzie aplikácie 3D Pri
 
 ## v2.0.0 (2025) - 🚀 Monitorovanie výkonu & Systém auditného záznamu
 
+### 🌐 Lokalizácia Správ Konzoly
+- **Úplná lokalizácia konzoly** - Všetky správy konzoly sa zobrazujú vo vybranom jazyku
+- **Preklad operácií úložiska** - Správy o načítaní a ukladaní (tlačiarne, filamenty, nastavenia, ponuky, zákazníci, projekty, úlohy)
+- **Preklad správ zálohy** - Denná kontrola zálohy, vytvorenie zálohy, správy o rotácii
+- **Preklad správ rotácie protokolov** - Správy o rotácii protokolov a protokolov auditu s dynamickými časťami
+- **Preklad metrík výkonu** - Metriky CPU a pamäte, pravidelné správy protokolu
+- **Preklad systémových správ** - Inicializácia aplikácie, inicializácia protokolu frontendu, uvítacia správa
+- **Preklad viacdielnych správ** - Preklad dátových častí správ konzoly (dátum, časová značka, súbor, informácie o stave)
+- **Podpora 13 jazykov** - Všetky správy konzoly preložené do angličtiny, maďarčiny, nemčiny, španielčiny, taliančiny, poľštiny, portugalčiny, ruštiny, ukrajinčiny, češtiny, slovenčiny a čínštiny
+
 ### ⚡ Protokolovanie metrík výkonu
 - **Trieda Performance Timer** - Manuálne meranie času operácií
 - **Meranie času načítania** - Všetky časy načítania modulov zaznamenané (Settings, Printers, Filaments, Offers, Customers)

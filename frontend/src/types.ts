@@ -204,6 +204,8 @@ export interface Settings {
   offerSortConfig?: Array<{ key: "date" | "amount" | "status" | "customer" | "id"; direction: "asc" | "desc" }>; // Offers lista rendezési beállításai
   showTutorialOnStartup?: boolean; // Kezdő tutorial megjelenítése indításkor
   tutorialCompleted?: boolean; // Kezdő tutorial megtekintve
+  showWelcomeMessageOnStartup?: boolean; // Üdvözlő üzenet megjelenítése indításkor
+  showHelpInMenu?: boolean; // Help menüpont megjelenítése a Sidebar-ban
   logRetentionDays?: number; // Log fájlok megtartása napokban (0 = soha ne törölje)
   auditLogRetentionDays?: number; // Audit log fájlok megtartása napokban (0 = soha ne törölje)
   logFormat?: "text" | "json"; // Log fájl formátum (szöveges vagy JSON) - v1.8.0
@@ -241,6 +243,8 @@ export const defaultSettings: Settings = {
   calendarProvider: "google", // Alapértelmezett naptár szolgáltató
   showTutorialOnStartup: true, // Alapértelmezetten mutassa a tutorialt
   tutorialCompleted: false, // Alapértelmezetten nem tekintették meg
+  showWelcomeMessageOnStartup: true, // Alapértelmezetten mutassa az üdvözlő üzenetet
+  showHelpInMenu: true, // Alapértelmezetten mutassa a Help menüpontot
   logFormat: "text", // Alapértelmezett log formátum: szöveges (v1.8.0)
   logLevel: "INFO", // Alapértelmezett minimum log szint: INFO (v1.8.0)
 };
@@ -315,6 +319,7 @@ export interface Offer {
   status?: OfferStatus; // Árajánlat státusz
   statusHistory?: OfferStatusHistory[]; // Státusz előzmények
   statusUpdatedAt?: string; // Utolsó státuszváltás dátuma
+  paymentStatus?: "paid" | "unpaid" | "gift"; // Fizetési státusz (csak completed státusz esetén releváns)
   totalFilamentWeightSummary?: {
     perExtruder?: number[];
     total?: number;

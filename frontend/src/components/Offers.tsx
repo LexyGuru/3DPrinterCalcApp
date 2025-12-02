@@ -143,6 +143,16 @@ export const Offers: React.FC<Props> = ({
     end: VIRTUAL_SCROLL_THRESHOLD,
   });
 
+  // Virtuális scroll a státuszváltásokhoz
+  const statusChangesContainerRef = useRef<HTMLDivElement | null>(null);
+  const STATUS_CHANGES_VIRTUAL_THRESHOLD = 10;
+  const STATUS_CHANGES_ROW_HEIGHT = 90; // px, átlagos bejegyzés magasság + gap
+  const STATUS_CHANGES_OVERSCAN = 3;
+  const [visibleStatusChangesRange, setVisibleStatusChangesRange] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: STATUS_CHANGES_VIRTUAL_THRESHOLD,
+  });
+
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [printContent, setPrintContent] = useState<string>("");
@@ -1182,9 +1192,17 @@ export const Offers: React.FC<Props> = ({
 
     return entries
       .filter(entry => !Number.isNaN(new Date(entry.date).getTime()))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 6);
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [offers]);
+
+  // Frissítjük a látható tartományt, amikor a státuszváltások változnak
+  useEffect(() => {
+    if (recentStatusChanges.length <= STATUS_CHANGES_VIRTUAL_THRESHOLD) {
+      setVisibleStatusChangesRange({ start: 0, end: recentStatusChanges.length - 1 });
+    } else {
+      setVisibleStatusChangesRange({ start: 0, end: STATUS_CHANGES_VIRTUAL_THRESHOLD });
+    }
+  }, [recentStatusChanges.length]);
 
   const formatDateTime = (iso?: string | null) => {
     if (!iso) return "—";
@@ -1898,40 +1916,130 @@ export const Offers: React.FC<Props> = ({
                 {t("offers.summary.recentChangesTitle")}
               </h4>
               {recentStatusChanges.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {recentStatusChanges.map(entry => (
-                    <div
-                      key={`${entry.offerId}-${entry.date}-${entry.status}`}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        gap: "12px",
-                        padding: "12px 14px",
-                        borderRadius: "12px",
-                        border: `1px solid ${theme.colors.border}`,
-                        backgroundColor: theme.colors.surface,
-                        borderLeft: `4px solid ${getStatusColor(entry.status)}`,
-                      }}
-                    >
-                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                        <strong style={{ fontSize: "13px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
-                          {getStatusLabel(entry.status)}
-                        </strong>
-                        <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                          {(entry.customerName || t("offers.label.quote"))} #{entry.offerId}
-                        </span>
-                        {entry.note && (
-                          <span style={{ fontSize: "11px", fontStyle: "italic", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                            "{entry.note}"
-                          </span>
+                <div 
+                  ref={statusChangesContainerRef}
+                  style={{ 
+                    display: "flex", 
+                    flexDirection: "column", 
+                    gap: "10px",
+                    maxHeight: "400px",
+                    overflowY: recentStatusChanges.length > STATUS_CHANGES_VIRTUAL_THRESHOLD ? "auto" : "visible",
+                    overflowX: "hidden",
+                    paddingRight: "8px",
+                    position: "relative",
+                    // Custom scrollbar styling
+                    scrollbarWidth: "thin",
+                    scrollbarColor: `${theme.colors.border} transparent`,
+                  }}
+                  className="custom-scrollbar"
+                  onScroll={() => {
+                    if (!statusChangesContainerRef.current) return;
+                    if (recentStatusChanges.length <= STATUS_CHANGES_VIRTUAL_THRESHOLD) return;
+                    const container = statusChangesContainerRef.current;
+                    const scrollTop = container.scrollTop;
+                    const clientHeight = container.clientHeight;
+                    const start = Math.max(0, Math.floor(scrollTop / STATUS_CHANGES_ROW_HEIGHT) - STATUS_CHANGES_OVERSCAN);
+                    const end = Math.min(
+                      recentStatusChanges.length - 1,
+                      Math.ceil((scrollTop + clientHeight) / STATUS_CHANGES_ROW_HEIGHT) + STATUS_CHANGES_OVERSCAN
+                    );
+                    setVisibleStatusChangesRange((prev) => {
+                      if (prev.start === start && prev.end === end) {
+                        return prev;
+                      }
+                      return { start, end };
+                    });
+                  }}
+                >
+                  <style>{`
+                    .custom-scrollbar::-webkit-scrollbar {
+                      width: 8px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-track {
+                      background: transparent;
+                      border-radius: 4px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-thumb {
+                      background: ${theme.colors.border};
+                      border-radius: 4px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                      background: ${theme.colors.textMuted};
+                    }
+                  `}</style>
+                  {(() => {
+                    const shouldVirtualize = recentStatusChanges.length > STATUS_CHANGES_VIRTUAL_THRESHOLD;
+                    const entriesToRender = shouldVirtualize
+                      ? recentStatusChanges.slice(
+                          Math.max(0, visibleStatusChangesRange.start),
+                          Math.min(recentStatusChanges.length, visibleStatusChangesRange.end + 1)
+                        )
+                      : recentStatusChanges;
+                    const topSpacer = shouldVirtualize
+                      ? Math.max(0, visibleStatusChangesRange.start) * STATUS_CHANGES_ROW_HEIGHT
+                      : 0;
+                    const bottomSpacer = shouldVirtualize
+                      ? Math.max(
+                          0,
+                          (recentStatusChanges.length - (visibleStatusChangesRange.end + 1)) * STATUS_CHANGES_ROW_HEIGHT
+                        )
+                      : 0;
+
+                    return (
+                      <>
+                        {topSpacer > 0 && (
+                          <div
+                            style={{
+                              height: `${topSpacer}px`,
+                              flexShrink: 0,
+                            }}
+                          />
                         )}
-                      </div>
-                      <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                        {formatDateTime(entry.date)}
-                      </span>
-                    </div>
-                  ))}
+                        {entriesToRender.map(entry => (
+                          <div
+                            key={`${entry.offerId}-${entry.date}-${entry.status}`}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                              gap: "12px",
+                              padding: "12px 14px",
+                              borderRadius: "12px",
+                              border: `1px solid ${theme.colors.border}`,
+                              backgroundColor: theme.colors.surface,
+                              borderLeft: `4px solid ${getStatusColor(entry.status)}`,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1, minWidth: 0 }}>
+                              <strong style={{ fontSize: "13px", color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text }}>
+                                {getStatusLabel(entry.status)}
+                              </strong>
+                              <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
+                                {(entry.customerName || t("offers.label.quote"))} #{entry.offerId}
+                              </span>
+                              {entry.note && (
+                                <span style={{ fontSize: "11px", fontStyle: "italic", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, wordBreak: "break-word" }}>
+                                  "{entry.note}"
+                                </span>
+                              )}
+                            </div>
+                            <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, whiteSpace: "nowrap", marginLeft: "8px" }}>
+                              {formatDateTime(entry.date)}
+                            </span>
+                          </div>
+                        ))}
+                        {bottomSpacer > 0 && (
+                          <div
+                            style={{
+                              height: `${bottomSpacer}px`,
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               ) : (
                 <div

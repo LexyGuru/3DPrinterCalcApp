@@ -6,6 +6,16 @@ Tento dokument obsahuje podrobný changelog pro všechny verze aplikace 3D Print
 
 ## v2.0.0 (2025) - 🚀 Sledování výkonu & Systém auditního záznamu
 
+### 🌐 Lokalizace Zpráv Konzole
+- **Úplná lokalizace konzole** - Všechny zprávy konzole se zobrazují ve vybraném jazyce
+- **Překlad operací úložiště** - Zprávy o načítání a ukládání (tiskárny, filamenty, nastavení, nabídky, zákazníci, projekty, úkoly)
+- **Překlad zpráv zálohy** - Denní kontrola zálohy, vytvoření zálohy, zprávy o rotaci
+- **Překlad zpráv rotace protokolů** - Zprávy o rotaci protokolů a protokolů auditu s dynamickými částmi
+- **Překlad metrik výkonu** - Metriky CPU a paměti, pravidelné zprávy protokolu
+- **Překlad systémových zpráv** - Inicializace aplikace, inicializace protokolu frontendu, uvítací zpráva
+- **Překlad vícečástných zpráv** - Překlad datových částí zpráv konzole (datum, časová značka, soubor, informace o stavu)
+- **Podpora 13 jazyků** - Všechny zprávy konzole přeloženy do angličtiny, maďarštiny, němčiny, španělštiny, italštiny, polštiny, portugalštiny, ruštiny, ukrajinštiny, češtiny, slovenštiny a čínštiny
+
 ### ⚡ Protokolování metrik výkonu
 - **Třída Performance Timer** - Ruční měření času operací
 - **Měření času načítání** - Všechny časy načítání modulů zaznamenány (Settings, Printers, Filaments, Offers, Customers)

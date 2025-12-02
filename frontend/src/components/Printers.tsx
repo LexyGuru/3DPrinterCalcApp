@@ -92,6 +92,16 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedPrinterIds, setSelectedPrinterIds] = useState<Set<number>>(new Set());
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  
+  // Virtual scroll beállítások
+  const PRINTER_VIRTUAL_THRESHOLD = 50; // Ha több mint 50 nyomtató van, virtualizáljuk
+  const PRINTER_ROW_HEIGHT = 60; // px, átlagos sor magasság
+  const PRINTER_OVERSCAN = 5;
+  const printersTableContainerRef = useRef<HTMLDivElement>(null);
+  const [visiblePrinterRange, setVisiblePrinterRange] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: PRINTER_VIRTUAL_THRESHOLD,
+  });
 
   // Oszlop láthatóság beállítások
   const defaultColumnVisibility = {
@@ -1152,6 +1162,32 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               </div>
             </div>
           )}
+          <div
+            ref={printersTableContainerRef}
+            style={{
+              maxHeight: sortedPrinters.length > PRINTER_VIRTUAL_THRESHOLD ? "600px" : "none",
+              overflowY: sortedPrinters.length > PRINTER_VIRTUAL_THRESHOLD ? "auto" : "visible",
+              overflowX: "auto",
+            }}
+            onScroll={() => {
+              if (!printersTableContainerRef.current) return;
+              if (sortedPrinters.length <= PRINTER_VIRTUAL_THRESHOLD) return;
+              const container = printersTableContainerRef.current;
+              const scrollTop = container.scrollTop;
+              const clientHeight = container.clientHeight;
+              const start = Math.max(0, Math.floor(scrollTop / PRINTER_ROW_HEIGHT) - PRINTER_OVERSCAN);
+              const end = Math.min(
+                sortedPrinters.length - 1,
+                Math.ceil((scrollTop + clientHeight) / PRINTER_ROW_HEIGHT) + PRINTER_OVERSCAN
+              );
+              setVisiblePrinterRange((prev) => {
+                if (prev.start === start && prev.end === end) {
+                  return prev;
+                }
+                return { start, end };
+              });
+            }}
+          >
           <table style={themeStyles.table}>
             <thead>
               <tr>
@@ -1286,7 +1322,32 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
               </tr>
             </thead>
             <tbody>
-              {sortedPrinters.map((p: Printer) => (
+              {(() => {
+                const shouldVirtualize = sortedPrinters.length > PRINTER_VIRTUAL_THRESHOLD;
+                const printersToRender = shouldVirtualize
+                  ? sortedPrinters.slice(
+                      Math.max(0, visiblePrinterRange.start),
+                      Math.min(sortedPrinters.length, visiblePrinterRange.end + 1)
+                    )
+                  : sortedPrinters;
+                const topSpacer = shouldVirtualize
+                  ? Math.max(0, visiblePrinterRange.start) * PRINTER_ROW_HEIGHT
+                  : 0;
+                const bottomSpacer = shouldVirtualize
+                  ? Math.max(
+                      0,
+                      (sortedPrinters.length - (visiblePrinterRange.end + 1)) * PRINTER_ROW_HEIGHT
+                    )
+                  : 0;
+
+                return (
+                  <>
+                    {topSpacer > 0 && (
+                      <tr style={{ height: `${topSpacer}px` }}>
+                        <td colSpan={Object.values(columnVisibility).filter(v => v).length + 1} style={{ padding: 0, border: "none" }} />
+                      </tr>
+                    )}
+                    {printersToRender.map((p: Printer) => (
                 <React.Fragment key={p.id}>
                   <tr 
                     draggable
@@ -1680,9 +1741,18 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
                 </tr>
               )}
             </React.Fragment>
-          ))}
+                    ))}
+                    {bottomSpacer > 0 && (
+                      <tr style={{ height: `${bottomSpacer}px` }}>
+                        <td colSpan={Object.values(columnVisibility).filter(v => v).length + 1} style={{ padding: 0, border: "none" }} />
+                      </tr>
+                    )}
+                  </>
+                );
+              })()}
         </tbody>
           </table>
+          </div>
         </div>
       ) : printers.length > 0 && searchTerm ? (
         <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px" }}>

@@ -107,6 +107,16 @@ export const Projects: React.FC<Props> = ({
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">("all");
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  
+  // Virtual scroll beállítások
+  const PROJECT_VIRTUAL_THRESHOLD = 30; // Ha több mint 30 projekt van, virtualizáljuk (grid esetén kevesebb)
+  const PROJECT_ROW_HEIGHT = 250; // px, átlagos kártya magasság + gap (grid esetén)
+  const PROJECT_OVERSCAN = 5;
+  const projectsListContainerRef = useRef<HTMLDivElement>(null);
+  const [visibleProjectRange, setVisibleProjectRange] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: PROJECT_VIRTUAL_THRESHOLD,
+  });
 
   // Gyors művelet gomb esetén automatikusan megnyitja a formot
   useEffect(() => {
@@ -396,8 +406,63 @@ export const Projects: React.FC<Props> = ({
           settings={settings}
         />
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: "20px" }}>
-          {filteredProjects.map((project) => {
+        <div
+          ref={projectsListContainerRef}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+            gap: "20px",
+            maxHeight: filteredProjects.length > PROJECT_VIRTUAL_THRESHOLD ? "600px" : "none",
+            overflowY: filteredProjects.length > PROJECT_VIRTUAL_THRESHOLD ? "auto" : "visible",
+          }}
+          onScroll={() => {
+            if (!projectsListContainerRef.current) return;
+            if (filteredProjects.length <= PROJECT_VIRTUAL_THRESHOLD) return;
+            const container = projectsListContainerRef.current;
+            const scrollTop = container.scrollTop;
+            const clientHeight = container.clientHeight;
+            const start = Math.max(0, Math.floor(scrollTop / PROJECT_ROW_HEIGHT) - PROJECT_OVERSCAN);
+            const end = Math.min(
+              filteredProjects.length - 1,
+              Math.ceil((scrollTop + clientHeight) / PROJECT_ROW_HEIGHT) + PROJECT_OVERSCAN
+            );
+            setVisibleProjectRange((prev) => {
+              if (prev.start === start && prev.end === end) {
+                return prev;
+              }
+              return { start, end };
+            });
+          }}
+        >
+          {(() => {
+            const shouldVirtualize = filteredProjects.length > PROJECT_VIRTUAL_THRESHOLD;
+            const projectsToRender = shouldVirtualize
+              ? filteredProjects.slice(
+                  Math.max(0, visibleProjectRange.start),
+                  Math.min(filteredProjects.length, visibleProjectRange.end + 1)
+                )
+              : filteredProjects;
+            const topSpacer = shouldVirtualize
+              ? Math.max(0, visibleProjectRange.start) * PROJECT_ROW_HEIGHT
+              : 0;
+            const bottomSpacer = shouldVirtualize
+              ? Math.max(
+                  0,
+                  (filteredProjects.length - (visibleProjectRange.end + 1)) * PROJECT_ROW_HEIGHT
+                )
+              : 0;
+
+            return (
+              <>
+                {topSpacer > 0 && (
+                  <div
+                    style={{
+                      height: `${topSpacer}px`,
+                      gridColumn: "1 / -1",
+                    }}
+                  />
+                )}
+                {projectsToRender.map((project) => {
             const actualCost = calculateProjectCost(project);
             
             return (
@@ -528,8 +593,19 @@ export const Projects: React.FC<Props> = ({
                   </button>
                 </div>
               </motion.div>
+                );
+              })}
+                {bottomSpacer > 0 && (
+                  <div
+                    style={{
+                      height: `${bottomSpacer}px`,
+                      gridColumn: "1 / -1",
+                    }}
+                  />
+                )}
+              </>
             );
-          })}
+          })()}
         </div>
       )}
 
@@ -561,68 +637,95 @@ export const Projects: React.FC<Props> = ({
               onClick={(e) => e.stopPropagation()}
               style={{
                 backgroundColor: cardBg,
-                borderRadius: "12px",
-                padding: "24px",
+                borderRadius: "16px",
+                padding: "28px",
                 width: "90%",
-                maxWidth: "600px",
+                maxWidth: "700px",
                 maxHeight: "90vh",
                 overflowY: "auto",
                 border: `1px solid ${theme.colors.border}`,
                 boxShadow: `0 8px 32px rgba(0,0,0,0.3)`,
+                boxSizing: "border-box",
               }}
             >
-              <h2 style={{ margin: "0 0 20px 0", fontSize: "20px", fontWeight: "600", color: theme.colors.text }}>
-                {editingProjectId
-                  ? (t("projects.edit") || "Projekt szerkesztése")
-                  : (t("projects.addNew") || "Új projekt")}
-              </h2>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", paddingBottom: "16px", borderBottom: `1px solid ${theme.colors.border}` }}>
+                <h2 style={{ margin: 0, fontSize: "22px", fontWeight: "600", color: theme.colors.text }}>
+                  {editingProjectId
+                    ? (t("projects.edit") || "Projekt szerkesztése")
+                    : (t("projects.addNew") || "Új projekt")}
+                </h2>
+                <button
+                  onClick={handleCancel}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: "6px",
+                    border: "none",
+                    backgroundColor: "transparent",
+                    color: theme.colors.textMuted,
+                    fontSize: "20px",
+                    cursor: "pointer",
+                    lineHeight: "1",
+                  }}
+                  title={t("common.close") || "Bezárás"}
+                >
+                  ×
+                </button>
+              </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                {/* Projekt név */}
                 <div>
-                  <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
-                    {t("projects.name") || "Projekt név"} *
+                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
+                    {t("projects.name") || "Projekt név"} <span style={{ color: theme.colors.danger }}>*</span>
                   </label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    placeholder={t("projects.namePlaceholder") || "Adja meg a projekt nevét"}
                     style={{
                       width: "100%",
-                      padding: "10px",
-                      borderRadius: "6px",
+                      padding: "12px",
+                      borderRadius: "8px",
                       border: `1px solid ${theme.colors.border}`,
                       backgroundColor: cardBg,
                       color: theme.colors.text,
                       fontSize: "14px",
+                      boxSizing: "border-box",
                     }}
                     autoFocus
                   />
                 </div>
 
+                {/* Leírás */}
                 <div>
-                  <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
+                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
                     {t("projects.description") || "Leírás"}
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
+                    rows={4}
+                    placeholder={t("projects.descriptionPlaceholder") || "Rövid leírás a projektről..."}
                     style={{
                       width: "100%",
-                      padding: "10px",
-                      borderRadius: "6px",
+                      padding: "12px",
+                      borderRadius: "8px",
                       border: `1px solid ${theme.colors.border}`,
                       backgroundColor: cardBg,
                       color: theme.colors.text,
                       fontSize: "14px",
                       resize: "vertical",
+                      fontFamily: "inherit",
+                      boxSizing: "border-box",
                     }}
                   />
                 </div>
 
+                {/* Státusz és Haladás - első sor */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                   <div>
-                    <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
+                    <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
                       {t("projects.status") || "Státusz"}
                     </label>
                     <select
@@ -630,13 +733,14 @@ export const Projects: React.FC<Props> = ({
                       onChange={(e) => setStatus(e.target.value as ProjectStatus)}
                       style={{
                         width: "100%",
-                        padding: "10px",
-                        borderRadius: "6px",
+                        padding: "12px",
+                        borderRadius: "8px",
                         border: `1px solid ${theme.colors.border}`,
                         backgroundColor: cardBg,
                         color: theme.colors.text,
                         fontSize: "14px",
                         cursor: "pointer",
+                        boxSizing: "border-box",
                       }}
                     >
                       <option value="active">{t(STATUS_LABELS.active) || "Aktív"}</option>
@@ -647,7 +751,7 @@ export const Projects: React.FC<Props> = ({
                   </div>
 
                   <div>
-                    <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
+                    <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
                       {t("projects.progress") || "Haladás"} (%)
                     </label>
                     <input
@@ -658,20 +762,22 @@ export const Projects: React.FC<Props> = ({
                       onChange={(e) => setProgress(parseInt(e.target.value) || 0)}
                       style={{
                         width: "100%",
-                        padding: "10px",
-                        borderRadius: "6px",
+                        padding: "12px",
+                        borderRadius: "8px",
                         border: `1px solid ${theme.colors.border}`,
                         backgroundColor: cardBg,
                         color: theme.colors.text,
                         fontSize: "14px",
+                        boxSizing: "border-box",
                       }}
                     />
                   </div>
                 </div>
 
+                {/* Határidő és Költségvetés - második sor */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                   <div>
-                    <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
+                    <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
                       {t("common.deadline") || "Határidő"}
                     </label>
                     <input
@@ -680,18 +786,19 @@ export const Projects: React.FC<Props> = ({
                       onChange={(e) => setDeadline(e.target.value)}
                       style={{
                         width: "100%",
-                        padding: "10px",
-                        borderRadius: "6px",
+                        padding: "12px",
+                        borderRadius: "8px",
                         border: `1px solid ${theme.colors.border}`,
                         backgroundColor: cardBg,
                         color: theme.colors.text,
                         fontSize: "14px",
+                        boxSizing: "border-box",
                       }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
+                    <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
                       {t("projects.budget") || "Költségvetés"} ({getCurrencyLabel(settings.currency)})
                     </label>
                     <input
@@ -700,21 +807,24 @@ export const Projects: React.FC<Props> = ({
                       min="0"
                       value={budget}
                       onChange={(e) => setBudget(e.target.value)}
+                      placeholder="0.00"
                       style={{
                         width: "100%",
-                        padding: "10px",
-                        borderRadius: "6px",
+                        padding: "12px",
+                        borderRadius: "8px",
                         border: `1px solid ${theme.colors.border}`,
                         backgroundColor: cardBg,
                         color: theme.colors.text,
                         fontSize: "14px",
+                        boxSizing: "border-box",
                       }}
                     />
                   </div>
                 </div>
 
+                {/* Kapcsolt árajánlatok */}
                 <div>
-                  <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
+                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "600", color: theme.colors.text }}>
                     {t("projects.relatedOffers") || "Kapcsolt árajánlatok"}
                   </label>
                   <select
@@ -726,29 +836,36 @@ export const Projects: React.FC<Props> = ({
                     }}
                     style={{
                       width: "100%",
-                      padding: "10px",
-                      borderRadius: "6px",
+                      padding: "12px",
+                      borderRadius: "8px",
                       border: `1px solid ${theme.colors.border}`,
                       backgroundColor: cardBg,
                       color: theme.colors.text,
                       fontSize: "14px",
-                      minHeight: "100px",
+                      minHeight: "120px",
                       cursor: "pointer",
+                      boxSizing: "border-box",
                     }}
                   >
-                    {availableOffers.map(offer => (
-                      <option key={offer.id} value={offer.id}>
-                        #{offer.id} - {offer.customerName || t("common.unnamedCustomer") || "Névtelen ügyfél"} - {new Date(offer.date).toLocaleDateString()}
-                      </option>
-                    ))}
+                    {availableOffers.length === 0 ? (
+                      <option disabled>{t("projects.noOffersAvailable") || "Nincsenek elérhető árajánlatok"}</option>
+                    ) : (
+                      availableOffers.map(offer => (
+                        <option key={offer.id} value={offer.id}>
+                          #{offer.id} - {offer.customerName || t("common.unnamedCustomer") || "Névtelen ügyfél"} - {new Date(offer.date).toLocaleDateString()}
+                        </option>
+                      ))
+                    )}
                   </select>
-                  <div style={{ fontSize: "12px", color: theme.colors.textMuted, marginTop: "4px" }}>
-                    {t("common.holdCtrlToSelectMultiple") || "Nyomd tartva a Ctrl-t több kiválasztásához"}
+                  <div style={{ fontSize: "12px", color: theme.colors.textMuted, marginTop: "6px", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span>💡</span>
+                    <span>{t("common.holdCtrlToSelectMultiple") || "Nyomd tartva a Ctrl-t (Cmd Mac-en) több kiválasztásához"}</span>
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "12px", marginTop: "24px", justifyContent: "flex-end" }}>
+              {/* Gombok */}
+              <div style={{ display: "flex", gap: "12px", marginTop: "8px", paddingTop: "20px", borderTop: `1px solid ${theme.colors.border}`, justifyContent: "flex-end" }}>
                 <button
                   onClick={handleCancel}
                   style={{

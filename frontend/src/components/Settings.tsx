@@ -3699,6 +3699,90 @@ export const SettingsPage: React.FC<Props> = ({
           </div>
         </div>
 
+        {/* Welcome Message beállítások */}
+        <div style={{ marginBottom: "24px" }}>
+          <Tooltip content={t("settings.showWelcomeMessageOnStartupDescription") || "Ha be van pipálva, az első indításkor megjelenik az üdvözlő üzenet, amely információkat tartalmaz az alkalmazásról."}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer" 
+            }}>
+              <input
+                type="checkbox"
+                checked={settings.showWelcomeMessageOnStartup !== false}
+                onChange={async (e) => {
+                  const checked = e.target.checked;
+                  const newSettings = { 
+                    ...settings, 
+                    showWelcomeMessageOnStartup: checked,
+                  };
+                  onChange(newSettings);
+                  // Azonnal mentjük
+                  try {
+                    await saveSettings(newSettings);
+                    if (import.meta.env.DEV) {
+                      console.log("✅ Welcome Message beállítás azonnal mentve:", checked);
+                    }
+                  } catch (error) {
+                    console.error("❌ Hiba a welcome message beállítás mentésekor:", error);
+                  }
+                }}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>👋 {t("settings.showWelcomeMessageOnStartup") || "Üdvözlő üzenet megjelenítése indításkor:"}</span>
+            </label>
+          </Tooltip>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.showWelcomeMessageOnStartupDescription") || "Ha be van pipálva, az első indításkor megjelenik az üdvözlő üzenet, amely információkat tartalmaz az alkalmazásról, verzióról és GitHub linkekről."}
+          </p>
+        </div>
+
+        {/* Help Menu beállítások */}
+        <div style={{ marginBottom: "24px" }}>
+          <Tooltip content={t("settings.showHelpInMenuDescription") || "Ha be van pipálva, a Help menüpont megjelenik a Sidebar SYSTEM szekciójában."}>
+            <label style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              fontWeight: "600", 
+              fontSize: "16px", 
+              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+              cursor: "pointer" 
+            }}>
+              <input
+                type="checkbox"
+                checked={settings.showHelpInMenu !== false}
+                onChange={async (e) => {
+                  const checked = e.target.checked;
+                  const newSettings = { 
+                    ...settings, 
+                    showHelpInMenu: checked,
+                  };
+                  onChange(newSettings);
+                  // Azonnal mentjük
+                  try {
+                    await saveSettings(newSettings);
+                    if (import.meta.env.DEV) {
+                      console.log("✅ Help Menu beállítás azonnal mentve:", checked);
+                    }
+                  } catch (error) {
+                    console.error("❌ Hiba a help menu beállítás mentésekor:", error);
+                  }
+                }}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+              <span>❓ {t("settings.showHelpInMenu") || "Help menüpont megjelenítése a Sidebar-ban:"}</span>
+            </label>
+          </Tooltip>
+          <p style={{ marginTop: "8px", marginLeft: "32px", fontSize: "12px", color: theme.colors.textMuted }}>
+            {t("settings.showHelpInMenuDescription") || "Ha be van pipálva, a Help menüpont megjelenik a Sidebar SYSTEM szekciójában. Az F1 billentyű mindig elérhető marad a Help menü megnyitásához."}
+          </p>
+        </div>
+
         {/* Értesítések */}
         <div style={{ marginBottom: "24px" }}>
           <label style={{ display: "flex", alignItems: "center", gap: "12px", fontWeight: "600", fontSize: "16px", color: theme.colors.text, cursor: "pointer" }}>
