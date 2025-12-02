@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Project, Settings, Offer, ProjectStatus } from "../types";
 import type { Theme } from "../utils/themes";
@@ -305,7 +305,7 @@ export const Projects: React.FC<Props> = ({
 
   // Elérhető árajánlatok
   const availableOffers = useMemo(() => {
-    return offers.filter(offer => {
+    return offers.filter((offer: Offer) => {
       // Már hozzárendelt árajánlatok kizárása szerkesztésnél
       if (editingProjectId) {
         const project = projects.find(p => p.id === editingProjectId);
@@ -462,7 +462,7 @@ export const Projects: React.FC<Props> = ({
                     }}
                   />
                 )}
-                {projectsToRender.map((project) => {
+                {projectsToRender.map((project: Project) => {
             const actualCost = calculateProjectCost(project);
             
             return (
@@ -494,8 +494,8 @@ export const Projects: React.FC<Props> = ({
                       borderRadius: "12px",
                       fontSize: "12px",
                       fontWeight: "600",
-                      backgroundColor: `${STATUS_COLORS[project.status]}20`,
-                      color: STATUS_COLORS[project.status],
+                      backgroundColor: `${STATUS_COLORS[project.status as ProjectStatus]}20`,
+                      color: STATUS_COLORS[project.status as ProjectStatus],
                     }}
                   >
                     {t(STATUS_LABELS[project.status]) || project.status}
@@ -972,11 +972,11 @@ export const Projects: React.FC<Props> = ({
                         borderRadius: "12px",
                         fontSize: "14px",
                         fontWeight: "600",
-                        backgroundColor: `${STATUS_COLORS[selectedProject.status]}20`,
-                        color: STATUS_COLORS[selectedProject.status],
+                        backgroundColor: `${STATUS_COLORS[selectedProject.status as ProjectStatus]}20`,
+                        color: STATUS_COLORS[selectedProject.status as ProjectStatus],
                       }}
                     >
-                      {t(STATUS_LABELS[selectedProject.status]) || selectedProject.status}
+                      {t(STATUS_LABELS[selectedProject.status as ProjectStatus]) || selectedProject.status}
                     </span>
                     <span style={{ fontSize: "14px", color: theme.colors.textMuted }}>
                       {selectedProject.progress}% {t("projects.progress") || "kész"}
