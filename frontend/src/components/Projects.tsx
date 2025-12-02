@@ -498,7 +498,7 @@ export const Projects: React.FC<Props> = ({
                       color: STATUS_COLORS[project.status as ProjectStatus],
                     }}
                   >
-                    {t(STATUS_LABELS[project.status]) || project.status}
+                    {t(STATUS_LABELS[project.status as ProjectStatus]) || project.status}
                   </span>
                 </div>
 
