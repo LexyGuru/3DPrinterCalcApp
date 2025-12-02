@@ -1606,6 +1606,9 @@ export const languageCs: TranslationMap = {
   "projects.deleteConfirm": "Smazat projekt",
   "projects.deleteConfirmMessage": "Opravdu chcete smazat tento projekt?",
   "projects.validation.nameRequired": "Název projektu je povinný",
+  "projects.namePlaceholder": "Zadejte název projektu",
+  "projects.descriptionPlaceholder": "Stručný popis projektu...",
+  "projects.noOffersAvailable": "Žádné nabídky k dispozici",
   "projects.filter.all": "Všechny",
   // Tasks
   "tasks.title": "Úkoly",

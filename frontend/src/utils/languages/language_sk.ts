@@ -1613,6 +1613,9 @@ export const languageSk: TranslationMap = {
   "projects.deleteConfirm": "Vymazať projekt",
   "projects.deleteConfirmMessage": "Naozaj chcete vymazať tento projekt?",
   "projects.validation.nameRequired": "Názov projektu je povinný",
+  "projects.namePlaceholder": "Zadajte názov projektu",
+  "projects.descriptionPlaceholder": "Stručný popis projektu...",
+  "projects.noOffersAvailable": "Žiadne ponuky k dispozícii",
   "projects.filter.all": "Všetky",
   // Tasks
   "tasks.title": "Úlohy",

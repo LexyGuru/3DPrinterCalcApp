@@ -1588,6 +1588,9 @@ export const languageUk: TranslationMap = {
   "projects.deleteConfirm": "Видалити проєкт",
   "projects.deleteConfirmMessage": "Ви впевнені, що хочете видалити цей проєкт?",
   "projects.validation.nameRequired": "Назва проєкту обов'язкова",
+  "projects.namePlaceholder": "Введіть назву проекту",
+  "projects.descriptionPlaceholder": "Короткий опис проекту...",
+  "projects.noOffersAvailable": "Немає доступних пропозицій",
   "projects.filter.all": "Всі",
   // Tasks
   "tasks.title": "Завдання",

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Project, Settings, Offer, ProjectStatus } from "../types";
 import type { Theme } from "../utils/themes";

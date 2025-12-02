@@ -1590,6 +1590,9 @@ export const languageRu: TranslationMap = {
   "projects.deleteConfirm": "Удалить проект",
   "projects.deleteConfirmMessage": "Вы уверены, что хотите удалить этот проект?",
   "projects.validation.nameRequired": "Название проекта обязательно",
+  "projects.namePlaceholder": "Введите название проекта",
+  "projects.descriptionPlaceholder": "Краткое описание проекта...",
+  "projects.noOffersAvailable": "Нет доступных предложений",
   "projects.filter.all": "Все",
   // Tasks
   "tasks.title": "Задачи",

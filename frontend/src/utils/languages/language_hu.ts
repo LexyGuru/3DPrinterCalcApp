@@ -1612,6 +1612,9 @@ export const languageHu: TranslationMap = {
   "projects.deleteConfirmMessage": "Biztosan törölni szeretnéd ezt a projektet?",
   "projects.validation.nameRequired": "Projekt név kötelező",
   "projects.filter.all": "Összes",
+  "projects.namePlaceholder": "Adja meg a projekt nevét",
+  "projects.descriptionPlaceholder": "Rövid leírás a projektről...",
+  "projects.noOffersAvailable": "Nincsenek elérhető árajánlatok",
   // Tasks
   "tasks.title": "Feladatok",
   "tasks.searchPlaceholder": "Keresés feladatok között...",

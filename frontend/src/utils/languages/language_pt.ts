@@ -1613,6 +1613,9 @@ export const languagePt: TranslationMap = {
   "projects.deleteConfirm": "Excluir projeto",
   "projects.deleteConfirmMessage": "Tem certeza de que deseja excluir este projeto?",
   "projects.validation.nameRequired": "O nome do projeto é obrigatório",
+  "projects.namePlaceholder": "Digite o nome do projeto",
+  "projects.descriptionPlaceholder": "Breve descrição do projeto...",
+  "projects.noOffersAvailable": "Nenhuma oferta disponível",
   "projects.filter.all": "Todos",
   // Tasks
   "tasks.title": "Tarefas",

@@ -1602,6 +1602,9 @@ export const languageEn: TranslationMap = {
   "projects.deleteConfirm": "Delete project",
   "projects.deleteConfirmMessage": "Are you sure you want to delete this project?",
   "projects.validation.nameRequired": "Project name is required",
+  "projects.namePlaceholder": "Enter project name",
+  "projects.descriptionPlaceholder": "Brief description of the project...",
+  "projects.noOffersAvailable": "No offers available",
   "projects.filter.all": "All",
   // Tasks
   "tasks.title": "Tasks",

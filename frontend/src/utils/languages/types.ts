@@ -458,6 +458,9 @@ export type TranslationKey =
   | "projects.deleteConfirmMessage"
   | "projects.validation.nameRequired"
   | "projects.filter.all"
+  | "projects.namePlaceholder"
+  | "projects.descriptionPlaceholder"
+  | "projects.noOffersAvailable"
   // Tasks
   | "tasks.title"
   | "tasks.searchPlaceholder"

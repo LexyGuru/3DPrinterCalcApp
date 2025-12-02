@@ -1612,6 +1612,9 @@ export const languageZh: TranslationMap = {
   "projects.deleteConfirm": "删除项目",
   "projects.deleteConfirmMessage": "您确定要删除此项目吗？",
   "projects.validation.nameRequired": "项目名称是必填项",
+  "projects.namePlaceholder": "输入项目名称",
+  "projects.descriptionPlaceholder": "项目简要描述...",
+  "projects.noOffersAvailable": "没有可用的报价",
   "projects.filter.all": "全部",
   // Tasks
   "tasks.title": "任务",
