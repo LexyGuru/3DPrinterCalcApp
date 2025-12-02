@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import type { Settings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
@@ -6,7 +6,6 @@ import { consoleLogger, type LogEntry } from "../utils/consoleLogger";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { save } from "@tauri-apps/plugin-dialog";
 import { useToast } from "./Toast";
-import { getConsoleMessage, type ConsoleMessageKey } from "../utils/languages/global_console";
 
 interface Props {
   settings: Settings;
