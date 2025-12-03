@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import type { Settings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { CURRENT_VERSION } from "../utils/version";
 import { FadeIn } from "../utils/animations";
+import { PAGE_TO_ROUTE, ROUTE_TO_PAGE } from "../router/routes";
 
 // Helper function to get contrasting text color for footer
 const getContrastingTextColor = (backgroundColor: string): string => {
@@ -65,7 +67,24 @@ interface MenuSection {
 
 export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, isBeta = false, theme, isOpen, onHelpClick }) => {
   const t = useTranslation(settings.language);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["main"]));
+  
+  // activePage a location.pathname-ből származik (ha routing van)
+  const currentActivePage = useMemo(() => {
+    return ROUTE_TO_PAGE[location.pathname] || activePage || "home";
+  }, [location.pathname, activePage]);
+  
+  // Navigate handler - routing-ot használ, ha elérhető
+  const handleNavigate = (page: string) => {
+    const route = PAGE_TO_ROUTE[page] || "/";
+    navigate(route);
+    // Fallback: ha nincs routing, használjuk a setActivePage-t
+    if (setActivePage) {
+      setActivePage(page);
+    }
+  };
 
   // Responsive font size based on language
   const getFontSize = (baseSize: number) => {
@@ -364,7 +383,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                     {isExpanded && (
                       <div style={{ paddingLeft: "8px" }}>
                         {section.items.map((item) => {
-                          const isActive = activePage === item.key;
+                              const isActive = currentActivePage === item.key;
                           const activeBg = isGlassmorphism
                             ? "rgba(255, 255, 255, 0.15)"
                             : isNeon
@@ -380,7 +399,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                                 if (item.key === "help" && onHelpClick) {
                                   onHelpClick();
                                 } else {
-                                  setActivePage(item.key);
+                                  handleNavigate(item.key);
                                 }
                               }}
                               onKeyDown={(e) => {
@@ -389,7 +408,7 @@ export const Sidebar: React.FC<Props> = ({ activePage, setActivePage, settings, 
                                   if (item.key === "help" && onHelpClick) {
                                     onHelpClick();
                                   } else {
-                                    setActivePage(item.key);
+                                    handleNavigate(item.key);
                                   }
                                 }
                               }}

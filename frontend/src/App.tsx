@@ -1,5 +1,6 @@
-import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { Sidebar } from "./components/Sidebar";
 import { Header } from "./components/Header";
 import { UpdateChecker } from "./components/UpdateChecker";
@@ -7,22 +8,11 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
 import { AppSkeleton } from "./components/AppSkeleton";
 import { BackupReminder } from "./components/BackupReminder";
+import { AppProvider } from "./router/AppContext";
+import { AppRouter } from "./router/AppRouter";
+import { PAGE_TO_ROUTE, ROUTE_TO_PAGE } from "./router/routes";
 
-// Lazy loading komponensek (code splitting)
-const Home = lazy(() => import("./components/Home").then(module => ({ default: module.Home })));
-const Filaments = lazy(() => import("./components/Filaments").then(module => ({ default: module.Filaments })));
-const FilamentStockManagement = lazy(() => import("./components/FilamentStockManagement").then(module => ({ default: module.FilamentStockManagement })));
-const Printers = lazy(() => import("./components/Printers").then(module => ({ default: module.Printers })));
-const Calculator = lazy(() => import("./components/Calculator").then(module => ({ default: module.Calculator })));
-const Offers = lazy(() => import("./components/Offers").then(module => ({ default: module.Offers })));
-const Customers = lazy(() => import("./components/Customers").then(module => ({ default: module.Customers })));
-const PriceTrends = lazy(() => import("./components/PriceTrends").then(module => ({ default: module.PriceTrends })));
-const Calendar = lazy(() => import("./components/Calendar").then(module => ({ default: module.Calendar })));
-const Projects = lazy(() => import("./components/Projects").then(module => ({ default: module.Projects })));
-const Tasks = lazy(() => import("./components/Tasks").then(module => ({ default: module.Tasks })));
-const SettingsPage = lazy(() => import("./components/Settings").then(module => ({ default: module.SettingsPage })));
-const Console = lazy(() => import("./components/Console").then(module => ({ default: module.Console })));
-const BudgetManagement = lazy(() => import("./components/BudgetManagement").then(module => ({ default: module.BudgetManagement })));
+// Lazy loading komponensek most a router/routes.tsx-ben vannak definiálva
 import type { Printer, Settings, Filament, Offer, Customer, ThemeName, Project, Task } from "./types";
 import { defaultSettings } from "./types";
 import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers, loadProjects, loadTasks, resetStoreInstance } from "./utils/store";
@@ -38,7 +28,6 @@ import { GlobalSearch } from "./components/GlobalSearch";
 import { Tutorial } from "./components/Tutorial";
 import { WelcomeMessage } from "./components/WelcomeMessage";
 import { HelpMenu } from "./components/HelpMenu";
-import { LoadingSpinner } from "./components/LoadingSpinner";
 import { LanguageSelector } from "./components/LanguageSelector";
 import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
@@ -49,8 +38,27 @@ import { logApplicationStartup, resetLoggingFlags } from "./utils/appLogging"; /
 import { PerformanceTimer, logMemoryUsage, logPerformanceSummary, logPeriodicPerformanceMetrics, type PerformanceMetric } from "./utils/performance"; // Performance metrikák
 import { auditCreate } from "./utils/auditLog"; // Audit log
 
-export default function App() {
-  const [activePage, setActivePage] = useState("home");
+// Belső AppContent komponens - használja a Router hook-okat
+function AppContent() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // activePage a location.pathname-ből származik
+  const activePage = useMemo(() => {
+    return ROUTE_TO_PAGE[location.pathname] || "home";
+  }, [location.pathname]);
+  
+  // setActivePage wrapper - navigate-et használ
+  const setActivePage = useCallback((page: string) => {
+    const route = PAGE_TO_ROUTE[page] || "/";
+    navigate(route);
+  }, [navigate]);
+
+  return <AppInner activePage={activePage} setActivePage={setActivePage} />;
+}
+
+// Belső App komponens - tartalmazza az összes logikát
+function AppInner({ activePage, setActivePage }: { activePage: string; setActivePage: (page: string) => void }) {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [printers, setPrinters] = useState<Printer[]>([]);
   const [filaments, setFilaments] = useState<Filament[]>([]);
@@ -1212,171 +1220,7 @@ export default function App() {
     }
   }, [activePage, quickActionTrigger]);
 
-  // Page component (memoized)
-  const PageComponent = useMemo(() => {
-    switch (activePage) {
-      case "filaments": 
-        return <Filaments filaments={filaments} setFilaments={setFilaments} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-filament'} onSettingsChange={(newSettings) => {
-          setSettings(newSettings);
-          debouncedSaveSettings();
-        }} />; 
-      case "filament-stock":
-        return (
-          <FilamentStockManagement
-            filaments={filaments}
-            setFilaments={setFilaments}
-            settings={settings}
-            theme={currentTheme}
-            themeStyles={themeStyles}
-          />
-        );
-      case "printers":
-        return <Printers printers={printers} setPrinters={setPrinters} settings={settings} theme={currentTheme} themeStyles={themeStyles} triggerAddForm={quickActionTrigger === 'add-printer'} onSettingsChange={(newSettings) => {
-          setSettings(newSettings);
-          debouncedSaveSettings();
-        }} />;
-      case "calculator": 
-        return <Calculator printers={printers} filaments={filaments} customers={customers} settings={settings} onSaveOffer={handleSaveOffer} theme={currentTheme} themeStyles={themeStyles} />; 
-      case "offers":
-        return (
-          <Offers
-            offers={offers}
-            setOffers={setOffers}
-            settings={settings}
-            theme={currentTheme}
-            themeStyles={themeStyles}
-            printers={printers}
-            filaments={filaments}
-            setFilaments={setFilaments}
-            customers={customers}
-            onSettingsChange={(newSettings) => {
-              setSettings(newSettings);
-              debouncedSaveSettings();
-            }}
-          />
-        );
-      case "customers":
-        return (
-          <Customers
-            customers={customers}
-            setCustomers={setCustomers}
-            settings={settings}
-            theme={currentTheme}
-            themeStyles={themeStyles}
-            offers={offers}
-            triggerAddForm={quickActionTrigger === 'add-customer'}
-          />
-        );
-      case "priceTrends":
-        return (
-          <PriceTrends
-            filaments={filaments}
-            settings={settings}
-            theme={currentTheme}
-            themeStyles={themeStyles}
-          />
-        );
-      case "budget":
-        return (
-          <BudgetManagement
-            offers={offers}
-            setOffers={setOffers}
-            settings={settings}
-            theme={currentTheme}
-            themeStyles={getThemeStyles(currentTheme)}
-          />
-        );
-      case "calendar":
-        return (
-          <Calendar
-            offers={offers}
-            settings={settings}
-            theme={currentTheme}
-            themeStyles={themeStyles}
-          />
-        );
-      case "projects":
-        return (
-          <Projects
-            projects={projects}
-            setProjects={setProjects}
-            settings={settings}
-            theme={currentTheme}
-            themeStyles={themeStyles}
-            offers={offers}
-            triggerAddForm={quickActionTrigger === 'add-project'}
-          />
-        );
-      case "tasks":
-        return (
-          <Tasks
-            tasks={tasks}
-            setTasks={setTasks}
-            settings={settings}
-            theme={currentTheme}
-            themeStyles={themeStyles}
-            offers={offers}
-            projects={projects}
-            triggerAddForm={quickActionTrigger === 'add-task'}
-          />
-        );
-      case "settings": 
-        return (
-          <SettingsPage 
-            settings={settings} 
-            onChange={async (newSettings) => {
-              setSettings(newSettings);
-              // Beállítások módosításainak azonnali mentése a data.json-ba (nem várunk az autosave-re)
-              // Az auto_backup csak naponta egyszer jön létre, és nem befolyásolja a settings betöltését
-              try {
-                await saveSettings(newSettings);
-                updateLastSaved();
-                if (import.meta.env.DEV) {
-                  console.log("✅ Settings azonnal mentve a data.json-ba:", { theme: newSettings.theme, autosave: newSettings.autosave });
-                }
-              } catch (error) {
-                console.error("❌ Hiba a beállítások mentésekor (SettingsPage):", error);
-              }
-            }}
-            printers={printers}
-            setPrinters={setPrinters}
-            filaments={filaments}
-            setFilaments={setFilaments}
-            offers={offers}
-            setOffers={setOffers}
-            theme={currentTheme}
-            themeStyles={themeStyles}
-            onFactoryReset={handleFactoryReset}
-            initialModal={settingsInitialModal}
-            onModalOpened={() => setSettingsInitialModal(null)}
-          />
-        );
-      case "console":
-        return <Console settings={settings} theme={currentTheme} themeStyles={themeStyles} />;
-      default: 
-        return <Home 
-          settings={settings} 
-          offers={offers} 
-          filaments={filaments}
-          printers={printers}
-          projects={projects}
-          tasks={tasks}
-          theme={currentTheme} 
-          onSettingsChange={(newSettings) => {
-            setSettings(newSettings);
-            // A Home komponensben az onLayoutChange már meghívja a saveSettings-t
-          }}
-          onNavigate={(page: string, modal?: "log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history") => {
-            setActivePage(page);
-            if (modal && page === "settings") {
-              setSettingsInitialModal(modal);
-            } else {
-              setSettingsInitialModal(null);
-            }
-          }}
-        />;
-    }
-  }, [activePage, filaments, printers, offers, customers, projects, tasks, settings, currentTheme, themeStyles, handleSaveOffer, setFilaments, setPrinters, setOffers, setCustomers, setProjects, setTasks, quickActionTrigger]);
+  // Page component most az AppRouter kezeli (React Router alapú)
 
   // Determine if this is a beta build from environment variable (set at build time)
   const isBeta = import.meta.env.VITE_IS_BETA === 'true';
@@ -1407,10 +1251,52 @@ export default function App() {
     ];
   }, [loadingProgress, t]);
 
+  // App Context value
+  const appContextValue = useMemo(() => ({
+    settings,
+    printers,
+    filaments,
+    offers,
+    customers,
+    projects,
+    tasks,
+    theme: currentTheme,
+    themeStyles,
+    quickActionTrigger,
+    settingsInitialModal,
+    setSettings,
+    setPrinters,
+    setFilaments,
+    setOffers,
+    setCustomers,
+    setProjects,
+    setTasks,
+    setQuickActionTrigger,
+    setSettingsInitialModal,
+    handleSaveOffer,
+    debouncedSaveSettings,
+    handleFactoryReset,
+    onNavigate: (page: string, modal?: "log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history") => {
+      setActivePage(page);
+      if (modal) {
+        setSettingsInitialModal(modal);
+      } else {
+        setSettingsInitialModal(null);
+      }
+    },
+  }), [
+    settings, printers, filaments, offers, customers, projects, tasks,
+    currentTheme, themeStyles, quickActionTrigger, settingsInitialModal,
+    setSettings, setPrinters, setFilaments, setOffers, setCustomers,
+    setProjects, setTasks, setQuickActionTrigger, setSettingsInitialModal,
+    handleSaveOffer, debouncedSaveSettings, handleFactoryReset, setActivePage
+  ]);
+
   return (
     <ErrorBoundary>
       <ToastProvider settings={settings}>
-        <div style={{ 
+        <AppProvider value={appContextValue}>
+          <div style={{ 
           height: "100vh", 
           width: "100vw", 
           overflow: "hidden",
@@ -1521,38 +1407,15 @@ export default function App() {
                 />
               </>
             ) : (
-              <Suspense fallback={
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "100%",
-                  width: "100%",
-                  backgroundColor: currentTheme.colors.background?.includes('gradient') 
-                    ? 'transparent' 
-                    : currentTheme.colors.background,
-                }}>
-                  <LoadingSpinner size="large" message={t("loading.title")} />
-                </div>
-              }>
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={activePage}
-                    data-page={activePage}
-                    initial={pageTransitionVariants.initial}
-                    animate={pageTransitionVariants.animate}
-                    exit={pageTransitionVariants.exit}
-                    transition={pageTransitionTiming}
-                    style={{
-                      height: "100%",
-                      transformStyle: animationSettings.pageTransition === "flip" ? "preserve-3d" : "flat",
-                      backfaceVisibility: "hidden",
-                    }}
-                  >
-                    {PageComponent}
-                  </motion.div>
-                </AnimatePresence>
-              </Suspense>
+              <AppRouter
+                settings={settings}
+                theme={currentTheme}
+                themeStyles={themeStyles}
+                animationSettings={animationSettings}
+                pageTransitionVariants={pageTransitionVariants}
+                pageTransitionTiming={pageTransitionTiming}
+                t={(key: string) => t(key as any)}
+              />
             )}
           </main>
           <AnimatePresence>
@@ -1704,7 +1567,13 @@ export default function App() {
           {/* Backup Reminder - automatikus emlékeztető régi backup-okhoz - NE mutassa, ha a tutorial aktív vagy meg fog nyílni */}
           {isInitialized && !showTutorial && !tutorialWillOpen && <BackupReminder settings={settings} showTutorial={showTutorial} />}
         </div>
+        </AppProvider>
       </ToastProvider>
     </ErrorBoundary>
   );
+}
+
+// Fő App komponens - Router és Provider wrapper
+export default function App() {
+  return <AppContent />;
 }

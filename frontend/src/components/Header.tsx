@@ -33,6 +33,27 @@ export const Header: React.FC<Props> = ({
   onQuickAction,
   offers = [],
 }) => {
+
+  const location = useLocation();
+  
+  // activePage a location.pathname-ből származik (ha routing van)
+  const currentActivePage = useMemo(() => {
+    return ROUTE_TO_PAGE[location.pathname] || activePage || "home";
+  }, [location.pathname, activePage]);
+  
+  // Navigate handler - routing-ot használ, ha elérhető
+  const handlePageChange = (page: string) => {
+    const route = PAGE_TO_ROUTE[page] || "/";
+    navigate(route);
+    // Fallback: ha nincs routing, használjuk az onPageChange-t
+    if (onPageChange) {
+      onPageChange(page);
+    }
+  };
+  themeStyles,
+  onQuickAction,
+  offers = [],
+}) => {
   const t = useTranslation(settings.language);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -321,7 +342,7 @@ export const Header: React.FC<Props> = ({
 
   // Breadcrumb items generálása - stabil referencia az onClick-hez
   const breadcrumbItems = useMemo(() => {
-    if (!activePage || !onPageChange) {
+    if (!currentActivePage) {
       return [];
     }
 
@@ -330,9 +351,7 @@ export const Header: React.FC<Props> = ({
         key: 'home',
         label: t('sidebar.home') || 'Home',
         onClick: () => {
-          if (onPageChange) {
-            onPageChange('home');
-          }
+          handlePageChange('home');
         },
       },
     ];
@@ -350,10 +369,10 @@ export const Header: React.FC<Props> = ({
       console: t('sidebar.console') || 'Console',
     };
 
-    if (activePage !== 'home' && pageLabels[activePage]) {
+    if (currentActivePage !== 'home' && pageLabels[currentActivePage]) {
       items.push({
-        key: activePage,
-        label: pageLabels[activePage],
+        key: currentActivePage,
+        label: pageLabels[currentActivePage],
         // Az utolsó elemnek nincs onClick-je (nem kattintható)
       });
     }
