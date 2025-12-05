@@ -1,17 +1,15 @@
-import { useRoutes, useLocation, useNavigate } from "react-router-dom";
-import { Suspense, useEffect } from "react";
+import { useRoutes, useLocation } from "react-router-dom";
+import { Suspense } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { LazyErrorBoundary } from "../components/LazyErrorBoundary";
 import { createRoutes, ROUTE_TO_PAGE } from "./routes";
-import { useAppContext } from "./AppContext";
-import type { Settings, Theme } from "../types";
-import type { ThemeStyles } from "../utils/themes";
+import type { Settings } from "../types";
+import type { Theme } from "../utils/themes";
 
 interface AppRouterProps {
   settings: Settings;
   theme: Theme;
-  themeStyles: ThemeStyles;
   animationSettings: any;
   pageTransitionVariants: any;
   pageTransitionTiming: any;
@@ -24,15 +22,12 @@ interface AppRouterProps {
 export function AppRouter({
   settings,
   theme,
-  themeStyles,
   animationSettings,
   pageTransitionVariants,
   pageTransitionTiming,
   t,
 }: AppRouterProps) {
-  const context = useAppContext();
   const location = useLocation();
-  const navigate = useNavigate();
 
   const routes = createRoutes();
   const element = useRoutes(routes);

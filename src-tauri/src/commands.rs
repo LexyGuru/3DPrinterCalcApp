@@ -1,5 +1,6 @@
 use tauri::{AppHandle, Manager};
 use crate::logger;
+use crate::encryption;
 
 /// macOS Dock badge beállítása
 #[cfg(target_os = "macos")]
@@ -1377,6 +1378,52 @@ pub fn delete_old_audit_logs(days: u32) -> Result<u32, String> {
     Ok(deleted_count)
 }
 
+/// Összes audit log fájl törlése (factory reset-hez)
+#[tauri::command]
+pub fn delete_all_audit_logs() -> Result<u32, String> {
+    use dirs;
+    use std::fs;
+    
+    let audit_dir = dirs::data_local_dir()
+        .ok_or_else(|| "Nem található data directory".to_string())?
+        .join("3DPrinterCalcApp")
+        .join("audit_logs");
+    
+    if !audit_dir.exists() {
+        return Ok(0);
+    }
+    
+    let mut deleted_count = 0;
+    
+    match fs::read_dir(&audit_dir) {
+        Ok(entries) => {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    if path.is_file() {
+                        // Töröljük minden .json fájlt
+                        if let Some(file_name) = path.file_name().and_then(|n| n.to_str()) {
+                            if file_name.starts_with("audit-") && file_name.ends_with(".json") {
+                                if let Err(e) = fs::remove_file(&path) {
+                                    logger::log_warn(&format!("Nem sikerült törölni az audit log fájlt: {} - {}", path.display(), e));
+                                } else {
+                                    deleted_count += 1;
+                                    logger::log_info(&format!("Audit log fájl törölve: {}", path.display()));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            return Err(format!("Nem sikerült olvasni az audit log könyvtárat: {}", e));
+        }
+    }
+    
+    Ok(deleted_count)
+}
+
 /// Audit log könyvtár útvonalának lekérése
 #[tauri::command]
 pub fn get_audit_log_directory_path() -> Result<String, String> {
@@ -1395,4 +1442,33 @@ pub fn get_audit_log_directory_path() -> Result<String, String> {
     }
     
     Ok(audit_dir.to_string_lossy().to_string())
+}
+
+// ============================================================================
+// Authentication & Encryption Commands
+// ============================================================================
+
+/// Jelszó hash generálása PBKDF2-vel (újrafelhasználható)
+/// A hash-t a frontend Store-ban tároljuk (Settings interface-ben)
+#[tauri::command]
+pub fn hash_password(password: String) -> Result<String, String> {
+    encryption::hash_password(&password)
+}
+
+/// Jelszó ellenőrzése hash-szel szemben (újrafelhasználható)
+#[tauri::command]
+pub fn verify_password(password: String, hash: String) -> Result<bool, String> {
+    encryption::verify_password(&password, &hash)
+}
+
+/// Adatok titkosítása AES-256-GCM-mel (újrafelhasználható - ügyféladatokhoz)
+#[tauri::command]
+pub fn encrypt_data(data: String, password: String) -> Result<String, String> {
+    encryption::encrypt_data(&data, &password)
+}
+
+/// Adatok visszafejtése AES-256-GCM-mel (újrafelhasználható - ügyféladatokhoz)
+#[tauri::command]
+pub fn decrypt_data(encrypted: String, password: String) -> Result<String, String> {
+    encryption::decrypt_data(&encrypted, &password)
 }

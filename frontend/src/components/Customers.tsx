@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Customer, Settings, Offer } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { ConfirmDialog } from "../shared";
 import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
 import { saveCustomers } from "../utils/store";

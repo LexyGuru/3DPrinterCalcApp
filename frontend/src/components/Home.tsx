@@ -7,7 +7,7 @@ import { defaultAnimationSettings } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { logWithLanguage } from "../utils/languages/global_console";
-import { convertCurrency, convertCurrencyFromTo, getCurrencyLabel } from "../utils/currency";
+import { convertCurrency, getCurrencyLabel } from "../utils/currency";
 import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
 import { FadeIn, StaggerContainer, StaggerItem, HoverLift } from "../utils/animations";
@@ -19,105 +19,18 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { PrintTimeChartWidget } from "./widgets/PrintTimeChartWidget";
 import { CustomerStatsChartWidget } from "./widgets/CustomerStatsChartWidget";
 import { OfferStatusChartWidget } from "./widgets/OfferStatusChartWidget";
+// Home feature modul importok
+import type { TrendPoint, BreakdownSlice } from "../features/home";
+import { CHART_PALETTE, LANGUAGE_LOCALES } from "../features/home";
+import { 
+  buildScheduledTasksFromOffers,
+  filterOffersByPeriod,
+  getOfferFinancials,
+  calculateStatistics,
+  useHomeStatistics
+} from "../features/home";
 
-type TrendPoint = {
-  label: string;
-  revenue: number;
-  costs: number;
-  profit: number;
-  date: Date;
-};
-
-type BreakdownSlice = {
-  label: string;
-  value: number;
-  color?: string;
-};
-
-const CHART_PALETTE = [
-  "#6366F1",
-  "#22D3EE",
-  "#F97316",
-  "#4ADE80",
-  "#A855F7",
-  "#F43F5E",
-  "#14B8A6",
-  "#FACC15",
-];
-
-const LANGUAGE_LOCALES: Record<string, string> = {
-  hu: "hu-HU",
-  de: "de-DE",
-  fr: "fr-FR",
-  it: "it-IT",
-  es: "es-ES",
-  pl: "pl-PL",
-  cs: "cs-CZ",
-  sk: "sk-SK",
-  zh: "zh-CN",
-  "pt-BR": "pt-BR",
-  uk: "uk-UA",
-  ru: "ru-RU",
-  en: "en-US",
-};
-
-type ScheduledTask = {
-  id: number;
-  title: string;
-  description?: string;
-  dueDate: string;
-  priority: "high" | "medium" | "low";
-  status: "pending" | "in-progress" | "completed";
-  relatedOfferId?: number;
-};
-
-const buildScheduledTasksFromOffers = (
-  offers: Offer[],
-  t: (key: import("../utils/languages/types").TranslationKey) => string
-): ScheduledTask[] => {
-  const now = new Date();
-
-  return offers
-    .filter((offer) => {
-      if (!offer.printDueDate) return false;
-      const due = new Date(offer.printDueDate);
-      return due > now;
-    })
-    .map<ScheduledTask>((offer) => {
-      const customerName = offer.customerName || t("common.unknown") || "Unknown";
-      const baseTitle = t("offers.title") || "Offer";
-      const title =
-        offer.description && offer.description.trim().length > 0
-          ? `${customerName} - ${offer.description}`
-          : `${customerName} - ${baseTitle}`;
-
-      const due = new Date(offer.printDueDate!);
-      const diffMs = due.getTime() - now.getTime();
-      const daysUntilDue = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-      let priority: ScheduledTask["priority"] = "low";
-      if (daysUntilDue <= 3) {
-        priority = "high";
-      } else if (daysUntilDue <= 7) {
-        priority = "medium";
-      }
-
-      const status: ScheduledTask["status"] =
-        offer.status === "accepted" ? "in-progress" : "pending";
-
-      return {
-        id: offer.id,
-        title,
-        description: offer.description,
-        dueDate: offer.printDueDate!,
-        priority,
-        status,
-        relatedOfferId: offer.id,
-      };
-    })
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-    .slice(0, 5);
-};
+// Types, constants és utility functions átkerültek a features/home modulba
 
 interface Props {
   settings: Settings;
@@ -273,169 +186,18 @@ export const Home: React.FC<Props> = ({ settings, offers, filaments = [], projec
     }
   }, [offers, settings.language]);
   
-  // Helper függvény az időszak szűréséhez
-  const filterOffersByPeriod = (offers: Offer[], period: "all" | "week" | "month" | "year") => {
-    if (period === "all") return offers;
-    
-    const now = new Date();
-    // Állítsuk be az időt 00:00:00-ra a pontos összehasonlításhoz
-    now.setHours(0, 0, 0, 0);
-    const cutoffDate = new Date();
-    cutoffDate.setHours(0, 0, 0, 0);
-    
-    switch (period) {
-      case "week":
-        // Utolsó 7 nap (ma is beleszámít)
-        cutoffDate.setDate(now.getDate() - 6);
-        break;
-      case "month":
-        // Utolsó 30 nap (ma is beleszámít)
-        cutoffDate.setDate(now.getDate() - 29);
-        break;
-      case "year":
-        // Utolsó 365 nap (ma is beleszámít)
-        cutoffDate.setDate(now.getDate() - 364);
-        break;
-    }
-    
-    return offers.filter(offer => {
-      const offerDate = new Date(offer.date);
-      // Állítsuk be az időt 00:00:00-ra a pontos összehasonlításhoz
-      offerDate.setHours(0, 0, 0, 0);
-      return offerDate >= cutoffDate && offerDate <= now;
-    });
-  };
-
-  const getOfferFinancials = (offer: Offer) => {
-    // Védelem: ha nincs costs objektum, visszaadunk null értékeket
-    if (!offer.costs) {
-      console.warn(`[Home] Offer ${offer.id} has no costs object, skipping financial calculations`);
-      return {
-        revenueEUR: 0,
-        costsEUR: 0,
-        profitEUR: 0,
-        electricityCostEUR: 0,
-        dryingCostEUR: 0,
-      };
-    }
-
-    const filamentCostEUR = convertCurrencyFromTo(offer.costs.filamentCost, offer.currency, "EUR");
-    const electricityCostEUR = convertCurrencyFromTo(offer.costs.electricityCost, offer.currency, "EUR");
-    const dryingCostEUR = convertCurrencyFromTo(offer.costs.dryingCost, offer.currency, "EUR");
-    const usageCostEUR = convertCurrencyFromTo(offer.costs.usageCost, offer.currency, "EUR");
-
-    const totalCostsEUR = filamentCostEUR + electricityCostEUR + dryingCostEUR + usageCostEUR;
-    
-    // Bevétel csak akkor, ha completed ÉS paid (vagy nincs paymentStatus, akkor paid-nek számít)
-    let revenueEUR = 0;
-    if (offer.status === "completed") {
-      const paymentStatus = offer.paymentStatus || "paid";
-      if (paymentStatus === "paid") {
-        const profitPercentage = offer.profitPercentage ?? 30;
-        const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
-        revenueEUR = convertCurrencyFromTo(revenueInOfferCurrency, offer.currency, "EUR");
-      }
-    } else {
-      // Ha nincs completed státusz, akkor is számoljuk (régi viselkedés kompatibilitás miatt)
-      const profitPercentage = offer.profitPercentage ?? 30;
-      const revenueInOfferCurrency = offer.costs.totalCost * (1 + profitPercentage / 100);
-      revenueEUR = convertCurrencyFromTo(revenueInOfferCurrency, offer.currency, "EUR");
-    }
-    
-    const profitEUR = revenueEUR - totalCostsEUR;
-
-    return {
-      revenueEUR,
-      costsEUR: totalCostsEUR,
-      profitEUR,
-      electricityCostEUR,
-      dryingCostEUR,
-    };
-  };
-  
-  // Statisztikák számítása
-  const calculateStatistics = (offersToCalculate: Offer[]) => {
-    // Szűrjük az árajánlatokat, amelyeknek nincs costs objektuma
-    const validOffers = offersToCalculate.filter(offer => offer.costs != null);
-    
-    if (validOffers.length === 0) {
-      return {
-        totalFilamentUsed: 0,
-        totalRevenue: 0,
-        totalElectricityConsumed: 0,
-        totalCosts: 0,
-        totalProfit: 0,
-        totalPrintTime: 0,
-        offerCount: 0
-      };
-    }
-
-    let totalFilamentUsed = 0;
-    let totalRevenue = 0;
-    let totalElectricityKWh = 0;
-    let totalCosts = 0;
-    let totalPrintTime = 0;
-    let totalProfit = 0;
-
-    validOffers.forEach(offer => {
-      offer.filaments.forEach(f => {
-        totalFilamentUsed += f.usedGrams;
-      });
-
-      const { revenueEUR, costsEUR, profitEUR, electricityCostEUR, dryingCostEUR } = getOfferFinancials(offer);
-      totalRevenue += revenueEUR;
-      totalCosts += costsEUR;
-      totalProfit += profitEUR;
-
-      const electricityCostHUF = electricityCostEUR * 400;
-      const electricityPriceHUF = settings.electricityPrice || 70;
-      if (electricityPriceHUF > 0) {
-        const electricityKWh = electricityCostHUF / electricityPriceHUF;
-        totalElectricityKWh += electricityKWh;
-      }
-
-      const dryingCostHUF = dryingCostEUR * 400;
-      if (electricityPriceHUF > 0) {
-        const dryingKWh = dryingCostHUF / electricityPriceHUF;
-        totalElectricityKWh += dryingKWh;
-      }
-
-      totalPrintTime += offer.totalPrintTimeHours;
-    });
-
-    return {
-      totalFilamentUsed,
-      totalRevenue,
-      totalElectricityConsumed: totalElectricityKWh,
-      totalCosts,
-      totalProfit,
-      totalPrintTime,
-      offerCount: validOffers.length
-    };
-  };
-  
-  const statistics = useMemo(() => {
-    return calculateStatistics(offers);
-  }, [offers, settings.electricityPrice]);
-  
-  // Időszak szerinti statisztikák
-  const weeklyStats = useMemo(() => {
-    return calculateStatistics(filterOffersByPeriod(offers, "week"));
-  }, [offers, settings.electricityPrice]);
-  
-  const monthlyStats = useMemo(() => {
-    return calculateStatistics(filterOffersByPeriod(offers, "month"));
-  }, [offers, settings.electricityPrice]);
-  
-  const yearlyStats = useMemo(() => {
-    return calculateStatistics(filterOffersByPeriod(offers, "year"));
-  }, [offers, settings.electricityPrice]);
-  
-  // Aktuális statisztikák a kiválasztott időszak alapján
-  const currentStats = useMemo(() => {
-    const filteredOffers = filterOffersByPeriod(offers, selectedPeriod);
-    return calculateStatistics(filteredOffers);
-  }, [offers, selectedPeriod, settings.electricityPrice]);
+  // Home statisztikák hook használata
+  const {
+    statistics,
+    weeklyStats,
+    monthlyStats,
+    yearlyStats,
+    currentStats,
+  } = useHomeStatistics({
+    offers,
+    settings,
+    selectedPeriod,
+  });
   
   const trendData = useMemo<TrendPoint[]>(() => {
     const filtered = filterOffersByPeriod(offers, selectedPeriod);
@@ -2991,7 +2753,7 @@ export const Home: React.FC<Props> = ({ settings, offers, filaments = [], projec
       {/* Riport generálás dialógus */}
       {showReportDialog && (() => {
         const filteredOffers = filterOffersByPeriod(offers, reportPeriod);
-        const reportStats = calculateStatistics(filteredOffers);
+        const reportStats = calculateStatistics(filteredOffers, settings.electricityPrice || 70);
         const periodLabel = reportPeriod === "all" 
           ? t("home.period.option.all")
           : reportPeriod === "week"

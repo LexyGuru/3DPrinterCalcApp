@@ -220,6 +220,10 @@ export interface Settings {
   automaticBackupIntervalHours?: number; // Automatikus backup intervallum (órákban)
   maxAutomaticBackups?: number; // Maximum automatikus backup-ok száma (régi törlése)
   lastBackupDate?: string; // Utolsó backup dátuma (ISO string)
+  // App jelszavas védelem beállítások (v3.0.0)
+  appPasswordEnabled?: boolean; // App jelszavas védelem be/kikapcsolása
+  autoLockMinutes?: number; // Auto-lock időtartama (0 = nincs auto-lock)
+  appPasswordHash?: string | null; // Jelszó hash tárolása (nem plain text!)
 }
 
 export const defaultSettings: Settings = {
@@ -247,6 +251,10 @@ export const defaultSettings: Settings = {
   showHelpInMenu: true, // Alapértelmezetten mutassa a Help menüpontot
   logFormat: "text", // Alapértelmezett log formátum: szöveges (v1.8.0)
   logLevel: "INFO", // Alapértelmezett minimum log szint: INFO (v1.8.0)
+  // App jelszavas védelem beállítások (v3.0.0)
+  appPasswordEnabled: false, // Alapértelmezetten ki van kapcsolva
+  autoLockMinutes: 0, // Alapértelmezetten nincs auto-lock (0 = kikapcsolva)
+  appPasswordHash: null, // Alapértelmezetten nincs jelszó hash
 };
 
 export interface OfferFilament {

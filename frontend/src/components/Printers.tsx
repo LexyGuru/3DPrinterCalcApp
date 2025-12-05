@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Printer, Settings, AMS } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import { convertCurrency } from "../utils/currency";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { ConfirmDialog } from "../shared";
 import { useToast } from "./Toast";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { Tooltip } from "./Tooltip";
@@ -12,6 +12,8 @@ import { EmptyState } from "./EmptyState";
 import { validatePrinterPower, validateUsageCost, validateAMSCount } from "../utils/validation";
 import { useUndoRedo } from "../hooks/useUndoRedo";
 import { auditCreate, auditUpdate, auditDelete } from "../utils/auditLog";
+// Printers feature modul importok
+import { PrinterSearchBar, usePrinterFilter, usePrinterSort } from "../features/printers";
 
 interface Props {
   printers: Printer[];
@@ -83,13 +85,28 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
   const [editingPrinter, setEditingPrinter] = useState<{ name: string; type: string; power: number; usageCost: number; amsCount: number } | null>(null);
   const [amsForms, setAmsForms] = useState<Record<number, { brand: string; name: string; power: number }[]>>({});
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  // Printers feature modul hook-ok
+  const {
+    filteredPrinters,
+    filterOptions,
+    setSearchTerm,
+  } = usePrinterFilter({ printers: printersWithHistory });
+
+  const {
+    sortedPrinters,
+    sortConfig,
+    toggleSort,
+  } = usePrinterSort({ printers: filteredPrinters });
+
+  // Kompatibilitás a régi kóddal
+  const searchTerm = filterOptions.searchTerm || "";
+  const sortColumn = sortConfig?.column || null;
+  const sortDirection = sortConfig?.direction || "asc";
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [draggedPrinterId, setDraggedPrinterId] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ printerId: number; x: number; y: number } | null>(null);
   const [showColumnMenu, setShowColumnMenu] = useState(false);
-  const [sortColumn, setSortColumn] = useState<keyof Printer | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedPrinterIds, setSelectedPrinterIds] = useState<Set<number>>(new Set());
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   
@@ -381,54 +398,9 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
     setAmsForms({ ...amsForms, [printerId]: updated });
   };
 
-  // Szűrés a keresési kifejezés alapján
-  const filteredPrinters = printers.filter(p => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      p.name.toLowerCase().includes(term) ||
-      p.type.toLowerCase().includes(term)
-    );
-  });
-
-  // Rendezés logika
-  const sortedPrinters = useMemo(() => {
-    if (!sortColumn) return filteredPrinters;
-    
-    const sorted = [...filteredPrinters].sort((a: Printer, b: Printer) => {
-      let aValue: any = a[sortColumn];
-      let bValue: any = b[sortColumn];
-      
-      // Szöveges értékek esetén
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-      
-      // Számértékek esetén
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
-      }
-      
-      // Szöveges értékek esetén
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
-    
-    return sorted;
-  }, [filteredPrinters, sortColumn, sortDirection]);
-
-  // Rendezés váltása
+  // Rendezés váltása - hook metódus használata
   const handleSort = (column: keyof Printer) => {
-    if (sortColumn === column) {
-      // Ha ugyanaz az oszlop, váltjuk az irányt
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      // Ha más oszlop, új rendezés növekvő irányban
-      setSortColumn(column);
-      setSortDirection("asc");
-    }
+    toggleSort(column);
   };
 
   // Undo/Redo keyboard shortcuts
@@ -623,79 +595,27 @@ export const Printers: React.FC<Props> = ({ printers, setPrinters, settings, the
       
       {/* Kereső mező és műveletek */}
       {printersWithHistory.length > 0 && (
-        <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap" }}>
-            <div style={{ flex: "1", minWidth: "200px" }}>
-              <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontWeight: "600", 
-                fontSize: "14px", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>
-                🔍 {t("printers.searchLabel")}
-              </label>
-              <input
-                type="text"
-                placeholder={t("printers.searchPlaceholder")}
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                style={{ ...themeStyles.input, width: "100%", maxWidth: "400px" }}
-                aria-label={t("printers.searchAria")}
-                aria-describedby="printer-search-description"
-              />
-              <span id="printer-search-description" style={{ display: "none" }}>
-                {t("printers.searchDescription")}
-              </span>
-            </div>
-            
-            {/* Undo/Redo gombok */}
-            <div style={{ display: "flex", gap: "8px" }}>
-              <Tooltip content={`${t("common.undo")} (Ctrl/Cmd+Z)`}>
-                <button
-                  onClick={() => {
-                    if (canUndo) {
-                      undo();
-                      showToast(t("common.undo") || "Visszavonás", "info");
-                    }
-                  }}
-                  disabled={!canUndo}
-                  style={{
-                    ...themeStyles.button,
-                    ...themeStyles.buttonSecondary,
-                    opacity: canUndo ? 1 : 0.5,
-                    cursor: canUndo ? "pointer" : "not-allowed",
-                    padding: "8px 16px",
-                  }}
-                >
-                  ↶ {t("common.undo")}
-                </button>
-              </Tooltip>
-              <Tooltip content={`${t("common.redo")} (Ctrl/Cmd+Shift+Z)`}>
-                <button
-                  onClick={() => {
-                    if (canRedo) {
-                      redo();
-                      showToast(t("common.redo") || "Újra", "info");
-                    }
-                  }}
-                  disabled={!canRedo}
-                  style={{
-                    ...themeStyles.button,
-                    ...themeStyles.buttonSecondary,
-                    opacity: canRedo ? 1 : 0.5,
-                    cursor: canRedo ? "pointer" : "not-allowed",
-                    padding: "8px 16px",
-                  }}
-                >
-                  ↷ {t("common.redo")}
-                </button>
-              </Tooltip>
-            </div>
-          </div>
-        </div>
+        <PrinterSearchBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={() => {
+            if (canUndo) {
+              undo();
+              showToast(t("common.undo") || "Visszavonás", "info");
+            }
+          }}
+          onRedo={() => {
+            if (canRedo) {
+              redo();
+              showToast(t("common.redo") || "Újra", "info");
+            }
+          }}
+          themeStyles={themeStyles}
+          settings={settings}
+          theme={theme}
+        />
       )}
       
       {/* Új nyomtató hozzáadása gomb és oszlop kezelő */}

@@ -4,7 +4,7 @@ import type { Task, Settings, Offer, Project, TaskStatus, TaskPriority } from ".
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
 import type { TranslationKey } from "../utils/languages";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { ConfirmDialog } from "../shared";
 import { useToast } from "./Toast";
 import { EmptyState } from "./EmptyState";
 import { loadTasks } from "../utils/store";

@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import type { Settings, Offer } from "../types";
 import type { Theme } from "../utils/themes";
 import { Breadcrumb } from "./Breadcrumb";
 import { useTranslation } from "../utils/translations";
 import { Tooltip } from "./Tooltip";
 import { getTimeSinceBackup } from "../utils/backup";
+import { PAGE_TO_ROUTE, ROUTE_TO_PAGE } from "../router/routes";
 
 interface Props {
   settings: Settings;
@@ -35,6 +37,7 @@ export const Header: React.FC<Props> = ({
 }) => {
 
   const location = useLocation();
+  const navigate = useNavigate();
   
   // activePage a location.pathname-ből származik (ha routing van)
   const currentActivePage = useMemo(() => {
@@ -42,18 +45,15 @@ export const Header: React.FC<Props> = ({
   }, [location.pathname, activePage]);
   
   // Navigate handler - routing-ot használ, ha elérhető
-  const handlePageChange = (page: string) => {
+  const handlePageChange = useCallback((page: string) => {
     const route = PAGE_TO_ROUTE[page] || "/";
     navigate(route);
     // Fallback: ha nincs routing, használjuk az onPageChange-t
     if (onPageChange) {
       onPageChange(page);
     }
-  };
-  themeStyles,
-  onQuickAction,
-  offers = [],
-}) => {
+  }, [navigate, onPageChange]);
+
   const t = useTranslation(settings.language);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -378,7 +378,7 @@ export const Header: React.FC<Props> = ({
     }
 
     return items;
-  }, [activePage, onPageChange, t]);
+  }, [currentActivePage, handlePageChange, t]);
 
   // Gyors műveletek gombok az aktuális oldal alapján
   const quickActions = useMemo(() => {

@@ -1,6 +1,9 @@
 import { createContext, useContext, type ReactNode } from "react";
-import type { Printer, Settings, Filament, Offer, Customer, Project, Task, Theme } from "../types";
-import type { ThemeStyles } from "../utils/themes";
+import type { Printer, Settings, Filament, Offer, Customer, Project, Task } from "../types";
+import type { Theme } from "../utils/themes";
+import type { getThemeStyles } from "../utils/themes";
+
+type ThemeStyles = ReturnType<typeof getThemeStyles>;
 
 /**
  * App Context - tartalmazza az összes state-et és függvényt,
@@ -22,12 +25,12 @@ export interface AppContextType {
   
   // Setters
   setSettings: (settings: Settings) => void;
-  setPrinters: (printers: Printer[]) => void;
-  setFilaments: (filaments: Filament[]) => void;
-  setOffers: (offers: Offer[]) => void;
-  setCustomers: (customers: Customer[]) => void;
-  setProjects: (projects: Project[]) => void;
-  setTasks: (tasks: Task[]) => void;
+  setPrinters: React.Dispatch<React.SetStateAction<Printer[]>>;
+  setFilaments: React.Dispatch<React.SetStateAction<Filament[]>>;
+  setOffers: React.Dispatch<React.SetStateAction<Offer[]>>;
+  setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
+  setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   setQuickActionTrigger: (trigger: string | null) => void;
   setSettingsInitialModal: (modal: "log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history" | null) => void;
   

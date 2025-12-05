@@ -37,6 +37,7 @@ import { useTranslation } from "./utils/translations";
 import { logApplicationStartup, resetLoggingFlags } from "./utils/appLogging"; // Centralized application logging
 import { PerformanceTimer, logMemoryUsage, logPerformanceSummary, logPeriodicPerformanceMetrics, type PerformanceMetric } from "./utils/performance"; // Performance metrikák
 import { auditCreate } from "./utils/auditLog"; // Audit log
+import { AuthGuard } from "./components/AuthGuard"; // Auth guard - jelszavas védelem
 
 // Belső AppContent komponens - használja a Router hook-okat
 function AppContent() {
@@ -1296,6 +1297,10 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
     <ErrorBoundary>
       <ToastProvider settings={settings}>
         <AppProvider value={appContextValue}>
+          <AuthGuard
+            settings={settings}
+            theme={currentTheme}
+          >
           <div style={{ 
           height: "100vh", 
           width: "100vw", 
@@ -1410,7 +1415,6 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
               <AppRouter
                 settings={settings}
                 theme={currentTheme}
-                themeStyles={themeStyles}
                 animationSettings={animationSettings}
                 pageTransitionVariants={pageTransitionVariants}
                 pageTransitionTiming={pageTransitionTiming}
@@ -1567,6 +1571,7 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
           {/* Backup Reminder - automatikus emlékeztető régi backup-okhoz - NE mutassa, ha a tutorial aktív vagy meg fog nyílni */}
           {isInitialized && !showTutorial && !tutorialWillOpen && <BackupReminder settings={settings} showTutorial={showTutorial} />}
         </div>
+          </AuthGuard>
         </AppProvider>
       </ToastProvider>
     </ErrorBoundary>

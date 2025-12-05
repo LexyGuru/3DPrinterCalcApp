@@ -199,6 +199,7 @@ export class PerformanceTimer {
       name: this.name,
       duration,
       timestamp: new Date().toISOString(),
+      context: {}, // Alapértelmezett üres context, hogy ne legyen figyelmeztetés
       ...(this.memoryBefore !== null && memoryAfter !== null
         ? {
             memoryBefore: this.memoryBefore,
@@ -341,7 +342,8 @@ async function logPerformanceMetric(metric: PerformanceMetric): Promise<void> {
         // Debug: ha nincsenek parts, nézzük meg miért
         console.warn("⚠️ No parts added to performance message. Context keys:", Object.keys(metric.context), "values:", metric.context);
       }
-    } else if (import.meta.env.DEV) {
+    } else if (import.meta.env.DEV && metric.type !== "loading") {
+      // Csak akkor figyelmeztetünk, ha nem loading típusú metrika (loading metrikáknak nem feltétlenül kell context)
       console.warn("⚠️ No context in performance metric. Metric:", { name: metric.name, type: metric.type, memoryAfter: metric.memoryAfter });
     }
 

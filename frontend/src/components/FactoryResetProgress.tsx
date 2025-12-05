@@ -141,17 +141,20 @@ export const FactoryResetProgress: React.FC<FactoryResetProgressProps> = ({
 
         try {
           const deletedLogCount = await invoke<number>("delete_all_logs");
+          const deletedAuditLogCount = await invoke<number>("delete_all_audit_logs");
           
           // Ellenőrizzük, hogy a fájlok valóban törlődtek-e (2 másodperc késleltetéssel)
           await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          const totalDeleted = deletedLogCount + deletedAuditLogCount;
           
           setSteps(prev => prev.map((s, i) => 
             i === 1 
               ? { 
                   ...s, 
                   status: "completed" as const,
-                  message: deletedLogCount > 0
-                    ? `${deletedLogCount} ${t("factoryResetProgress.message.filesDeleted")}`
+                  message: totalDeleted > 0
+                    ? `${totalDeleted} ${t("factoryResetProgress.message.filesDeleted")} (${deletedLogCount} log, ${deletedAuditLogCount} audit)`
                     : t("factoryResetProgress.message.noFilesToDelete")
                 }
               : s
@@ -214,6 +217,7 @@ export const FactoryResetProgress: React.FC<FactoryResetProgressProps> = ({
           await auditFactoryReset({
             deletedBackupCount: await invoke<number>("delete_all_backups").catch(() => 0),
             deletedLogCount: await invoke<number>("delete_all_logs").catch(() => 0),
+            deletedAuditLogCount: await invoke<number>("delete_all_audit_logs").catch(() => 0),
           });
         } catch (error) {
           // Csendben ignoráljuk, mert a logolás ki van kapcsolva

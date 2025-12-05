@@ -153,6 +153,31 @@ Ez a fájl tartalmazza az összes befejezett funkciót és fejlesztést. A jelen
 - [x] Lazy loading bővítése – **KÉSZ v2.0.0**
 - [x] Virtual scroll hozzáadása további listákhoz – **KÉSZ v2.0.0**
 
+## v3.0.0 Kész Funkciók (Részben)
+
+### Performance Optimalizálás és Code Splitting
+- [x] React Router integráció implementálása – **KÉSZ v3.0.0 (beta)**
+  - ✅ React Router telepítése és konfigurálása (`react-router-dom` v7.10.0)
+  - ✅ Route struktúra implementálása (URL alapú: `/settings`, `/offers`, stb.)
+  - ✅ Lazy loading route-okhoz (minden route külön fájlba kerül)
+  - ✅ State-based navigáció átalakítása routing-ra (`activePage` → URL)
+  - ✅ URL alapú navigáció, bookmark-olható oldalak, vissza gomb működik
+  - ✅ AppContext és AppRouter implementáció
+  - ✅ Route wrapper komponensek lazy loading-gal
+  - ✅ Header és Sidebar routing integráció
+- [x] React.lazy() dokumentálása – **KÉSZ v3.0.0 (beta)**
+  - ✅ PERFORMANCE.md dokumentáció létrehozva
+  - ✅ LazyErrorBoundary implementálva
+  - ✅ Suspense fallback optimalizálva
+- [x] Vite build konfiguráció optimalizálása – **KÉSZ v3.0.0 (beta)**
+  - ✅ manualChunks beállítása vendor chunk-ok optimalizálásához
+  - ✅ React/React-DOM/React-Router külön chunk (`vendor-react`)
+  - ✅ Tauri API-k külön chunk (`vendor-tauri`)
+  - ✅ UI library-k külön chunk-ok (`vendor-ui-framer`, `vendor-ui-charts`)
+  - ✅ Route-based chunking (automatikus lazy loading)
+  - ✅ Router és közös komponensek csoportosítása
+  - ✅ Chunk size warning limit beállítása
+
 ---
 
 **Megjegyzés**: A részletesebb információk és technikai részletek a `todo.md` fájlban találhatók, ahol ezek a funkciók eredetileg dokumentálva voltak.

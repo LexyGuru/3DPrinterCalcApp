@@ -6,7 +6,7 @@ import { defaultAnimationSettings } from "../types";
 import type { Theme } from "../utils/themes";
 import { filamentPrice } from "../utils/filamentCalc";
 import { useTranslation } from "../utils/translations";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { ConfirmDialog } from "../shared";
 import { useToast } from "./Toast";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { Tooltip } from "./Tooltip";
@@ -15,6 +15,15 @@ import { useUndoRedo } from "../hooks/useUndoRedo";
 import { useOptimisticUpdate } from "../hooks/useOptimisticUpdate";
 import { saveFilaments } from "../utils/store";
 import { validateFilamentWeight, validateFilamentPrice } from "../utils/validation";
+// Filaments feature modul importok
+import {
+  FilamentSearchBar,
+  FilamentFilters,
+  AddFilamentButton,
+  ColumnVisibilityManager,
+} from "../features/filaments";
+import { filterFilaments, getUniqueBrands, getUniqueTypes } from "../features/filaments/utils/filtering";
+import { sortFilaments } from "../features/filaments/utils/sorting";
 import type { FilamentFinish, FilamentColorOption } from "../utils/filamentColors";
 import {
   DEFAULT_COLOR_HEX,
@@ -87,6 +96,7 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     canRedo,
     reset: resetHistory,
   } = useUndoRedo<Filament[]>(optimisticFilaments, 50);
+
 
   // Sync optimistic filaments with history when external changes occur
   // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
@@ -1095,86 +1105,28 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     });
   };
 
-  // Szűrés a keresési kifejezés és kedvenc alapján
+  // Szűrés a keresési kifejezés és kedvenc alapján - hook utility függvényekkel
   const filteredFilaments = useMemo(() => {
-    return filamentsWithHistory.filter(f => {
-      // Kedvenc szűrés
-      if (showFavoritesOnly && !f.favorite) return false;
-
-      // Oszlop szűrők: márka / típus / szín
-      if (tableBrandFilter !== "all" && f.brand !== tableBrandFilter) return false;
-      if (tableTypeFilter !== "all" && f.type !== tableTypeFilter) return false;
-      if (tableColorFilter !== "all") {
-        const colorName = (f.color || "").toLowerCase();
-        const hex = (f.colorHex || "").toLowerCase();
-        const filterValue = tableColorFilter.toLowerCase();
-        if (!colorName.includes(filterValue) && !hex.includes(filterValue)) {
-          return false;
-        }
-      }
-
-      // Keresési kifejezés szűrés
-      if (!searchTerm) return true;
-      const term = searchTerm.toLowerCase();
-      return (
-        f.brand.toLowerCase().includes(term) ||
-        f.type.toLowerCase().includes(term) ||
-        (f.color && f.color.toLowerCase().includes(term)) ||
-        (f.colorHex && f.colorHex.toLowerCase().includes(term))
-      );
+    return filterFilaments(filamentsWithHistory, {
+      brand: tableBrandFilter,
+      type: tableTypeFilter,
+      color: tableColorFilter,
+      searchTerm: searchTerm,
+      favoritesOnly: showFavoritesOnly,
     });
   }, [filamentsWithHistory, showFavoritesOnly, searchTerm, tableBrandFilter, tableTypeFilter, tableColorFilter]);
 
   const tableBrandOptions = useMemo(() => {
-    const set = new Set<string>();
-    filamentsWithHistory.forEach(f => {
-      if (f.brand) set.add(f.brand);
-    });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+    return getUniqueBrands(filamentsWithHistory);
   }, [filamentsWithHistory]);
 
   const tableTypeOptions = useMemo(() => {
-    const set = new Set<string>();
-    filamentsWithHistory.forEach(f => {
-      if (f.type) set.add(f.type);
-    });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+    return getUniqueTypes(filamentsWithHistory);
   }, [filamentsWithHistory]);
 
-  // Rendezés logika (többszörös rendezés támogatása)
+  // Rendezés logika (többszörös rendezés támogatása) - hook utility függvénnyel
   const sortedFilaments = useMemo(() => {
-    if (sortConfig.length === 0) return filteredFilaments;
-
-    const sorted = [...filteredFilaments].sort((a: Filament, b: Filament) => {
-      for (const { column, direction } of sortConfig) {
-        let aValue: any = a[column];
-        let bValue: any = b[column];
-
-        // Szöveges értékek esetén
-        if (typeof aValue === "string" && typeof bValue === "string") {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        let cmp = 0;
-
-        // Számértékek esetén
-        if (typeof aValue === "number" && typeof bValue === "number") {
-          cmp = aValue - bValue;
-        } else if (aValue < bValue) {
-          cmp = -1;
-        } else if (aValue > bValue) {
-          cmp = 1;
-        }
-
-        if (cmp !== 0) {
-          return direction === "asc" ? cmp : -cmp;
-        }
-      }
-      return 0;
-    });
-
-    return sorted;
+    return sortFilaments(filteredFilaments, sortConfig);
   }, [filteredFilaments, sortConfig]);
 
   // Rendezés váltása (Shift+click = többszörös rendezés)
@@ -1491,349 +1443,73 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
       
       {/* Kereső mező */}
       {filamentsWithHistory.length > 0 && (
-        <div style={{ ...themeStyles.card, marginBottom: "24px" }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: "8px", 
-            fontWeight: "600", 
-            fontSize: "14px", 
-            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-          }}>
-            🔍 {t("filaments.search.label")}
-          </label>
-          <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-            <input
-              type="text"
-              placeholder={t("filaments.search.placeholder")}
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-              onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-              style={{ ...themeStyles.input, flex: "1", minWidth: "200px", maxWidth: "400px" }}
-              aria-label={t("filaments.search.ariaLabel")}
-              aria-describedby="filament-search-description"
-            />
-            <span id="filament-search-description" style={{ display: "none" }}>
-              {t("filaments.search.description")}
-            </span>
-            {/* Undo/Redo és Kedvencek gombok */}
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              {isOptimisticSaving && (
-                <span style={{ 
-                  fontSize: "12px", 
-                  color: theme.colors.textMuted,
-                  fontStyle: "italic"
-                }}>
-                  💾 Mentés folyamatban...
-                </span>
-              )}
-              <Tooltip content={`${t("common.undo")} (Ctrl/Cmd+Z)`}>
-                <button
-                  onClick={() => {
-                    if (canUndo) {
-                      undo();
-                      showToast(t("common.undo"), "info");
-                    }
-                  }}
-                  disabled={!canUndo}
-                  style={{
-                    ...themeStyles.button,
-                    ...themeStyles.buttonSecondary,
-                    opacity: canUndo ? 1 : 0.5,
-                    cursor: canUndo ? "pointer" : "not-allowed",
-                    padding: "8px 12px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    fontSize: "14px",
-                  }}
-                >
-                  <span>↶</span>
-                  <span>{t("common.undo")}</span>
-                </button>
-              </Tooltip>
-              <Tooltip content={`${t("common.redo")} (Ctrl/Cmd+Shift+Z)`}>
-                <button
-                  onClick={() => {
-                    if (canRedo) {
-                      redo();
-                      showToast(t("common.redo"), "info");
-                    }
-                  }}
-                  disabled={!canRedo}
-                  style={{
-                    ...themeStyles.button,
-                    ...themeStyles.buttonSecondary,
-                    opacity: canRedo ? 1 : 0.5,
-                    cursor: canRedo ? "pointer" : "not-allowed",
-                    padding: "8px 12px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    fontSize: "14px",
-                  }}
-                >
-                  <span>↷</span>
-                  <span>{t("common.redo")}</span>
-                </button>
-              </Tooltip>
-              <Tooltip content={showFavoritesOnly ? t("filaments.favorite.showAll") : t("filaments.favorite.showOnly")}>
-                <button
-                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                  onMouseEnter={(e) => {
-                    if (!interactionsEnabled) return;
-                    Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!interactionsEnabled) return;
-                    const btn = e.currentTarget as HTMLButtonElement;
-                    btn.style.transform = "translateY(0)";
-                    btn.style.boxShadow = showFavoritesOnly 
-                      ? themeStyles.buttonPrimary.boxShadow 
-                      : themeStyles.buttonSecondary.boxShadow;
-                  }}
-                  style={{
-                    ...themeStyles.button,
-                    ...(showFavoritesOnly ? themeStyles.buttonPrimary : themeStyles.buttonSecondary),
-                    padding: "8px 12px",
-                    fontSize: "14px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                  aria-label={showFavoritesOnly ? t("filaments.favorite.showAll") : t("filaments.favorite.showOnly")}
-                >
-                  <span style={{ fontSize: "16px" }}>{showFavoritesOnly ? "⭐" : "☆"}</span>
-                  {showFavoritesOnly ? t("filaments.favorite.showing") : t("filaments.favorite.filter")}
-                </button>
-              </Tooltip>
-            </div>
-          </div>
-        </div>
+        <FilamentSearchBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          showFavoritesOnly={showFavoritesOnly}
+          onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={() => {
+            if (canUndo) {
+              undo();
+              showToast(t("common.undo"), "info");
+            }
+          }}
+          onRedo={() => {
+            if (canRedo) {
+              redo();
+              showToast(t("common.redo"), "info");
+            }
+          }}
+          isSaving={isOptimisticSaving}
+          theme={theme}
+          themeStyles={themeStyles}
+          settings={settings}
+          interactionsEnabled={interactionsEnabled}
+        />
       )}
 
       {/* Oszlop szűrők a táblázathoz */}
       {!showAddForm && editingIndex === null && (
-        <div
-          style={{
-            marginBottom: "16px",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "12px",
-            alignItems: "flex-end",
-          }}
-        >
-          {/* Márka szűrő */}
-          <div style={{ minWidth: "180px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "4px",
-                fontSize: "12px",
-                fontWeight: 600,
-                color: theme.colors.textMuted,
-              }}
-            >
-              {t("filaments.brand")}
-            </label>
-            <select
-              value={tableBrandFilter}
-              onChange={(e) => setTableBrandFilter(e.target.value)}
-              style={{
-                ...themeStyles.input,
-                padding: "6px 10px",
-                fontSize: "13px",
-              }}
-            >
-              <option value="all">{t("common.all" as any)}</option>
-              {tableBrandOptions.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Típus / anyag szűrő */}
-          <div style={{ minWidth: "180px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "4px",
-                fontSize: "12px",
-                fontWeight: 600,
-                color: theme.colors.textMuted,
-              }}
-            >
-              {t("filaments.type")}
-            </label>
-            <select
-              value={tableTypeFilter}
-              onChange={(e) => setTableTypeFilter(e.target.value)}
-              style={{
-                ...themeStyles.input,
-                padding: "6px 10px",
-                fontSize: "13px",
-              }}
-            >
-              <option value="all">{t("common.all" as any)}</option>
-              {tableTypeOptions.map((mt) => (
-                <option key={mt} value={mt}>
-                  {mt}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Szín / HEX szűrő (szabad szöveg) */}
-          <div style={{ minWidth: "180px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "4px",
-                fontSize: "12px",
-                fontWeight: 600,
-                color: theme.colors.textMuted,
-              }}
-            >
-              {t("filaments.color")}
-            </label>
-            <input
-              type="text"
-              value={tableColorFilter === "all" ? "" : tableColorFilter}
-              onChange={(e) => setTableColorFilter(e.target.value || "all")}
-              placeholder={t("filaments.color")}
-              style={{
-                ...themeStyles.input,
-                padding: "6px 10px",
-                fontSize: "13px",
-              }}
-            />
-          </div>
-        </div>
+        <FilamentFilters
+          brandFilter={tableBrandFilter}
+          typeFilter={tableTypeFilter}
+          colorFilter={tableColorFilter}
+          onBrandFilterChange={setTableBrandFilter}
+          onTypeFilterChange={setTableTypeFilter}
+          onColorFilterChange={setTableColorFilter}
+          brandOptions={tableBrandOptions}
+          typeOptions={tableTypeOptions}
+          theme={theme}
+          themeStyles={themeStyles}
+          settings={settings}
+        />
       )}
       
       {/* Új filament hozzáadása gomb és oszlop kezelő */}
       {!showAddForm && editingIndex === null && (
         <div style={{ marginBottom: "24px", display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-          <Tooltip content={t("filaments.tooltip.addShortcut")}>
-            <button
-              onClick={() => setShowAddForm(true)}
-              onMouseEnter={(e) => {
-                if (!interactionsEnabled) return;
-                Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
-              }}
-              onMouseLeave={(e) => {
-                if (!interactionsEnabled) return;
-                const btn = e.currentTarget as HTMLButtonElement;
-                btn.style.transform = "translateY(0)";
-                btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow;
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setShowAddForm(true);
-                }
-              }}
-              style={{ 
-                ...themeStyles.button,
-                ...themeStyles.buttonPrimary,
-                fontSize: "16px",
-                padding: "14px 28px"
-              }}
-              aria-label={t("filaments.actions.addAria")}
-            >
-              ➕ {t("filaments.addTitle")}
-            </button>
-          </Tooltip>
+          <AddFilamentButton
+            onAdd={() => setShowAddForm(true)}
+            themeStyles={themeStyles}
+            settings={settings}
+            interactionsEnabled={interactionsEnabled}
+          />
           
           {/* Oszlop kezelő gomb */}
           {sortedFilaments.length > 0 && (
-            <div style={{ position: "relative" }} data-column-menu>
-              <Tooltip content={t("filaments.columns.manage")}>
-                <button
-                  onClick={() => setShowColumnMenu(!showColumnMenu)}
-                  onMouseEnter={(e) => {
-                    Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
-                  }}
-                  onMouseLeave={(e) => {
-                    const btn = e.currentTarget as HTMLButtonElement;
-                    btn.style.transform = "translateY(0)";
-                    btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow;
-                  }}
-                  style={{ 
-                    ...themeStyles.button,
-                    ...themeStyles.buttonPrimary,
-                    fontSize: "16px",
-                    padding: "14px 28px"
-                  }}
-                  aria-label={t("filaments.columns.manage")}
-                >
-                  📋 {t("filaments.columns.manage")}
-                </button>
-              </Tooltip>
-              
-              {/* Oszlop kezelő menü */}
-              {showColumnMenu && (
-                <div
-                  data-column-menu
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    marginTop: "8px",
-                    backgroundColor: theme.colors.surface,
-                    border: `1px solid ${theme.colors.border}`,
-                    borderRadius: "8px",
-                    padding: "12px",
-                    minWidth: "200px",
-                    boxShadow: theme.name === 'neon' || theme.name === 'cyberpunk'
-                      ? `0 0 20px ${theme.colors.shadow}, 0 4px 16px rgba(0,0,0,0.3)`
-                      : `0 4px 16px rgba(0,0,0,0.2)`,
-                    zIndex: 1000,
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div style={{ marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text }}>
-                    {t("filaments.columns.manage")}
-                  </div>
-                  {Object.entries(columnVisibility).map(([column, visible]) => (
-                    <label
-                      key={column}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        padding: "8px",
-                        cursor: "pointer",
-                        borderRadius: "4px",
-                        transition: "background-color 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = theme.colors.surfaceHover;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={visible}
-                        onChange={() => toggleColumnVisibility(column as keyof typeof columnVisibility)}
-                        style={{
-                          cursor: "pointer",
-                          width: "18px",
-                          height: "18px",
-                        }}
-                      />
-                      <span style={{ fontSize: "14px", color: theme.colors.text }}>
-                        {t(`filaments.columns.${column}` as any) || t(`printers.columns.${column}` as any) || column}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ColumnVisibilityManager
+              columnVisibility={columnVisibility}
+              onToggleColumn={(column) =>
+                toggleColumnVisibility(column as keyof typeof columnVisibility)
+              }
+              showColumnMenu={showColumnMenu}
+              onToggleMenu={() => setShowColumnMenu(!showColumnMenu)}
+              theme={theme}
+              themeStyles={themeStyles}
+              settings={settings}
+            />
           )}
         </div>
       )}

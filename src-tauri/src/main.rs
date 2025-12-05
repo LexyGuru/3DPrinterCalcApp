@@ -2,6 +2,7 @@
 
 mod commands;
 mod logger;
+mod encryption;
 
 use tauri::{generate_context, Builder};
 use commands::*;
@@ -41,6 +42,11 @@ fn main() {
             read_audit_log_file,
             get_audit_log_directory_path,
             delete_old_audit_logs,
+            delete_all_audit_logs,
+            hash_password,
+            verify_password,
+            encrypt_data,
+            decrypt_data,
             #[cfg(target_os = "macos")]
             set_dock_badge,
             #[cfg(target_os = "windows")]

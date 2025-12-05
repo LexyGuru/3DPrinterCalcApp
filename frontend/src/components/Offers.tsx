@@ -12,7 +12,7 @@ import type {
 } from "../types";
 import type { Theme } from "../utils/themes";
 import { useTranslation, type TranslationKey } from "../utils/translations";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { ConfirmDialog } from "../shared";
 import { useToast } from "./Toast";
 import { convertCurrencyFromTo, getCurrencyLabel } from "../utils/currency";
 import { Tooltip } from "./Tooltip";
@@ -26,6 +26,8 @@ import { notifyExportComplete, notifyOfferStatusChange } from "../utils/platform
 import { useUndoRedo } from "../hooks/useUndoRedo";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { auditCreate, auditUpdate, auditDelete } from "../utils/auditLog";
+// Offers feature modul importok
+import { OfferFilters, OfferStatusFilters, OfferSortControls, useOfferFilter } from "../features/offers";
 
 const STATUS_ORDER: OfferStatus[] = ["draft", "sent", "accepted", "rejected", "completed"];
 
@@ -157,7 +159,6 @@ export const Offers: React.FC<Props> = ({
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [printContent, setPrintContent] = useState<string>("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
   const [editCustomerName, setEditCustomerName] = useState("");
   const [editCustomerContact, setEditCustomerContact] = useState("");
@@ -185,7 +186,29 @@ export const Offers: React.FC<Props> = ({
   const [statusChangeTarget, setStatusChangeTarget] = useState<OfferStatus | null>(null);
   const [statusChangeNote, setStatusChangeNote] = useState("");
   const [deductOnComplete, setDeductOnComplete] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<OfferStatus | "all">("all");
+  // Offers feature modul hook-ok
+  const {
+    searchTerm,
+    statusFilter,
+    minAmountFilter,
+    maxAmountFilter,
+    fromDateFilter,
+    toDateFilter,
+    sortConfig: offerSortConfig,
+    setSearchTerm,
+    setStatusFilter,
+    setMinAmountFilter,
+    setMaxAmountFilter,
+    setFromDateFilter,
+    setToDateFilter,
+    setSortConfig: setOfferSortConfig,
+    filteredOffers,
+    sortedOffers,
+  } = useOfferFilter({
+    offers: offersWithHistory,
+    settings,
+    initialSortConfig: settings.offerSortConfig || [],
+  });
   const [selectedOfferIds, setSelectedOfferIds] = useState<Set<number>>(new Set());
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const locale = settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : settings.language === "uk" ? "uk-UA" : settings.language === "ru" ? "ru-RU" : "en-US";
@@ -1211,124 +1234,7 @@ export const Offers: React.FC<Props> = ({
     return parsed.toLocaleString(locale, { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
   };
 
-  const [minAmountFilter, setMinAmountFilter] = useState<string>("");
-  const [maxAmountFilter, setMaxAmountFilter] = useState<string>("");
-  const [fromDateFilter, setFromDateFilter] = useState<string>("");
-  const [toDateFilter, setToDateFilter] = useState<string>("");
-
-  const filteredOffers = offersWithHistory.filter(o => {
-    if (!searchTerm && statusFilter === "all" && !minAmountFilter && !maxAmountFilter && !fromDateFilter && !toDateFilter) return true;
-    const term = searchTerm.toLowerCase();
-    const date = new Date(o.date).toLocaleDateString();
-    const matchesSearch = !searchTerm ||
-      o.printerName.toLowerCase().includes(term) ||
-      o.printerType.toLowerCase().includes(term) ||
-      (o.customerName && o.customerName.toLowerCase().includes(term)) ||
-      date.includes(term) ||
-      o.id.toString().includes(term);
-
-    if (!matchesSearch) {
-      return false;
-    }
-
-    if (statusFilter !== "all") {
-      const currentStatus = o.status ?? "draft";
-      if (currentStatus !== statusFilter) return false;
-    }
-
-    // Összeg szűrők – mindig HUF-ból konvertáljuk a beállított pénznemre összehasonlításhoz
-    const totalInDisplayCurrency = convertCurrencyFromTo(
-      o.costs.totalCost,
-      o.currency || "EUR",
-      settings.currency
-    );
-
-    if (minAmountFilter) {
-      const min = Number(minAmountFilter.replace(",", "."));
-      if (!Number.isNaN(min) && totalInDisplayCurrency < min) return false;
-    }
-
-    if (maxAmountFilter) {
-      const max = Number(maxAmountFilter.replace(",", "."));
-      if (!Number.isNaN(max) && totalInDisplayCurrency > max) return false;
-    }
-
-    // Dátum szűrők
-    const offerDate = new Date(o.date);
-    if (!Number.isNaN(offerDate.getTime())) {
-      if (fromDateFilter) {
-        const from = new Date(fromDateFilter);
-        if (!Number.isNaN(from.getTime()) && offerDate < from) return false;
-      }
-      if (toDateFilter) {
-        const to = new Date(toDateFilter);
-        if (!Number.isNaN(to.getTime()) && offerDate > to) return false;
-      }
-    }
-
-    return true;
-  });
-
   type OfferSortKey = "date" | "amount" | "status" | "customer" | "id";
-
-  const [offerSortConfig, setOfferSortConfig] = useState<Array<{ key: OfferSortKey; direction: "asc" | "desc" }>>(
-    settings.offerSortConfig || []
-  );
-
-  const sortedOffers = useMemo(() => {
-    if (offerSortConfig.length === 0) return filteredOffers;
-
-    const getStatusIndex = (status: OfferStatus | undefined | null): number => {
-      if (!status) return STATUS_ORDER.length;
-      const idx = STATUS_ORDER.indexOf(status);
-      return idx === -1 ? STATUS_ORDER.length : idx;
-    };
-
-    return [...filteredOffers].sort((a, b) => {
-      for (const { key, direction } of offerSortConfig) {
-        let aValue: any;
-        let bValue: any;
-
-        switch (key) {
-          case "date":
-            aValue = new Date(a.date).getTime();
-            bValue = new Date(b.date).getTime();
-            break;
-          case "amount":
-            aValue = a.costs?.totalCost ?? 0;
-            bValue = b.costs?.totalCost ?? 0;
-            break;
-          case "status":
-            aValue = getStatusIndex(a.status ?? "draft");
-            bValue = getStatusIndex(b.status ?? "draft");
-            break;
-          case "customer":
-            aValue = (a.customerName || "").toLowerCase();
-            bValue = (b.customerName || "").toLowerCase();
-            break;
-          case "id":
-          default:
-            aValue = a.id;
-            bValue = b.id;
-            break;
-        }
-
-        let cmp = 0;
-        if (typeof aValue === "number" && typeof bValue === "number") {
-          cmp = aValue - bValue;
-        } else if (aValue < bValue) {
-          cmp = -1;
-        } else if (aValue > bValue) {
-          cmp = 1;
-        }
-
-        if (cmp !== 0) {
-          return direction === "asc" ? cmp : -cmp;
-        }
-      }
-      return 0;
-    });
-  }, [filteredOffers, offerSortConfig]);
 
   const handleOfferSort = (key: OfferSortKey, event?: React.MouseEvent<HTMLButtonElement>) => {
     const isShiftClick = event?.shiftKey;
@@ -1384,63 +1290,6 @@ export const Offers: React.FC<Props> = ({
     });
   };
 
-  const renderSortChip = (label: string, key: OfferSortKey) => {
-    const idx = offerSortConfig.findIndex(cfg => cfg.key === key);
-    const isActive = idx !== -1;
-    const cfg = isActive ? offerSortConfig[idx] : null;
-    const isPrimary = idx === 0;
-
-    const baseStyle: React.CSSProperties = {
-      padding: "6px 10px",
-      borderRadius: "999px",
-      border: `1px solid ${theme.colors.border}`,
-      fontSize: "12px",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "4px",
-      cursor: "pointer",
-      backgroundColor: theme.colors.surface,
-      color: theme.colors.text,
-      transition: "background-color 0.15s, color 0.15s, border-color 0.15s",
-    };
-
-    const activeStyle: React.CSSProperties = isActive
-      ? {
-          backgroundColor: theme.colors.primary + "15",
-          borderColor: theme.colors.primary,
-          color: theme.colors.primary,
-        }
-      : {};
-
-    return (
-      <button
-        key={key}
-        type="button"
-        onClick={(e) => handleOfferSort(key, e)}
-        style={{ ...baseStyle, ...activeStyle }}
-      >
-        <span>{label}</span>
-        {isActive && cfg && (
-          <>
-            <span>{cfg.direction === "asc" ? "↑" : "↓"}</span>
-            {!isPrimary && (
-              <span
-                style={{
-                  fontSize: "10px",
-                  padding: "0 4px",
-                  borderRadius: "999px",
-                  backgroundColor: theme.colors.surfaceHover,
-                  color: theme.colors.textMuted,
-                }}
-              >
-                {idx + 1}
-              </span>
-            )}
-          </>
-        )}
-      </button>
-    );
-  };
 
   // Bulk műveletek
   const toggleSelection = (offerId: number) => {
@@ -1627,85 +1476,19 @@ export const Offers: React.FC<Props> = ({
               </div>
 
               {/* Szűrők grid - jobb oldal */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                {/* Összeg szűrők */}
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "6px",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      color: theme.colors.textMuted,
-                    }}
-                  >
-                    {t("offers.filters.minAmount" as TranslationKey)}
-                  </label>
-                  <input
-                    type="number"
-                    value={minAmountFilter}
-                    onChange={(e) => setMinAmountFilter(e.target.value)}
-                    style={{ ...themeStyles.input, padding: "8px 12px", fontSize: "13px", width: "100%", boxSizing: "border-box" }}
-                  />
-                </div>
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "6px",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      color: theme.colors.textMuted,
-                    }}
-                  >
-                    {t("offers.filters.maxAmount" as TranslationKey)}
-                  </label>
-                  <input
-                    type="number"
-                    value={maxAmountFilter}
-                    onChange={(e) => setMaxAmountFilter(e.target.value)}
-                    style={{ ...themeStyles.input, padding: "8px 12px", fontSize: "13px", width: "100%", boxSizing: "border-box" }}
-                  />
-                </div>
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "6px",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      color: theme.colors.textMuted,
-                    }}
-                  >
-                    {t("offers.filters.fromDate" as TranslationKey)}
-                  </label>
-                  <input
-                    type="date"
-                    value={fromDateFilter}
-                    onChange={(e) => setFromDateFilter(e.target.value)}
-                    style={{ ...themeStyles.input, padding: "8px 12px", fontSize: "13px", width: "100%", boxSizing: "border-box" }}
-                  />
-                </div>
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "6px",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      color: theme.colors.textMuted,
-                    }}
-                  >
-                    {t("offers.filters.toDate" as TranslationKey)}
-                  </label>
-                  <input
-                    type="date"
-                    value={toDateFilter}
-                    onChange={(e) => setToDateFilter(e.target.value)}
-                    style={{ ...themeStyles.input, padding: "8px 12px", fontSize: "13px", width: "100%", boxSizing: "border-box" }}
-                  />
-                </div>
-              </div>
+              <OfferFilters
+                minAmountFilter={minAmountFilter}
+                maxAmountFilter={maxAmountFilter}
+                fromDateFilter={fromDateFilter}
+                toDateFilter={toDateFilter}
+                onMinAmountChange={setMinAmountFilter}
+                onMaxAmountChange={setMaxAmountFilter}
+                onFromDateChange={setFromDateFilter}
+                onToDateChange={setToDateFilter}
+                themeStyles={themeStyles}
+                settings={settings}
+                theme={theme}
+              />
             </div>
 
             {/* Második sor: Műveletek és Rendezés */}
@@ -1757,19 +1540,11 @@ export const Offers: React.FC<Props> = ({
               </div>
 
               {/* Rendezés – jobb oldal */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
-                <span style={{ fontSize: "12px", fontWeight: 600, color: theme.colors.textMuted, marginRight: "4px" }}>
-                  Rendezés:
-                </span>
-                {renderSortChip("Dátum", "date")}
-                {renderSortChip("Összeg", "amount")}
-                {renderSortChip("Státusz", "status")}
-                {renderSortChip("Ügyfél", "customer")}
-                {renderSortChip("ID", "id")}
-                <span style={{ fontSize: "11px", color: theme.colors.textMuted, fontStyle: "italic" }}>
-                  (Shift + kattintás: több szintű)
-                </span>
-              </div>
+              <OfferSortControls
+                sortConfig={offerSortConfig}
+                onSort={handleOfferSort}
+                theme={theme}
+              />
             </div>
           </div>
         </div>
@@ -1823,47 +1598,16 @@ export const Offers: React.FC<Props> = ({
                   {t("offers.summary.description")}
                 </p>
               </div>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <button
-                  onClick={() => setStatusFilter("all")}
-                  style={{
-                    padding: "8px 14px",
-                    fontSize: "12px",
-                    fontWeight: statusFilter === "all" ? 700 : 600,
-                    borderRadius: "999px",
-                    border: statusFilter === "all" ? `1px solid ${theme.colors.primary}` : `1px solid ${theme.colors.border}`,
-                    backgroundColor: statusFilter === "all" ? theme.colors.primary : theme.colors.surfaceHover,
-                    color: statusFilter === "all" ? "#fff" : (theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text),
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  {t("offers.filter.all")} ({totalOffers})
-                </button>
-                {statusSummary.map(summary => {
-                  const isActive = statusFilter === summary.status;
-                  const color = getStatusColor(summary.status);
-                  return (
-                    <button
-                      key={summary.status}
-                      onClick={() => setStatusFilter(summary.status)}
-                      style={{
-                        padding: "8px 14px",
-                        fontSize: "12px",
-                        fontWeight: isActive ? 700 : 600,
-                        borderRadius: "999px",
-                        border: `1px solid ${isActive ? color : theme.colors.border}`,
-                        backgroundColor: isActive ? color : theme.colors.surfaceHover,
-                        color: isActive ? "#fff" : (theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text),
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      {getStatusLabel(summary.status)} ({summary.count})
-                    </button>
-                  );
-                })}
-              </div>
+              <OfferStatusFilters
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                statusSummary={statusSummary}
+                totalOffers={totalOffers}
+                getStatusColor={getStatusColor}
+                getStatusLabel={getStatusLabel}
+                settings={settings}
+                theme={theme}
+              />
             </div>
 
             <div style={{

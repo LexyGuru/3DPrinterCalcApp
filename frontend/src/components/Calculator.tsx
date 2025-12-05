@@ -1,23 +1,16 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import type { Printer, Filament, Settings, Offer, CalculationTemplate } from "../types";
 import type { Theme } from "../utils/themes";
-import { convertCurrency } from "../utils/currency";
 import { useTranslation } from "../utils/translations";
 import { useToast } from "./Toast";
 import { Tooltip } from "./Tooltip";
-import { saveTemplates, loadTemplates } from "../utils/store";
-import { ConfirmDialog } from "./ConfirmDialog";
 import { SlicerImportModal } from "./SlicerImportModal";
-import { validatePrintTime, validateUsedGrams, validateDryingTime, validateDryingPower, validateProfitPercentage } from "../utils/validation";
-import { sendNativeNotification } from "../utils/platformFeatures";
+// Calculator feature modul importok
+import { useCalculator, useFilamentSelection, useCalculationTemplates } from "../features/calculator";
+import { CalculationResults, OfferDialog, CalculatorForm } from "../features/calculator";
+import type { CalculationResult } from "../features/calculator";
 
-interface SelectedFilament {
-  filamentIndex: number;
-  usedGrams: number;
-  needsDrying?: boolean;
-  dryingTime?: number;
-  dryingPower?: number;
-}
+// SelectedFilament típus most a calculator feature modulból jön
 
 interface Props {
   printers: Printer[];
@@ -33,206 +26,41 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
   const [selectedPrinterId, setSelectedPrinterId] = useState<number | "">("");
-  const [selectedFilaments, setSelectedFilaments] = useState<SelectedFilament[]>([]);
   const [printTimeHours, setPrintTimeHours] = useState<number>(0);
   const [printTimeMinutes, setPrintTimeMinutes] = useState<number>(0);
   const [printTimeSeconds, setPrintTimeSeconds] = useState<number>(0);
   const [showOfferDialog, setShowOfferDialog] = useState(false);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | "">("");
-  const [offerCustomerName, setOfferCustomerName] = useState("");
-  const [offerCustomerContact, setOfferCustomerContact] = useState("");
-  const [offerDescription, setOfferDescription] = useState("");
-
-  // Ügyfél kiválasztás kezelése
-  useEffect(() => {
-    if (selectedCustomerId !== "" && selectedCustomerId !== null) {
-      const customer = customers.find(c => c.id === selectedCustomerId);
-      if (customer) {
-        setOfferCustomerName(customer.name);
-        setOfferCustomerContact(customer.contact || "");
-      }
-    }
-  }, [selectedCustomerId, customers]);
-  const [offerProfitPercentage, setOfferProfitPercentage] = useState<number>(30);
-  const [templates, setTemplates] = useState<CalculationTemplate[]>([]);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
-  const [templateName, setTemplateName] = useState("");
-  const [templateDescription, setTemplateDescription] = useState("");
   const [showTemplateList, setShowTemplateList] = useState(false);
-  const [deleteTemplateId, setDeleteTemplateId] = useState<number | null>(null);
   const [showSlicerImportModal, setShowSlicerImportModal] = useState(false);
 
+
+  // Selected printer
   const selectedPrinter = useMemo(() => {
     if (selectedPrinterId === "") return null;
     return printers.find(p => p.id === selectedPrinterId) || null;
   }, [printers, selectedPrinterId]);
 
-  const maxFilaments = useMemo(() => {
-    if (!selectedPrinter) return 0;
-    return (selectedPrinter.amsCount || 0) * 4;
-  }, [selectedPrinter]);
+  // Filament selection hook
+  const {
+    selectedFilaments,
+    maxFilaments,
+    addFilament,
+    removeFilament,
+    updateFilament,
+    resetFilaments,
+    setFilaments,
+  } = useFilamentSelection({ printer: selectedPrinter });
 
-  const totalPrintTimeHours = useMemo(() => {
-    return printTimeHours + (printTimeMinutes / 60) + (printTimeSeconds / 3600);
-  }, [printTimeHours, printTimeMinutes, printTimeSeconds]);
-
-  const addFilament = () => {
-    if (selectedFilaments.length >= maxFilaments) return;
-    setSelectedFilaments([...selectedFilaments, { filamentIndex: -1, usedGrams: 0, needsDrying: false, dryingTime: 0, dryingPower: 0 }]);
-  };
-
-  const removeFilament = (index: number) => {
-    setSelectedFilaments(selectedFilaments.filter((_, i) => i !== index));
-  };
-
-  const updateFilament = (index: number, field: "filamentIndex" | "usedGrams" | "dryingTime" | "dryingPower" | "needsDrying", value: number | boolean) => {
-    const updated = [...selectedFilaments];
-    updated[index] = { ...updated[index], [field]: value };
-    setSelectedFilaments(updated);
-  };
-
-  // Számítások
-  const calculations = useMemo(() => {
-    if (!selectedPrinter || selectedFilaments.length === 0 || totalPrintTimeHours <= 0) {
-      return null;
-    }
-
-    // Ellenőrizzük hogy minden filament rendelkezik mennyiséggel
-    if (selectedFilaments.some(sf => sf.filamentIndex < 0 || sf.usedGrams <= 0)) {
-      return null;
-    }
-
-    // Filament költségek (összes kiválasztott filament)
-    let totalFilamentCostEUR = 0;
-    selectedFilaments.forEach(sf => {
-      const filament = filaments[sf.filamentIndex];
-      if (filament) {
-        totalFilamentCostEUR += (sf.usedGrams / 1000) * filament.pricePerKg;
-      }
-    });
-    // Kerekítjük a lebegőpontos precíziós hibák elkerülésére
-    const filamentCost = Math.round(convertCurrency(totalFilamentCostEUR, settings.currency) * 100) / 100;
-
-    // Áram költség: nyomtató + AMS-ek
-    let totalPowerW = selectedPrinter.power;
-    if (selectedPrinter.ams && selectedPrinter.ams.length > 0) {
-      totalPowerW += selectedPrinter.ams.reduce((sum, ams) => sum + ams.power, 0);
-    }
-    const powerConsumedKWh = (totalPowerW / 1000) * totalPrintTimeHours;
-    // Az electricityPrice mindig Ft/kWh-ban van tárolva
-    // Ellenőrizzük hogy az electricityPrice érvényes érték-e
-    const electricityPrice = settings.electricityPrice || 0;
-    if (electricityPrice <= 0) {
-      if (import.meta.env.DEV) {
-        console.warn("⚠️ Áram ár nincs beállítva vagy 0:", electricityPrice, "- Kérlek állíts be egy érvényes áramárat a Beállításokban!");
-      }
-    }
-    const electricityCostHUF = powerConsumedKWh * electricityPrice;
-    // Konvertáljuk EUR-ra (400 Ft = 1 EUR), majd a választott pénznemre
-    const electricityCostEUR = electricityCostHUF / 400;
-    // Kerekítjük a lebegőpontos precíziós hibák elkerülésére
-    const electricityCost = Math.round(convertCurrency(electricityCostEUR, settings.currency) * 100) / 100;
-
-    // Szárítás költség minden filamentnél külön
-    let totalDryingCostEUR = 0;
-    selectedFilaments.forEach((sf) => {
-      if (sf.needsDrying && sf.dryingTime && sf.dryingTime > 0 && sf.dryingPower && sf.dryingPower > 0) {
-        // Szárítás teljesítmény felhasználás kWh-ban
-        const dryingPowerConsumedKWh = (sf.dryingPower / 1000) * sf.dryingTime;
-        // Az electricityPrice mindig Ft/kWh-ban van tárolva
-        const dryingCostHUF = dryingPowerConsumedKWh * electricityPrice;
-        // Konvertáljuk EUR-ra (400 Ft = 1 EUR)
-        const dryingCostEUR = dryingCostHUF / 400;
-        totalDryingCostEUR += dryingCostEUR;
-      }
-    });
-    // Konvertáljuk a választott pénznemre és kerekítjük
-    const totalDryingCost = Math.round(convertCurrency(totalDryingCostEUR, settings.currency) * 100) / 100;
-
-    // Használati költség (kopás) és kerekítjük
-    const usageCost = Math.round(convertCurrency(selectedPrinter.usageCost * totalPrintTimeHours, settings.currency) * 100) / 100;
-
-    // Összes költség és kerekítjük
-    const totalCost = Math.round((filamentCost + electricityCost + totalDryingCost + usageCost) * 100) / 100;
-
-    return {
-      filamentCost,
-      electricityCost,
-      totalDryingCost,
-      usageCost,
-      totalCost,
-    };
-  }, [selectedPrinter, selectedFilaments, filaments, totalPrintTimeHours, settings]);
-
-  // Template-ek betöltése
+  // Reset filaments when printer changes
   useEffect(() => {
-    loadTemplates().then(setTemplates).catch(console.error);
-  }, []);
+    resetFilaments();
+  }, [selectedPrinterId, resetFilaments]);
 
-  // Template mentése
-  const handleSaveTemplate = async () => {
-    if (!templateName.trim()) {
-      showToast(t("calculator.toast.templateNameRequired"), "error");
-      return;
-    }
-
-    if (!selectedPrinterId || selectedFilaments.length === 0) {
-      showToast(t("calculator.toast.templateSelectionRequired"), "error");
-      return;
-    }
-
-    try {
-      const newTemplate: CalculationTemplate = {
-        id: Date.now(),
-        name: templateName.trim(),
-        description: templateDescription.trim() || undefined,
-        printerId: selectedPrinterId as number,
-        selectedFilaments: selectedFilaments.map(sf => ({
-          filamentIndex: sf.filamentIndex,
-          usedGrams: sf.usedGrams,
-          needsDrying: sf.needsDrying,
-          dryingTime: sf.dryingTime,
-          dryingPower: sf.dryingPower,
-        })),
-        printTimeHours,
-        printTimeMinutes,
-        printTimeSeconds,
-        createdAt: new Date().toISOString(),
-      };
-
-      const updatedTemplates = [...templates, newTemplate];
-      await saveTemplates(updatedTemplates);
-      setTemplates(updatedTemplates);
-      setShowTemplateDialog(false);
-      setTemplateName("");
-      setTemplateDescription("");
-      showToast(t("calculator.toast.templateSaveSuccess"), "success");
-    } catch (error) {
-      console.error("❌ Template mentés hiba:", error);
-      showToast(t("calculator.toast.templateSaveError"), "error");
-    }
-  };
-
-  // Template betöltése
-  const handleLoadTemplate = (template: CalculationTemplate) => {
-    // Ellenőrizzük, hogy a nyomtató még létezik
-    const printer = printers.find(p => p.id === template.printerId);
-    if (!printer) {
-      showToast(t("calculator.toast.templatePrinterMissing"), "error");
-      return;
-    }
-
-    // Ellenőrizzük, hogy a filamentek még léteznek
-    const invalidFilaments = template.selectedFilaments.filter(
-      sf => sf.filamentIndex < 0 || sf.filamentIndex >= filaments.length
-    );
-    if (invalidFilaments.length > 0) {
-      showToast(t("calculator.toast.templateFilamentMissing"), "error");
-      return;
-    }
-
+  // Template load handler
+  const handleTemplateLoad = useCallback((template: CalculationTemplate) => {
     setSelectedPrinterId(template.printerId);
-    setSelectedFilaments(template.selectedFilaments.map(sf => ({
+    setFilaments(template.selectedFilaments.map(sf => ({
       filamentIndex: sf.filamentIndex,
       usedGrams: sf.usedGrams,
       needsDrying: sf.needsDrying || false,
@@ -244,21 +72,65 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
     setPrintTimeSeconds(template.printTimeSeconds);
     setShowTemplateList(false);
     showToast(t("calculator.toast.templateLoadSuccess"), "success");
+  }, [setFilaments, showToast, t]);
+
+  // Calculator hook - számítások
+  const calculations: CalculationResult | null = useCalculator({
+    printer: selectedPrinter,
+    selectedFilaments,
+    printTimeHours,
+    printTimeMinutes,
+    printTimeSeconds,
+    filaments,
+    settings,
+  });
+
+  // Template management hook
+  const {
+    templates,
+    saveTemplate,
+    loadTemplate,
+    deleteTemplate,
+  } = useCalculationTemplates({
+    printers,
+    filaments,
+    onTemplateLoad: handleTemplateLoad,
+  });
+
+  // Template mentése - wrapper a CalculatorForm számára
+  const handleSaveTemplateWrapper = async (name: string, description?: string): Promise<boolean> => {
+    if (!selectedPrinterId || selectedFilaments.length === 0) {
+      return false;
+    }
+
+    return await saveTemplate({
+      name,
+      description,
+      printerId: selectedPrinterId as number,
+      selectedFilaments,
+      printTimeHours,
+      printTimeMinutes,
+      printTimeSeconds,
+    });
   };
 
-  // Template törlése
-  const handleDeleteTemplate = async () => {
-    if (deleteTemplateId === null) return;
-    try {
-      const updatedTemplates = templates.filter(t => t.id !== deleteTemplateId);
-      await saveTemplates(updatedTemplates);
-      setTemplates(updatedTemplates);
-      setDeleteTemplateId(null);
-      showToast(t("calculator.toast.templateDeleteSuccess"), "success");
-    } catch (error) {
-      console.error("❌ Template törlés hiba:", error);
-      showToast(t("calculator.toast.templateDeleteError"), "error");
+  // Template betöltése
+  const handleLoadTemplate = (template: CalculationTemplate) => {
+    const success = loadTemplate(template);
+    if (!success) {
+      // A hook már ellenőrzi és a callback-ben van a toast, de ha nincs callback, akkor itt kell
+      const printer = printers.find(p => p.id === template.printerId);
+      if (!printer) {
+        showToast(t("calculator.toast.templatePrinterMissing"), "error");
+      } else {
+        showToast(t("calculator.toast.templateFilamentMissing"), "error");
+      }
     }
+  };
+
+  // Template törlése - wrapper a CalculatorForm számára
+  const handleDeleteTemplateWrapper = async (id: number): Promise<boolean> => {
+    return await deleteTemplate(id);
   };
 
   const handleCreateOfferFromSlicer = (offer: Offer) => {
@@ -357,994 +229,70 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
         </div>
       </div>
 
-      {/* Template lista */}
-      {showTemplateList && templates.length > 0 && (
-        <div style={{ ...themeStyles.card, marginBottom: "24px", maxWidth: "100%", boxSizing: "border-box" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: "18px", 
-              fontWeight: "600", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-            }}>
-              📋 {t("calculator.templates")}
-            </h3>
-            <button
-              onClick={() => setShowTemplateList(false)}
-              style={{
-                padding: "6px 12px",
-                borderRadius: "6px",
-                border: `1px solid ${theme.colors.border}`,
-                backgroundColor: theme.colors.surface,
-                color: theme.colors.text,
-                fontSize: "12px",
-                cursor: "pointer"
-              }}
-            >
-              ✕
-            </button>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {templates.map(template => {
-              const printer = printers.find(p => p.id === template.printerId);
-              return (
-                <div
-                  key={template.id}
-                  style={{
-                    padding: "16px",
-                    backgroundColor: theme.colors.surfaceHover,
-                    borderRadius: "8px",
-                    border: `1px solid ${theme.colors.border}`
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                    <div style={{ flex: 1 }}>
-                      <strong style={{ 
-                        fontSize: "16px", 
-                        color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                      }}>{template.name}</strong>
-                      {template.description && (
-                        <p style={{ 
-                          margin: "4px 0 0 0", 
-                          fontSize: "12px", 
-                          color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
-                        }}>
-                          {template.description}
-                        </p>
-                      )}
-                      <p style={{ 
-                        margin: "8px 0 0 0", 
-                        fontSize: "12px", 
-                        color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
-                      }}>
-                        {printer ? `${printer.name} (${printer.type})` : t("calculator.templates.printerMissing")} • {template.selectedFilaments.length} {t("calculator.templates.filamentUnit")} • {template.printTimeHours}h {template.printTimeMinutes}m {template.printTimeSeconds}s
-                      </p>
-                    </div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <Tooltip content={t("calculator.tooltip.loadTemplate")}>
-                        <button
-                          onClick={() => handleLoadTemplate(template)}
-                          disabled={!printer}
-                          style={{
-                            ...themeStyles.button,
-                            ...themeStyles.buttonPrimary,
-                            padding: "6px 12px",
-                            fontSize: "12px",
-                            cursor: printer ? "pointer" : "not-allowed",
-                            opacity: printer ? 1 : 0.5
-                          }}
-                          aria-label={t("calculator.tooltip.loadTemplate")}
-                        >
-                          📥
-                        </button>
-                      </Tooltip>
-                      <Tooltip content={t("common.delete")}>
-                        <button
-                          onClick={() => setDeleteTemplateId(template.id)}
-                          style={{
-                            ...themeStyles.button,
-                            ...themeStyles.buttonDanger,
-                            padding: "6px 12px",
-                            fontSize: "12px",
-                            cursor: "pointer"
-                          }}
-                          aria-label={t("common.delete")}
-                        >
-                          🗑️
-                        </button>
-                      </Tooltip>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* CalculatorForm komponens - tartalmazza a template kezelés UI-t és a fő form layout-ot */}
+      <CalculatorForm
+        printers={printers}
+        filaments={filaments}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+        selectedPrinterId={selectedPrinterId}
+        onPrinterChange={setSelectedPrinterId}
+        selectedPrinter={selectedPrinter}
+        printTimeHours={printTimeHours}
+        printTimeMinutes={printTimeMinutes}
+        printTimeSeconds={printTimeSeconds}
+        onPrintTimeHoursChange={setPrintTimeHours}
+        onPrintTimeMinutesChange={setPrintTimeMinutes}
+        onPrintTimeSecondsChange={setPrintTimeSeconds}
+        selectedFilaments={selectedFilaments}
+        maxFilaments={maxFilaments}
+        onAddFilament={addFilament}
+        onRemoveFilament={removeFilament}
+        onUpdateFilament={updateFilament}
+        onResetFilaments={resetFilaments}
+        templates={templates}
+        onLoadTemplate={handleLoadTemplate}
+        onSaveTemplate={handleSaveTemplateWrapper}
+        onDeleteTemplate={handleDeleteTemplateWrapper}
+        showTemplateList={showTemplateList}
+        onToggleTemplateList={() => setShowTemplateList(!showTemplateList)}
+        showTemplateDialog={showTemplateDialog}
+        onCloseTemplateDialog={() => setShowTemplateDialog(false)}
+        onValidationError={(message) => showToast(message, "error")}
+        onSuccess={(message) => showToast(message, "success")}
+      />
 
-      {/* Template mentés dialógus */}
-      {showTemplateDialog && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1000
-        }}>
-          <div style={{
-            ...themeStyles.card,
-            maxWidth: "500px",
-            width: "90%",
-            maxHeight: "90vh",
-            overflow: "auto"
-          }}>
-            <h3 style={{ 
-              marginTop: 0, 
-              marginBottom: "20px", 
-              fontSize: "20px", 
-              fontWeight: "600", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-            }}>
-              💾 {t("calculator.dialog.saveTemplateTitle")}
-            </h3>
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontWeight: "600", 
-                fontSize: "14px", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>
-                {t("calculator.dialog.nameLabel")}
-              </label>
-              <input
-                type="text"
-                value={templateName}
-                onChange={e => setTemplateName(e.target.value)}
-                placeholder={t("calculator.dialog.namePlaceholder")}
-                style={{ ...themeStyles.input, width: "100%" }}
-              />
-            </div>
-            <div style={{ marginBottom: "20px" }}>
-              <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontWeight: "600", 
-                fontSize: "14px", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>
-                {t("calculator.dialog.descriptionLabel")}
-              </label>
-              <textarea
-                value={templateDescription}
-                onChange={e => setTemplateDescription(e.target.value)}
-                placeholder={t("calculator.dialog.descriptionPlaceholder")}
-                rows={3}
-                style={{ ...themeStyles.input, width: "100%", resize: "vertical" }}
-              />
-            </div>
-            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
-              <button
-                onClick={() => {
-                  setShowTemplateDialog(false);
-                  setTemplateName("");
-                  setTemplateDescription("");
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setShowTemplateDialog(false);
-                    setTemplateName("");
-                    setTemplateDescription("");
-                  }
-                }}
-                style={{
-                  ...themeStyles.button,
-                  ...themeStyles.buttonSecondary,
-                  padding: "10px 20px"
-                }}
-                aria-label={t("common.cancel")}
-              >
-                {t("common.cancel")}
-              </button>
-              <button
-                onClick={handleSaveTemplate}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleSaveTemplate();
-                  }
-                }}
-                style={{
-                  ...themeStyles.button,
-                  ...themeStyles.buttonPrimary,
-                  padding: "10px 20px"
-                }}
-                aria-label={t("calculator.tooltip.saveTemplate")}
-              >
-                {t("common.save")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      <div style={{ ...themeStyles.card, marginBottom: "24px", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
-        <h3 style={{ 
-          marginTop: 0, 
-          marginBottom: "20px", 
-          fontSize: "20px", 
-          fontWeight: "600", 
-          color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-        }}>
-          ⚙️ {t("calculator.parameters")}
-        </h3>
-        
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: "12px", 
-            fontWeight: "600", 
-            fontSize: "16px", 
-            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-          }}>
-            🖨️ {t("calculator.printer")}
-          </label>
-          <select
-            value={selectedPrinterId}
-            onChange={e => {
-              setSelectedPrinterId(e.target.value === "" ? "" : Number(e.target.value));
-              setSelectedFilaments([]); // Reset filaments when printer changes
-            }}
-            onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
-            onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-            style={{ ...themeStyles.select, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
-            aria-label={t("calculator.printer")}
-            aria-required="true"
-          >
-            <option value="">{t("calculator.selectPrinter")}</option>
-            {printers.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({p.type}) - {p.power}W {p.amsCount ? `- ${p.amsCount} AMS` : ""}
-              </option>
-            ))}
-          </select>
-          {selectedPrinter && (
-            <p style={{ 
-              marginTop: "5px", 
-              fontSize: "12px", 
-              color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
-            }}>
-              {t("calculator.maxFilaments")} {maxFilaments} ({(selectedPrinter.amsCount || 0)} {t("printers.ams")} × 4)
-            </p>
-          )}
-        </div>
-
-        {/* Nyomtatási idő: óra, perc, másodperc */}
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: "12px", 
-            fontWeight: "600", 
-            fontSize: "16px", 
-            color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-          }}>
-            ⏱️ {t("calculator.printTimeLabel")}
-          </label>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            <div>
-              <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontSize: "14px", 
-                fontWeight: "500", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.hours")}</label>
-              <input
-                type="number"
-                min="0"
-                max="1000"
-                value={printTimeHours}
-                onChange={e => {
-                  const val = Number(e.target.value);
-                  const validation = validatePrintTime(val, printTimeMinutes, printTimeSeconds, settings.language);
-                  if (validation.isValid) {
-                    setPrintTimeHours(val);
-                  } else if (validation.errorMessage) {
-                    showToast(validation.errorMessage, "error");
-                  }
-                }}
-                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                style={{ ...themeStyles.input, width: "100px" }}
-                aria-label={t("calculator.hours")}
-                aria-describedby="print-time-hours-description"
-              />
-              <span id="print-time-hours-description" style={{ display: "none" }}>
-                {t("calculator.printTime.hoursDescription")}
-              </span>
-            </div>
-            <div>
-              <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontSize: "14px", 
-                fontWeight: "500", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.minutes")}</label>
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={printTimeMinutes}
-                onChange={e => {
-                  const val = Number(e.target.value);
-                  const validation = validatePrintTime(printTimeHours, val, printTimeSeconds, settings.language);
-                  if (validation.isValid) {
-                    setPrintTimeMinutes(val);
-                  } else if (validation.errorMessage) {
-                    showToast(validation.errorMessage, "error");
-                  }
-                }}
-                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                style={{ ...themeStyles.input, width: "100px" }}
-                aria-label={t("calculator.minutes")}
-                aria-describedby="print-time-minutes-description"
-              />
-              <span id="print-time-minutes-description" style={{ display: "none" }}>
-                {t("calculator.printTime.minutesDescription")}
-              </span>
-            </div>
-            <div>
-              <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontSize: "14px", 
-                fontWeight: "500", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.seconds")}</label>
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={printTimeSeconds}
-                onChange={e => {
-                  const val = Number(e.target.value);
-                  const validation = validatePrintTime(printTimeHours, printTimeMinutes, val, settings.language);
-                  if (validation.isValid) {
-                    setPrintTimeSeconds(val);
-                  } else if (validation.errorMessage) {
-                    showToast(validation.errorMessage, "error");
-                  }
-                }}
-                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                style={{ ...themeStyles.input, width: "100px" }}
-                aria-label={t("calculator.seconds")}
-                aria-describedby="print-time-seconds-description"
-              />
-              <span id="print-time-seconds-description" style={{ display: "none" }}>
-                {t("calculator.printTime.secondsDescription")}
-              </span>
-            </div>
-          </div>
-          <p style={{ 
-            marginTop: "5px", 
-            fontSize: "12px", 
-            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textSecondary 
-          }}>
-            {t("calculator.totalTime")} {totalPrintTimeHours.toFixed(2)} {t("calculator.hoursUnit")}
-          </p>
-        </div>
-
-        {/* Filamentek kiválasztása */}
-        <div style={{ marginBottom: "20px", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
-            <label style={{ 
-              fontWeight: "600", 
-              fontSize: "16px", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-            }}>
-              🧵 {t("calculator.filaments")} ({selectedFilaments.length}/{maxFilaments})
-            </label>
-            {maxFilaments > 0 && selectedFilaments.length < maxFilaments && (
-              <Tooltip content={t("calculator.tooltip.addFilament")}>
-                <button 
-                  onClick={addFilament}
-                  onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                  onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonPrimary.boxShadow; }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      addFilament();
-                    }
-                  }}
-                  style={{ 
-                    ...themeStyles.button,
-                    ...themeStyles.buttonPrimary,
-                    padding: "10px 20px",
-                    fontSize: "14px"
-                  }}
-                  aria-label={t("calculator.aria.addFilament")}
-                >
-                  ➕ {t("calculator.addFilament")}
-                </button>
-              </Tooltip>
-            )}
-          </div>
-          
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px", maxWidth: "100%", overflow: "hidden" }}>
-            {selectedFilaments.map((sf, idx) => (
-              <div key={idx} style={{ ...themeStyles.card, width: "100%", maxWidth: "100%", boxSizing: "border-box", overflow: "hidden" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
-                <strong style={{ fontSize: "16px", color: theme.colors.text }}>{t("calculator.filament")} {idx + 1}:</strong>
-                <Tooltip content={t("calculator.tooltip.removeFilament")}>
-                  <button 
-                    onClick={() => removeFilament(idx)}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        removeFilament(idx);
-                      }
-                    }}
-                    style={{ 
-                      ...themeStyles.button,
-                      ...themeStyles.buttonDanger,
-                      padding: "8px 16px",
-                      fontSize: "12px",
-                      flexShrink: 0
-                    }}
-                    aria-label={`${t("calculator.aria.removeFilament")} ${idx + 1}`}
-                  >
-                    {t("filaments.delete")}
-                  </button>
-                </Tooltip>
-              </div>
-              <div style={{ display: "flex", gap: "16px", alignItems: "flex-end", marginBottom: "16px", flexWrap: "wrap" }}>
-                <div style={{ flex: "1", minWidth: "200px", maxWidth: "100%" }}>
-                  <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontSize: "14px", 
-                fontWeight: "500", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.filament")}:</label>
-                  <select
-                    value={sf.filamentIndex}
-                    onChange={e => updateFilament(idx, "filamentIndex", Number(e.target.value))}
-                    onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
-                    onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                    style={{ ...themeStyles.select, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
-                  >
-                    <option value={-1}>{t("calculator.selectFilamentOption")}</option>
-                    {filaments.map((f, i) => (
-                      <option key={i} value={i}>
-                        {f.brand} {f.type} {f.color ? `(${f.color})` : ""} - {f.pricePerKg}€/kg
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{ flexShrink: 0 }}>
-                  <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontSize: "14px", 
-                fontWeight: "500", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.usedGrams")}</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={sf.usedGrams || ""}
-                    onChange={e => {
-                      const val = Number(e.target.value);
-                      const validation = validateUsedGrams(val, settings.language);
-                      if (validation.isValid) {
-                        updateFilament(idx, "usedGrams", val);
-                      } else if (validation.errorMessage) {
-                        showToast(validation.errorMessage, "error");
-                      }
-                    }}
-                    onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                    onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                    style={{ ...themeStyles.input, width: "140px", boxSizing: "border-box" }}
-                  />
-                </div>
-              </div>
-              {/* Szárítás opció minden filamentnél */}
-              <div style={{ ...themeStyles.card, padding: "16px", backgroundColor: theme.colors.surfaceHover, marginTop: "16px", maxWidth: "100%", boxSizing: "border-box" }}>
-                <label style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "12px", 
-                  fontWeight: "600", 
-                  marginBottom: "12px", 
-                  fontSize: "14px", 
-                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={sf.needsDrying || false}
-                    onChange={e => updateFilament(idx, "needsDrying", e.target.checked)}
-                    style={{ width: "20px", height: "20px", cursor: "pointer", flexShrink: 0 }}
-                  />
-                  <span>🌡️ {t("calculator.dryingNeeded")}</span>
-                </label>
-                {sf.needsDrying && (
-                  <div style={{ display: "flex", gap: "12px", marginTop: "12px", flexWrap: "wrap" }}>
-                    <div style={{ flex: "1", minWidth: "150px", maxWidth: "100%" }}>
-                      <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontSize: "14px", 
-                fontWeight: "500", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.dryingTime")}</label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        value={sf.dryingTime || ""}
-                        onChange={e => {
-                          const val = Number(e.target.value);
-                          const validation = validateDryingTime(val, settings.language);
-                          if (validation.isValid) {
-                            updateFilament(idx, "dryingTime", val);
-                          } else if (validation.errorMessage) {
-                            showToast(validation.errorMessage, "error");
-                          }
-                        }}
-                        onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                        style={{ ...themeStyles.input, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
-                      />
-                    </div>
-                    <div style={{ flex: "1", minWidth: "150px", maxWidth: "100%" }}>
-                      <label style={{ 
-                display: "block", 
-                marginBottom: "8px", 
-                fontSize: "14px", 
-                fontWeight: "500", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.dryingPower")}</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={sf.dryingPower || ""}
-                        onChange={e => {
-                          const val = Number(e.target.value);
-                          const validation = validateDryingPower(val, settings.language);
-                          if (validation.isValid) {
-                            updateFilament(idx, "dryingPower", val);
-                          } else if (validation.errorMessage) {
-                            showToast(validation.errorMessage, "error");
-                          }
-                        }}
-                        onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                        onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                        style={{ ...themeStyles.input, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-              </div>
-            ))}
-          </div>
-          
-          {selectedFilaments.length === 0 && (
-            <div style={{ ...themeStyles.card, textAlign: "center", padding: "40px", backgroundColor: theme.colors.surfaceHover }}>
-              <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: "16px" }}>{t("calculator.selectPrinter")}, {t("calculator.addFilament").toLowerCase()}.</p>
-            </div>
-          )}
-        </div>
-
-      </div>
-
-      {calculations && (
-        <div style={{ 
-          ...themeStyles.card,
-          marginTop: "30px",
-          maxWidth: "100%",
-          boxSizing: "border-box",
-          overflow: "hidden"
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: "20px", 
-              fontWeight: "600", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-            }}>
-              💰 {t("calculator.costBreakdown")} ({settings.currency})
-            </h3>
-            {onSaveOffer && (
-              <Tooltip content={t("calculator.tooltip.saveAsOffer")}>
-                <button
-                  onClick={() => {
-                    if (!selectedPrinter) return;
-                    setShowOfferDialog(true);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      if (!selectedPrinter) return;
-                      setShowOfferDialog(true);
-                    }
-                  }}
-                  onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                  onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow; }}
-                  style={{
-                    ...themeStyles.button,
-                    ...themeStyles.buttonSuccess
-                  }}
-                  aria-label={t("calculator.aria.saveOffer")}
-                >
-                  {t("calculator.saveAsOffer")}
-                </button>
-              </Tooltip>
-            )}
-          </div>
-          <div style={{ marginTop: "20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-              <span style={{ 
-                fontSize: "14px", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.filamentCost")}</span>
-              <strong style={{ fontSize: "16px", color: theme.colors.success }}>{calculations.filamentCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-              <span style={{ 
-                fontSize: "14px", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.electricityCost")}</span>
-              <strong style={{ fontSize: "16px", color: "#ffc107" }}>{calculations.electricityCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-            </div>
-            {selectedFilaments.some(sf => sf.needsDrying && sf.dryingTime && sf.dryingTime > 0 && sf.dryingPower && sf.dryingPower > 0) && (
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${theme.colors.border}` }}>
-                <span style={{ 
-                  fontSize: "14px", 
-                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-                }}>{t("calculator.dryingCost")}</span>
-                <strong style={{ fontSize: "16px", color: theme.colors.primary }}>{calculations.totalDryingCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-              </div>
-            )}
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: `2px solid ${theme.colors.border}` }}>
-              <span style={{ 
-                fontSize: "14px", 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.usageCost")}</span>
-              <strong style={{ 
-                fontSize: "16px", 
-                color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted 
-              }}>{calculations.usageCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.5em", fontWeight: "bold", paddingTop: "16px", backgroundColor: theme.colors.surfaceHover, padding: "16px", borderRadius: "8px", marginTop: "8px" }}>
-              <span style={{ 
-                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
-              }}>{t("calculator.totalCost")}</span>
-              <strong style={{ color: theme.colors.primary }}>{calculations.totalCost.toFixed(2)} {settings.currency === "HUF" ? "Ft" : settings.currency}</strong>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {(!selectedPrinter || selectedFilaments.length === 0 || !calculations) && (
-        <div style={{ 
-          ...themeStyles.card,
-          marginTop: "30px",
-          textAlign: "center",
-          padding: "40px",
-          backgroundColor: theme.colors.surfaceHover
-        }}>
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>📊</div>
-          <p style={{ 
-            margin: 0, 
-            color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, 
-            fontSize: "16px" 
-          }}>{t("calculator.fillFields")}</p>
-        </div>
-      )}
+      <CalculationResults
+        calculations={calculations}
+        selectedFilaments={selectedFilaments}
+        hasSelectedPrinter={!!selectedPrinter}
+        currency={settings.currency}
+        theme={theme}
+        themeStyles={themeStyles}
+        settings={settings}
+        onSaveOffer={onSaveOffer && selectedPrinter ? () => setShowOfferDialog(true) : undefined}
+      />
 
       {/* Árajánlat mentése dialog */}
-      {showOfferDialog && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 10000,
-          }}
-          onClick={() => setShowOfferDialog(false)}
-        >
-          <div
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderRadius: "12px",
-              padding: "24px",
-              maxWidth: "500px",
-              width: "90%",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ 
-              margin: "0 0 20px 0", 
-              color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-              fontSize: "20px", 
-              fontWeight: "600" 
-            }}>
-              {t("calculator.saveAsOffer")}
-            </h3>
-            
-            <div style={{ display: "flex", gap: "40px", alignItems: "flex-end", flexWrap: "wrap" }}>
-              {/* Ügyfél kiválasztó */}
-              {customers.length > 0 && (
-                <div style={{ width: "180px", flexShrink: 0 }}>
-                  <label style={{ 
-                    display: "block", 
-                    marginBottom: "8px", 
-                    fontWeight: "600", 
-                    fontSize: "14px", 
-                    color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-                    whiteSpace: "nowrap" 
-                  }}>
-                    {t("customers.selectCustomer")}
-                  </label>
-                  <select
-                    value={selectedCustomerId}
-                    onChange={(e) => {
-                      const value = e.target.value === "" ? "" : Number(e.target.value);
-                      setSelectedCustomerId(value);
-                      if (value === "") {
-                        setOfferCustomerName("");
-                        setOfferCustomerContact("");
-                      }
-                    }}
-                    onFocus={(e) => Object.assign(e.target.style, themeStyles.selectFocus)}
-                    onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                    style={{ ...themeStyles.select, width: "100%" }}
-                  >
-                    <option value="">{t("customers.selectCustomerPlaceholder")}</option>
-                    {customers.map(customer => (
-                      <option key={customer.id} value={customer.id}>
-                        {customer.name}{customer.company ? ` (${customer.company})` : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              <div style={{ width: "180px", flexShrink: 0 }}>
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "8px", 
-                  fontWeight: "600", 
-                  fontSize: "14px", 
-                  color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-                  whiteSpace: "nowrap" 
-                }}>
-                  {t("offers.customerName")} *
-                </label>
-                <input
-                  type="text"
-                  placeholder={t("offers.customerName")}
-                  value={offerCustomerName}
-                  onChange={e => {
-                    setOfferCustomerName(e.target.value);
-                    // Ha manuálisan módosítják, töröljük a kiválasztott ügyfelet
-                    if (selectedCustomerId !== "") {
-                      setSelectedCustomerId("");
-                    }
-                  }}
-                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                  style={{ ...themeStyles.input, width: "100%" }}
-                />
-              </div>
-              
-              <div style={{ width: "180px", flexShrink: 0 }}>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
-                  {t("calculator.offer.contactLabel")}
-                </label>
-                <input
-                  type="text"
-                  placeholder={t("calculator.offer.contactPlaceholder")}
-                  value={offerCustomerContact}
-                  onChange={e => {
-                    setOfferCustomerContact(e.target.value);
-                    // Ha manuálisan módosítják, töröljük a kiválasztott ügyfelet
-                    if (selectedCustomerId !== "") {
-                      setSelectedCustomerId("");
-                    }
-                  }}
-                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                  style={{ ...themeStyles.input, width: "100%" }}
-                />
-              </div>
-              
-              <div style={{ width: "180px", flexShrink: 0 }}>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
-                  {t("offers.profitPercentage")} (%)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={offerProfitPercentage}
-                  onChange={e => {
-                    const val = Number(e.target.value);
-                    const validation = validateProfitPercentage(val, settings.language);
-                    if (validation.isValid) {
-                      setOfferProfitPercentage(val);
-                    } else if (validation.errorMessage) {
-                      showToast(validation.errorMessage, "error");
-                    }
-                  }}
-                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                  style={{ ...themeStyles.input, width: "100%" }}
-                />
-              </div>
-            </div>
-            
-            <div style={{ marginTop: "24px" }}>
-              <div style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
-                <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px", color: theme.colors.text, whiteSpace: "nowrap" }}>
-                  {t("offers.description")}
-                </label>
-                <textarea
-                  placeholder={t("offers.description")}
-                  value={offerDescription}
-                  onChange={e => setOfferDescription(e.target.value)}
-                  onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                  onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                  style={{ ...themeStyles.input, width: "100%", maxWidth: "100%", height: "50px", minHeight: "50px", maxHeight: "100px", resize: "vertical", boxSizing: "border-box" }}
-                />
-              </div>
-            </div>
-            
-            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px" }}>
-              <Tooltip content={t("common.cancel")}>
-                <button
-                  onClick={() => {
-                    setShowOfferDialog(false);
-                    setSelectedCustomerId("");
-                    setOfferCustomerName("");
-                    setOfferCustomerContact("");
-                    setOfferDescription("");
-                    setOfferProfitPercentage(30);
-                  }}
-                  style={{
-                    ...themeStyles.button,
-                    backgroundColor: theme.colors.secondary,
-                    color: "#fff",
-                    padding: "10px 20px",
-                  }}
-                >
-                  {t("common.cancel")}
-                </button>
-              </Tooltip>
-              <Tooltip content={t("calculator.tooltip.saveOffer")}>
-                <button
-                  onClick={async () => {
-                    if (!offerCustomerName.trim()) {
-                      showToast(`${t("common.error")}: ${t("calculator.toast.customerNameRequired")}`, "error");
-                      return;
-                    }
-                    
-                    if (!selectedPrinter || !calculations || !onSaveOffer) return;
-                  
-                  const offerFilaments = selectedFilaments.map(sf => {
-                    const filament = filaments[sf.filamentIndex];
-                    // Konvertáljuk a filament árát az árajánlat pénznemére (filament ár EUR-ban van tárolva)
-                    const pricePerKgInOfferCurrency = convertCurrency(filament.pricePerKg, settings.currency);
-                    return {
-                      brand: filament.brand,
-                      type: filament.type,
-                      color: filament.color,
-                      colorHex: filament.colorHex,
-                      imageBase64: filament.imageBase64,
-                      usedGrams: sf.usedGrams,
-                      pricePerKg: pricePerKgInOfferCurrency,
-                      needsDrying: sf.needsDrying || false,
-                      dryingTime: sf.dryingTime || 0,
-                      dryingPower: sf.dryingPower || 0,
-                    };
-                  });
-
-                  const createdAt = new Date().toISOString();
-                  const initialStatusNote = t("calculator.offer.initialStatus");
-
-                  const offer: Offer = {
-                    id: Date.now(),
-                    date: createdAt,
-                    printerName: selectedPrinter.name,
-                    printerType: selectedPrinter.type,
-                    printerPower: selectedPrinter.power,
-                    printTimeHours,
-                    printTimeMinutes,
-                    printTimeSeconds,
-                    totalPrintTimeHours,
-                    filaments: offerFilaments,
-                    costs: {
-                      filamentCost: calculations.filamentCost,
-                      electricityCost: calculations.electricityCost,
-                      dryingCost: calculations.totalDryingCost,
-                      usageCost: calculations.usageCost,
-                      totalCost: calculations.totalCost,
-                    },
-                    currency: settings.currency,
-                    profitPercentage: offerProfitPercentage,
-                    customerName: offerCustomerName.trim(),
-                    customerContact: offerCustomerContact.trim() || undefined,
-                    description: offerDescription.trim() || undefined,
-                    status: "draft",
-                    statusUpdatedAt: createdAt,
-                    statusHistory: [{
-                      status: "draft",
-                      date: createdAt,
-                      note: initialStatusNote
-                    }]
-                  };
-
-                  console.log("💾 Árajánlat mentése...", { 
-                    offerId: offer.id, 
-                    customerName: offer.customerName,
-                    totalCost: offer.costs.totalCost,
-                    currency: offer.currency 
-                  });
-                  onSaveOffer(offer);
-                  console.log("✅ Árajánlat sikeresen mentve", { offerId: offer.id });
-                  showToast(t("common.offerSaved"), "success");
-                  // Natív értesítés küldése (ha engedélyezve van)
-                  if (settings.notificationEnabled !== false) {
-                    try {
-                      await sendNativeNotification(
-                        t("common.offerSaved"),
-                        offer.customerName || t("offers.customerName")
-                      );
-                    } catch (error) {
-                      console.log("Értesítés küldése sikertelen:", error);
-                    }
-                  }
-                  setShowOfferDialog(false);
-                  setSelectedCustomerId("");
-                  setOfferCustomerName("");
-                  setOfferCustomerContact("");
-                  setOfferDescription("");
-                  setOfferProfitPercentage(30);
-                }}
-                style={{
-                  ...themeStyles.button,
-                  ...themeStyles.buttonSuccess,
-                  padding: "10px 20px",
-                }}
-              >
-                {t("offers.save")}
-              </button>
-              </Tooltip>
-            </div>
-          </div>
-        </div>
-      )}
+      <OfferDialog
+        isOpen={showOfferDialog}
+        onClose={() => setShowOfferDialog(false)}
+        onSave={onSaveOffer!}
+        customers={customers}
+        selectedPrinter={selectedPrinter}
+        selectedFilaments={selectedFilaments}
+        calculations={calculations}
+        printTimeHours={printTimeHours}
+        printTimeMinutes={printTimeMinutes}
+        printTimeSeconds={printTimeSeconds}
+        filaments={filaments}
+        settings={settings}
+        theme={theme}
+        themeStyles={themeStyles}
+        onValidationError={(message) => showToast(message, "error")}
+        onSuccess={(message) => showToast(message, "success")}
+      />
 
       <SlicerImportModal
         isOpen={showSlicerImportModal}
@@ -1355,17 +303,6 @@ export const Calculator: React.FC<Props> = ({ printers, filaments, customers, se
         onCreateOffer={handleCreateOfferFromSlicer}
       />
 
-      <ConfirmDialog
-        isOpen={deleteTemplateId !== null}
-        title={t("calculator.confirmDelete.title")}
-        message={t("calculator.confirmDelete.message")}
-        theme={theme}
-        onConfirm={handleDeleteTemplate}
-        onCancel={() => setDeleteTemplateId(null)}
-        confirmText={t("common.yes")}
-        cancelText={t("common.cancel")}
-        type="danger"
-      />
     </div>
   );
 };
