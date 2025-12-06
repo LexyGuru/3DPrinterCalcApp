@@ -4,7 +4,50 @@ This document contains detailed changelog for all versions of the 3D Printer Cal
 
 ---
 
-## v3.0.0 (2025) - 🔒 Customer Data Encryption & GDPR Compliance
+## v3.0.0 (2025) - 🔒 Customer Data Encryption & GDPR Compliance + ⚡ Performance Optimization
+
+### ⚡ Performance Optimization and Code Splitting
+
+#### React.lazy() Documentation and Optimization
+- **React.lazy() implementation documentation** - Complete documentation created (`docs/PERFORMANCE.md`)
+- **Loading phase optimization** - Only data loads during loading phase, components load on demand
+- **Suspense fallback optimization** - Optimized fallback components in AppRouter.tsx
+- **Error boundary added** - LazyErrorBoundary.tsx component for lazy loaded components
+
+#### Route-based Code Splitting
+- **React Router integration** - React Router v7.10.0 installed and configured
+- **URL-based navigation** - Route structure implemented (`/settings`, `/offers`, `/customers`, etc.)
+- **Lazy loading for routes** - Each route automatically split into separate files
+- **State-based → Routing conversion** - `activePage` state converted to URL-based routing
+- **Bookmarkable pages** - All pages accessible via direct URL
+- **Browser navigation support** - Back/forward buttons work, better UX
+
+#### Code Splitting Fine-tuning
+- **Vite build configuration optimization** - `rollupOptions.output.manualChunks` configured
+- **Vendor chunk optimization**:
+  - React/React-DOM/React-Router separate chunk (`vendor-react`)
+  - Tauri APIs separate chunk (`vendor-tauri`)
+  - UI libraries separate chunks (`vendor-ui-framer`, `vendor-ui-charts`)
+  - Other node_modules (`vendor`)
+- **Route-based chunking** - Automatic lazy loading creates separate chunks per route
+- **Router files grouping** - Organized into `router`, `routes` chunks
+- **Shared components grouping** - `components-shared` chunk
+- **Chunk size warning limit** - Set to 1000 KB
+
+#### Modular Architecture
+- **Modular architecture documentation** - Complete documentation (`docs/MODULAR_ARCHITECTURE.md`)
+- **Path aliases** - `@features`, `@shared`, `@core` aliases configured
+- **Vite and TypeScript configuration** - Updated with path alias support
+- **Shared modules implementation**:
+  - Shared components (ConfirmDialog, FormField, InputField, SelectField, NumberField)
+  - Shared hooks (useModal, useForm)
+  - Shared utilities (debounce, format, validation)
+- **Feature modules refactoring** - Complete refactoring of 6 modules:
+  - Calculator: 582 lines → 309 lines (-46.9%)
+  - Settings: 5947 lines → 897 lines (-85%!)
+  - Offers: 3985 lines → 3729 lines (-6.4%)
+  - Home: 3454 lines → 3308 lines (-4.2%)
+  - Filaments and Printers modules also refactored
 
 ### 🔒 Customer Data Encryption
 - **AES-256-GCM encryption** - Customer data encrypted storage using industry-standard AES-256-GCM algorithm

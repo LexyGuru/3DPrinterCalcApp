@@ -4,7 +4,50 @@ Ez a dokumentum tartalmazza a 3D Printer Calculator App verzióinak részletes v
 
 ---
 
-## v3.0.0 (2025) - 🔒 Customer Data Encryption & GDPR Compliance
+## v3.0.0 (2025) - 🔒 Customer Data Encryption & GDPR Compliance + ⚡ Performance Optimalizálás
+
+### ⚡ Performance Optimalizálás és Code Splitting
+
+#### React.lazy() Dokumentálása és Optimalizálása
+- **React.lazy() implementáció dokumentálása** - Teljes dokumentáció létrehozva (`docs/PERFORMANCE.md`)
+- **Loading fázis optimalizálása** - Loading fázisban csak adatok töltődnek be, komponensek nem
+- **Suspense fallback optimalizálása** - AppRouter.tsx-ben optimalizált fallback komponensek
+- **Error boundary hozzáadása** - LazyErrorBoundary.tsx komponens lazy loaded komponensekhez
+
+#### Route-based Code Splitting
+- **React Router integráció** - React Router v7.10.0 telepítése és konfigurálása
+- **URL alapú navigáció** - Route struktúra implementálva (`/settings`, `/offers`, `/customers`, stb.)
+- **Lazy loading route-okhoz** - Minden route külön fájlba kerül automatikus code splitting-gel
+- **State-based → Routing átalakítás** - `activePage` state átalakítva URL alapú routing-ra
+- **Bookmark-olható oldalak** - Minden oldal elérhető közvetlen URL-lel
+- **Browser navigáció támogatás** - Vissza/előre gomb működik, jobb UX
+
+#### Code Splitting Finomhangolás
+- **Vite build konfiguráció optimalizálása** - `rollupOptions.output.manualChunks` beállítva
+- **Vendor chunk optimalizálás**:
+  - React/React-DOM/React-Router külön chunk (`vendor-react`)
+  - Tauri API-k külön chunk (`vendor-tauri`)
+  - UI library-k külön chunk-ok (`vendor-ui-framer`, `vendor-ui-charts`)
+  - Egyéb node_modules (`vendor`)
+- **Route-based chunking** - Automatikus lazy loading miatt minden route külön chunk
+- **Router fájlok csoportosítása** - `router`, `routes` chunk-okba szervezve
+- **Közös komponensek csoportosítása** - `components-shared` chunk
+- **Chunk size warning limit** - 1000 KB beállítva
+
+#### Moduláris Architektúra
+- **Moduláris architektúra dokumentáció** - Teljes dokumentáció (`docs/MODULAR_ARCHITECTURE.md`)
+- **Path alias-ok** - `@features`, `@shared`, `@core` alias-ok beállítva
+- **Vite és TypeScript konfiguráció** - Frissítve path alias támogatással
+- **Shared modulok implementálása**:
+  - Shared komponensek (ConfirmDialog, FormField, InputField, SelectField, NumberField)
+  - Shared hook-ok (useModal, useForm)
+  - Shared utility-k (debounce, format, validation)
+- **Feature modulok refaktorálása** - 6 modul teljes refaktorálása:
+  - Calculator: 582 sor → 309 sor (-46.9%)
+  - Settings: 5947 sor → 897 sor (-85%!)
+  - Offers: 3985 sor → 3729 sor (-6.4%)
+  - Home: 3454 sor → 3308 sor (-4.2%)
+  - Filaments és Printers modulok is refaktorálva
 
 ### 🔒 Ügyféladat Titkosítás
 - **AES-256-GCM titkosítás** - Ügyféladatok titkosított tárolása industry-standard AES-256-GCM algoritmussal

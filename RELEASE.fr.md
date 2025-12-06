@@ -4,7 +4,50 @@ Ce document contient le journal des modifications détaillé pour toutes les ver
 
 ---
 
-## v3.0.0 (2025) - 🔒 Chiffrement des Données Clients & Conformité RGPD
+## v3.0.0 (2025) - 🔒 Chiffrement des Données Clients & Conformité RGPD + ⚡ Optimisation des Performances
+
+### ⚡ Optimisation des Performances et Code Splitting
+
+#### Documentation et Optimisation de React.lazy()
+- **Documentation de l'implémentation React.lazy()** - Documentation complète créée (`docs/PERFORMANCE.md`)
+- **Optimisation de la phase de chargement** - Seules les données se chargent pendant la phase de chargement, composants à la demande
+- **Optimisation du fallback Suspense** - Composants fallback optimisés dans AppRouter.tsx
+- **Error boundary ajouté** - Composant LazyErrorBoundary.tsx pour les composants lazy chargés
+
+#### Code Splitting Basé sur les Routes
+- **Intégration React Router** - React Router v7.10.0 installé et configuré
+- **Navigation basée sur l'URL** - Structure de routes implémentée (`/settings`, `/offers`, `/customers`, etc.)
+- **Lazy loading pour les routes** - Chaque route automatiquement divisée en fichiers séparés
+- **Conversion State-based → Routing** - État `activePage` converti en routing basé sur l'URL
+- **Pages pouvant être mises en favoris** - Toutes les pages accessibles via URL directe
+- **Support de la navigation du navigateur** - Boutons retour/avancer fonctionnent, meilleure UX
+
+#### Ajustement Fin du Code Splitting
+- **Optimisation de la configuration de build Vite** - `rollupOptions.output.manualChunks` configuré
+- **Optimisation des chunks vendor**:
+  - React/React-DOM/React-Router chunk séparé (`vendor-react`)
+  - APIs Tauri chunk séparé (`vendor-tauri`)
+  - Bibliothèques UI chunks séparés (`vendor-ui-framer`, `vendor-ui-charts`)
+  - Autres node_modules (`vendor`)
+- **Chunking basé sur les routes** - Lazy loading automatique crée des chunks séparés par route
+- **Regroupement des fichiers router** - Organisés en chunks `router`, `routes`
+- **Regroupement des composants partagés** - Chunk `components-shared`
+- **Limite d'avertissement de taille de chunk** - Fixée à 1000 KB
+
+#### Architecture Modulaire
+- **Documentation d'architecture modulaire** - Documentation complète (`docs/MODULAR_ARCHITECTURE.md`)
+- **Aliases de chemin** - Aliases `@features`, `@shared`, `@core` configurés
+- **Configuration Vite et TypeScript** - Mise à jour avec support des alias de chemin
+- **Implémentation des modules partagés**:
+  - Composants partagés (ConfirmDialog, FormField, InputField, SelectField, NumberField)
+  - Hooks partagés (useModal, useForm)
+  - Utilitaires partagés (debounce, format, validation)
+- **Refactorisation des modules de fonctionnalités** - Refactorisation complète de 6 modules:
+  - Calculator: 582 lignes → 309 lignes (-46.9%)
+  - Settings: 5947 lignes → 897 lignes (-85%!)
+  - Offers: 3985 lignes → 3729 lignes (-6.4%)
+  - Home: 3454 lignes → 3308 lignes (-4.2%)
+  - Modules Filaments et Printers également refactorisés
 
 ### 🔒 Chiffrement des Données Clients
 - **Chiffrement AES-256-GCM** - Stockage chiffré des données clients utilisant l'algorithme standard de l'industrie AES-256-GCM

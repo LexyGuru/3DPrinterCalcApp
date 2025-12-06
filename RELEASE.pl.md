@@ -4,7 +4,50 @@ Ten dokument zawiera szczegółowy dziennik zmian dla wszystkich wersji aplikacj
 
 ---
 
-## v3.0.0 (2025) - 🔒 Szyfrowanie Danych Klientów & Zgodność z RODO
+## v3.0.0 (2025) - 🔒 Szyfrowanie Danych Klientów & Zgodność z RODO + ⚡ Optymalizacja Wydajności
+
+### ⚡ Optymalizacja Wydajności i Code Splitting
+
+#### Dokumentacja i Optymalizacja React.lazy()
+- **Dokumentacja implementacji React.lazy()** - Pełna dokumentacja utworzona (`docs/PERFORMANCE.md`)
+- **Optymalizacja fazy ładowania** - Tylko dane ładują się podczas fazy ładowania, komponenty na żądanie
+- **Optymalizacja fallback Suspense** - Zoptymalizowane komponenty fallback w AppRouter.tsx
+- **Error boundary dodany** - Komponent LazyErrorBoundary.tsx dla leniwie ładowanych komponentów
+
+#### Code Splitting Oparty na Trasach
+- **Integracja React Router** - React Router v7.10.0 zainstalowany i skonfigurowany
+- **Nawigacja oparta na URL** - Struktura tras zaimplementowana (`/settings`, `/offers`, `/customers`, etc.)
+- **Lazy loading dla tras** - Każda trasa automatycznie podzielona na oddzielne pliki
+- **Konwersja State-based → Routing** - Stan `activePage` przekonwertowany na routing oparty na URL
+- **Strony możliwe do zakładki** - Wszystkie strony dostępne przez bezpośredni URL
+- **Obsługa nawigacji przeglądarki** - Przyciski wstecz/do przodu działają, lepsze UX
+
+#### Precyzyjne Dostrojenie Code Splitting
+- **Optymalizacja konfiguracji build Vite** - `rollupOptions.output.manualChunks` skonfigurowane
+- **Optymalizacja chunk-ów vendor**:
+  - React/React-DOM/React-Router oddzielny chunk (`vendor-react`)
+  - API Tauri oddzielny chunk (`vendor-tauri`)
+  - Biblioteki UI oddzielne chunki (`vendor-ui-framer`, `vendor-ui-charts`)
+  - Inne node_modules (`vendor`)
+- **Chunking oparty na trasach** - Automatyczne lazy loading tworzy oddzielne chunki na trasę
+- **Grupowanie plików router** - Zorganizowane w chunki `router`, `routes`
+- **Grupowanie wspólnych komponentów** - Chunk `components-shared`
+- **Limit ostrzeżenia rozmiaru chunk** - Ustawiony na 1000 KB
+
+#### Architektura Modułowa
+- **Dokumentacja architektury modułowej** - Pełna dokumentacja (`docs/MODULAR_ARCHITECTURE.md`)
+- **Aliasy ścieżek** - Aliasy `@features`, `@shared`, `@core` skonfigurowane
+- **Konfiguracja Vite i TypeScript** - Zaktualizowana z obsługą aliasów ścieżek
+- **Implementacja modułów wspólnych**:
+  - Wspólne komponenty (ConfirmDialog, FormField, InputField, SelectField, NumberField)
+  - Wspólne hooki (useModal, useForm)
+  - Wspólne narzędzia (debounce, format, validation)
+- **Refaktoryzacja modułów funkcji** - Pełna refaktoryzacja 6 modułów:
+  - Calculator: 582 linie → 309 linii (-46.9%)
+  - Settings: 5947 linii → 897 linii (-85%!)
+  - Offers: 3985 linii → 3729 linii (-6.4%)
+  - Home: 3454 linie → 3308 linii (-4.2%)
+  - Moduły Filaments i Printers również zrefaktoryzowane
 
 ### 🔒 Szyfrowanie Danych Klientów
 - **Szyfrowanie AES-256-GCM** - Szyfrowane przechowywanie danych klientów przy użyciu standardowego algorytmu branżowego AES-256-GCM

@@ -4,7 +4,50 @@ Tento dokument obsahuje podrobný changelog pre všetky verzie aplikácie 3D Pri
 
 ---
 
-## v3.0.0 (2025) - 🔒 Šifrovanie Dát Zákazníkov & Súlad s GDPR
+## v3.0.0 (2025) - 🔒 Šifrovanie Dát Zákazníkov & Súlad s GDPR + ⚡ Optimalizácia Výkonu
+
+### ⚡ Optimalizácia Výkonu a Code Splitting
+
+#### Dokumentácia a Optimalizácia React.lazy()
+- **Dokumentácia implementácie React.lazy()** - Kompletná dokumentácia vytvorená (`docs/PERFORMANCE.md`)
+- **Optimalizácia fázy načítania** - Počas fázy načítania sa načítavajú len dáta, komponenty na požiadanie
+- **Optimalizácia Suspense fallback** - Optimalizované fallback komponenty v AppRouter.tsx
+- **Error boundary pridaný** - Komponenta LazyErrorBoundary.tsx pre lazy načítané komponenty
+
+#### Code Splitting Založený na Trasách
+- **Integrácia React Router** - React Router v7.10.0 nainštalovaný a nakonfigurovaný
+- **Navigácia založená na URL** - Štruktúra trás implementovaná (`/settings`, `/offers`, `/customers`, etc.)
+- **Lazy loading pre trasy** - Každá trasa automaticky rozdelená do samostatných súborov
+- **Konverzia State-based → Routing** - Stav `activePage` prevedený na routing založený na URL
+- **Stránky pridateľné do záložiek** - Všetky stránky dostupné cez priamu URL
+- **Podpora navigácie prehliadača** - Tlačidlá späť/dopredu fungujú, lepšie UX
+
+#### Jemné Ladenie Code Splitting
+- **Optimalizácia konfigurácie buildu Vite** - `rollupOptions.output.manualChunks` nakonfigurované
+- **Optimalizácia vendor chunkov**:
+  - React/React-DOM/React-Router samostatný chunk (`vendor-react`)
+  - Tauri API samostatný chunk (`vendor-tauri`)
+  - UI knižnice samostatné chunky (`vendor-ui-framer`, `vendor-ui-charts`)
+  - Ostatné node_modules (`vendor`)
+- **Chunking založený na trasách** - Automatické lazy loading vytvára samostatné chunky na trasu
+- **Zoskupovanie súborov router** - Organizované do chunkov `router`, `routes`
+- **Zoskupovanie zdieľaných komponent** - Chunk `components-shared`
+- **Limit varovania veľkosti chunk** - Nastavený na 1000 KB
+
+#### Modulárna Architektúra
+- **Dokumentácia modulárnej architektúry** - Kompletná dokumentácia (`docs/MODULAR_ARCHITECTURE.md`)
+- **Aliasy ciest** - Aliasy `@features`, `@shared`, `@core` nakonfigurované
+- **Konfigurácia Vite a TypeScript** - Aktualizovaná s podporou aliasov ciest
+- **Implementácia zdieľaných modulov**:
+  - Zdieľané komponenty (ConfirmDialog, FormField, InputField, SelectField, NumberField)
+  - Zdieľané hooky (useModal, useForm)
+  - Zdieľané utility (debounce, format, validation)
+- **Refaktorovanie modulov funkcií** - Kompletné refaktorovanie 6 modulov:
+  - Calculator: 582 riadkov → 309 riadkov (-46.9%)
+  - Settings: 5947 riadkov → 897 riadkov (-85%!)
+  - Offers: 3985 riadkov → 3729 riadkov (-6.4%)
+  - Home: 3454 riadkov → 3308 riadkov (-4.2%)
+  - Moduly Filaments a Printers tiež refaktorované
 
 ### 🔒 Šifrovanie Dát Zákazníkov
 - **Šifrovanie AES-256-GCM** - Šifrované ukladanie dát zákazníkov pomocou štandardného priemyselného algoritmu AES-256-GCM

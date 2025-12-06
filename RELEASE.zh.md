@@ -4,7 +4,50 @@
 
 ---
 
-## v3.0.0 (2025) - 🔒 客户数据加密 & GDPR 合规性
+## v3.0.0 (2025) - 🔒 客户数据加密 & GDPR 合规性 + ⚡ 性能优化
+
+### ⚡ 性能优化和代码分割
+
+#### React.lazy() 文档和优化
+- **React.lazy() 实现文档** - 创建完整文档 (`docs/PERFORMANCE.md`)
+- **加载阶段优化** - 加载阶段仅加载数据，组件按需加载
+- **Suspense fallback 优化** - AppRouter.tsx 中的优化 fallback 组件
+- **添加错误边界** - LazyErrorBoundary.tsx 组件用于懒加载组件
+
+#### 基于路由的代码分割
+- **React Router 集成** - 安装并配置 React Router v7.10.0
+- **基于 URL 的导航** - 实现路由结构 (`/settings`, `/offers`, `/customers`, 等)
+- **路由懒加载** - 每个路由自动分割为单独文件
+- **State-based → Routing 转换** - `activePage` 状态转换为基于 URL 的路由
+- **可收藏页面** - 所有页面可通过直接 URL 访问
+- **浏览器导航支持** - 前进/后退按钮可用，更好的用户体验
+
+#### 代码分割精细调整
+- **Vite 构建配置优化** - 配置 `rollupOptions.output.manualChunks`
+- **Vendor chunk 优化**:
+  - React/React-DOM/React-Router 独立 chunk (`vendor-react`)
+  - Tauri API 独立 chunk (`vendor-tauri`)
+  - UI 库独立 chunks (`vendor-ui-framer`, `vendor-ui-charts`)
+  - 其他 node_modules (`vendor`)
+- **基于路由的 chunking** - 自动懒加载为每个路由创建独立 chunks
+- **Router 文件分组** - 组织为 `router`, `routes` chunks
+- **共享组件分组** - `components-shared` chunk
+- **Chunk 大小警告限制** - 设置为 1000 KB
+
+#### 模块化架构
+- **模块化架构文档** - 完整文档 (`docs/MODULAR_ARCHITECTURE.md`)
+- **路径别名** - 配置 `@features`, `@shared`, `@core` 别名
+- **Vite 和 TypeScript 配置** - 更新路径别名支持
+- **共享模块实现**:
+  - 共享组件 (ConfirmDialog, FormField, InputField, SelectField, NumberField)
+  - 共享 Hooks (useModal, useForm)
+  - 共享工具 (debounce, format, validation)
+- **功能模块重构** - 完整重构 6 个模块:
+  - Calculator: 582 行 → 309 行 (-46.9%)
+  - Settings: 5947 行 → 897 行 (-85%!)
+  - Offers: 3985 行 → 3729 行 (-6.4%)
+  - Home: 3454 行 → 3308 行 (-4.2%)
+  - Filaments 和 Printers 模块也已重构
 
 ### 🔒 客户数据加密
 - **AES-256-GCM 加密** - 使用行业标准 AES-256-GCM 算法加密存储客户数据

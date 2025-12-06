@@ -4,7 +4,50 @@ Este documento contiene el registro detallado de cambios para todas las versione
 
 ---
 
-## v3.0.0 (2025) - 🔒 Cifrado de Datos de Clientes & Cumplimiento RGPD
+## v3.0.0 (2025) - 🔒 Cifrado de Datos de Clientes & Cumplimiento RGPD + ⚡ Optimización de Rendimiento
+
+### ⚡ Optimización de Rendimiento y Code Splitting
+
+#### Documentación y Optimización de React.lazy()
+- **Documentación de implementación React.lazy()** - Documentación completa creada (`docs/PERFORMANCE.md`)
+- **Optimización de fase de carga** - Solo se cargan datos durante la fase de carga, componentes bajo demanda
+- **Optimización de Suspense fallback** - Componentes fallback optimizados en AppRouter.tsx
+- **Error boundary añadido** - Componente LazyErrorBoundary.tsx para componentes lazy cargados
+
+#### Code Splitting Basado en Rutas
+- **Integración de React Router** - React Router v7.10.0 instalado y configurado
+- **Navegación basada en URL** - Estructura de rutas implementada (`/settings`, `/offers`, `/customers`, etc.)
+- **Lazy loading para rutas** - Cada ruta se divide automáticamente en archivos separados
+- **Conversión State-based → Routing** - Estado `activePage` convertido a routing basado en URL
+- **Páginas marcables** - Todas las páginas accesibles mediante URL directa
+- **Soporte de navegación del navegador** - Botones atrás/adelante funcionan, mejor UX
+
+#### Ajuste Fino de Code Splitting
+- **Optimización de configuración de build Vite** - `rollupOptions.output.manualChunks` configurado
+- **Optimización de chunks de vendor**:
+  - React/React-DOM/React-Router chunk separado (`vendor-react`)
+  - APIs de Tauri chunk separado (`vendor-tauri`)
+  - Bibliotecas UI chunks separados (`vendor-ui-framer`, `vendor-ui-charts`)
+  - Otros node_modules (`vendor`)
+- **Chunking basado en rutas** - Lazy loading automático crea chunks separados por ruta
+- **Agrupación de archivos de router** - Organizados en chunks `router`, `routes`
+- **Agrupación de componentes compartidos** - Chunk `components-shared`
+- **Límite de advertencia de tamaño de chunk** - Establecido en 1000 KB
+
+#### Arquitectura Modular
+- **Documentación de arquitectura modular** - Documentación completa (`docs/MODULAR_ARCHITECTURE.md`)
+- **Aliases de ruta** - Aliases `@features`, `@shared`, `@core` configurados
+- **Configuración de Vite y TypeScript** - Actualizada con soporte de alias de ruta
+- **Implementación de módulos compartidos**:
+  - Componentes compartidos (ConfirmDialog, FormField, InputField, SelectField, NumberField)
+  - Hooks compartidos (useModal, useForm)
+  - Utilidades compartidas (debounce, format, validation)
+- **Refactorización de módulos de características** - Refactorización completa de 6 módulos:
+  - Calculator: 582 líneas → 309 líneas (-46.9%)
+  - Settings: 5947 líneas → 897 líneas (-85%!)
+  - Offers: 3985 líneas → 3729 líneas (-6.4%)
+  - Home: 3454 líneas → 3308 líneas (-4.2%)
+  - Módulos Filaments y Printers también refactorizados
 
 ### 🔒 Cifrado de Datos de Clientes
 - **Cifrado AES-256-GCM** - Almacenamiento cifrado de datos de clientes utilizando el algoritmo estándar de la industria AES-256-GCM

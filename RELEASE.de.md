@@ -4,7 +4,50 @@ Dieses Dokument enthält detaillierte Änderungsprotokolle für alle Versionen d
 
 ---
 
-## v3.0.0 (2025) - 🔒 Kundendatenverschlüsselung & DSGVO-Konformität
+## v3.0.0 (2025) - 🔒 Kundendatenverschlüsselung & DSGVO-Konformität + ⚡ Performance-Optimierung
+
+### ⚡ Performance-Optimierung und Code Splitting
+
+#### React.lazy() Dokumentation und Optimierung
+- **React.lazy() Implementierungsdokumentation** - Vollständige Dokumentation erstellt (`docs/PERFORMANCE.md`)
+- **Lade-Phase-Optimierung** - Während der Lade-Phase werden nur Daten geladen, Komponenten bei Bedarf
+- **Suspense Fallback-Optimierung** - Optimierte Fallback-Komponenten in AppRouter.tsx
+- **Error Boundary hinzugefügt** - LazyErrorBoundary.tsx Komponente für lazy geladene Komponenten
+
+#### Route-basiertes Code Splitting
+- **React Router Integration** - React Router v7.10.0 installiert und konfiguriert
+- **URL-basierte Navigation** - Route-Struktur implementiert (`/settings`, `/offers`, `/customers`, etc.)
+- **Lazy Loading für Routen** - Jede Route automatisch in separate Dateien aufgeteilt
+- **State-basiert → Routing-Umstellung** - `activePage` State auf URL-basiertes Routing umgestellt
+- **Lesezeichenfähige Seiten** - Alle Seiten über direkte URL erreichbar
+- **Browser-Navigation-Unterstützung** - Zurück/Vor-Tasten funktionieren, besseres UX
+
+#### Code Splitting Feinabstimmung
+- **Vite Build-Konfigurationsoptimierung** - `rollupOptions.output.manualChunks` konfiguriert
+- **Vendor Chunk-Optimierung**:
+  - React/React-DOM/React-Router separater Chunk (`vendor-react`)
+  - Tauri APIs separater Chunk (`vendor-tauri`)
+  - UI-Bibliotheken separate Chunks (`vendor-ui-framer`, `vendor-ui-charts`)
+  - Andere node_modules (`vendor`)
+- **Route-basiertes Chunking** - Automatisches Lazy Loading erstellt separate Chunks pro Route
+- **Router-Dateien-Gruppierung** - Organisiert in `router`, `routes` Chunks
+- **Gemeinsame Komponenten-Gruppierung** - `components-shared` Chunk
+- **Chunk-Größen-Warnlimit** - Auf 1000 KB gesetzt
+
+#### Modulare Architektur
+- **Modulare Architektur-Dokumentation** - Vollständige Dokumentation (`docs/MODULAR_ARCHITECTURE.md`)
+- **Pfad-Aliasse** - `@features`, `@shared`, `@core` Aliasse konfiguriert
+- **Vite- und TypeScript-Konfiguration** - Aktualisiert mit Pfad-Alias-Unterstützung
+- **Gemeinsame Module-Implementierung**:
+  - Gemeinsame Komponenten (ConfirmDialog, FormField, InputField, SelectField, NumberField)
+  - Gemeinsame Hooks (useModal, useForm)
+  - Gemeinsame Utilities (debounce, format, validation)
+- **Feature-Module-Refaktorierung** - Vollständige Refaktorierung von 6 Modulen:
+  - Calculator: 582 Zeilen → 309 Zeilen (-46.9%)
+  - Settings: 5947 Zeilen → 897 Zeilen (-85%!)
+  - Offers: 3985 Zeilen → 3729 Zeilen (-6.4%)
+  - Home: 3454 Zeilen → 3308 Zeilen (-4.2%)
+  - Filaments- und Printers-Module ebenfalls refaktoriert
 
 ### 🔒 Kundendatenverschlüsselung
 - **AES-256-GCM-Verschlüsselung** - Verschlüsselte Speicherung von Kundendaten mit dem branchenüblichen AES-256-GCM-Algorithmus
