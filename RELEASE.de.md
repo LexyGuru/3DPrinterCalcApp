@@ -4,6 +4,43 @@ Dieses Dokument enthält detaillierte Änderungsprotokolle für alle Versionen d
 
 ---
 
+## v3.0.0 (2025) - 🔒 Kundendatenverschlüsselung & DSGVO-Konformität
+
+### 🔒 Kundendatenverschlüsselung
+- **AES-256-GCM-Verschlüsselung** - Verschlüsselte Speicherung von Kundendaten mit dem branchenüblichen AES-256-GCM-Algorithmus
+- **PBKDF2-Passwort-Hashing** - Sichere Passwortspeicherung mit PBKDF2-Algorithmus (100.000 Iterationen, SHA-256)
+- **Separate Dateispeicherung** - Verschlüsselte Kundendaten werden in einer separaten `customers.json`-Datei gespeichert
+- **In-Memory-Passwortverwaltung** - Passwörter werden nur im Speicher gespeichert und beim Schließen der Anwendung gelöscht
+- **App-Passwort-Integration** - Optional: Das App-Passwortschutz-Passwort kann auch für die Verschlüsselung verwendet werden
+- **Passwort-Prompt-System** - Intelligente Passwortanfrage (erscheint nicht auf dem Ladebildschirm, nach der Willkommensnachricht)
+- **Datenschutz** - Verschlüsselte Daten vor versehentlichem Löschen geschützt
+
+### ✅ DSGVO/EU-konforme Datenschutzbestimmungen
+- **Konformität**: Die Anwendung verarbeitet Kundendaten in Übereinstimmung mit der DSGVO (Datenschutz-Grundverordnung) und EU-Datenschutzbestimmungen
+- **Branchenübliche Verschlüsselung**: Verwendung des AES-256-GCM-Algorithmus (erfüllt EU-Empfehlungen)
+- **Sichere Passwortverwaltung**: PBKDF2-Hashing-Algorithmus (NIST-empfohlen)
+- **Minimale Datensammlung**: Speichert nur die für die Anwendung erforderlichen Kundendaten
+- **Datenaufbewahrung**: Der Benutzer hat vollständige Kontrolle über die Datenspeicherung und -löschung
+- **Zugriffskontrolle**: Passwortgeschützter Zugriff auf Kundendaten
+
+### 🎨 UI/UX-Verbesserungen
+- **Verschlüsselungsaktivierungs-Modal** - Neues Modal-Dialogfeld zur Aktivierung der Verschlüsselung mit App-Passwort-Option
+- **ConfirmDialog-Erweiterung** - customContent-Unterstützung für Modal-Komponenten
+- **Passwort-Prompt-Timing** - Intelligente Anzeige (nicht auf dem Ladebildschirm)
+- **Einstellungsintegration** - Verschlüsselungseinstellungen im Sicherheits-Tab
+
+### 🔧 Technische Verbesserungen
+- **Backend-Verschlüsselungsmodul** - In Rust implementierte Verschlüsselung (`src-tauri/src/encryption.rs`)
+- **Frontend-Verschlüsselungs-Utilities** - TypeScript-Hilfsfunktionen zur Verschlüsselungsverwaltung
+- **Passwort-Manager** - In-Memory-Passwortverwaltungssystem
+- **Store-Integration** - saveCustomers/loadCustomers-Funktionen mit Verschlüsselungsintegration
+
+### 📚 Sprachunterstützung
+- **13 Sprachen aktualisiert** - Neue Verschlüsselungsübersetzungsschlüssel in allen Sprachdateien
+- **Neue Schlüssel**: `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
 ## v2.0.0 (2025) - 🚀 Performance-Überwachung & Audit-Log-System
 
 ### 🌐 Lokalisierung von Konsolennachrichten

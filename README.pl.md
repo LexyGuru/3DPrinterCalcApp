@@ -23,6 +23,7 @@ Nowoczesna aplikacja desktopowa do obliczania kosztów druku 3D. Zbudowana z Tau
 - 🧾 **Import G-code i tworzenie szkicu** - Ładowanie eksportów G-code/JSON (Prusa, Cura, Orca, Qidi) z modala w kalkulatorze, ze szczegółowym podsumowaniem i automatycznym generowaniem szkicu oferty
 - 📈 **Statystyki** - Panel podsumowania zużycia filamentu, przychodów, zysku
 - 👥 **Baza danych klientów** - Zarządzanie klientami z informacjami kontaktowymi, danymi firmy i statystykami ofert
+- 🔒 **Szyfrowanie danych klientów** - Szyfrowanie AES-256-GCM dla danych klientów, zgodność z RODO/UE w zakresie ochrony danych, opcjonalna ochrona hasłem
 - 📊 **Historia i trendy cen** - Śledzenie zmian cen filamentu z wykresami i statystykami
 - 🌍 **Wielojęzyczność** - Pełne tłumaczenie na węgierski, angielski, niemiecki, francuski, chiński uproszczony, czeski, hiszpański, włoski, polski, portugalski, słowacki, ukraiński i rosyjski (14 języków, 850+ kluczy tłumaczenia na język)
 - 💱 **Wiele walut** - EUR, HUF, USD

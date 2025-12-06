@@ -4,6 +4,43 @@ Tento dokument obsahuje podrobný changelog pre všetky verzie aplikácie 3D Pri
 
 ---
 
+## v3.0.0 (2025) - 🔒 Šifrovanie Dát Zákazníkov & Súlad s GDPR
+
+### 🔒 Šifrovanie Dát Zákazníkov
+- **Šifrovanie AES-256-GCM** - Šifrované ukladanie dát zákazníkov pomocou štandardného priemyselného algoritmu AES-256-GCM
+- **Hashovanie hesiel PBKDF2** - Bezpečné ukladanie hesiel pomocou algoritmu PBKDF2 (100 000 iterácií, SHA-256)
+- **Ukladanie v samostatnom súbore** - Šifrované dáta zákazníkov sú uložené v samostatnom súbore `customers.json`
+- **Správa hesiel v pamäti** - Heslá sú ukladané len v pamäti a mazané pri zatvorení aplikácie
+- **Integrácia hesla aplikácie** - Voliteľne: heslo ochrany aplikácie môže byť tiež použité na šifrovanie
+- **Systém výzvy na zadanie hesla** - Inteligentná žiadosť o heslo (nezobrazuje sa na obrazovke načítania, po uvítacej správe)
+- **Ochrana integrity dát** - Šifrované dáta chránené pred náhodným vymazaním
+
+### ✅ Ochrana Dát v Súlade s GDPR/EÚ
+- **Súlad**: Aplikácia spracúva dáta zákazníkov v súlade s GDPR (Všeobecné nariadenie o ochrane údajov) a predpismi EÚ o ochrane údajov
+- **Štandardné priemyselné šifrovanie**: Použitie algoritmu AES-256-GCM (spĺňa odporúčania EÚ)
+- **Bezpečná správa hesiel**: Hashovací algoritmus PBKDF2 (odporúčané NIST)
+- **Minimálny zber dát**: Ukladá len nevyhnutné dáta zákazníkov požadované aplikáciou
+- **Uchovanie dát**: Užívateľ má plnú kontrolu nad ukladaním a mazaním dát
+- **Riadenie prístupu**: Prístup chránený heslom k dátam zákazníkov
+
+### 🎨 Vylepšenia UI/UX
+- **Modal aktivácie šifrovania** - Nové modálne dialógové okno pre aktiváciu šifrovania s možnosťou hesla aplikácie
+- **Rozšírenie ConfirmDialog** - Podpora vlastného obsahu pre modálne komponenty
+- **Časovanie výzvy na zadanie hesla** - Inteligentné zobrazenie (nie na obrazovke načítania)
+- **Integrácia nastavení** - Nastavenia šifrovania na karte Zabezpečenie
+
+### 🔧 Technické Vylepšenia
+- **Modul šifrovania backend** - Šifrovanie implementované v Rust (`src-tauri/src/encryption.rs`)
+- **Utility šifrovania frontend** - Pomocné funkcie TypeScript pre správu šifrovania
+- **Správca hesiel** - Systém správy hesiel v pamäti
+- **Integrácia úložiska** - Funkcie saveCustomers/loadCustomers s integráciou šifrovania
+
+### 📚 Jazyková Podpora
+- **13 jazykov aktualizovaných** - Nové šifrovacie prekladové kľúče vo všetkých jazykových súboroch
+- **Nové kľúče**: `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
 ## v2.0.0 (2025) - 🚀 Monitorovanie výkonu & Systém auditného záznamu
 
 ### 🌐 Lokalizácia Správ Konzoly

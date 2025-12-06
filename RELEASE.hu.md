@@ -4,6 +4,43 @@ Ez a dokumentum tartalmazza a 3D Printer Calculator App verzióinak részletes v
 
 ---
 
+## v3.0.0 (2025) - 🔒 Customer Data Encryption & GDPR Compliance
+
+### 🔒 Ügyféladat Titkosítás
+- **AES-256-GCM titkosítás** - Ügyféladatok titkosított tárolása industry-standard AES-256-GCM algoritmussal
+- **PBKDF2 jelszó hashing** - Jelszavak biztonságos tárolása PBKDF2 algoritmussal (100,000 iteráció, SHA-256)
+- **Külön fájl tárolás** - Titkosított ügyféladatok külön `customers.json` fájlban tárolva
+- **In-memory jelszó kezelés** - Jelszavak csak memóriában tárolva, alkalmazás bezárásakor törlődnek
+- **App password integráció** - Opcionális: az app jelszavas védelem jelszavát használhatja a titkosításhoz is
+- **Jelszó prompt rendszer** - Intelligens jelszó kérés (nem jelenik meg loading screen-en, welcome message után)
+- **Data integrity védés** - Titkosított adatok védve az esetleges törlés ellen
+
+### ✅ GDPR/EU-szabályoknak megfelelő adatvédelem
+- **Megfelelőség**: Az alkalmazás GDPR (General Data Protection Regulation) és EU adatvédelmi szabályoknak megfelelően kezeli az ügyféladatokat
+- **Industry-standard titkosítás**: AES-256-GCM algoritmus használata (megfelel az EU ajánlásoknak)
+- **Biztonságos jelszó kezelés**: PBKDF2 hashing algoritmus (NIST ajánlott)
+- **Minimális adatgyűjtés**: Csak a szükséges ügyféladatokat tárolja az alkalmazás
+- **Adatmegőrzés**: A felhasználó teljes kontrollt gyakorol az adatok tárolására és törlésére
+- **Jogosultság-alapú hozzáférés**: Jelszóval védett hozzáférés az ügyféladatokhoz
+
+### 🎨 UI/UX Fejlesztések
+- **Titkosítás bekapcsolás modal** - Új modal ablak titkosítás bekapcsolásához app password opcióval
+- **ConfirmDialog bővítés** - customContent támogatás modal komponensekhez
+- **Jelszó prompt időzítés** - Intelligens megjelenítés (nem a loading screen-en)
+- **Settings integráció** - Titkosítás beállítások a Security tab-ban
+
+### 🔧 Technikai Fejlesztések
+- **Backend encryption module** - Rust-ban implementált titkosítás (`src-tauri/src/encryption.rs`)
+- **Frontend encryption utilities** - TypeScript utility függvények titkosítás kezeléséhez
+- **Password manager** - In-memory jelszó kezelés rendszer
+- **Store integration** - saveCustomers/loadCustomers funkciók titkosítás integrációval
+
+### 📚 Nyelvi támogatás
+- **13 nyelv frissítve** - Minden nyelvi fájlban új encryption fordítási kulcsok
+- **Új kulcsok**: `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
 ## v2.0.0 (2025) - 🚀 Performance Monitoring & Audit Log System
 
 ### 🌐 Console Üzenetek Lokalizálása

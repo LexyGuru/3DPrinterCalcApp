@@ -4,6 +4,43 @@ Tento dokument obsahuje podrobný changelog pro všechny verze aplikace 3D Print
 
 ---
 
+## v3.0.0 (2025) - 🔒 Šifrování Dat Zákazníků & Soulad s GDPR
+
+### 🔒 Šifrování Dat Zákazníků
+- **Šifrování AES-256-GCM** - Šifrované ukládání dat zákazníků pomocí standardního průmyslového algoritmu AES-256-GCM
+- **Hashování hesel PBKDF2** - Bezpečné ukládání hesel pomocí algoritmu PBKDF2 (100 000 iterací, SHA-256)
+- **Ukládání v samostatném souboru** - Šifrovaná data zákazníků jsou uložena v samostatném souboru `customers.json`
+- **Správa hesel v paměti** - Hesla jsou ukládána pouze v paměti a mazána při zavření aplikace
+- **Integrace hesla aplikace** - Volitelně: heslo ochrany aplikace může být také použito pro šifrování
+- **Systém výzvy k zadání hesla** - Inteligentní žádost o heslo (nezobrazuje se na obrazovce načítání, po uvítací zprávě)
+- **Ochrana integrity dat** - Šifrovaná data chráněná proti náhodnému smazání
+
+### ✅ Ochrana Dat v Souladu s GDPR/EU
+- **Soulad**: Aplikace zpracovává data zákazníků v souladu s GDPR (Obecné nařízení o ochraně osobních údajů) a předpisy EU o ochraně dat
+- **Standardní průmyslové šifrování**: Použití algoritmu AES-256-GCM (splňuje doporučení EU)
+- **Bezpečná správa hesel**: Hashovací algoritmus PBKDF2 (doporučeno NIST)
+- **Minimální sběr dat**: Ukládá pouze nezbytná data zákazníků vyžadovaná aplikací
+- **Uchování dat**: Uživatel má plnou kontrolu nad ukládáním a mazáním dat
+- **Řízení přístupu**: Přístup chráněný heslem k datům zákazníků
+
+### 🎨 Vylepšení UI/UX
+- **Modal aktivace šifrování** - Nové modální dialogové okno pro aktivaci šifrování s možností hesla aplikace
+- **Rozšíření ConfirmDialog** - Podpora vlastního obsahu pro modální komponenty
+- **Časování výzvy k zadání hesla** - Inteligentní zobrazení (ne na obrazovce načítání)
+- **Integrace nastavení** - Nastavení šifrování na kartě Zabezpečení
+
+### 🔧 Technická Vylepšení
+- **Modul šifrování backend** - Šifrování implementované v Rust (`src-tauri/src/encryption.rs`)
+- **Utility šifrování frontend** - Pomocné funkce TypeScript pro správu šifrování
+- **Správce hesel** - Systém správy hesel v paměti
+- **Integrace úložiště** - Funkce saveCustomers/loadCustomers s integrací šifrování
+
+### 📚 Jazyková Podpora
+- **13 jazyků aktualizováno** - Nové šifrovací překladové klíče ve všech jazykových souborech
+- **Nové klíče**: `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
 ## v2.0.0 (2025) - 🚀 Sledování výkonu & Systém auditního záznamu
 
 ### 🌐 Lokalizace Zpráv Konzole

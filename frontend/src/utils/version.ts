@@ -11,7 +11,10 @@ export interface VersionInfo {
   isBeta: boolean;
 }
 
-const CURRENT_VERSION = "3.0.0"; // Frissítsd ezt, amikor új verziót adsz ki
+const BASE_VERSION = "3.0.0"; // Frissítsd ezt, amikor új verziót adsz ki
+// Version suffix (rc1, rc2, vagy commit hash) - build-time environment variable-ból jön
+const VERSION_SUFFIX = import.meta.env.VITE_VERSION_SUFFIX || "";
+const CURRENT_VERSION = VERSION_SUFFIX ? `${BASE_VERSION}-${VERSION_SUFFIX}` : BASE_VERSION;
 const GITHUB_REPO = "LexyGuru/3DPrinterCalcApp"; // Frissítsd a saját repository nevedre
 const RATE_LIMIT_BACKOFF_MS = 15 * 60 * 1000; // 15 perc
 

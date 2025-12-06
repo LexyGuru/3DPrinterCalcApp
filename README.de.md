@@ -24,6 +24,7 @@ Eine moderne Desktop-Anwendung zur Berechnung von 3D-Druckkosten. Erstellt mit T
 - 🧾 **G-Code-Import & Entwurfserstellung** - G-Code/JSON-Exporte (Prusa, Cura, Orca, Qidi) aus Modal im Rechner laden, mit detaillierter Zusammenfassung und automatischer Angebotsentwurfsgenerierung
 - 📈 **Statistiken** - Übersichtsdashboard für Filamentverbrauch, Umsatz, Gewinn
 - 👥 **Kundendatenbank** - Kundenverwaltung mit Kontaktinformationen, Firmendaten und Angebotsstatistiken
+- 🔒 **Kundendatenverschlüsselung** - AES-256-GCM-Verschlüsselung für Kundendaten, DSGVO/EU-konforme Datenschutzbestimmungen, optionaler Passwortschutz
 - 📊 **Preisverlauf und Trends** - Verfolgung von Filamentpreisänderungen mit Diagrammen und Statistiken
 - 🌍 **Mehrsprachig** - Vollständige Übersetzung in Ungarisch, Englisch, Deutsch, Französisch, Vereinfachtem Chinesisch, Tschechisch, Spanisch, Italienisch, Polnisch, Portugiesisch, Slowakisch, Ukrainisch und Russisch (14 Sprachen, 850+ Übersetzungsschlüssel pro Sprache)
 - 💱 **Mehrere Währungen** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 Währungen)

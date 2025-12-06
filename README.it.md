@@ -23,6 +23,7 @@ Un'applicazione desktop moderna per calcolare i costi di stampa 3D. Realizzata c
 - 🧾 **Importazione G-code e creazione bozza** - Carica esportazioni G-code/JSON (Prusa, Cura, Orca, Qidi) da modale nella calcolatrice, con riepilogo dettagliato e generazione automatica bozza preventivo
 - 📈 **Statistiche** - Dashboard di riepilogo per consumo filamento, ricavi, profitto
 - 👥 **Database clienti** - Gestione clienti con informazioni di contatto, dettagli aziendali e statistiche delle offerte
+- 🔒 **Crittografia dati clienti** - Crittografia AES-256-GCM per dati clienti, protezione dati conforme GDPR/UE, protezione password opzionale
 - 📊 **Storico e tendenze dei prezzi** - Tracciamento delle variazioni di prezzo del filamento con grafici e statistiche
 - 🌍 **Multilingue** - Traduzione completa in ungherese, inglese, tedesco, francese, cinese semplificato, ceco, spagnolo, italiano, polacco, portoghese, slovacco, ucraino e russo (14 lingue, 850+ chiavi di traduzione per lingua)
 - 💱 **Valute multiple** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 valute)

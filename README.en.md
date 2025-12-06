@@ -24,6 +24,7 @@ A modern desktop application for calculating 3D printing costs. Built with Tauri
 - 🧾 **G-code Import & Draft Creation** - Load G-code/JSON exports (Prusa, Cura, Orca, Qidi) from modal in calculator, with detailed summary and automatic quote draft generation
 - 📈 **Statistics** - Summary dashboard for filament consumption, revenue, profit
 - 👥 **Customer Database** - Manage customers with contact information, company details, and offer statistics
+- 🔒 **Customer Data Encryption** - AES-256-GCM encryption for customer data, GDPR/EU compliant data protection, optional password protection
 - 📊 **Price History & Trends** - Track filament price changes over time with charts and statistics
 - 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (13 languages, 850+ translation keys per language)
 - 💱 **Multiple Currencies** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 currencies)

@@ -24,6 +24,7 @@ Egy modern, desktop alkalmazás 3D nyomtatási költségszámításra. Tauri v2-
 - 🧾 **G-code import és piszkozat készítés** - A kalkulátorban modális ablakból tölthető be G-code/JSON export (Prusa, Cura, Orca, Qidi), részletes összefoglalóval és automatikus árajánlat piszkozat generálással
 - 📈 **Statisztikák** - Összefoglaló dashboard filament fogyasztásról, bevételről, profitról
 - 👥 **Ügyfél adatbázis** - Ügyfelek kezelése kapcsolattartási adatokkal, cégadatokkal és árajánlat statisztikákkal
+- 🔒 **Ügyféladat titkosítás** - AES-256-GCM titkosítás ügyféladatokhoz, GDPR/EU-szabályoknak megfelelő adatvédelem, opcionális jelszavas védelem
 - 📊 **Ár előzmények és trendek** - Filament ár változások követése grafikonokkal és statisztikákkal
 - 🌍 **Többnyelvű** - Teljes fordítás magyar, angol, német, francia, egyszerűsített kínai, cseh, spanyol, olasz, lengyel, portugál, szlovák, ukrán és orosz nyelveken (13 nyelv, összesen 850+ fordítási kulcs minden nyelven)
 - 💱 **Több pénznem** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 pénznem)

@@ -4,6 +4,43 @@ Ce document contient le journal des modifications détaillé pour toutes les ver
 
 ---
 
+## v3.0.0 (2025) - 🔒 Chiffrement des Données Clients & Conformité RGPD
+
+### 🔒 Chiffrement des Données Clients
+- **Chiffrement AES-256-GCM** - Stockage chiffré des données clients utilisant l'algorithme standard de l'industrie AES-256-GCM
+- **Hachage de mot de passe PBKDF2** - Stockage sécurisé des mots de passe utilisant l'algorithme PBKDF2 (100 000 itérations, SHA-256)
+- **Stockage en fichier séparé** - Les données clients chiffrées sont stockées dans un fichier séparé `customers.json`
+- **Gestion de mot de passe en mémoire** - Les mots de passe ne sont stockés qu'en mémoire et supprimés à la fermeture de l'application
+- **Intégration du mot de passe de l'application** - Optionnel : le mot de passe de protection de l'application peut également être utilisé pour le chiffrement
+- **Système de demande de mot de passe** - Demande intelligente de mot de passe (n'apparaît pas sur l'écran de chargement, après le message de bienvenue)
+- **Protection de l'intégrité des données** - Données chiffrées protégées contre la suppression accidentelle
+
+### ✅ Protection des Données Conforme au RGPD/UE
+- **Conformité** : L'application gère les données clients en conformité avec le RGPD (Règlement Général sur la Protection des Données) et les réglementations de protection des données de l'UE
+- **Chiffrement standard de l'industrie** : Utilisation de l'algorithme AES-256-GCM (répond aux recommandations de l'UE)
+- **Gestion sécurisée des mots de passe** : Algorithme de hachage PBKDF2 (recommandé par le NIST)
+- **Collecte minimale de données** : Stocke uniquement les données clients nécessaires à l'application
+- **Rétention des données** : L'utilisateur a un contrôle total sur le stockage et la suppression des données
+- **Contrôle d'accès** : Accès protégé par mot de passe aux données clients
+
+### 🎨 Améliorations UI/UX
+- **Modal d'activation du chiffrement** - Nouvelle boîte de dialogue modale pour activer le chiffrement avec option de mot de passe d'application
+- **Amélioration de ConfirmDialog** - Support de contenu personnalisé pour les composants modaux
+- **Temporisation de la demande de mot de passe** - Affichage intelligent (pas sur l'écran de chargement)
+- **Intégration des paramètres** - Paramètres de chiffrement dans l'onglet Sécurité
+
+### 🔧 Améliorations Techniques
+- **Module de chiffrement backend** - Chiffrement implémenté en Rust (`src-tauri/src/encryption.rs`)
+- **Utilitaires de chiffrement frontend** - Fonctions utilitaires TypeScript pour la gestion du chiffrement
+- **Gestionnaire de mots de passe** - Système de gestion de mots de passe en mémoire
+- **Intégration du stockage** - Fonctions saveCustomers/loadCustomers avec intégration de chiffrement
+
+### 📚 Support Linguistique
+- **13 langues mises à jour** - Nouvelles clés de traduction de chiffrement dans tous les fichiers linguistiques
+- **Nouvelles clés** : `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
 ## v2.0.0 (2025) - 🚀 Surveillance des Performances & Système d'Enregistrement d'Audit
 
 ### 🌐 Localisation des Messages de la Console

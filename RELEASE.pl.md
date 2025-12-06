@@ -4,6 +4,43 @@ Ten dokument zawiera szczegółowy dziennik zmian dla wszystkich wersji aplikacj
 
 ---
 
+## v3.0.0 (2025) - 🔒 Szyfrowanie Danych Klientów & Zgodność z RODO
+
+### 🔒 Szyfrowanie Danych Klientów
+- **Szyfrowanie AES-256-GCM** - Szyfrowane przechowywanie danych klientów przy użyciu standardowego algorytmu branżowego AES-256-GCM
+- **Haszowanie haseł PBKDF2** - Bezpieczne przechowywanie haseł przy użyciu algorytmu PBKDF2 (100 000 iteracji, SHA-256)
+- **Przechowywanie w oddzielnym pliku** - Zaszyfrowane dane klientów są przechowywane w oddzielnym pliku `customers.json`
+- **Zarządzanie hasłami w pamięci** - Hasła są przechowywane tylko w pamięci i usuwane po zamknięciu aplikacji
+- **Integracja hasła aplikacji** - Opcjonalnie: hasło ochrony aplikacji może być również używane do szyfrowania
+- **System monitowania hasła** - Inteligentne żądanie hasła (nie pojawia się na ekranie ładowania, po wiadomości powitalnej)
+- **Ochrona integralności danych** - Zaszyfrowane dane chronione przed przypadkowym usunięciem
+
+### ✅ Ochrona Danych Zgodna z RODO/UE
+- **Zgodność**: Aplikacja obsługuje dane klientów zgodnie z RODO (Rozporządzenie Ogólne o Ochronie Danych) i przepisami UE dotyczącymi ochrony danych
+- **Standardowe szyfrowanie branżowe**: Użycie algorytmu AES-256-GCM (spełnia zalecenia UE)
+- **Bezpieczne zarządzanie hasłami**: Algorytm haszujący PBKDF2 (zalecany przez NIST)
+- **Minimalna zbiórka danych**: Przechowuje tylko niezbędne dane klientów wymagane przez aplikację
+- **Retencja danych**: Użytkownik ma pełną kontrolę nad przechowywaniem i usuwaniem danych
+- **Kontrola dostępu**: Dostęp chroniony hasłem do danych klientów
+
+### 🎨 Ulepszenia UI/UX
+- **Modal aktywacji szyfrowania** - Nowe okno dialogowe modalne do włączania szyfrowania z opcją hasła aplikacji
+- **Rozszerzenie ConfirmDialog** - Obsługa niestandardowej treści dla komponentów modalnych
+- **Timing monitowania hasła** - Inteligentne wyświetlanie (nie na ekranie ładowania)
+- **Integracja ustawień** - Ustawienia szyfrowania w zakładce Bezpieczeństwo
+
+### 🔧 Ulepszenia Techniczne
+- **Moduł szyfrowania backend** - Szyfrowanie zaimplementowane w Rust (`src-tauri/src/encryption.rs`)
+- **Narzędzia szyfrowania frontend** - Funkcje narzędziowe TypeScript do obsługi szyfrowania
+- **Menedżer haseł** - System zarządzania hasłami w pamięci
+- **Integracja magazynu** - Funkcje saveCustomers/loadCustomers z integracją szyfrowania
+
+### 📚 Wsparcie Językowe
+- **13 języków zaktualizowanych** - Nowe klucze tłumaczenia szyfrowania we wszystkich plikach językowych
+- **Nowe klucze**: `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
 ## v2.0.0 (2025) - 🚀 Monitorowanie Wydajności & System Dzienników Audytu
 
 ### 🌐 Lokalizacja Komunikatów Konsoli

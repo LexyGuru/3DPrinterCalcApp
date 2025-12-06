@@ -4,6 +4,43 @@ Este documento contém o changelog detalhado para todas as versões do aplicativ
 
 ---
 
+## v3.0.0 (2025) - 🔒 Criptografia de Dados de Clientes & Conformidade GDPR
+
+### 🔒 Criptografia de Dados de Clientes
+- **Criptografia AES-256-GCM** - Armazenamento criptografado de dados de clientes usando o algoritmo padrão da indústria AES-256-GCM
+- **Hash de senha PBKDF2** - Armazenamento seguro de senhas usando o algoritmo PBKDF2 (100.000 iterações, SHA-256)
+- **Armazenamento em arquivo separado** - Dados criptografados de clientes são armazenados em um arquivo separado `customers.json`
+- **Gerenciamento de senha em memória** - Senhas são armazenadas apenas na memória e excluídas ao fechar o aplicativo
+- **Integração de senha do aplicativo** - Opcional: a senha de proteção do aplicativo também pode ser usada para criptografia
+- **Sistema de solicitação de senha** - Solicitação inteligente de senha (não aparece na tela de carregamento, após a mensagem de boas-vindas)
+- **Proteção de integridade de dados** - Dados criptografados protegidos contra exclusão acidental
+
+### ✅ Proteção de Dados em Conformidade com GDPR/UE
+- **Conformidade**: O aplicativo gerencia dados de clientes em conformidade com o GDPR (Regulamento Geral sobre a Proteção de Dados) e regulamentos de proteção de dados da UE
+- **Criptografia padrão da indústria**: Uso do algoritmo AES-256-GCM (atende às recomendações da UE)
+- **Gerenciamento seguro de senhas**: Algoritmo de hash PBKDF2 (recomendado pelo NIST)
+- **Coleta mínima de dados**: Armazena apenas os dados de clientes necessários para o aplicativo
+- **Retenção de dados**: O usuário tem controle total sobre o armazenamento e exclusão de dados
+- **Controle de acesso**: Acesso protegido por senha aos dados de clientes
+
+### 🎨 Melhorias de UI/UX
+- **Modal de ativação de criptografia** - Nova caixa de diálogo modal para ativar a criptografia com opção de senha do aplicativo
+- **Aprimoramento do ConfirmDialog** - Suporte a conteúdo personalizado para componentes modais
+- **Temporização da solicitação de senha** - Exibição inteligente (não na tela de carregamento)
+- **Integração de configurações** - Configurações de criptografia na guia Segurança
+
+### 🔧 Melhorias Técnicas
+- **Módulo de criptografia do backend** - Criptografia implementada em Rust (`src-tauri/src/encryption.rs`)
+- **Utilitários de criptografia do frontend** - Funções utilitárias TypeScript para gerenciamento de criptografia
+- **Gerenciador de senhas** - Sistema de gerenciamento de senhas em memória
+- **Integração de armazenamento** - Funções saveCustomers/loadCustomers com integração de criptografia
+
+### 📚 Suporte de Idiomas
+- **13 idiomas atualizados** - Novas chaves de tradução de criptografia em todos os arquivos de idioma
+- **Novas chaves**: `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
 ## v2.0.0 (2025) - 🚀 Monitoramento de Desempenho & Sistema de Registro de Auditoria
 
 ### 🌐 Localização de Mensagens do Console

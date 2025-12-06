@@ -4,6 +4,43 @@ Questo documento contiene il changelog dettagliato per tutte le versioni dell'ap
 
 ---
 
+## v3.0.0 (2025) - 🔒 Crittografia Dati Clienti & Conformità GDPR
+
+### 🔒 Crittografia Dati Clienti
+- **Crittografia AES-256-GCM** - Archiviazione crittografata dei dati dei clienti utilizzando l'algoritmo standard del settore AES-256-GCM
+- **Hashing password PBKDF2** - Archiviazione sicura delle password utilizzando l'algoritmo PBKDF2 (100.000 iterazioni, SHA-256)
+- **Archiviazione in file separato** - I dati crittografati dei clienti sono archiviati in un file separato `customers.json`
+- **Gestione password in memoria** - Le password vengono archiviate solo in memoria e eliminate alla chiusura dell'applicazione
+- **Integrazione password app** - Opzionale: la password di protezione dell'app può essere utilizzata anche per la crittografia
+- **Sistema prompt password** - Richiesta intelligente della password (non appare nella schermata di caricamento, dopo il messaggio di benvenuto)
+- **Protezione integrità dati** - Dati crittografati protetti contro eliminazione accidentale
+
+### ✅ Protezione Dati Conforme a GDPR/UE
+- **Conformità**: L'applicazione gestisce i dati dei clienti in conformità con il GDPR (Regolamento Generale sulla Protezione dei Dati) e le normative di protezione dei dati dell'UE
+- **Crittografia standard del settore**: Utilizzo dell'algoritmo AES-256-GCM (soddisfa le raccomandazioni dell'UE)
+- **Gestione sicura delle password**: Algoritmo di hash PBKDF2 (raccomandato da NIST)
+- **Raccolta dati minima**: Archivia solo i dati dei clienti necessari per l'applicazione
+- **Conservazione dati**: L'utente ha il controllo completo sull'archiviazione e l'eliminazione dei dati
+- **Controllo accesso**: Accesso protetto da password ai dati dei clienti
+
+### 🎨 Miglioramenti UI/UX
+- **Modal attivazione crittografia** - Nuova finestra di dialogo modale per attivare la crittografia con opzione password app
+- **Estensione ConfirmDialog** - Supporto contenuto personalizzato per componenti modali
+- **Timing prompt password** - Visualizzazione intelligente (non nella schermata di caricamento)
+- **Integrazione impostazioni** - Impostazioni di crittografia nella scheda Sicurezza
+
+### 🔧 Miglioramenti Tecnici
+- **Modulo crittografia backend** - Crittografia implementata in Rust (`src-tauri/src/encryption.rs`)
+- **Utilità crittografia frontend** - Funzioni di utilità TypeScript per la gestione della crittografia
+- **Gestore password** - Sistema di gestione password in memoria
+- **Integrazione store** - Funzioni saveCustomers/loadCustomers con integrazione crittografia
+
+### 📚 Supporto Lingue
+- **13 lingue aggiornate** - Nuove chiavi di traduzione crittografia in tutti i file linguistici
+- **Nuove chiavi**: `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
 ## v2.0.0 (2025) - 🚀 Monitoraggio delle Prestazioni & Sistema di Audit Log
 
 ### 🌐 Localizzazione dei Messaggi della Console

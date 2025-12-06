@@ -23,6 +23,7 @@ Una aplicación de escritorio moderna para calcular costos de impresión 3D. Con
 - 🧾 **Importación G-code y creación de borrador** - Cargar exportaciones G-code/JSON (Prusa, Cura, Orca, Qidi) desde modal en calculadora, con resumen detallado y generación automática de borrador de cotización
 - 📈 **Estadísticas** - Panel de resumen para consumo de filamento, ingresos, ganancias
 - 👥 **Base de datos de clientes** - Gestión de clientes con información de contacto, detalles de empresa y estadísticas de ofertas
+- 🔒 **Cifrado de datos de clientes** - Cifrado AES-256-GCM para datos de clientes, protección de datos conforme al RGPD/UE, protección opcional con contraseña
 - 📊 **Historial y tendencias de precios** - Seguimiento de cambios de precios de filamento con gráficos y estadísticas
 - 🌍 **Multilingüe** - Traducción completa en húngaro, inglés, alemán, francés, chino simplificado, checo, español, italiano, polaco, portugués, eslovaco, ucraniano y ruso (14 idiomas, 850+ claves de traducción por idioma)
 - 💱 **Múltiples monedas** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 monedas)

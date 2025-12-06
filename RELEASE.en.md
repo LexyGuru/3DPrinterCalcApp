@@ -4,6 +4,43 @@ This document contains detailed changelog for all versions of the 3D Printer Cal
 
 ---
 
+## v3.0.0 (2025) - 🔒 Customer Data Encryption & GDPR Compliance
+
+### 🔒 Customer Data Encryption
+- **AES-256-GCM encryption** - Customer data encrypted storage using industry-standard AES-256-GCM algorithm
+- **PBKDF2 password hashing** - Secure password storage using PBKDF2 algorithm (100,000 iterations, SHA-256)
+- **Separate file storage** - Encrypted customer data stored in separate `customers.json` file
+- **In-memory password management** - Passwords only stored in memory, cleared on application close
+- **App password integration** - Optional: can use app password protection password for encryption as well
+- **Password prompt system** - Intelligent password request (doesn't appear on loading screen, after welcome message)
+- **Data integrity protection** - Encrypted data protected against accidental deletion
+
+### ✅ GDPR/EU Compliant Data Protection
+- **Compliance**: The application handles customer data in compliance with GDPR (General Data Protection Regulation) and EU data protection regulations
+- **Industry-standard encryption**: Use of AES-256-GCM algorithm (meets EU recommendations)
+- **Secure password handling**: PBKDF2 hashing algorithm (NIST recommended)
+- **Minimal data collection**: Only stores necessary customer data required by the application
+- **Data retention**: User has full control over data storage and deletion
+- **Access control**: Password-protected access to customer data
+
+### 🎨 UI/UX Improvements
+- **Encryption enable modal** - New modal dialog for enabling encryption with app password option
+- **ConfirmDialog enhancement** - customContent support for modal components
+- **Password prompt timing** - Intelligent display (not on loading screen)
+- **Settings integration** - Encryption settings in Security tab
+
+### 🔧 Technical Improvements
+- **Backend encryption module** - Encryption implemented in Rust (`src-tauri/src/encryption.rs`)
+- **Frontend encryption utilities** - TypeScript utility functions for encryption handling
+- **Password manager** - In-memory password management system
+- **Store integration** - saveCustomers/loadCustomers functions with encryption integration
+
+### 📚 Language Support
+- **13 languages updated** - New encryption translation keys in all language files
+- **New keys**: `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
 ## v2.0.0 (2025) - 🚀 Performance Monitoring & Audit Log System
 
 ### 🌐 Console Messages Localization

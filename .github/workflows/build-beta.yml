@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ beta ]
   workflow_dispatch:
+    inputs:
+      beta_suffix:
+        description: 'Optional version suffix (e.g., rc1, rc2). If not provided, commit hash will be used.'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -86,9 +91,27 @@ jobs:
           cd frontend
           pnpm install --no-frozen-lockfile
           
+      - name: Determine version suffix for build
+        id: version-suffix-build
+        shell: bash
+        run: |
+          # Ha workflow_dispatch és van explicit beta_suffix input (pl. rc1, rc2), azt használjuk
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.beta_suffix }}" ]; then
+            SUFFIX="${{ github.event.inputs.beta_suffix }}"
+            echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
+            echo "Using explicit suffix for build: $SUFFIX"
+          else
+            # Egyébként (push vagy nincs input) commit hash rövid verzióját használjuk (első 7 karakter)
+            COMMIT_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+            SUFFIX="$COMMIT_SHORT"
+            echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
+            echo "Using commit hash suffix for build: $SUFFIX (from ${{ github.sha }})"
+          fi
+      
       - name: Build frontend
         env:
           VITE_IS_BETA: 'true'
+          VITE_VERSION_SUFFIX: ${{ steps.version-suffix-build.outputs.suffix }}
         run: |
           cd frontend
           pnpm build
@@ -166,6 +189,23 @@ jobs:
           VERSION=$(grep '^version =' src-tauri/Cargo.toml | cut -d '"' -f2)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Version: $VERSION"
+      
+      - name: Determine version suffix for release
+        id: version-suffix
+        shell: bash
+        run: |
+          # Ha workflow_dispatch és van explicit beta_suffix input (pl. rc1, rc2), azt használjuk
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.beta_suffix }}" ]; then
+            SUFFIX="${{ github.event.inputs.beta_suffix }}"
+            echo "suffix=-$SUFFIX" >> "$GITHUB_OUTPUT"
+            echo "Using explicit suffix for release: $SUFFIX"
+          else
+            # Egyébként (push vagy nincs input) commit hash rövid verzióját használjuk (első 7 karakter)
+            COMMIT_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+            SUFFIX="$COMMIT_SHORT"
+            echo "suffix=-$SUFFIX" >> "$GITHUB_OUTPUT"
+            echo "Using commit hash suffix for release: $SUFFIX (from ${{ github.sha }})"
+          fi
       
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -314,10 +354,10 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: beta-v${{ steps.get-version.outputs.version }}
-          name: Beta v${{ steps.get-version.outputs.version }}
+          tag_name: beta-v${{ steps.get-version.outputs.version }}${{ steps.version-suffix.outputs.suffix }}
+          name: Beta v${{ steps.get-version.outputs.version }}${{ steps.version-suffix.outputs.suffix }}
           body: |
-            ## 🧪 Beta Release v${{ steps.get-version.outputs.version }}
+            ## 🧪 Beta Release v${{ steps.get-version.outputs.version }}${{ steps.version-suffix.outputs.suffix }}
             
             This is an automated beta release built from the `beta` branch.
             

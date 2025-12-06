@@ -4,6 +4,43 @@ Este documento contiene el registro detallado de cambios para todas las versione
 
 ---
 
+## v3.0.0 (2025) - 🔒 Cifrado de Datos de Clientes & Cumplimiento RGPD
+
+### 🔒 Cifrado de Datos de Clientes
+- **Cifrado AES-256-GCM** - Almacenamiento cifrado de datos de clientes utilizando el algoritmo estándar de la industria AES-256-GCM
+- **Hashing de contraseñas PBKDF2** - Almacenamiento seguro de contraseñas utilizando el algoritmo PBKDF2 (100.000 iteraciones, SHA-256)
+- **Almacenamiento en archivo separado** - Los datos cifrados de clientes se almacenan en un archivo separado `customers.json`
+- **Gestión de contraseñas en memoria** - Las contraseñas se almacenan solo en memoria y se eliminan al cerrar la aplicación
+- **Integración de contraseña de aplicación** - Opcional: la contraseña de protección de la aplicación también se puede usar para el cifrado
+- **Sistema de solicitud de contraseña** - Solicitud inteligente de contraseña (no aparece en la pantalla de carga, después del mensaje de bienvenida)
+- **Protección de integridad de datos** - Datos cifrados protegidos contra eliminación accidental
+
+### ✅ Protección de Datos Conforme al RGPD/UE
+- **Cumplimiento**: La aplicación maneja los datos de clientes de conformidad con el RGPD (Reglamento General de Protección de Datos) y las normativas de protección de datos de la UE
+- **Cifrado estándar de la industria**: Uso del algoritmo AES-256-GCM (cumple con las recomendaciones de la UE)
+- **Gestión segura de contraseñas**: Algoritmo de hash PBKDF2 (recomendado por NIST)
+- **Recopilación mínima de datos**: Solo almacena los datos de clientes necesarios para la aplicación
+- **Retención de datos**: El usuario tiene control total sobre el almacenamiento y eliminación de datos
+- **Control de acceso**: Acceso protegido por contraseña a los datos de clientes
+
+### 🎨 Mejoras de UI/UX
+- **Modal de activación de cifrado** - Nuevo diálogo modal para activar el cifrado con opción de contraseña de aplicación
+- **Mejora de ConfirmDialog** - Soporte para contenido personalizado en componentes modales
+- **Temporización de solicitud de contraseña** - Visualización inteligente (no en la pantalla de carga)
+- **Integración de configuración** - Configuraciones de cifrado en la pestaña Seguridad
+
+### 🔧 Mejoras Técnicas
+- **Módulo de cifrado del backend** - Cifrado implementado en Rust (`src-tauri/src/encryption.rs`)
+- **Utilidades de cifrado del frontend** - Funciones auxiliares de TypeScript para el manejo de cifrado
+- **Administrador de contraseñas** - Sistema de gestión de contraseñas en memoria
+- **Integración de almacenamiento** - Funciones saveCustomers/loadCustomers con integración de cifrado
+
+### 📚 Soporte de Idiomas
+- **13 idiomas actualizados** - Nuevas claves de traducción de cifrado en todos los archivos de idioma
+- **Nuevas claves**: `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
 ## v2.0.0 (2025) - 🚀 Monitoreo de Rendimiento & Sistema de Registro de Auditoría
 
 ### 🌐 Localización de Mensajes de la Consola

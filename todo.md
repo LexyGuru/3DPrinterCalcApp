@@ -314,11 +314,11 @@ A v3.0.0 egy major verzió, amely jelentős performance optimalizálásokat, cod
 
 ---
 
-## ✅ RECENTLY COMPLETED (2024)
+## ✅ RECENTLY COMPLETED (2025)
 
 ### 🔒 Customer Data Encryption - TELJES IMPLEMENTÁCIÓ KÉSZ!
 
-**Dátum**: 2024 vége
+**Dátum**: 2025 január
 
 **Implementált funkciók:**
 

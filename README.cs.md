@@ -22,6 +22,8 @@ Moderní desktopová aplikace pro výpočet nákladů na 3D tisk. Vytvořeno pom
 - 🖼️ **Obrázky filamentů v PDF** - Zobrazení log filamentů a vzorků barev v generovaných PDF
 - 🧾 **Import G-code a vytváření konceptu** - Načítání exportů G-code/JSON (Prusa, Cura, Orca, Qidi) z modalu v kalkulačce, s podrobným shrnutím a automatickým generováním konceptu nabídky
 - 📈 **Statistiky** - Přehledný dashboard pro spotřebu filamentu, příjmy, zisk
+- 👥 **Databáze zákazníků** - Správa zákazníků s kontaktními informacemi, firemními údaji a statistikami nabídek
+- 🔒 **Šifrování dat zákazníků** - Šifrování AES-256-GCM pro data zákazníků, ochrana dat v souladu s GDPR/EU, volitelná ochrana heslem
 - 🌍 **Vícejazyčnost** - Úplný překlad do maďarštiny, angličtiny, němčiny, francouzštiny, zjednodušené čínštiny, češtiny, španělštiny, italštiny, polštiny, portugalštiny, slovenštiny, ukrajinštiny a ruštiny (14 jazyků, 813 překladových klíčů na jazyk)
 - 💱 **Více měn** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 měn)
 - 🔄 **Automatické aktualizace** - Kontroluje GitHub Releases pro nové verze
