@@ -318,7 +318,7 @@ A v3.0.0 egy major verzió, amely jelentős performance optimalizálásokat, cod
 
 ### 🔒 Customer Data Encryption - TELJES IMPLEMENTÁCIÓ KÉSZ!
 
-**Dátum**: 2025 január
+**Dátum**: 2025 december 6.
 
 **Implementált funkciók:**
 
