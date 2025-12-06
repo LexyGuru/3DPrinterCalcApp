@@ -1,3 +1,4 @@
+import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { commonStyles } from "../utils/styles";
 import type { Theme } from "../utils/themes";
@@ -5,13 +6,14 @@ import type { Theme } from "../utils/themes";
 interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
-  message: string;
+  message?: string;
   onConfirm: () => void;
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
   type?: "danger" | "warning" | "info";
   theme?: Theme;
+  customContent?: React.ReactNode; // Egyedi tartalom a message helyett
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -24,6 +26,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   cancelText = "Mégse",
   type = "danger",
   theme,
+  customContent,
 }) => {
   const isGradientBackground = theme?.colors.background?.includes('gradient');
   const dialogBg = isGradientBackground 
@@ -93,14 +96,18 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         }}>
           {title}
         </h3>
-        <p style={{ 
-          margin: "0 0 24px 0", 
-          color: dialogTextMuted, 
-          fontSize: "14px", 
-          lineHeight: "1.6" 
-        }}>
-          {message}
-        </p>
+        {customContent ? (
+          customContent
+        ) : message ? (
+          <p style={{ 
+            margin: "0 0 24px 0", 
+            color: dialogTextMuted, 
+            fontSize: "14px", 
+            lineHeight: "1.6" 
+          }}>
+            {message}
+          </p>
+        ) : null}
         <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
           <button
             onClick={onCancel}

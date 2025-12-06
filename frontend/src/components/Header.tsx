@@ -58,6 +58,14 @@ export const Header: React.FC<Props> = ({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
+  // Frissítjük a currentDate-et, amikor a lastSaved változik (azonnali mentés után)
+  useEffect(() => {
+    if (lastSaved) {
+      setCurrentDate(new Date());
+    }
+  }, [lastSaved]);
+
+  // Timer a folyamatos frissítéshez
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDate(new Date());
@@ -65,7 +73,7 @@ export const Header: React.FC<Props> = ({
       // így a lastSaved relatív idő is frissül
     }, 1000);
     return () => clearInterval(timer);
-  }, [lastSaved]);
+  }, []);
 
   // Viewport szélesség követése responsive layout-hoz
   useEffect(() => {

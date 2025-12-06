@@ -7,11 +7,14 @@ import { PasswordDialog } from "../shared";
 import { verifyAppPassword } from "../utils/auth";
 import type { Theme } from "../utils/themes";
 import { useTranslation } from "../utils/translations";
+import { setAppPasswordInMemory } from "../utils/encryptionPasswordManager";
 
 interface AuthGuardProps {
   settings: Settings;
   children: React.ReactNode;
   theme: Theme;
+  isInitialized?: boolean; // Csak inicializálás után jelenjen meg a jelszó prompt
+  onAppPasswordSet?: () => void; // Callback amikor az app password memóriába kerül
   // onSettingsChange?: (settings: Settings) => void; // Jelenleg nem használt, de később lehet hasznos
 }
 
@@ -19,6 +22,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   settings,
   children,
   theme,
+  isInitialized = true, // Alapértelmezetten true, hogy kompatibilis maradjon
+  onAppPasswordSet,
 }) => {
   const t = useTranslation(settings.language);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -96,7 +101,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     };
   }, [requiresPassword, isAuthenticated, settings.autoLockMinutes, lastActivityTime]);
 
-  // Jelszó ellenőrzése indításkor
+  // Jelszó ellenőrzése indításkor - csak inicializálás után
   useEffect(() => {
     if (!requiresPassword) {
       setIsAuthenticated(true);
@@ -109,9 +114,14 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
       return;
     }
 
-    // Jelszó kérése indításkor
+    // Csak inicializálás után jelenítjük meg a jelszó promptot
+    if (!isInitialized) {
+      return;
+    }
+
+    // Jelszó kérése indításkor (inicializálás után)
     setShowPasswordDialog(true);
-  }, [requiresPassword, settings.appPasswordHash]);
+  }, [requiresPassword, settings.appPasswordHash, isInitialized]);
 
   // Jelszó ellenőrzése
   const handlePasswordSubmit = async (password: string) => {
@@ -124,6 +134,12 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
         setIsAuthenticated(true);
         setShowPasswordDialog(false);
         updateActivityTime(); // Aktiválási idő frissítése
+        // App jelszó elmentése memóriába (titkosításhoz)
+        setAppPasswordInMemory(password);
+        // Callback hívása, hogy az App.tsx értesüljön az app password beállításáról
+        if (onAppPasswordSet) {
+          onAppPasswordSet();
+        }
       } else {
         setPasswordError(
           (t("auth.incorrectPassword" as any) as string) || "Helytelen jelszó. Kérjük, próbálja újra."

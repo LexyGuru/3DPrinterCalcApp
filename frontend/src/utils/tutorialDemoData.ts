@@ -550,7 +550,7 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
     // Mentjük a demo adatokat
     await savePrinters(demoPrinters);
     await saveFilaments(demoFilaments);
-    await saveCustomers(demoCustomers);
+    await saveCustomers(demoCustomers, null); // Tutorial demo adatoknál nincs titkosítás
     await saveOffers(demoOffers);
     
     // Frissítjük a settings-et, hogy beállítsuk a lastBackupDate-et (így nem jelenik meg a backup emlékeztető tutorial alatt)
@@ -629,7 +629,7 @@ export async function hasExistingData(): Promise<boolean> {
     const printers = await loadPrinters();
     const filaments = await loadFilaments();
     const offers = await loadOffers();
-    const customers = await loadCustomers();
+    const customers = await loadCustomers(null); // Tutorial demo adatoknál nincs titkosítás
     
     return printers.length > 0 || filaments.length > 0 || offers.length > 0 || customers.length > 0;
   } catch (error) {

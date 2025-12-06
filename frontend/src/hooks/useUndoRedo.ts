@@ -25,9 +25,15 @@ export function useUndoRedo<T>(
 
   // Sync manager with external state changes (e.g., from props)
   // Only reset if the actual content changed, not just the reference
+  const prevInitialStateRef = useRef<string>(JSON.stringify(initialState));
   useEffect(() => {
+    const currentInitialState = JSON.stringify(initialState);
     const currentState = managerRef.current.getState();
-    if (JSON.stringify(currentState) !== JSON.stringify(initialState)) {
+    
+    // Csak akkor reset, ha valóban változott az initialState tartalma
+    if (prevInitialStateRef.current !== currentInitialState && 
+        currentInitialState !== JSON.stringify(currentState)) {
+      prevInitialStateRef.current = currentInitialState;
       managerRef.current.reset(initialState);
       setStateInternal(initialState);
     }

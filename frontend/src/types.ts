@@ -224,6 +224,11 @@ export interface Settings {
   appPasswordEnabled?: boolean; // App jelszavas védelem be/kikapcsolása
   autoLockMinutes?: number; // Auto-lock időtartama (0 = nincs auto-lock)
   appPasswordHash?: string | null; // Jelszó hash tárolása (nem plain text!)
+  // Ügyféladat titkosítás beállítások (v3.0.0)
+  encryptionEnabled?: boolean; // Ügyféladat titkosítás be/kikapcsolása
+  encryptionPassword?: string | null; // Titkosítási jelszó hash (nem plain text!) - csak akkor van értéke, ha useAppPasswordForEncryption = false
+  encryptedCustomerData?: boolean; // Jelzi, hogy a customer adatok titkosítottak-e
+  useAppPasswordForEncryption?: boolean; // Ha true, akkor az app jelszavas védelem jelszavát használja a titkosításhoz
 }
 
 export const defaultSettings: Settings = {
@@ -255,6 +260,11 @@ export const defaultSettings: Settings = {
   appPasswordEnabled: false, // Alapértelmezetten ki van kapcsolva
   autoLockMinutes: 0, // Alapértelmezetten nincs auto-lock (0 = kikapcsolva)
   appPasswordHash: null, // Alapértelmezetten nincs jelszó hash
+  // Ügyféladat titkosítás beállítások (v3.0.0)
+  encryptionEnabled: false, // Alapértelmezetten ki van kapcsolva
+  encryptionPassword: null, // Alapértelmezetten nincs titkosítási jelszó hash
+  encryptedCustomerData: false, // Alapértelmezetten a customer adatok nincsenek titkosítva
+  useAppPasswordForEncryption: false, // Alapértelmezetten külön jelszó a titkosításhoz
 };
 
 export interface OfferFilament {

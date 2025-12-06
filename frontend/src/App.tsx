@@ -15,7 +15,7 @@ import { PAGE_TO_ROUTE, ROUTE_TO_PAGE } from "./router/routes";
 // Lazy loading komponensek most a router/routes.tsx-ben vannak definiálva
 import type { Printer, Settings, Filament, Offer, Customer, ThemeName, Project, Task } from "./types";
 import { defaultSettings } from "./types";
-import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers, loadProjects, loadTasks, resetStoreInstance } from "./utils/store";
+import { savePrinters, loadPrinters, saveFilaments, loadFilaments, saveSettings, loadSettings, saveOffers, loadOffers, saveCustomers, loadCustomers, loadProjects, loadTasks, resetStoreInstance, hasEncryptedCustomerData } from "./utils/store";
 import { createAutomaticBackup, cleanupOldBackups } from "./utils/backup";
 import { cleanupOldLogs } from "./utils/logCleanup";
 import { cleanupOldAuditLogs } from "./utils/auditLogCleanup";
@@ -38,6 +38,8 @@ import { logApplicationStartup, resetLoggingFlags } from "./utils/appLogging"; /
 import { PerformanceTimer, logMemoryUsage, logPerformanceSummary, logPeriodicPerformanceMetrics, type PerformanceMetric } from "./utils/performance"; // Performance metrikák
 import { auditCreate } from "./utils/auditLog"; // Audit log
 import { AuthGuard } from "./components/AuthGuard"; // Auth guard - jelszavas védelem
+import { getEncryptionPassword, getAppPasswordInMemory } from "./utils/encryptionPasswordManager"; // Titkosítási jelszó kezelés
+import { EncryptionPasswordPrompt } from "./components/EncryptionPasswordPrompt"; // Jelszó kérés titkosított adatokhoz
 
 // Belső AppContent komponens - használja a Router hook-okat
 function AppContent() {
@@ -84,12 +86,111 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const [languageSelected, setLanguageSelected] = useState(false);
   const [settingsInitialModal, setSettingsInitialModal] = useState<"log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history" | null>(null);
+  const [showEncryptionPasswordPrompt, setShowEncryptionPasswordPrompt] = useState(false);
+  const [shouldShowEncryptionPrompt, setShouldShowEncryptionPrompt] = useState(false); // Várakozik az üdvözlő üzenetre
+  const [passwordPromptCancelled, setPasswordPromptCancelled] = useState(false); // Jelzi, hogy a felhasználó kihagyta a jelszó megadását
+  const [appPasswordSetTrigger, setAppPasswordSetTrigger] = useState(0); // Trigger az app password memóriába kerüléséhez
   const t = useTranslation(settings.language);
 
   // 🔹 Log settings frissítése, amikor a settings változik
   useEffect(() => {
     setLogSettings(settings);
   }, [settings]);
+
+  // 🔹 App password memóriába kerülésének figyelése - automatikus ügyfelek betöltés useAppPasswordForEncryption-nél
+  useEffect(() => {
+    // Ha useAppPasswordForEncryption be van kapcsolva, titkosítás be van kapcsolva, és van app password memóriában
+    // VAGY ha van app password memóriában és van titkosított adat (akár a settings-ből, akár a store-ból)
+    if (isInitialized && customers.length === 0 && appPasswordSetTrigger > 0) {
+      const appPassword = getAppPasswordInMemory();
+      if (appPassword && settings.useAppPasswordForEncryption) {
+        // Ellenőrizzük, hogy van-e titkosított adat (akár a settings-ből, akár közvetlenül a store-ból)
+        const hasEncryptedData = settings.encryptedCustomerData || false;
+        
+        // Ha a settings-ben nincs, ellenőrizzük közvetlenül a store-ból
+        if (!hasEncryptedData) {
+          hasEncryptedCustomerData().then((hasData) => {
+            if (hasData) {
+              // Van titkosított adat a store-ban, betöltjük
+              if (import.meta.env.DEV) {
+                console.log("🔒 App password memóriában, titkosított adat találva store-ban, ügyfelek automatikus betöltése");
+              }
+              loadCustomers(appPassword).then((loadedCustomers) => {
+                if (loadedCustomers.length > 0) {
+                  setCustomers(loadedCustomers);
+                  if (import.meta.env.DEV) {
+                    console.log("✅ Ügyfelek automatikusan betöltve app password-tal:", { count: loadedCustomers.length });
+                  }
+                }
+              }).catch((error) => {
+                console.error("❌ Hiba az ügyfelek automatikus betöltésekor (app password):", error);
+              });
+            }
+          }).catch((error) => {
+            console.error("❌ Hiba a titkosított adat ellenőrzésekor:", error);
+          });
+        } else {
+          // Van titkosított adat a settings-ben, betöltjük
+          if (import.meta.env.DEV) {
+            console.log("🔒 App password memóriában, ügyfelek automatikus betöltése useAppPasswordForEncryption-nél", {
+              useAppPasswordForEncryption: settings.useAppPasswordForEncryption,
+              encryptionEnabled: settings.encryptionEnabled,
+              encryptedCustomerData: settings.encryptedCustomerData
+            });
+          }
+          loadCustomers(appPassword).then((loadedCustomers) => {
+            if (loadedCustomers.length > 0) {
+              setCustomers(loadedCustomers);
+              if (import.meta.env.DEV) {
+                console.log("✅ Ügyfelek automatikusan betöltve app password-tal:", { count: loadedCustomers.length });
+              }
+            }
+          }).catch((error) => {
+            console.error("❌ Hiba az ügyfelek automatikus betöltésekor (app password):", error);
+          });
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInitialized, settings.useAppPasswordForEncryption, settings.encryptionEnabled, settings.encryptedCustomerData, customers.length, appPasswordSetTrigger]);
+
+  // 🔹 Ügyfelek oldalra való navigáláskor ellenőrizzük, hogy szükséges-e jelszó
+  // Ez csak akkor fut le, ha már inicializálva van az app (nincs loading képernyő)
+  useEffect(() => {
+    // Csak akkor, ha az ügyfelek oldalon vagyunk, inicializálva van, ÉS a titkosítás BE van kapcsolva, ÉS van titkosított adat
+    if (isInitialized && activePage === 'customers' && settings.encryptionEnabled && settings.encryptedCustomerData) {
+      const encryptionPassword = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
+      // Ha useAppPasswordForEncryption be van kapcsolva, ne jelenítünk külön encryption promptot
+      // mert az app password-ot fogjuk használni (amit az AuthGuard-ban adnak meg)
+      if (settings.useAppPasswordForEncryption) {
+        // Ha van app password memóriában, automatikusan betöltjük az ügyfeleket
+        if (encryptionPassword && customers.length === 0) {
+          if (import.meta.env.DEV) {
+            console.log("🔒 useAppPasswordForEncryption: app password elérhető, ügyfelek automatikus betöltése (navigáció)");
+          }
+          loadCustomers(encryptionPassword).then((loadedCustomers) => {
+            if (loadedCustomers.length > 0) {
+              setCustomers(loadedCustomers);
+            }
+          }).catch((error) => {
+            console.error("❌ Hiba az ügyfelek automatikus betöltésekor:", error);
+          });
+        }
+        // Ha nincs app password memóriában, akkor várjuk az AuthGuard promptot (ne jelenítünk encryption promptot)
+        // Az automatikus betöltés az appPasswordSetTrigger useEffect-ben történik
+      } else if (!encryptionPassword && !showEncryptionPasswordPrompt && !showWelcomeMessage) {
+        // Nincs jelszó memóriában és nincs megnyitva prompt vagy welcome message
+        // DE: csak akkor, ha NEM useAppPasswordForEncryption
+        if (import.meta.env.DEV) {
+          console.log("🔒 Ügyfelek oldalra navigálva, jelszó szükséges - prompt megjelenítése");
+        }
+        // Reset a flag-et, hogy mindig megjelenjen, ha rámegyünk az ügyfelek oldalra
+        setPasswordPromptCancelled(false);
+        setShowEncryptionPasswordPrompt(true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInitialized, activePage, settings.encryptionEnabled, settings.encryptedCustomerData, settings.useAppPasswordForEncryption, showEncryptionPasswordPrompt, showWelcomeMessage, passwordPromptCancelled, customers.length]);
 
   // 🔹 Első indítás ellenőrzése - nyelvválasztó megjelenítése
   // NE hívjuk meg a loadSettings()-et, mert az automatikusan létrehozza a data.json fájlt!
@@ -219,9 +320,31 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
       if (loadedOffers.length > 0) {
         setOffers(loadedOffers);
       }
-      const loadedCustomers = await loadCustomers();
-      if (loadedCustomers.length > 0) {
-        setCustomers(loadedCustomers);
+      // Customer adatok betöltése (titkosítási jelszóval, ha van titkosítás)
+      try {
+        const encryptionPassword = settings.encryptionEnabled 
+          ? getEncryptionPassword(settings.useAppPasswordForEncryption ?? false)
+          : null;
+        
+        if (import.meta.env.DEV) {
+          console.log("🔍 Customer betöltés (reloadData):", {
+            encryptionEnabled: settings.encryptionEnabled,
+            useAppPasswordForEncryption: settings.useAppPasswordForEncryption,
+            hasPassword: !!encryptionPassword
+          });
+        }
+        
+        const loadedCustomers = await loadCustomers(encryptionPassword);
+        if (loadedCustomers.length > 0) {
+          setCustomers(loadedCustomers);
+        }
+      } catch (error) {
+        // Ha jelszó szükséges, akkor megjelenítjük a jelszó dialog-ot
+        if (error instanceof Error && (error as any).code === "ENCRYPTION_PASSWORD_REQUIRED") {
+          setShowEncryptionPasswordPrompt(true);
+        } else {
+          console.error("❌ Hiba az ügyfelek betöltésekor:", error);
+        }
       }
       const loadedProjects = await loadProjects();
       if (loadedProjects.length > 0) {
@@ -482,30 +605,149 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
         // Performance metrika mérése
         const customersTimer = new PerformanceTimer("Ügyfelek betöltése", "loading", false);
         try {
-          const loadedCustomers = await loadCustomers();
-          const customersMetric = await customersTimer.stop();
-          performanceMetrics.push(customersMetric);
+          // Customer adatok betöltése (titkosítási jelszóval, ha van titkosítás)
+          const encryptionPassword = settings.encryptionEnabled 
+            ? getEncryptionPassword(settings.useAppPasswordForEncryption ?? false)
+            : null;
           
-          loadedCustomersCount = loadedCustomers.length;
+          if (import.meta.env.DEV) {
+            console.log("🔍 Customer betöltés előtt:", {
+              encryptionEnabled: settings.encryptionEnabled,
+              encryptedCustomerData: settings.encryptedCustomerData,
+              useAppPasswordForEncryption: settings.useAppPasswordForEncryption,
+              hasPassword: !!encryptionPassword
+            });
+          }
           
-          if (loadedCustomers.length > 0) {
-            setCustomers(loadedCustomers);
-            await writeFrontendLog('INFO', `✅ [MODUL: Ügyfelek] Betöltve - ${loadedCustomers.length} ügyfél`);
-            await writeFrontendLog('INFO', "✅ [MODUL: Ügyfelek] Státusz: Minden rendben");
+          // Ha van titkosítás BE van kapcsolva és nincs jelszó memóriában, akkor meg kell kérni a jelszót
+          // DE: Csak akkor, ha NEM useAppPasswordForEncryption (mert akkor az app password-ot fogjuk használni)
+          // DE: Csak az inicializálás UTÁN jelenítjük meg a promptot, ne a betöltő képernyőn!
+          // KRITIKUS: Csak akkor jelenítjük meg, ha encryptionEnabled is true! Ha kikapcsolva van, akkor ne jelenjen meg!
+          if (settings.encryptionEnabled && settings.encryptedCustomerData && !encryptionPassword) {
+            // Ha useAppPasswordForEncryption be van kapcsolva, akkor NE jelenítsük meg a promptot
+            // mert az app password-ot fogjuk használni (amit az AuthGuard-ban adnak meg)
+            if (!settings.useAppPasswordForEncryption) {
+              // Nincs jelszó memóriában és NEM useAppPasswordForEncryption - meg kell kérni (de csak az inicializálás után)
+              if (import.meta.env.DEV) {
+                console.log("🔒 Nincs jelszó memóriában, jelszó dialog később megjelenítése (inicializálás után)");
+              }
+              customersStatus = "warning";
+              await writeFrontendLog('INFO', "🔒 [MODUL: Ügyfelek] Jelszó szükséges a titkosított adatok betöltéséhez");
+              // KRITIKUS: NE állítsuk be az üres tömböt, mert az autosave felülírja a titkosított adatokat!
+              // Ne jelenítsük meg a promptot a loading screen alatt, csak az inicializálás után
+              // A prompt megjelenítését az inicializálás után kezeljük (az üdvözlő üzenet után)
+              if (showWelcomeMessage) {
+                setShouldShowEncryptionPrompt(true);
+              } else {
+                // Ha nincs welcome message, akkor csak az inicializálás után jelenítjük meg
+                // Ezt a navigáció useEffect-ben kezeljük
+                setShouldShowEncryptionPrompt(true);
+              }
+            } else {
+              // useAppPasswordForEncryption be van kapcsolva - nem jelenítünk promptot, az app password-ot fogjuk használni
+              if (import.meta.env.DEV) {
+                console.log("🔒 useAppPasswordForEncryption be van kapcsolva, nem jelenítünk encryption promptot (az app password-ot fogjuk használni)");
+              }
+              customersStatus = "warning";
+              await writeFrontendLog('INFO', "🔒 [MODUL: Ügyfelek] Várakozás app password-ra (useAppPasswordForEncryption bekapcsolva)");
+            }
+            // Folytassuk a többi adat betöltésével
+            // KRITIKUS: NE állítsuk be az üres tömböt, mert az autosave felülírja a titkosított adatokat!
+            // Csak jelöljük, hogy nincs betöltve (de ne töröljük a meglévő állapotot)
+            loadedCustomersCount = 0;
+            const customersMetric = await customersTimer.stop();
+            performanceMetrics.push(customersMetric);
+            await writeFrontendLog('INFO', "ℹ️ [MODUL: Ügyfelek] Várakozás jelszóra");
+            await writeFrontendLog('WARN', "⚠️ [MODUL: Ügyfelek] Státusz: Figyelmeztetés - Jelszó szükséges");
           } else {
-            customersStatus = "warning";
-            await writeFrontendLog('INFO', "ℹ️ [MODUL: Ügyfelek] Nincs mentett ügyfél");
-            await writeFrontendLog('WARN', "⚠️ [MODUL: Ügyfelek] Státusz: Figyelmeztetés - Nincs mentett ügyfél");
+            // Van jelszó vagy nincs titkosítás - normál betöltés
+            try {
+              const loadedCustomers = await loadCustomers(encryptionPassword);
+              const customersMetric = await customersTimer.stop();
+              performanceMetrics.push(customersMetric);
+              
+              loadedCustomersCount = loadedCustomers.length;
+              
+              if (loadedCustomers.length > 0) {
+                setCustomers(loadedCustomers);
+                await writeFrontendLog('INFO', `✅ [MODUL: Ügyfelek] Betöltve - ${loadedCustomers.length} ügyfél`);
+                await writeFrontendLog('INFO', "✅ [MODUL: Ügyfelek] Státusz: Minden rendben");
+              } else {
+                customersStatus = "warning";
+                await writeFrontendLog('INFO', "ℹ️ [MODUL: Ügyfelek] Nincs mentett ügyfél");
+                await writeFrontendLog('WARN', "⚠️ [MODUL: Ügyfelek] Státusz: Figyelmeztetés - Nincs mentett ügyfél");
+              }
+            } catch (loadError) {
+              // Ha mégis ENCRYPTION_PASSWORD_REQUIRED hibát kapunk, akkor kezeljük
+              if (loadError instanceof Error && (loadError as any).code === "ENCRYPTION_PASSWORD_REQUIRED") {
+                // Ha useAppPasswordForEncryption be van kapcsolva, akkor NE jelenítsük meg a promptot
+                if (!settings.useAppPasswordForEncryption) {
+                  if (import.meta.env.DEV) {
+                    console.log("🔒 ENCRYPTION_PASSWORD_REQUIRED hiba az else ágban, jelszó dialog megjelenítése");
+                  }
+                  customersStatus = "warning";
+                  await writeFrontendLog('INFO', "🔒 [MODUL: Ügyfelek] Jelszó szükséges a titkosított adatok betöltéséhez");
+                  // KRITIKUS: Ne jelenítsük meg a promptot a loading screen alatt, csak az inicializálás után
+                  // A prompt megjelenítését az inicializálás után kezeljük
+                  setShouldShowEncryptionPrompt(true);
+                  // KRITIKUS: NE állítsuk be az üres tömböt, mert az autosave felülírja a titkosított adatokat!
+                  loadedCustomersCount = 0;
+                  const customersMetric = await customersTimer.stop();
+                  performanceMetrics.push(customersMetric);
+                  await writeFrontendLog('INFO', "ℹ️ [MODUL: Ügyfelek] Várakozás jelszóra");
+                  await writeFrontendLog('WARN', "⚠️ [MODUL: Ügyfelek] Státusz: Figyelmeztetés - Jelszó szükséges");
+                } else {
+                  // useAppPasswordForEncryption be van kapcsolva - nem jelenítünk promptot
+                  if (import.meta.env.DEV) {
+                    console.log("🔒 ENCRYPTION_PASSWORD_REQUIRED, de useAppPasswordForEncryption bekapcsolva - nem jelenítünk promptot");
+                  }
+                  customersStatus = "warning";
+                  await writeFrontendLog('INFO', "🔒 [MODUL: Ügyfelek] Várakozás app password-ra (useAppPasswordForEncryption bekapcsolva)");
+                  loadedCustomersCount = 0;
+                  const customersMetric = await customersTimer.stop();
+                  performanceMetrics.push(customersMetric);
+                  await writeFrontendLog('INFO', "ℹ️ [MODUL: Ügyfelek] Várakozás app password-ra");
+                  await writeFrontendLog('WARN', "⚠️ [MODUL: Ügyfelek] Státusz: Figyelmeztetés - App password szükséges");
+                }
+              } else {
+                // Más hiba - továbbdobjuk
+                throw loadError;
+              }
+            }
           }
         } catch (error) {
-          customersStatus = "error";
-          await customersTimer.stopWithError(error);
-          const errorMsg = `❌ [MODUL: Ügyfelek] HIBA: ${error instanceof Error ? error.message : String(error)}`;
-          await writeFrontendLog('ERROR', errorMsg);
-          await writeFrontendLog('ERROR', "❌ [MODUL: Ügyfelek] Státusz: Hiba");
-          console.error("❌ Hiba az ügyfelek betöltésekor:", error);
-          setCustomers([]);
-          loadedCustomersCount = 0;
+          // Ha jelszó szükséges, akkor nem hiba, csak megjelenítjük a dialog-ot
+          if (error instanceof Error && (error as any).code === "ENCRYPTION_PASSWORD_REQUIRED") {
+            // Ha useAppPasswordForEncryption be van kapcsolva, akkor NE jelenítsük meg a promptot
+            if (!settings.useAppPasswordForEncryption) {
+              customersStatus = "warning";
+              await writeFrontendLog('INFO', "🔒 [MODUL: Ügyfelek] Jelszó szükséges a titkosított adatok betöltéséhez");
+              if (import.meta.env.DEV) {
+                console.log("🔒 ENCRYPTION_PASSWORD_REQUIRED hiba elkapva, jelszó dialog később megjelenítése (inicializálás után)");
+              }
+              // Ne jelenítsük meg a promptot a loading screen alatt, csak az inicializálás után
+              setShouldShowEncryptionPrompt(true);
+            } else {
+              // useAppPasswordForEncryption be van kapcsolva - nem jelenítünk promptot
+              if (import.meta.env.DEV) {
+                console.log("🔒 ENCRYPTION_PASSWORD_REQUIRED, de useAppPasswordForEncryption bekapcsolva - nem jelenítünk promptot");
+              }
+              customersStatus = "warning";
+              await writeFrontendLog('INFO', "🔒 [MODUL: Ügyfelek] Várakozás app password-ra (useAppPasswordForEncryption bekapcsolva)");
+            }
+          } else {
+            if (import.meta.env.DEV) {
+              console.error("❌ Más hiba történt:", error);
+            }
+            customersStatus = "error";
+            await customersTimer.stopWithError(error);
+            const errorMsg = `❌ [MODUL: Ügyfelek] HIBA: ${error instanceof Error ? error.message : String(error)}`;
+            await writeFrontendLog('ERROR', errorMsg);
+            await writeFrontendLog('ERROR', "❌ [MODUL: Ügyfelek] Státusz: Hiba");
+            console.error("❌ Hiba az ügyfelek betöltésekor:", error);
+            setCustomers([]);
+            loadedCustomersCount = 0;
+          }
         }
 
         // 6. Projektek betöltése
@@ -635,6 +877,27 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
         
         setIsInitialized(true);
         setLastSaved(new Date());
+        
+        // Ha van pending encryption prompt (nem jelenítettük meg a loading screen alatt), akkor most megjelenítjük
+        // DE: csak akkor, ha NEM useAppPasswordForEncryption (mert akkor az app password-ot használjuk)
+        if (shouldShowEncryptionPrompt && !showWelcomeMessage) {
+          // Ha useAppPasswordForEncryption be van kapcsolva, akkor NE jelenítsük meg az encryption promptot
+          // mert az app password-ot fogjuk használni (amit az AuthGuard-ban adnak meg)
+          if (!settings.useAppPasswordForEncryption) {
+            if (import.meta.env.DEV) {
+              console.log("🔒 Inicializálás után: jelszó prompt megjelenítése");
+            }
+            setShowEncryptionPasswordPrompt(true);
+          } else {
+            // Ha useAppPasswordForEncryption be van kapcsolva, NE jelenítsük meg az encryption promptot
+            // Az app password-ot fogjuk használni, amit az AuthGuard-ban adnak meg
+            // Az automatikus betöltés az appPasswordSetTrigger useEffect-ben történik
+            if (import.meta.env.DEV) {
+              console.log("🔒 useAppPasswordForEncryption be van kapcsolva, encryption prompt NEM jelenik meg");
+            }
+          }
+          setShouldShowEncryptionPrompt(false);
+        }
         
         // Jelöljük, hogy az alkalmazás betöltődött - ezt követően írunk fájlba minden logot
         setAppLoaded(true);
@@ -819,7 +1082,11 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
 
   const debouncedSaveCustomers = debounce(() => {
     if (isInitialized && autosaveEnabled) {
-      saveCustomers(customers).then(() => {
+      // Customer adatok mentése (titkosítási jelszóval, ha van titkosítás)
+      const encryptionPassword = settings.encryptionEnabled 
+        ? getEncryptionPassword(settings.useAppPasswordForEncryption ?? false)
+        : null;
+      saveCustomers(customers, encryptionPassword).then(() => {
         updateLastSaved();
         // 🔹 Autosave mentés után automatikus vészbackup létrehozása
         debouncedAutomaticBackup();
@@ -863,9 +1130,27 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
     if (isInitialized && autosaveEnabled) {
       debouncedSaveCustomers();
     } else if (isInitialized && !autosaveEnabled) {
-      saveCustomers(customers).then(() => updateLastSaved());
+      // Customer adatok mentése (titkosítási jelszóval, ha van titkosítás)
+      const encryptionPassword = settings.encryptionEnabled 
+        ? getEncryptionPassword(settings.useAppPasswordForEncryption ?? false)
+        : null;
+      saveCustomers(customers, encryptionPassword).then(() => updateLastSaved());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customers, isInitialized, autosaveEnabled]);
+  
+  // Settings változásakor (titkosítás be/kikapcsolás, jelszó változás) újra kell menteni a customers-t
+  useEffect(() => {
+    if (isInitialized && settings.encryptionEnabled !== undefined && customers.length > 0) {
+      const encryptionPassword = settings.encryptionEnabled 
+        ? getEncryptionPassword(settings.useAppPasswordForEncryption ?? false)
+        : null;
+      saveCustomers(customers, encryptionPassword).catch((error) => {
+        console.error("Hiba az ügyfelek mentésekor (titkosítás változás után):", error);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.encryptionEnabled, settings.useAppPasswordForEncryption, isInitialized]);
 
   // 🔹 Autosave újraindítása, amikor be van kapcsolva
   useEffect(() => {
@@ -1277,6 +1562,7 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
     handleSaveOffer,
     debouncedSaveSettings,
     handleFactoryReset,
+    updateLastSaved,
     onNavigate: (page: string, modal?: "log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history") => {
       setActivePage(page);
       if (modal) {
@@ -1290,7 +1576,7 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
     currentTheme, themeStyles, quickActionTrigger, settingsInitialModal,
     setSettings, setPrinters, setFilaments, setOffers, setCustomers,
     setProjects, setTasks, setQuickActionTrigger, setSettingsInitialModal,
-    handleSaveOffer, debouncedSaveSettings, handleFactoryReset, setActivePage
+    handleSaveOffer, debouncedSaveSettings, handleFactoryReset, updateLastSaved, setActivePage
   ]);
 
   return (
@@ -1300,6 +1586,11 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
           <AuthGuard
             settings={settings}
             theme={currentTheme}
+            isInitialized={isInitialized}
+            onAppPasswordSet={() => {
+              // Trigger, hogy az useEffect újra fut és ellenőrzi az app password-ot
+              setAppPasswordSetTrigger(prev => prev + 1);
+            }}
           >
           <div style={{ 
           height: "100vh", 
@@ -1475,6 +1766,56 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
             />
           )}
 
+          {/* Encryption Password Prompt - titkosított adatok betöltéséhez */}
+          {showEncryptionPasswordPrompt && (
+            <EncryptionPasswordPrompt
+              settings={settings}
+              theme={currentTheme || defaultTheme}
+              onPasswordEntered={async (password: string) => {
+                if (import.meta.env.DEV) {
+                  console.log("✅ Jelszó megadva, customers betöltése...");
+                }
+                // Reset a cancel flag-et
+                setPasswordPromptCancelled(false);
+                
+                try {
+                  // Közvetlenül betöltjük az ügyfeleket a megadott jelszóval
+                  if (import.meta.env.DEV) {
+                    console.log("🔍 Ügyfelek betöltése megadott jelszóval...");
+                  }
+                  
+                  const loadedCustomers = await loadCustomers(password);
+                  if (import.meta.env.DEV) {
+                    console.log("✅ Ügyfelek betöltve jelszó megadása után:", { count: loadedCustomers.length });
+                  }
+                  
+                  if (loadedCustomers.length > 0) {
+                    setCustomers(loadedCustomers);
+                    await writeFrontendLog('INFO', `✅ [MODUL: Ügyfelek] Betöltve - ${loadedCustomers.length} ügyfél`);
+                  } else {
+                    await writeFrontendLog('INFO', `ℹ️ [MODUL: Ügyfelek] Nincs ügyfél betölthető`);
+                  }
+                  
+                  // Sikeres betöltés után zárjuk be a promptot
+                  setShowEncryptionPasswordPrompt(false);
+                } catch (error) {
+                  console.error("❌ Hiba az ügyfelek betöltésekor (jelszó után):", error);
+                  await writeFrontendLog('ERROR', `❌ [MODUL: Ügyfelek] Hiba a betöltéskor: ${error instanceof Error ? error.message : String(error)}`);
+                  // Ha hiba van, ne zárjuk be a promptot, hogy újra megadhassa a jelszót
+                }
+              }}
+              onCancel={() => {
+                if (import.meta.env.DEV) {
+                  console.log("❌ Jelszó megadása megszakítva");
+                }
+                setShowEncryptionPasswordPrompt(false);
+                setPasswordPromptCancelled(true); // Jelzi, hogy kihagyta
+                // NE töröljük az ügyfeleket! Csak hagyjuk üresen, ha még nem voltak betöltve
+                // Ha voltak ügyfelek memóriában, akkor azok ott maradnak
+              }}
+            />
+          )}
+
           {/* Welcome Message - új indításkor, tutorial után */}
           <WelcomeMessage
             settings={settings}
@@ -1484,6 +1825,14 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
             onClose={() => {
               setShowWelcomeMessage(false);
               setWelcomeMessageShown(true);
+              // Ha kell jelszó prompt, akkor most jelenítjük meg (DE csak akkor, ha NEM useAppPasswordForEncryption)
+              if (shouldShowEncryptionPrompt && !settings.useAppPasswordForEncryption) {
+                setShowEncryptionPasswordPrompt(true);
+                setShouldShowEncryptionPrompt(false);
+              } else if (shouldShowEncryptionPrompt && settings.useAppPasswordForEncryption) {
+                // useAppPasswordForEncryption be van kapcsolva - nem jelenítünk promptot
+                setShouldShowEncryptionPrompt(false);
+              }
             }}
           />
 

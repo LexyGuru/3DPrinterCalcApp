@@ -6,13 +6,14 @@ import type { Theme } from "../../../utils/themes";
 interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
-  message: string;
+  message?: string;
   onConfirm: () => void;
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
   type?: "danger" | "warning" | "info";
   theme?: Theme;
+  customContent?: React.ReactNode; // Egyedi tartalom a message helyett
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -25,6 +26,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   cancelText = "Mégse",
   type = "danger",
   theme,
+  customContent,
 }) => {
   const isGradientBackground = theme?.colors.background?.includes('gradient');
   const dialogBg = isGradientBackground 
@@ -94,17 +96,38 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             }}>
               {title}
             </h3>
-            <p style={{ 
-              margin: "0 0 24px 0", 
-              color: dialogTextMuted, 
-              fontSize: "14px", 
-              lineHeight: "1.6" 
+            <div style={{ 
+              maxHeight: "60vh", 
+              overflowY: "auto",
+              marginBottom: customContent || message ? "24px" : "0"
             }}>
-              {message}
-            </p>
-            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              {customContent ? (
+                customContent
+              ) : message ? (
+                <p style={{ 
+                  margin: "0", 
+                  color: dialogTextMuted, 
+                  fontSize: "14px", 
+                  lineHeight: "1.6" 
+                }}>
+                  {message}
+                </p>
+              ) : null}
+            </div>
+            <div style={{ 
+              display: "flex", 
+              gap: "12px", 
+              justifyContent: "flex-end",
+              position: "relative",
+              zIndex: 1,
+              pointerEvents: "auto"
+            }}>
               <button
-                onClick={onCancel}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onCancel();
+                }}
                 style={{
                   ...commonStyles.button,
                   backgroundColor: theme?.colors.secondary || "#6c757d",
@@ -116,6 +139,9 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                   fontSize: "14px",
                   fontWeight: "600",
                   transition: "all 0.2s",
+                  position: "relative",
+                  zIndex: 10,
+                  pointerEvents: "auto",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = theme?.colors.secondaryHover || "#5a6268";
@@ -129,7 +155,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 {cancelText}
               </button>
               <button
-                onClick={onConfirm}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onConfirm();
+                }}
                 style={{
                   ...commonStyles.button,
                   ...buttonStyle,
@@ -140,6 +170,9 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                   fontSize: "14px",
                   fontWeight: "600",
                   transition: "all 0.2s",
+                  position: "relative",
+                  zIndex: 10,
+                  pointerEvents: "auto",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.opacity = "0.9";

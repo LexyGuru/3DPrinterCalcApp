@@ -3,6 +3,7 @@ import type { Printer, Filament, Settings, Offer, CalculationTemplate, Customer,
 // deleteAllAutomaticBackups import eltávolítva - a FactoryResetProgress modal kezeli a backup fájlok törlését
 import { remove, exists } from "@tauri-apps/plugin-fs";
 import { BaseDirectory } from "@tauri-apps/plugin-fs";
+import { encryptCustomers, decryptCustomers } from "./customerEncryption";
 
 // Lazy-initialized store
 let storeInstance: Store | null = null;
@@ -27,6 +28,7 @@ async function getStore(): Promise<Store> {
 // Exportált függvény a Store instance resetelésére (Factory Reset után)
 export function resetStoreInstance(): void {
   storeInstance = null;
+  customerStoreInstance = null;
 }
 
 // Printers
@@ -130,7 +132,22 @@ export async function saveSettings(settings: Settings): Promise<void> {
       storeInstance = store; // Frissítjük a storeInstance-t
     }
     
-    await store.set("settings", settings);
+    // Ha a titkosítás kikapcsolva van, ne tároljuk a titkosítással kapcsolatos mezőket
+    const settingsToSave: any = { ...settings };
+    if (!settingsToSave.encryptionEnabled) {
+      // Ha kikapcsolva van a titkosítás, töröljük a kapcsolódó mezőket
+      delete settingsToSave.encryptionPassword;
+      delete settingsToSave.encryptedCustomerData;
+      delete settingsToSave.useAppPasswordForEncryption;
+    } else if (settingsToSave.useAppPasswordForEncryption) {
+      // Ha az app password-ot használjuk, ne tároljuk az encryptionPassword mezőt (null helyett teljesen töröljük)
+      delete settingsToSave.encryptionPassword;
+    } else if (settingsToSave.encryptionPassword === null) {
+      // Ha encryptionPassword null és nem useAppPasswordForEncryption, akkor töröljük
+      delete settingsToSave.encryptionPassword;
+    }
+    
+    await store.set("settings", settingsToSave);
     await store.save();
     if (import.meta.env.DEV) {
       console.log("✅ Beállítások sikeresen mentve");
@@ -262,38 +279,209 @@ export async function loadTemplates(): Promise<CalculationTemplate[]> {
   }
 }
 
-// Customers
-export async function saveCustomers(customers: Customer[]): Promise<void> {
+// Customers - külön fájlban tárolva (customers.json)
+// Lazy-initialized customer store
+let customerStoreInstance: Store | null = null;
+
+async function getCustomerStore(): Promise<Store> {
+  if (!customerStoreInstance) {
+    // Store.load() automatikusan létrehozza a fájlt, ha nem létezik
+    customerStoreInstance = await Store.load("customers.json");
+    if (import.meta.env.DEV) {
+      console.log("✅ Customer Store betöltve/létrehozva (customers.json)");
+    }
+  }
+  return customerStoreInstance;
+}
+
+// Helper függvény: ellenőrzi, hogy van-e titkosított adat a store-ban
+export async function hasEncryptedCustomerData(): Promise<boolean> {
+  try {
+    const customerStore = await getCustomerStore();
+    const encryptedData = await customerStore.get("customers_encrypted");
+    return !!(encryptedData && typeof encryptedData === "string" && encryptedData.length > 0);
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error("❌ Hiba a titkosított adat ellenőrzésekor:", error);
+    }
+    return false;
+  }
+}
+
+export async function saveCustomers(
+  customers: Customer[],
+  encryptionPassword?: string | null
+): Promise<void> {
   try {
     if (import.meta.env.DEV) {
-      console.log("💾 Ügyfelek mentése...", { count: customers.length });
+      console.log("💾 Ügyfelek mentése...", { count: customers.length, hasEncryption: !!encryptionPassword });
     }
-    const store = await getStore();
-    await store.set("customers", customers);
-    await store.save();
-    if (import.meta.env.DEV) {
-      console.log("✅ Ügyfelek sikeresen mentve", { count: customers.length });
+    const customerStore = await getCustomerStore();
+    
+    // KRITIKUS: Ha üres tömböt akarunk menteni, ellenőrizzük, hogy van-e már titkosított adat
+    // Ha van titkosított adat és üres tömböt akarunk menteni (nincs jelszó), NE mentse!
+    if (customers.length === 0) {
+      const existingEncryptedData = await customerStore.get("customers_encrypted");
+      if (existingEncryptedData && typeof existingEncryptedData === "string" && existingEncryptedData.length > 0) {
+        // Van már titkosított adat, és üres tömböt akarunk menteni (valószínűleg nincs jelszó memóriában)
+        // NE írjuk felül a titkosított adatot üres tömböt!
+        if (import.meta.env.DEV) {
+          console.log("⚠️ Üres tömb mentés blokkolva - van már titkosított adat, ne írjuk felül!");
+        }
+        return; // Kilépünk, nem mentünk semmit
+      }
     }
+    
+    // Ha van titkosítási jelszó, akkor titkosítva mentjük
+    if (encryptionPassword) {
+      try {
+        const encrypted = await encryptCustomers(customers, encryptionPassword);
+        await customerStore.set("customers_encrypted", encrypted);
+        await customerStore.set("customers", null); // Régi plain text adatok törlése
+        if (import.meta.env.DEV) {
+          console.log("🔒 Ügyfelek titkosítva mentve customers.json-ban", { count: customers.length });
+        }
+      } catch (error) {
+        console.error("❌ Hiba az ügyfelek titkosításakor:", error);
+        throw error;
+      }
+    } else {
+      // Nincs titkosítás, plain text mentés
+      await customerStore.set("customers", customers);
+      await customerStore.set("customers_encrypted", null); // Régi titkosított adatok törlése
+      if (import.meta.env.DEV) {
+        console.log("✅ Ügyfelek sikeresen mentve customers.json-ban (nem titkosított)", { count: customers.length });
+      }
+    }
+    
+    await customerStore.save();
   } catch (error) {
     console.error("❌ Hiba az ügyfelek mentésekor:", error);
     throw error;
   }
 }
 
-export async function loadCustomers(): Promise<Customer[]> {
-  const store = await getStore();
+export async function loadCustomers(
+  encryptionPassword?: string | null
+): Promise<Customer[]> {
   try {
-    if (import.meta.env.DEV) {
-      console.log("📥 Ügyfelek betöltése...");
+    // Először próbáljuk a customers.json fájlt betölteni
+    let customerStore: Store;
+    try {
+      customerStore = await getCustomerStore();
+    } catch (error) {
+      // Ha nincs customers.json, próbáljuk a régi data.json-ból betölteni (migráció)
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ customers.json nem létezik, próbáljuk a régi data.json-ból betölteni...");
+      }
+      const mainStore = await getStore();
+      
+      // Régi formátum ellenőrzése (data.json-ból)
+      const oldEncryptedData = await mainStore.get("customers_encrypted");
+      const oldPlainData = await mainStore.get("customers");
+      
+      if (oldEncryptedData && typeof oldEncryptedData === "string" && oldEncryptedData.length > 0) {
+        // Van régi titkosított adat
+        if (!encryptionPassword) {
+          const error = new Error("ENCRYPTION_PASSWORD_REQUIRED");
+          (error as any).code = "ENCRYPTION_PASSWORD_REQUIRED";
+          throw error;
+        }
+        const customers = await decryptCustomers(oldEncryptedData, encryptionPassword);
+        // Migráljuk a customers.json-ba
+        await saveCustomers(customers, encryptionPassword);
+        // Töröljük a régi adatokat
+        await mainStore.set("customers_encrypted", null);
+        await mainStore.set("customers", null);
+        await mainStore.save();
+        if (import.meta.env.DEV) {
+          console.log("✅ Ügyfelek migrálva data.json-ból customers.json-ba");
+        }
+        return customers;
+      } else if (oldPlainData && Array.isArray(oldPlainData) && oldPlainData.length > 0) {
+        // Van régi plain text adat
+        await saveCustomers(oldPlainData, null);
+        await mainStore.set("customers", null);
+        await mainStore.save();
+        if (import.meta.env.DEV) {
+          console.log("✅ Ügyfelek migrálva data.json-ból customers.json-ba (plain text)");
+        }
+        return oldPlainData;
+      }
+      // Nincs régi adat sem
+      return [];
     }
-    const data = await store.get("customers");
-    const customers = Array.isArray(data) ? data : [];
+    
     if (import.meta.env.DEV) {
-      console.log("✅ Ügyfelek betöltve", { count: customers.length });
+      console.log("📥 Ügyfelek betöltése customers.json-ból...", { hasPassword: !!encryptionPassword });
     }
-    return customers;
+    
+    // Először ellenőrizzük, hogy van-e titkosított adat
+    const encryptedData = await customerStore.get("customers_encrypted");
+    
+    if (import.meta.env.DEV) {
+      console.log("🔍 Customer Store ellenőrzés:", { 
+        hasEncryptedData: !!encryptedData, 
+        encryptedDataType: typeof encryptedData,
+        encryptedDataLength: typeof encryptedData === "string" ? encryptedData.length : 0
+      });
+    }
+    
+    if (encryptedData && typeof encryptedData === "string" && encryptedData.length > 0) {
+      // Van titkosított adat
+      if (import.meta.env.DEV) {
+        console.log("🔒 Titkosított adat találva customers.json-ban, jelszó ellenőrzése...");
+      }
+      
+      if (!encryptionPassword) {
+        // Nincs jelszó - speciális hiba dobása
+        if (import.meta.env.DEV) {
+          console.log("⚠️ Nincs jelszó memóriában, ENCRYPTION_PASSWORD_REQUIRED hiba dobása");
+        }
+        const error = new Error("ENCRYPTION_PASSWORD_REQUIRED");
+        (error as any).code = "ENCRYPTION_PASSWORD_REQUIRED";
+        throw error;
+      }
+      
+      // Visszafejtett adatok betöltése
+      try {
+        const customers = await decryptCustomers(encryptedData, encryptionPassword);
+        if (import.meta.env.DEV) {
+          console.log("🔓 Ügyfelek visszafejtve betöltve customers.json-ból", { count: customers.length });
+        }
+        return customers;
+      } catch (error) {
+        console.error("❌ Hiba az ügyfelek visszafejtésekor:", error);
+        // Ha rossz a jelszó, hibaüzenetet dobunk
+        throw new Error("Helytelen titkosítási jelszó, vagy a titkosított adatok sérültek");
+      }
+    } else {
+      // Plain text adatok betöltése
+      const data = await customerStore.get("customers");
+      const customers = Array.isArray(data) ? data : [];
+      if (import.meta.env.DEV) {
+        console.log("✅ Ügyfelek betöltve customers.json-ból (nem titkosított)", { count: customers.length });
+      }
+      return customers;
+    }
   } catch (error) {
+    // Ha ENCRYPTION_PASSWORD_REQUIRED, akkor ez nem hiba, csak várt állapot - ne logoljuk ERROR-ként
+    if (error instanceof Error && (error as any).code === "ENCRYPTION_PASSWORD_REQUIRED") {
+      if (import.meta.env.DEV) {
+        console.log("🔒 Jelszó szükséges az ügyfelek betöltéséhez (nem hiba)");
+      }
+      // Továbbdobjuk a hibát, hogy a hívó komponens kezelje
+      throw error;
+    }
+    // Valós hiba esetén logoljuk ERROR-ként
     console.error("❌ Hiba az ügyfelek betöltésekor:", error);
+    // Ha speciális hiba (visszafejtési hiba), akkor továbbdobjuk
+    if (error instanceof Error && (
+      error.message.includes("titkosítási jelszó") ||
+      error.message.includes("Helytelen")
+    )) {
+      throw error;
+    }
     return [];
   }
 }

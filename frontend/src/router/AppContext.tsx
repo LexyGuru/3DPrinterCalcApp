@@ -38,6 +38,7 @@ export interface AppContextType {
   handleSaveOffer: (offer: Offer) => Promise<void>;
   debouncedSaveSettings: () => void;
   handleFactoryReset: () => void;
+  updateLastSaved?: () => void; // Callback a lastSaved frissítéséhez
   onNavigate?: (page: string, modal?: "log-viewer" | "audit-log-viewer" | "system-diagnostics" | "backup-history") => void;
 }
 

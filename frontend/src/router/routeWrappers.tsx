@@ -153,6 +153,7 @@ export function CustomersWrapper() {
       themeStyles={context.themeStyles}
       offers={context.offers}
       triggerAddForm={context.quickActionTrigger === 'add-customer'}
+      onSave={context.updateLastSaved}
     />
   );
 }

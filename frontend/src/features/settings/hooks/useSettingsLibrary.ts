@@ -51,7 +51,7 @@ const createEmptyLibraryDraft = (): LibraryDraft => ({
 
 interface UseSettingsLibraryProps {
   settings: Settings;
-  activeTab: "general" | "display" | "advanced" | "data" | "library";
+  activeTab: "general" | "display" | "security" | "advanced" | "data" | "library";
   showToast: (message: string, type: "success" | "error" | "info") => void;
   t: (key: TranslationKey | string, params?: Record<string, string | number>) => string;
   openConfirmDialog: (config: {

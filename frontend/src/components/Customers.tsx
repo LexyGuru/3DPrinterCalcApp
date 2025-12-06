@@ -10,6 +10,7 @@ import { saveCustomers } from "../utils/store";
 import { useUndoRedo } from "../hooks/useUndoRedo";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { auditCreate, auditUpdate, auditDelete } from "../utils/auditLog";
+import { getEncryptionPassword } from "../utils/encryptionPasswordManager";
 
 const LANGUAGE_LOCALES: Record<string, string> = {
   hu: "hu-HU",
@@ -35,6 +36,7 @@ interface Props {
   themeStyles: ReturnType<typeof import("../utils/themes").getThemeStyles>;
   offers: Offer[]; // Árajánlatok az előzményekhez
   triggerAddForm?: boolean; // Gyors művelet gomb esetén automatikusan megnyitja a formot
+  onSave?: () => void; // Callback amikor az ügyfelek mentve lettek (lastSaved frissítéshez)
 }
 
 export const Customers: React.FC<Props> = ({ 
@@ -44,10 +46,26 @@ export const Customers: React.FC<Props> = ({
   theme, 
   themeStyles,
   offers,
-  triggerAddForm
+  triggerAddForm,
+  onSave
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
+  
+  // Helper függvény a titkosítási jelszó lekéréséhez
+  const getEncryptionPasswordForCustomers = (): string | null => {
+    if (settings.encryptionEnabled) {
+      return getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
+    }
+    return null;
+  };
+  
+  // Ref-ek inicializálása (feltétel nélkül, hogy ne változzon a hookok sorrendje)
+  const prevCustomersRef = useRef<string>("");
+  const isResettingRef = useRef(false);
+  const prevHistoryRef = useRef<string>("");
+  const isUpdatingRef = useRef(false);
+  const customersListContainerRef = useRef<HTMLDivElement>(null);
   
   // Undo/Redo hook
   const {
@@ -62,29 +80,49 @@ export const Customers: React.FC<Props> = ({
 
   // Sync customers with history when external changes occur
   // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
-  const prevCustomersRef = useRef<string>(JSON.stringify(customers));
   useEffect(() => {
+    // Inicializáljuk a ref-et, ha üres
+    if (prevCustomersRef.current === "") {
+      prevCustomersRef.current = JSON.stringify(customers);
+    }
+    // Ha éppen resetelünk, ne csináljunk semmit
+    if (isResettingRef.current) {
+      return;
+    }
+    
     const currentCustomers = JSON.stringify(customers);
     const currentHistory = JSON.stringify(customersWithHistory);
     
     // Ha a customers változott külsőleg (nem a history miatt), akkor reset history
     if (prevCustomersRef.current !== currentCustomers && currentCustomers !== currentHistory) {
+      isResettingRef.current = true;
       resetHistory(customers);
       prevCustomersRef.current = currentCustomers;
+      // Reset flag következő render-nél
+      setTimeout(() => {
+        isResettingRef.current = false;
+      }, 0);
     }
-  }, [customers, customersWithHistory, resetHistory]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customers, customersWithHistory]);
 
   // Update parent when history changes
   // Csak akkor frissítjük, ha valóban változás történt (nem csak referencia változás)
-  const prevHistoryRef = useRef<string>(JSON.stringify(customersWithHistory));
-  const isUpdatingRef = useRef(false);
-  
   useEffect(() => {
+    // Inicializáljuk a ref-et, ha üres
+    if (prevHistoryRef.current === "") {
+      prevHistoryRef.current = JSON.stringify(customersWithHistory);
+    }
+    // Ha éppen resetelünk vagy update közben vagyunk, ne csináljunk semmit
+    if (isResettingRef.current || isUpdatingRef.current) {
+      return;
+    }
+    
     const currentHistory = JSON.stringify(customersWithHistory);
     const currentCustomers = JSON.stringify(customers);
     
-    // Ha a history változott ÉS nem vagyunk éppen update közben ÉS különbözik a customers-től
-    if (prevHistoryRef.current !== currentHistory && !isUpdatingRef.current && currentHistory !== currentCustomers) {
+    // Ha a history változott ÉS különbözik a customers-től
+    if (prevHistoryRef.current !== currentHistory && currentHistory !== currentCustomers) {
       isUpdatingRef.current = true;
       prevHistoryRef.current = currentHistory;
       
@@ -94,7 +132,8 @@ export const Customers: React.FC<Props> = ({
         isUpdatingRef.current = false;
       }, 0);
     }
-  }, [customersWithHistory, customers, setCustomers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customersWithHistory, customers]);
 
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
@@ -113,7 +152,6 @@ export const Customers: React.FC<Props> = ({
   const CUSTOMER_VIRTUAL_THRESHOLD = 50; // Ha több mint 50 ügyfél van, virtualizáljuk
   const CUSTOMER_ROW_HEIGHT = 200; // px, átlagos kártya magasság + gap
   const CUSTOMER_OVERSCAN = 5;
-  const customersListContainerRef = useRef<HTMLDivElement>(null);
   const [visibleCustomerRange, setVisibleCustomerRange] = useState<{ start: number; end: number }>({
     start: 0,
     end: CUSTOMER_VIRTUAL_THRESHOLD,
@@ -219,8 +257,31 @@ export const Customers: React.FC<Props> = ({
     };
 
     const updatedCustomers = [...customers, newCustomer];
+    
+    // Flag beállítása, hogy ne történjen végtelen ciklus
+    isUpdatingRef.current = true;
+    isResettingRef.current = true;
+    
+    // Frissítjük a history-t és a parent state-et
     setCustomersWithHistory(updatedCustomers);
-    await saveCustomers(updatedCustomers);
+    setCustomers(updatedCustomers);
+    
+    // Ref-ek frissítése, hogy ne triggerelje a useEffect-eket
+    prevCustomersRef.current = JSON.stringify(updatedCustomers);
+    prevHistoryRef.current = JSON.stringify(updatedCustomers);
+    
+    await saveCustomers(updatedCustomers, getEncryptionPasswordForCustomers());
+    
+    // Frissítsük a lastSaved-et azonnal
+    if (onSave) {
+      onSave();
+    }
+    
+    // Flag-ek resetelése
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+      isResettingRef.current = false;
+    }, 100);
     
     // Audit log
     try {
@@ -262,7 +323,13 @@ export const Customers: React.FC<Props> = ({
     
     const updatedCustomers = customers.filter(c => c.id !== id);
     setCustomersWithHistory(updatedCustomers);
-    await saveCustomers(updatedCustomers);
+    await saveCustomers(updatedCustomers, getEncryptionPasswordForCustomers());
+    
+    // Frissítsük a lastSaved-et azonnal
+    if (onSave) {
+      onSave();
+    }
+    
     showToast(t("customers.toast.deleted"), "success");
     setDeleteConfirmId(null);
   };
@@ -324,7 +391,13 @@ export const Customers: React.FC<Props> = ({
     }
     
     setCustomersWithHistory(updatedCustomers);
-    await saveCustomers(updatedCustomers);
+    await saveCustomers(updatedCustomers, getEncryptionPasswordForCustomers());
+    
+    // Frissítsük a lastSaved-et azonnal
+    if (onSave) {
+      onSave();
+    }
+    
     showToast(t("customers.toast.saved"), "success");
     cancelEdit();
   };
@@ -362,10 +435,16 @@ export const Customers: React.FC<Props> = ({
     const updatedCustomers = customersWithHistory.filter(c => !idsToDelete.includes(c.id));
     
     setCustomersWithHistory(updatedCustomers);
-    await saveCustomers(updatedCustomers);
+    await saveCustomers(updatedCustomers, getEncryptionPasswordForCustomers());
+    
+    // Frissítsük a lastSaved-et azonnal
+    if (onSave) {
+      onSave();
+    }
+    
     setSelectedCustomerIds(new Set());
     setBulkDeleteConfirm(false);
-    
+
     const successMessage = t("customers.bulk.delete.success").replace("{{count}}", idsToDelete.length.toString());
     showToast(successMessage, "success");
   };
@@ -798,6 +877,7 @@ export const Customers: React.FC<Props> = ({
             ref={customersListContainerRef}
             style={{
               display: "grid",
+              gridTemplateColumns: "1fr",
               gap: "16px",
               maxHeight: filteredCustomers.length > CUSTOMER_VIRTUAL_THRESHOLD ? "600px" : "none",
               overflowY: filteredCustomers.length > CUSTOMER_VIRTUAL_THRESHOLD ? "auto" : "visible",
@@ -847,16 +927,19 @@ export const Customers: React.FC<Props> = ({
                       style={{
                         height: `${topSpacer}px`,
                         gridColumn: "1 / -1",
+                        width: "100%",
                       }}
                     />
                   )}
                   {customersToRender.map((customer) => (
             <div
-              key={customer.id}
+              key={`customer-${customer.id}`}
               style={{
                 ...themeStyles.card,
                 padding: "20px",
                 position: "relative",
+                minHeight: "100px",
+                gridColumn: "1 / -1",
               }}
             >
               {/* Checkbox a kártya bal felső sarkában */}
@@ -1039,6 +1122,7 @@ export const Customers: React.FC<Props> = ({
                       style={{
                         height: `${bottomSpacer}px`,
                         gridColumn: "1 / -1",
+                        width: "100%",
                       }}
                     />
                   )}
