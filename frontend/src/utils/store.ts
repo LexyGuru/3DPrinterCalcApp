@@ -474,14 +474,23 @@ export async function loadCustomers(
       throw error;
     }
     // Valós hiba esetén logoljuk ERROR-ként
-    console.error("❌ Hiba az ügyfelek betöltésekor:", error);
-    // Ha speciális hiba (visszafejtési hiba), akkor továbbdobjuk
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("❌ Hiba az ügyfelek betöltésekor:", errorMessage);
+    
+    // Ha speciális hiba (visszafejtési hiba, jelszó hiba), akkor továbbdobjuk
     if (error instanceof Error && (
-      error.message.includes("titkosítási jelszó") ||
-      error.message.includes("Helytelen")
+      errorMessage.includes("titkosítási jelszó") ||
+      errorMessage.includes("Helytelen") ||
+      errorMessage.includes("Visszafejtési hiba") ||
+      errorMessage.includes("aead::Error") ||
+      errorMessage.includes("decrypt") ||
+      errorMessage.includes("decryption")
     )) {
+      // Visszafejtési hibák esetén továbbdobjuk, ne adjunk vissza üres tömböt
       throw error;
     }
+    
+    // Egyéb hibák esetén üres tömböt adunk vissza (pl. fájl nem létezik)
     return [];
   }
 }

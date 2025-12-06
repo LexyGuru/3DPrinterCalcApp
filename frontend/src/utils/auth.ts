@@ -60,11 +60,27 @@ export async function encryptData(data: string, password: string): Promise<strin
  */
 export async function decryptData(encrypted: string, password: string): Promise<string> {
   try {
+    if (import.meta.env.DEV) {
+      console.log("🔓 Adat visszafejtése backend-ből...", { 
+        encryptedLength: encrypted.length,
+        hasPassword: !!password 
+      });
+    }
     const decrypted = await invoke<string>("decrypt_data", { encrypted, password });
+    if (import.meta.env.DEV) {
+      console.log("✅ Visszafejtés sikeres", { decryptedLength: decrypted.length });
+    }
     return decrypted;
   } catch (error) {
-    console.error("❌ Adat visszafejtési hiba:", error);
-    throw new Error(`Adat visszafejtési hiba: ${error}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("❌ Adat visszafejtési hiba:", errorMessage);
+    
+    // Részletes hibaüzenet - ha a backend aead::Error-t dob, azt továbbadjuk
+    if (errorMessage.includes("aead::Error") || errorMessage.includes("decryption failed")) {
+      throw new Error(`Visszafejtési hiba: aead::Error`);
+    }
+    
+    throw new Error(`Adat visszafejtési hiba: ${errorMessage}`);
   }
 }
 

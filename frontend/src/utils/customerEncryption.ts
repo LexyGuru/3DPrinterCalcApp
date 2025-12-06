@@ -39,16 +39,39 @@ export async function decryptCustomers(
   password: string
 ): Promise<Customer[]> {
   try {
+    if (import.meta.env.DEV) {
+      console.log("🔓 Customer adatok visszafejtése...", { 
+        encryptedLength: encrypted.length,
+        hasPassword: !!password,
+        passwordLength: password ? password.length : 0
+      });
+    }
+    
     // Visszafejtés backend-ből
     const decryptedJson = await decryptData(encrypted, password);
+    
+    if (import.meta.env.DEV) {
+      console.log("✅ Visszafejtés sikeres, JSON parse...", { decryptedLength: decryptedJson.length });
+    }
     
     // JSON string Customer tömbgé alakítása
     const customers: Customer[] = JSON.parse(decryptedJson);
     
+    if (import.meta.env.DEV) {
+      console.log("✅ Customer tömb parse sikeres", { count: customers.length });
+    }
+    
     return customers;
   } catch (error) {
-    console.error("❌ Customer adatok visszafejtési hiba:", error);
-    throw new Error(`Customer adatok visszafejtési hiba: ${error}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("❌ Customer adatok visszafejtési hiba:", errorMessage);
+    
+    // Részletes hibaüzenet
+    if (errorMessage.includes("aead::Error") || errorMessage.includes("decryption")) {
+      throw new Error("Visszafejtési hiba: aead::Error - Lehet, hogy rossz a jelszó, vagy az adatok sérültek");
+    }
+    
+    throw new Error(`Customer adatok visszafejtési hiba: ${errorMessage}`);
   }
 }
 

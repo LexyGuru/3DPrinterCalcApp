@@ -334,10 +334,26 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
       
       // Ha van titkosított adat, visszafejtjük és plain textként mentjük
       if (settings.encryptedCustomerData) {
-        // Jelszó meghatározása: először a paraméterből, aztán memóriából
-        let passwordToUse: string | null | undefined = password || undefined;
-        if (!passwordToUse) {
+        // Jelszó meghatározása:
+        // 1. Ha van password paraméter (felhasználó dialógusban adta meg), azt használjuk
+        // 2. Ha nincs password paraméter, akkor memóriából próbáljuk betölteni
+        let passwordToUse: string | null | undefined = undefined;
+        
+        if (password) {
+          // A felhasználó megadta a jelszót a dialógusban - ezt használjuk
+          passwordToUse = password;
+          if (import.meta.env.DEV) {
+            console.log("🔑 Jelszó használata a dialógusból a visszafejtéshez");
+          }
+        } else {
+          // Nincs password paraméter, próbáljuk memóriából betölteni
           passwordToUse = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
+          if (import.meta.env.DEV) {
+            console.log("🔑 Jelszó betöltése memóriából:", { 
+              useAppPassword: settings.useAppPasswordForEncryption ?? false,
+              hasPassword: !!passwordToUse 
+            });
+          }
         }
         
         if (!passwordToUse) {
@@ -348,18 +364,31 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
         }
         
         try {
-          const encryptedCustomers = await loadCustomers(passwordToUse || undefined);
-          await saveCustomers(encryptedCustomers, null); // Plain text mentés
+          if (import.meta.env.DEV) {
+            console.log("🔓 Ügyfelek visszafejtése a titkosítás kikapcsolásához...");
+          }
+          const decryptedCustomers = await loadCustomers(passwordToUse);
+          if (import.meta.env.DEV) {
+            console.log("✅ Ügyfelek visszafejtve:", { count: decryptedCustomers.length });
+          }
+          await saveCustomers(decryptedCustomers, null); // Plain text mentés
           if (import.meta.env.DEV) {
             console.log("✅ Ügyfelek visszafejtve és plain textként mentve");
           }
         } catch (error) {
           console.error("❌ Hiba az adatok visszafejtésekor:", error);
-          showToast(
-            t("encryption.decryptError" as any) || "Hiba az adatok visszafejtésekor. Az adatok titkosítva maradnak.",
-            "error"
-          );
-          setShowDisableEncryptionPasswordDialog(false);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          
+          // Részletes hibaüzenet
+          let userErrorMessage = t("encryption.decryptError" as any) || "Hiba az adatok visszafejtésekor. Az adatok titkosítva maradnak.";
+          if (errorMessage.includes("Helytelen") || errorMessage.includes("titkosítási jelszó")) {
+            userErrorMessage = t("encryption.wrongPassword" as any) || "Helytelen jelszó. Kérjük, próbálja újra.";
+          } else if (errorMessage.includes("aead::Error") || errorMessage.includes("Visszafejtési hiba")) {
+            userErrorMessage = t("encryption.decryptFailed" as any) || "Nem sikerült visszafejteni az adatokat. Lehet, hogy rossz a jelszó, vagy az adatok sérültek.";
+          }
+          
+          showToast(userErrorMessage, "error");
+          setShowDisableEncryptionPasswordDialog(true); // Maradjon nyitva, hogy újra megpróbálhassa
           return;
         }
       }
