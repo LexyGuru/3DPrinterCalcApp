@@ -1390,7 +1390,6 @@ export const languageEs: TranslationMap = {
   "settings.logs.neverDelete": "Nunca eliminar",
   "settings.logs.daysOrOlder": "días o más antiguos",
   "settings.logs.location": "Ubicación de archivos de registro",
-  "settings.logs.openFolder": "Abrir carpeta de registros",
   "settings.logs.format": "Formato de archivo de registro",
   "settings.logs.format.text": "Texto",
   "settings.logs.format.json": "JSON (estructurado)",

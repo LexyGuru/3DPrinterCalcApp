@@ -1340,7 +1340,6 @@ export const languageZh: TranslationMap = {
   "settings.logs.neverDelete": "永不删除",
   "settings.logs.daysOrOlder": "天或更早",
   "settings.logs.location": "日志文件位置",
-  "settings.logs.openFolder": "打开日志文件夹",
   "settings.logs.format": "日志文件格式",
   "settings.logs.format.text": "文本",
   "settings.logs.format.json": "JSON（结构化）",

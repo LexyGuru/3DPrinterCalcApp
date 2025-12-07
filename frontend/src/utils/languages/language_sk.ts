@@ -1389,7 +1389,6 @@ export const languageSk: TranslationMap = {
   "settings.logs.neverDelete": "Nikdy nemazať",
   "settings.logs.daysOrOlder": "dní alebo staršie",
   "settings.logs.location": "Umiestnenie log súborov",
-  "settings.logs.openFolder": "Otvoriť priečinok logov",
   "settings.logs.format": "Formát log súboru",
   "settings.logs.format.text": "Text",
   "settings.logs.format.json": "JSON (štruktúrovaný)",

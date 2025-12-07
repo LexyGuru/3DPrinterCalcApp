@@ -1389,7 +1389,6 @@ export const languagePl: TranslationMap = {
   "settings.logs.neverDelete": "Nigdy nie usuwaj",
   "settings.logs.daysOrOlder": "dni lub starsze",
   "settings.logs.location": "Lokalizacja plików dziennika",
-  "settings.logs.openFolder": "Otwórz folder dziennika",
   "settings.logs.format": "Format pliku dziennika",
   "settings.logs.format.text": "Tekst",
   "settings.logs.format.json": "JSON (strukturalny)",

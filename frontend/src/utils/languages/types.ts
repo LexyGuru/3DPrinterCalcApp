@@ -1139,6 +1139,7 @@ export type TranslationKey =
   | "encryption.useAppPasswordDescription"
   | "encryption.usingAppPassword"
   | "encryption.appPasswordRequired"
+  | "encryption.noAppPassword"
   | "encryption.reEncryptWarning"
   | "encryption.enterPassword"
   | "encryption.enterAppPassword"

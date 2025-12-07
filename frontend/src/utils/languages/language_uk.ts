@@ -1367,7 +1367,6 @@ export const languageUk: TranslationMap = {
   "settings.logs.neverDelete": "Ніколи не видаляти",
   "settings.logs.daysOrOlder": "днів або старіше",
   "settings.logs.location": "Розташування файлів журналів",
-  "settings.logs.openFolder": "Відкрити папку журналів",
   "settings.logs.format": "Формат файлу журналу",
   "settings.logs.format.text": "Текст",
   "settings.logs.format.json": "JSON (структурований)",
