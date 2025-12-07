@@ -4,6 +4,45 @@ Ez a dokumentum tartalmazza a 3D Printer Calculator App verzióinak részletes v
 
 ---
 
+## v3.0.1 (2025) - 🔧 Hotfix: Factory Reset, Fordítások, Beta Build Workflow
+
+### 🐛 Hibajavítások
+
+#### Factory Reset Javítás
+- **Factory reset javítva** - A `customers.json` fájl most már explicit módon törlődik a factory reset során
+- **Ügyféladatok teljes törlése** - A titkosított ügyféladatok fájlja (`customers.json`) is törlődik, biztosítva a teljes adattörlést
+
+#### Hiányzó Fordítási Kulcsok
+- **`encryption.noAppPassword` kulcs hozzáadva** - Hiányzó fordítási kulcs hozzáadva mind a 14 nyelvhez
+- **Backup üzenetek fordításai** - "No automatic backup files yet" üzenet fordításai hozzáadva
+- **Log kezelés fordításai** - Log és Audit Log kezeléshez kapcsolódó szövegek fordításai hozzáadva:
+  - `settings.logs.auditLogManagement`
+  - `settings.logs.deleteOlderAuditLogs`
+  - `settings.logs.folderLocation`
+  - `settings.logs.openFolder`
+  - `settings.logs.auditLogHistory`
+  - `settings.logs.logHistory`
+- **Naptár fordításai** - Hónapok és napok neveinek fordításai hozzáadva:
+  - `calendar.monthNames`
+  - `calendar.dayNames`
+  - `calendar.dayNamesShort`
+  - `settings.calendar.provider`
+- **Help menü leírás** - "Show Help menu item in Sidebar" leírás fordításai hozzáadva
+
+#### Beta Build Workflow Javítás
+- **Beta branch explicit checkout** - A workflow most már explicit módon a `beta` branch legfrissebb commitját használja
+- **Tag commit javítás** - A `beta-v3.0.1` tag most már a helyes commitra mutat (nem a régi commitra)
+- **Source code dátum javítás** - A "Source code" dátum most már a build idejét mutatja, nem a régi commit dátumát
+- **Ellenőrző lépések hozzáadva** - Git pull és commit SHA ellenőrzés hozzáadva a workflow-hoz
+
+### 📝 Műszaki Részletek
+
+- **Verzió frissítve**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.1`
+- **Duplikált kulcsok törölve**: `settings.logs.openFolder` duplikációk eltávolítva minden nyelvi fájlból
+- **TypeScript típusok frissítve**: `encryption.noAppPassword` hozzáadva a `TranslationKey` típushoz
+
+---
+
 ## v3.0.0 (2025) - 🔒 Customer Data Encryption & GDPR Compliance + ⚡ Performance Optimalizálás
 
 ### ⚡ Performance Optimalizálás és Code Splitting

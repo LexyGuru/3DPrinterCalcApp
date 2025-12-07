@@ -4,6 +4,45 @@ This document contains detailed changelog for all versions of the 3D Printer Cal
 
 ---
 
+## v3.0.1 (2025) - 🔧 Hotfix: Factory Reset, Translations, Beta Build Workflow
+
+### 🐛 Bug Fixes
+
+#### Factory Reset Fix
+- **Factory reset fixed** - The `customers.json` file is now explicitly deleted during factory reset
+- **Complete customer data deletion** - The encrypted customer data file (`customers.json`) is also deleted, ensuring complete data wipe
+
+#### Missing Translation Keys
+- **`encryption.noAppPassword` key added** - Missing translation key added to all 14 languages
+- **Backup message translations** - Translations for "No automatic backup files yet" message added
+- **Log management translations** - Translations for Log and Audit Log management texts added:
+  - `settings.logs.auditLogManagement`
+  - `settings.logs.deleteOlderAuditLogs`
+  - `settings.logs.folderLocation`
+  - `settings.logs.openFolder`
+  - `settings.logs.auditLogHistory`
+  - `settings.logs.logHistory`
+- **Calendar translations** - Translations for month and day names added:
+  - `calendar.monthNames`
+  - `calendar.dayNames`
+  - `calendar.dayNamesShort`
+  - `settings.calendar.provider`
+- **Help menu description** - Translations for "Show Help menu item in Sidebar" description added
+
+#### Beta Build Workflow Fix
+- **Beta branch explicit checkout** - The workflow now explicitly uses the latest commit from the `beta` branch
+- **Tag commit fix** - The `beta-v3.0.1` tag now points to the correct commit (not the old commit)
+- **Source code date fix** - The "Source code" date now shows the build time, not the old commit date
+- **Verification steps added** - Git pull and commit SHA verification added to the workflow
+
+### 📝 Technical Details
+
+- **Version updated**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.1`
+- **Duplicate keys removed**: `settings.logs.openFolder` duplications removed from all language files
+- **TypeScript types updated**: `encryption.noAppPassword` added to `TranslationKey` type
+
+---
+
 ## v3.0.0 (2025) - 🔒 Customer Data Encryption & GDPR Compliance + ⚡ Performance Optimization
 
 ### ⚡ Performance Optimization and Code Splitting
