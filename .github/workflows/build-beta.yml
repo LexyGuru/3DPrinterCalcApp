@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: beta  # Explicitly checkout beta branch to ensure we're on the latest commit
       
       - name: Install system dependencies (Linux)
         if: matrix.platform == 'ubuntu-latest'
@@ -159,7 +161,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: beta  # Explicitly checkout beta branch
           fetch-depth: 0  # Fetch all history and tags for tag management
+      
+      - name: Verify beta branch and pull latest
+        shell: bash
+        run: |
+          echo "Current branch: $(git branch --show-current)"
+          echo "Current commit SHA before pull: $(git rev-parse HEAD)"
+          echo "GitHub SHA: ${{ github.sha }}"
+          echo "GitHub ref: ${{ github.ref }}"
+          echo ""
+          echo "Pulling latest from beta branch..."
+          git pull origin beta
+          echo ""
+          echo "Current commit SHA after pull: $(git rev-parse HEAD)"
+          echo "Latest 5 commits:"
+          git log --oneline -5
+          echo ""
+          echo "Verifying we're on beta branch..."
+          CURRENT_BRANCH=$(git branch --show-current)
+          if [ "$CURRENT_BRANCH" != "beta" ]; then
+            echo "ERROR: Not on beta branch! Current branch: $CURRENT_BRANCH"
+            exit 1
+          fi
+          echo "✅ Confirmed: On beta branch"
       
       - name: Get version from Cargo.toml
         id: get-version
@@ -228,7 +254,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
+          # Ensure we're on beta branch and have latest commits
+          git checkout beta
+          git pull origin beta
+          
           TAG_NAME="beta-v${VERSION}"
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+          echo "Current commit SHA: ${CURRENT_COMMIT}"
           echo "Checking if tag ${TAG_NAME} exists..."
           
           # Fetch all tags
@@ -236,13 +268,23 @@ jobs:
           
           # Check if tag exists remotely
           if git ls-remote --tags origin | grep -q "refs/tags/${TAG_NAME}$"; then
-            echo "Tag ${TAG_NAME} exists, deleting it..."
+            echo "Tag ${TAG_NAME} exists, checking which commit it points to..."
+            TAG_COMMIT=$(git ls-remote origin "refs/tags/${TAG_NAME}" | cut -f1)
+            echo "Tag ${TAG_NAME} points to commit: ${TAG_COMMIT}"
+            echo "Current commit: ${CURRENT_COMMIT}"
+            
+            if [ "${TAG_COMMIT}" = "${CURRENT_COMMIT}" ]; then
+              echo "Tag ${TAG_NAME} already points to current commit, deleting to recreate..."
+            else
+              echo "Tag ${TAG_NAME} points to different commit, deleting to recreate on current commit..."
+            fi
+            
             # Delete tag remotely
             git push origin --delete "${TAG_NAME}" 2>&1 || echo "Tag deletion failed (might not exist remotely or already deleted)"
             # Delete tag locally if exists
             git tag -d "${TAG_NAME}" 2>&1 || echo "Local tag does not exist"
           else
-            echo "Tag ${TAG_NAME} does not exist, no need to delete"
+            echo "Tag ${TAG_NAME} does not exist, will be created on commit: ${CURRENT_COMMIT}"
           fi
       
       - name: Extract changelog from README files
@@ -340,10 +382,22 @@ jobs:
           echo "Hungarian changelog length: $(echo "$CHANGELOG_HU" | wc -l) lines"
           echo "English changelog length: $(echo "$CHANGELOG_EN" | wc -l) lines"
       
+      - name: Get current commit SHA
+        id: get-commit-sha
+        shell: bash
+        run: |
+          COMMIT_SHA=$(git rev-parse HEAD)
+          echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
+          echo "Current commit SHA: $COMMIT_SHA"
+          echo "GitHub SHA: ${{ github.sha }}"
+          echo "GitHub ref: ${{ github.ref }}"
+          git log --oneline -5
+      
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: beta-v${{ steps.get-version.outputs.version }}
+          target_commitish: ${{ steps.get-commit-sha.outputs.commit_sha }}  # Explicitly use current commit
           name: Beta v${{ steps.get-version.outputs.version }}
           body: |
             ## 🧪 Beta Release v${{ steps.get-version.outputs.version }}
@@ -364,7 +418,7 @@ jobs:
             
             ### 🔧 Build Info
             - Branch: `beta`
-            - Commit: ${{ github.sha }}
+            - Commit: ${{ steps.get-commit-sha.outputs.commit_sha }}
             - Workflow: ${{ github.workflow }}
           prerelease: true
           files: |

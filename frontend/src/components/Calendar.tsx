@@ -184,6 +184,18 @@ export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles
   };
 
   const formatMonthYear = (date: Date): string => {
+    // Használjuk a fordítást, ha elérhető
+    const monthNamesKey = t("calendar.monthNames" as any);
+    if (monthNamesKey && monthNamesKey !== "calendar.monthNames") {
+      const monthNames = monthNamesKey.split(",");
+      const monthIndex = date.getMonth();
+      const monthName = monthNames[monthIndex] || date.toLocaleDateString(
+        settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US",
+        { month: "long" }
+      );
+      return `${monthName} ${date.getFullYear()}`;
+    }
+    // Fallback: locale-based formatting
     return date.toLocaleDateString(
       settings.language === "hu" ? "hu-HU" : settings.language === "de" ? "de-DE" : "en-US",
       { month: "long", year: "numeric" }
@@ -191,6 +203,12 @@ export const Calendar: React.FC<Props> = ({ offers, settings, theme, themeStyles
   };
 
   const getDayNames = (): string[] => {
+    // Használjuk a fordítást, ha elérhető
+    const dayNamesKey = t("calendar.dayNamesShort" as any);
+    if (dayNamesKey && dayNamesKey !== "calendar.dayNamesShort") {
+      return dayNamesKey.split(",");
+    }
+    // Fallback: hardcoded values
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const daysHu = ["Vas", "Hét", "Ked", "Sze", "Csü", "Pén", "Szo"];
     const daysDe = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];

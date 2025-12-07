@@ -430,7 +430,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
               width: "fit-content",
             }}
           >
-            📅 {t("settings.calendar.provider.label") || "Naptár szolgáltató"}
+            📅 {t("settings.calendar.provider" as any) || t("settings.calendar.provider.label") || "Naptár szolgáltató"}
           </label>
         </Tooltip>
         <select

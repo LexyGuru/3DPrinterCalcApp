@@ -1820,6 +1820,18 @@ export const languageCs: TranslationMap = {
   "encryption.useSamePasswordAsApp": "Použít stejné heslo jako ochrana heslem aplikace",
   "encryption.encryptionPassword": "Šifrovací heslo",
   "encryption.passwordMinLength": "Minimálně 4 znaky",
+  "encryption.noAppPassword": "Není nastaveno heslo aplikace",
+  "backup.noAutomaticFilesYet": "Zatím žádné automatické záložní soubory. Automatické záložní soubory budou vytvořeny, když je autosave povoleno a aplikace ukládá.",
+  "settings.logs.auditLogManagement": "Správa logů a auditních logů",
+  "settings.logs.deleteOlderAuditLogs": "Smazat starší soubory auditních logů",
+  "settings.logs.folderLocation": "Umístění složky",
+  "settings.logs.openFolder": "Otevřít složku",
+  "settings.logs.auditLogHistory": "Historie auditních logů",
+  "settings.logs.logHistory": "Historie logů",
+  "calendar.monthNames": "Leden,Únor,Březen,Duben,Květen,Červen,Červenec,Srpen,Září,Říjen,Listopad,Prosinec",
+  "calendar.dayNames": "Neděle,Pondělí,Úterý,Středa,Čtvrtek,Pátek,Sobota",
+  "calendar.dayNamesShort": "Ne,Po,Út,St,Čt,Pá,So",
+  "settings.calendar.provider": "Poskytovatel kalendáře",
   "common.processing": "Zpracování...",
   "common.ok": "OK"
 };

@@ -1828,6 +1828,18 @@ export const languageSk: TranslationMap = {
   "encryption.useSamePasswordAsApp": "Použiť rovnaké heslo ako ochrana hesla aplikácie",
   "encryption.encryptionPassword": "Heslo na šifrovanie",
   "encryption.passwordMinLength": "Minimálne 4 znaky",
+  "encryption.noAppPassword": "Nie je nastavené heslo aplikácie",
+  "backup.noAutomaticFilesYet": "Zatiaľ žiadne automatické záložné súbory. Automatické záložné súbory budú vytvorené, keď je autosave povolené a aplikácia ukladá.",
+  "settings.logs.auditLogManagement": "Správa logov a auditných logov",
+  "settings.logs.deleteOlderAuditLogs": "Zmazať staršie súbory auditných logov",
+  "settings.logs.folderLocation": "Umiestnenie priečinka",
+  "settings.logs.openFolder": "Otvoriť priečinok",
+  "settings.logs.auditLogHistory": "História auditných logov",
+  "settings.logs.logHistory": "História logov",
+  "calendar.monthNames": "Január,Február,Marec,Apríl,Máj,Jún,Júl,August,September,Október,November,December",
+  "calendar.dayNames": "Nedeľa,Pondelok,Utorok,Streda,Štvrtok,Piatok,Sobota",
+  "calendar.dayNamesShort": "Ne,Po,Ut,St,Št,Pi,So",
+  "settings.calendar.provider": "Poskytovateľ kalendára",
   "common.processing": "Spracovanie...",
   "common.ok": "OK"
 };

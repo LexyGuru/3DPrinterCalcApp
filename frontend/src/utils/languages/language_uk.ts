@@ -1824,6 +1824,18 @@ export const languageUk: TranslationMap = {
   "encryption.useSamePasswordAsApp": "Використовуйте той самий пароль, що й захист паролем додатка",
   "encryption.encryptionPassword": "Пароль шифрування",
   "encryption.passwordMinLength": "Мінімум 4 символи",
+  "encryption.noAppPassword": "Пароль додатку не встановлено",
+  "backup.noAutomaticFilesYet": "Поки немає автоматичних файлів резервних копій. Автоматичні файли резервних копій будуть створені, коли автозбереження увімкнено і додаток зберігає.",
+  "settings.logs.auditLogManagement": "Управління логами та журналами аудиту",
+  "settings.logs.deleteOlderAuditLogs": "Видалити старіші файли журналів аудиту",
+  "settings.logs.folderLocation": "Розташування папки",
+  "settings.logs.openFolder": "Відкрити папку",
+  "settings.logs.auditLogHistory": "Історія журналів аудиту",
+  "settings.logs.logHistory": "Історія логів",
+  "calendar.monthNames": "Січень,Лютий,Березень,Квітень,Травень,Червень,Липень,Серпень,Вересень,Жовтень,Листопад,Грудень",
+  "calendar.dayNames": "Неділя,Понеділок,Вівторок,Середа,Четвер,П'ятниця,Субота",
+  "calendar.dayNamesShort": "Нд,Пн,Вт,Ср,Чт,Пт,Сб",
+  "settings.calendar.provider": "Постачальник календаря",
   "common.processing": "Обробка...",
   "common.ok": "OK"
 };

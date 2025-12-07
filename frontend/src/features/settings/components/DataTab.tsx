@@ -369,7 +369,7 @@ export const DataTab: React.FC<DataTabProps> = ({
             fontSize: "18px", 
             color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
           }}>
-            📋 {settings.language === "hu" ? "Log és Audit Log kezelés" : settings.language === "de" ? "Log- und Audit-Log-Verwaltung" : "Log & Audit Log Management"}
+            📋 {t("settings.logs.auditLogManagement" as any) || (settings.language === "hu" ? "Log és Audit Log kezelés" : settings.language === "de" ? "Log- und Audit-Log-Verwaltung" : "Log & Audit Log Management")}
           </label>
           <p style={{ marginBottom: "20px", fontSize: "14px", color: theme.colors.textMuted }}>
             {t("settings.logs.description")}
@@ -625,7 +625,7 @@ export const DataTab: React.FC<DataTabProps> = ({
                 color: theme.colors.text,
                 marginBottom: "12px"
               }}>
-                📋 {settings.language === "hu" ? "Log történet" : settings.language === "de" ? "Log-Verlauf" : "Log History"}
+                📋 {t("settings.logs.logHistory" as any) || (settings.language === "hu" ? "Log történet" : settings.language === "de" ? "Log-Verlauf" : "Log History")}
               </h3>
               {logHistory.length > 0 ? (
                 <div style={{
@@ -742,7 +742,7 @@ export const DataTab: React.FC<DataTabProps> = ({
                 fontSize: "14px", 
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
               }}>
-                {settings.language === "hu" ? "Törlés régebbi audit log fájlok" : settings.language === "de" ? "Ältere Audit-Log-Dateien löschen" : "Delete older audit log files"}
+                {t("settings.logs.deleteOlderAuditLogs" as any) || (settings.language === "hu" ? "Törlés régebbi audit log fájlok" : settings.language === "de" ? "Ältere Audit-Log-Dateien löschen" : "Delete older audit log files")}
               </label>
               <select
                 value={settings.auditLogRetentionDays ?? 0}
@@ -816,7 +816,7 @@ export const DataTab: React.FC<DataTabProps> = ({
                 fontSize: "14px", 
                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
               }}>
-                {settings.language === "hu" ? "Mappa helye" : settings.language === "de" ? "Ordnerstandort" : "Folder Location"}
+                {t("settings.logs.folderLocation" as any) || (settings.language === "hu" ? "Mappa helye" : settings.language === "de" ? "Ordnerstandort" : "Folder Location")}
               </label>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <Tooltip content={settings.language === "hu" 
@@ -848,7 +848,7 @@ export const DataTab: React.FC<DataTabProps> = ({
                       fontSize: "12px",
                     }}
                   >
-                    📁 {settings.language === "hu" ? "Mappa megnyitása" : settings.language === "de" ? "Ordner öffnen" : "Open Folder"}
+                    📁 {t("settings.logs.openFolder" as any) || (settings.language === "hu" ? "Mappa megnyitása" : settings.language === "de" ? "Ordner öffnen" : "Open Folder")}
                   </button>
                 </Tooltip>
               </div>
@@ -862,7 +862,7 @@ export const DataTab: React.FC<DataTabProps> = ({
                 color: theme.colors.text,
                 marginBottom: "12px"
               }}>
-                🔐 {settings.language === "hu" ? "Audit Log történet" : settings.language === "de" ? "Audit-Log-Verlauf" : "Audit Log History"}
+                🔐 {t("settings.logs.auditLogHistory" as any) || (settings.language === "hu" ? "Audit Log történet" : settings.language === "de" ? "Audit-Log-Verlauf" : "Audit Log History")}
               </h3>
               {auditLogHistory.length > 0 ? (
                 <div style={{

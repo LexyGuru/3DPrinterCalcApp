@@ -1828,6 +1828,18 @@ export const languagePt: TranslationMap = {
   "encryption.useSamePasswordAsApp": "Usar a mesma senha da proteção por senha do aplicativo",
   "encryption.encryptionPassword": "Senha de criptografia",
   "encryption.passwordMinLength": "Mínimo 4 caracteres",
+  "encryption.noAppPassword": "Nenhuma senha de aplicativo definida",
+  "backup.noAutomaticFilesYet": "Ainda não há arquivos de backup automático. Os arquivos de backup automático serão criados quando o salvamento automático estiver habilitado e o aplicativo salvar.",
+  "settings.logs.auditLogManagement": "Gerenciamento de logs e logs de auditoria",
+  "settings.logs.deleteOlderAuditLogs": "Excluir arquivos de log de auditoria mais antigos",
+  "settings.logs.folderLocation": "Localização da pasta",
+  "settings.logs.openFolder": "Abrir pasta",
+  "settings.logs.auditLogHistory": "Histórico de log de auditoria",
+  "settings.logs.logHistory": "Histórico de logs",
+  "calendar.monthNames": "Janeiro,Fevereiro,Março,Abril,Maio,Junho,Julho,Agosto,Setembro,Outubro,Novembro,Dezembro",
+  "calendar.dayNames": "Domingo,Segunda-feira,Terça-feira,Quarta-feira,Quinta-feira,Sexta-feira,Sábado",
+  "calendar.dayNamesShort": "Dom,Seg,Ter,Qua,Qui,Sex,Sáb",
+  "settings.calendar.provider": "Provedor de calendário",
   "common.processing": "Processando...",
   "common.ok": "OK"
 };

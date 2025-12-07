@@ -1203,7 +1203,11 @@ export const languageEn: TranslationMap = {
   "calendar.export.error": "Error during export",
   "calendar.export.google": "Open Google Calendar and import the downloaded ICS file",
   "calendar.export.outlook": "Open Outlook and import the downloaded ICS file",
+  "calendar.monthNames": "January,February,March,April,May,June,July,August,September,October,November,December",
+  "calendar.dayNames": "Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday",
+  "calendar.dayNamesShort": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
   "settings.calendar.provider.label": "Calendar Provider",
+  "settings.calendar.provider": "Calendar Provider",
   "settings.calendar.provider.tooltip": "Choose which calendar application to use when opening ICS files",
   "settings.calendar.provider.description": "This setting determines which calendar application opens when exporting ICS files",
   // Tutorial
@@ -1393,6 +1397,12 @@ export const languageEn: TranslationMap = {
   "settings.logs.level.info": "INFO (default)",
   "settings.logs.level.warn": "WARN (warnings and errors)",
   "settings.logs.level.error": "ERROR (errors only)",
+  "settings.logs.auditLogManagement": "Log & Audit Log Management",
+  "settings.logs.deleteOlderAuditLogs": "Delete older audit log files",
+  "settings.logs.folderLocation": "Folder Location",
+  "settings.logs.auditLogHistory": "Audit Log History",
+  "settings.logs.logHistory": "Log History",
+  "backup.noAutomaticFilesYet": "No automatic backup files yet. Automatic backup files will be created when autosave is enabled and the application saves.",
   
   // Settings - Data Export/Import
   "settings.data.exportTooltip": "Export data to JSON file",
@@ -1827,6 +1837,7 @@ export const languageEn: TranslationMap = {
   "encryption.encryptionPassword": "Encryption Password",
   "encryption.passwordMinLength": "Minimum 4 characters",
   "encryption.passwordVerificationError": "Error verifying password",
+  "encryption.noAppPassword": "No app password set",
   "common.processing": "Processing...",
   "common.ok": "OK"
 

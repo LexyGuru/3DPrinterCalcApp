@@ -1828,6 +1828,18 @@ export const languageRu: TranslationMap = {
   "encryption.useSamePasswordAsApp": "Используйте тот же пароль, что и для защиты паролем приложения",
   "encryption.encryptionPassword": "Пароль шифрования",
   "encryption.passwordMinLength": "Минимум 4 символа",
+  "encryption.noAppPassword": "Пароль приложения не установлен",
+  "backup.noAutomaticFilesYet": "Пока нет автоматических файлов резервных копий. Автоматические файлы резервных копий будут созданы, когда автосохранение включено и приложение сохраняет.",
+  "settings.logs.auditLogManagement": "Управление логами и журналами аудита",
+  "settings.logs.deleteOlderAuditLogs": "Удалить старые файлы журналов аудита",
+  "settings.logs.folderLocation": "Расположение папки",
+  "settings.logs.openFolder": "Открыть папку",
+  "settings.logs.auditLogHistory": "История журналов аудита",
+  "settings.logs.logHistory": "История логов",
+  "calendar.monthNames": "Январь,Февраль,Март,Апрель,Май,Июнь,Июль,Август,Сентябрь,Октябрь,Ноябрь,Декабрь",
+  "calendar.dayNames": "Воскресенье,Понедельник,Вторник,Среда,Четверг,Пятница,Суббота",
+  "calendar.dayNamesShort": "Вс,Пн,Вт,Ср,Чт,Пт,Сб",
+  "settings.calendar.provider": "Провайдер календаря",
   "common.processing": "Обработка...",
   "common.ok": "OK"
 };

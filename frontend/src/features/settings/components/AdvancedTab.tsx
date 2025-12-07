@@ -347,11 +347,11 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
               color: theme.colors.textMuted,
               fontSize: "14px",
             }}>
-              {settings.language === "hu" 
+              {t("backup.noAutomaticFilesYet" as any) || (settings.language === "hu" 
                 ? "Még nincsenek automatikus backup fájlok. Az automatikus backup fájlok akkor jönnek létre, amikor az autosave be van kapcsolva és az alkalmazás mentést végez." 
                 : settings.language === "de"
                 ? "Noch keine automatischen Backup-Dateien vorhanden. Automatische Backup-Dateien werden erstellt, wenn Autosave aktiviert ist und die Anwendung speichert."
-                : "No automatic backup files yet. Automatic backup files will be created when autosave is enabled and the application saves."}
+                : "No automatic backup files yet. Automatic backup files will be created when autosave is enabled and the application saves.")}
             </div>
           )}
         </div>

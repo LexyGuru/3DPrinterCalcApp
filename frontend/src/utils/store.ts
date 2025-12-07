@@ -683,6 +683,24 @@ export async function clearAllData(): Promise<void> {
         console.error("❌ Hiba az update_filamentLibrary.json törlésekor:", error);
         // Folytatjuk
       }
+      
+      // Töröljük a customers.json fájlt is (titkosított ügyféladatok)
+      try {
+        const customersJsonExists = await exists("customers.json", { baseDir: BaseDirectory.AppConfig });
+        if (customersJsonExists) {
+          await remove("customers.json", { baseDir: BaseDirectory.AppConfig });
+          if (import.meta.env.DEV) {
+            console.log("🗑️ customers.json törölve");
+          }
+        } else {
+          if (import.meta.env.DEV) {
+            console.log("ℹ️ customers.json nem létezett");
+          }
+        }
+      } catch (error) {
+        console.error("❌ Hiba a customers.json törlésekor:", error);
+        // Folytatjuk
+      }
     } catch (error) {
       console.error("❌ Hiba a fizikai fájlok törlésekor:", error);
       // Ne dobjuk el a hibát, mert a Store már törölve lett

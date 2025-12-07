@@ -1826,6 +1826,18 @@ export const languageZh: TranslationMap = {
   "encryption.useSamePasswordAsApp": "使用与应用密码保护相同的密码",
   "encryption.encryptionPassword": "加密密码",
   "encryption.passwordMinLength": "最少4个字符",
+  "encryption.noAppPassword": "未设置应用密码",
+  "backup.noAutomaticFilesYet": "还没有自动备份文件。当启用自动保存且应用程序保存时，将创建自动备份文件。",
+  "settings.logs.auditLogManagement": "日志和审计日志管理",
+  "settings.logs.deleteOlderAuditLogs": "删除较旧的审计日志文件",
+  "settings.logs.folderLocation": "文件夹位置",
+  "settings.logs.openFolder": "打开文件夹",
+  "settings.logs.auditLogHistory": "审计日志历史",
+  "settings.logs.logHistory": "日志历史",
+  "calendar.monthNames": "一月,二月,三月,四月,五月,六月,七月,八月,九月,十月,十一月,十二月",
+  "calendar.dayNames": "星期日,星期一,星期二,星期三,星期四,星期五,星期六",
+  "calendar.dayNamesShort": "日,一,二,三,四,五,六",
+  "settings.calendar.provider": "日历提供商",
   "common.processing": "处理中...",
   "common.ok": "确定"
 };
