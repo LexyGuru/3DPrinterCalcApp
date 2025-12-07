@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Cache control meta tags - dev módban cache kikapcsolása -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Immediate logging script - fut mielőtt bármi más -->
+    <script>
+      console.log("🌐 [HTML] index.html betöltve");
+      console.log("🌐 [HTML] Root element:", document.getElementById('root'));
+      console.log("🌐 [HTML] Window object:", typeof window);
+      console.log("🌐 [HTML] Tauri available:", typeof window !== 'undefined' && window.__TAURI__);
+      console.log("🌐 [HTML] Document ready state:", document.readyState);
+      console.log("🌐 [HTML] Location:", window.location.href);
+      
+      // Fallback UI azonnali megjelenítése
+      const root = document.getElementById('root');
+      if (root) {
+        root.innerHTML = '<div id="html-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui; background: #1a1a1a; color: white; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999;"><div style="font-size: 24px; margin-bottom: 20px;">⏳ HTML betöltve, React betöltése...</div><div style="font-size: 12px; color: #888;" id="html-status">Várakozás main.tsx betöltésére...</div><div style="font-size: 10px; color: #666; margin-top: 20px;" id="html-error"></div></div>';
+        console.log("🌐 [HTML] Fallback UI megjelenítve");
+      }
+      
+      // Error handler
+      window.addEventListener('error', (e) => {
+        console.error("❌ [HTML] Global error:", e.error, e.message, e.filename, e.lineno);
+        const errorEl = document.getElementById('html-error');
+        if (errorEl) {
+          errorEl.textContent = `Hiba: ${e.message} (${e.filename}:${e.lineno})`;
+          errorEl.style.color = '#ff4444';
+        }
+      });
+      
+      // Unhandled promise rejection
+      window.addEventListener('unhandledrejection', (e) => {
+        console.error("❌ [HTML] Unhandled promise rejection:", e.reason);
+        const errorEl = document.getElementById('html-error');
+        if (errorEl) {
+          errorEl.textContent = `Promise rejection: ${e.reason}`;
+          errorEl.style.color = '#ff4444';
+        }
+      });
+      
+      // Vite dev server ellenőrzése
+      fetch('/src/main.tsx')
+        .then(() => {
+          console.log("✅ [HTML] Vite dev server elérhető");
+          const statusEl = document.getElementById('html-status');
+          if (statusEl) {
+            statusEl.textContent = "✅ Vite dev server elérhető, main.tsx betöltése...";
+          }
+        })
+        .catch((err) => {
+          console.error("❌ [HTML] Vite dev server NEM elérhető:", err);
+          const statusEl = document.getElementById('html-status');
+          const errorEl = document.getElementById('html-error');
+          if (statusEl) {
+            statusEl.textContent = "❌ Vite dev server NEM elérhető!";
+            statusEl.style.color = '#ff4444';
+          }
+          if (errorEl) {
+            errorEl.textContent = "Ellenőrizd, hogy a Vite dev server fut-e (pnpm dev a frontend mappában)";
+            errorEl.style.color = '#ff4444';
+          }
+        });
+      
+      // Timeout - ha 5 másodperc után sem történik semmi
+      setTimeout(() => {
+        const statusEl = document.getElementById('html-status');
+        if (statusEl && (statusEl.textContent.includes('Várakozás') || statusEl.textContent.includes('betöltése'))) {
+          console.error("❌ [HTML] TIMEOUT: main.tsx nem töltődött be 5 másodperc alatt!");
+          statusEl.textContent = "❌ TIMEOUT: main.tsx nem töltődött be!";
+          statusEl.style.color = '#ff4444';
+          
+          const errorEl = document.getElementById('html-error');
+          if (errorEl) {
+            errorEl.textContent = "Ellenőrizd a böngésző konzolt (F12) és a terminál kimenetét!";
+            errorEl.style.color = '#ff4444';
+          }
+        }
+      }, 5000);
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

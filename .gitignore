@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+**/dist/
+**/target/
+**/build/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.dmg
+*.app
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Tauri
+src-tauri/target/
+src-tauri/Cargo.lock
+
+# Temporary files
+*.tmp
+*.temp
+rw.*
+
+# Shell scripts (optional - ezeket is feldobhatod, ha szeretnéd)
+# run-frontend-dev.sh
+# build-frontend.sh
+# dev-frontend.sh

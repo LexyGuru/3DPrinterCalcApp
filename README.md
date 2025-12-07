@@ -1,0 +1,1033 @@
+# 🖨️ 3D Printer Calculator App
+
+> **🌍 Language / Nyelv / Sprache / Idioma / Lingua / Język / Jazyk / Língua / Langue / 语言 / Мова / Язык**
+> 
+> [🇬🇧 English](README.en.md) | [🇭🇺 Magyar](README.hu.md) | [🇩🇪 Deutsch](README.de.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇵🇱 Polski](README.pl.md) | [🇨🇿 Čeština](README.cs.md) | [🇸🇰 Slovenčina](README.sk.md) | [🇵🇹 Português](README.pt.md) | [🇫🇷 Français](README.fr.md) | [🇨🇳 中文](README.zh.md) | [🇺🇦 Українська](README.uk.md) | [🇷🇺 Русский](README.ru.md)
+
+A modern desktop application for calculating 3D printing costs. Built with Tauri v2, React frontend, and Rust backend.
+
+## ✨ Features
+
+- 📊 **Cost Calculation** - Automatic calculation of filament, electricity, drying, and wear costs
+- 🧵 **Filament Management** - Add, edit, delete filaments (brand, type, color, price)
+- 🖨️ **Printer Management** - Manage printers and AMS systems
+- 💰 **Profit Calculation** - Selectable profit percentage (10%, 20%, 30%, 40%, 50%)
+- 📄 **Quotes** - Save, manage, and export PDF quotes (customer name, contact, description)
+- 🧠 **Filter Presets** - Save quote filters, apply quick presets, date/time-based automatic filters
+- 🗂️ **Status Dashboard** - Status cards, quick filters, and timeline of recent status changes
+- 📝 **Status Notes** - Every status change with optional notes and history logging
+- 👁️ **PDF Preview & Templates** - Built-in PDF preview, selectable templates, and company branding blocks
+- 🎨 **Filament Color Library** - Over 12,000 factory colors with brand and type-based selectable panels
+- 💾 **Filament Library Editor** - Modal-based add/edit, duplicate warnings, and persistent save to `filamentLibrary.json`
+- 🖼️ **Filament Images in PDF** - Display filament logos and color swatches in generated PDFs
+- 🧾 **G-code Import & Draft Creation** - Load G-code/JSON exports (Prusa, Cura, Orca, Qidi) from modal in calculator, with detailed summary and automatic quote draft generation
+- 📈 **Statistics** - Summary dashboard for filament consumption, revenue, profit
+- 👥 **Customer Database** - Manage customers with contact information, company details, and offer statistics
+- 🔒 **Customer Data Encryption** - AES-256-GCM encryption for customer data, GDPR/EU compliant data protection, optional password protection
+- 📊 **Price History & Trends** - Track filament price changes over time with charts and statistics
+- 🌍 **Multilingual** - Full translation in Hungarian, English, German, French, Simplified Chinese, Czech, Spanish, Italian, Polish, Portuguese, Slovak, Ukrainian, and Russian (13 languages, 850+ translation keys per language)
+- 💱 **Multiple Currencies** - EUR, HUF, USD, GBP, PLN, CZK, CNY, UAH, RUB (9 currencies)
+- 🔄 **Auto Updates** - Checks GitHub Releases for new versions
+- 🧪 **Beta Versions** - Beta branch and beta build support
+- ⚙️ **Beta Check** - Configurable beta version checking
+- 🎨 **Responsive Layout** - All application elements dynamically adapt to window size
+- ✅ **Confirmation Dialogs** - Confirmation request before deletion
+- 🔔 **Toast Notifications** - Notifications after successful operations
+- 🔍 **Search & Filter** - Search filaments, printers, and quotes
+- 🔎 **Online Price Comparison** - One-click Google/Bing search for selected filament, price instantly updatable
+- 📋 **Duplication** - Easy quote duplication
+- 🖱️ **Drag & Drop** - Reorder quotes, filaments, and printers by dragging
+- 📱 **Context Menus** - Right-click menus for quick actions (edit, delete, duplicate, export)
+- 🍎 **Platform-Specific Features** - macOS Dock badge, native notifications, system tray integration
+
+## 📸 Screenshots
+
+### Application Icon
+
+<div align="center">
+  <img src="docs/images/icon.png" alt="3D Printer Calculator App Icon" width="128" height="128">
+  
+  <p><em>3D Printer Calculator App - Desktop Application Icon</em></p>
+</div>
+
+### Application Preview
+
+<div align="center">
+  <img src="docs/images/Square310x310Logo.png" alt="App Logo" width="300" height="300">
+</div>
+
+### Application Screenshots
+
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0;">
+  <div>
+    <img src="docs/images/screenshot-dashboard.png" alt="Dashboard" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-calculator.png" alt="Calculator" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-filament.png" alt="Filament Management" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-printcalc.png" alt="Printer Management" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-offers.png" alt="Offers" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-settings.png" alt="Settings" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-themes.png" alt="Themes" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-adevenced.png" alt="Advanced Settings" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+  <div>
+    <img src="docs/images/screenshot-filament_db.png" alt="FilamentDB" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  </div>
+</div>
+
+
+## 🚀 Installation
+
+### Prerequisites
+
+- **Rust**: [Install Rust](https://rustup.rs/)
+- **Node.js**: [Install Node.js](https://nodejs.org/) (version 20+)
+- **pnpm**: `npm install -g pnpm`
+- **Tauri CLI**: `cargo install tauri-cli`
+
+### macOS Specific
+
+```bash
+# Xcode Command Line Tools
+xcode-select --install
+```
+
+### Linux Specific (Ubuntu/Debian)
+
+```bash
+sudo apt update
+sudo apt install libwebkit2gtk-4.1-dev \
+    build-essential \
+    curl \
+    wget \
+    file \
+    libssl-dev \
+    libgtk-3-dev \
+    libayatana-appindicator3-dev \
+    librsvg2-dev
+```
+
+### Windows Specific
+
+- Visual Studio Build Tools (C++ build tools)
+- Windows SDK
+
+## 📦 Building
+
+### Running in Development Mode
+
+```bash
+cd src-tauri
+cargo tauri dev
+```
+
+### Production Build (Creating Standalone Application)
+
+```bash
+cd src-tauri
+cargo tauri build
+```
+
+The standalone application will be located at:
+- **macOS**: `src-tauri/target/release/bundle/macos/3DPrinterCalcApp.app`
+- **Linux**: `src-tauri/target/release/bundle/deb/` or `appimage/`
+- **Windows**: `src-tauri/target/release/bundle/msi/`
+
+### Beta Building
+
+The project includes a `beta` branch configured for separate builds:
+
+```bash
+# Switch to beta branch
+git checkout beta
+
+# Local beta build
+./build-frontend.sh
+cd src-tauri
+cargo tauri build
+```
+
+The beta build automatically sets the `VITE_IS_BETA=true` variable, so "BETA" appears in the menu.
+
+**GitHub Actions**: When pushing to the `beta` branch, the `.github/workflows/build-beta.yml` workflow automatically runs, building the beta version for all three platforms.
+
+Detailed guide: [BUILD.md](BUILD.md) and [HOW_TO_BUILD_APP.md](HOW_TO_BUILD_APP.md)
+
+## 💻 Development
+
+### Project Structure
+
+```
+3DPrinterCalcApp/
+├── frontend/          # React + TypeScript frontend
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── utils/        # Helper functions
+│   │   └── types.ts      # TypeScript types
+│   └── package.json
+├── src-tauri/         # Rust backend
+│   ├── src/           # Rust source code
+│   ├── Cargo.toml     # Rust dependencies
+│   └── tauri.conf.json # Tauri configuration
+└── README.md
+```
+
+### Frontend Development
+
+```bash
+cd frontend
+pnpm install
+pnpm dev
+```
+
+### Dependencies
+
+**Frontend:**
+- React 19
+- TypeScript
+- Vite
+
+**Backend:**
+- Tauri v2
+- tauri-plugin-store (data storage)
+- tauri-plugin-log (logging)
+
+## 📖 Usage
+
+1. **Add Printer**: Printers menu → Add new printer
+2. **Add Filament**: Filaments menu → Add new filament
+3. **Calculate Cost**: Calculator menu → Select printer and filaments
+4. **Save Quote**: Click "Save as quote" button in calculator
+5. **PDF Export**: Quotes menu → Select a quote → PDF export
+6. **Check Beta Versions**: Settings menu → Enable "Check for beta updates" option
+
+## 🔄 Version Management and Updates
+
+The application automatically checks GitHub Releases for new versions:
+
+- **On Startup**: Automatically checks for updates
+- **Every 5 minutes**: Automatically rechecks
+- **Notification**: If a new version is available, a notification appears in the top right corner
+
+### Beta Version Checking
+
+To check for beta versions:
+
+1. Go to **Settings** menu
+2. Enable the **"Check for beta updates"** option
+3. The application immediately checks for beta versions
+4. If a newer beta version is available, a notification appears
+5. Click the "Download" button to go to the GitHub Release page
+
+**Example**: If you're using a RELEASE version (e.g., 0.1.0) and enable beta checking, the application finds the latest beta version (e.g., 0.2.0-beta) and notifies you if there's a newer one.
+
+Detailed guide: [VERSIONING.md](VERSIONING.md)
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React 19, TypeScript, Vite
+- **Backend**: Rust, Tauri v2
+- **Data Storage**: Tauri Store Plugin (JSON files)
+- **Styling**: Inline styles (commonStyles)
+- **i18n**: Custom translation system
+- **CI/CD**: GitHub Actions (automatic builds for macOS, Linux, Windows)
+- **Version Management**: GitHub Releases API integration
+
+## 📝 License
+
+This project is licensed under **MIT license**, however **commercial use requires permission**.
+
+Full application copyright: **Lekszikov Miklós (LexyGuru)**
+
+- ✅ **Personal and educational use**: Permitted
+- ❌ **Commercial use**: Only with explicit written permission
+
+Details: [LICENSE](LICENSE) file
+
+## 👤 Author
+
+Lekszikov Miklós (LexyGuru)
+
+## 🙏 Acknowledgments
+
+- [Tauri](https://tauri.app/) - The cross-platform desktop app framework
+- [React](https://react.dev/) - The frontend framework
+- [Vite](https://vitejs.dev/) - The build tool
+
+## 📚 Additional Documentation
+
+- [BUILD.md](BUILD.md) - Detailed build guide for all platforms
+- [HOW_TO_BUILD_APP.md](HOW_TO_BUILD_APP.md) - Creating standalone application
+- [VERSIONING.md](VERSIONING.md) - Version management and updates
+- [CREATE_FIRST_RELEASE.md](CREATE_FIRST_RELEASE.md) - Creating first GitHub Release
+
+## 🌿 Branch Structure
+
+- **`main`**: Stable release versions (RELEASE build)
+- **`beta`**: Beta versions and development (BETA build)
+
+When pushing to the `beta` branch, the GitHub Actions workflow automatically runs, building the beta version.
+
+## 📋 Version History
+
+## v3.0.0 (2025) - 🔒 Customer Data Encryption & GDPR Compliance
+
+### 🔒 Customer Data Encryption
+- **AES-256-GCM encryption** - Customer data encrypted storage using industry-standard AES-256-GCM algorithm
+- **PBKDF2 password hashing** - Secure password storage using PBKDF2 algorithm (100,000 iterations, SHA-256)
+- **Separate file storage** - Encrypted customer data stored in separate `customers.json` file
+- **In-memory password management** - Passwords only stored in memory, cleared on application close
+- **App password integration** - Optional: can use app password protection password for encryption as well
+- **Password prompt system** - Intelligent password request (doesn't appear on loading screen, after welcome message)
+- **Data integrity protection** - Encrypted data protected against accidental deletion
+
+### ✅ GDPR/EU Compliant Data Protection
+- **Compliance**: The application handles customer data in compliance with GDPR (General Data Protection Regulation) and EU data protection regulations
+- **Industry-standard encryption**: Use of AES-256-GCM algorithm (meets EU recommendations)
+- **Secure password handling**: PBKDF2 hashing algorithm (NIST recommended)
+- **Minimal data collection**: Only stores necessary customer data required by the application
+- **Data retention**: User has full control over data storage and deletion
+- **Access control**: Password-protected access to customer data
+
+### 🎨 UI/UX Improvements
+- **Encryption enable modal** - New modal dialog for enabling encryption with app password option
+- **ConfirmDialog enhancement** - customContent support for modal components
+- **Password prompt timing** - Intelligent display (not on loading screen)
+- **Settings integration** - Encryption settings in Security tab
+
+### 🔧 Technical Improvements
+- **Backend encryption module** - Encryption implemented in Rust (`src-tauri/src/encryption.rs`)
+- **Frontend encryption utilities** - TypeScript utility functions for encryption handling
+- **Password manager** - In-memory password management system
+- **Store integration** - saveCustomers/loadCustomers functions with encryption integration
+
+### 📚 Language Support
+- **13 languages updated** - New encryption translation keys in all language files
+- **New keys**: `encryption.enableEncryption`, `encryption.useSamePasswordAsApp`, `encryption.encryptionPassword`, `encryption.passwordMinLength`
+
+---
+
+## v2.0.0 (2025) - 🚀 Performance Monitoring & Audit Log System
+
+### ⚡ Performance Metrics Logging
+- **Performance Timer class** - Manual timing for operations
+- **Loading time measurement** - All module loading times recorded (Settings, Printers, Filaments, Offers, Customers)
+- **Operation time measurement** - Automatic timing for async and sync operations
+- **Memory usage monitoring** - JavaScript heap memory tracking and logging
+- **CPU usage monitoring** - Regular CPU usage measurement every 5 minutes
+- **Performance summary** - Aggregated statistics for loading and operation times
+- **Structured log messages** - Detailed display of CPU percentage and memory values
+- **Backend performance commands** - `get_performance_metrics` backend command for CPU and memory data
+
+### 🔐 Audit Log Implementation
+- **Audit log infrastructure** - Separate audit log file (`audit-YYYY-MM-DD.json`)
+- **Critical operations logging**:
+  - CRUD operations (Create/Update/Delete for Filaments, Printers, Offers, Customers)
+  - Settings changes (theme, language, log settings, autosave, etc.)
+  - Backup operations (create, restore)
+  - Factory Reset operations
+  - Error recording
+- **Audit Log Viewer** - Virtual scroll for large files, with filtering, searching, and export capabilities
+- **Automatic cleanup** - Old audit log files automatically deleted based on configurable retention days
+- **Backend commands** - `write_audit_log`, `list_audit_logs`, `read_audit_log_file`, `delete_old_audit_logs`
+- **Full localization** - All 13 supported languages
+
+### 🎯 UI/UX Improvements
+- **Audit Log History** - Two-column layout in Settings → Log Management section
+- **Performance metrics display** - In System Diagnostics modal
+- **Log Viewer real-time updates** - Auto-refresh toggle, hash-based change detection
+- **Auto-scroll refinement** - User scroll position awareness
+
+### 🔧 Technical Improvements
+- **GitHub update check optimization** - On startup and every 5 hours (localStorage-based)
+- **Beta tag format** - Separate `beta-v2.0.0` tag for beta releases (doesn't overwrite main release)
+- **Version checker logic** - Beta version search based on `beta-v` prefix
+
+---
+
+### v1.9.0 (2025) - 🔍 System Diagnostics & Performance Improvements
+
+- 🔍 **System Diagnostics** - Comprehensive system health-check tool:
+  - System information display (CPU, memory, OS, GPU, disk)
+  - File system validation (data.json, filamentLibrary.json, update_filament.json)
+  - Module availability checks (Settings, Offers, Printers, Customers, Calculator, Home)
+  - Data store accessibility verification
+  - Progress bar with detailed status messages
+  - Summary with error/warning/success indicators
+  - Rerun diagnostics button
+  - Moved to Log Management section for better organization
+  - Fully localized in all 13 supported languages
+
+- ⚡ **Log Viewer Performance** - Virtual scrolling for large log files:
+  - Custom virtual scrolling implementation for LogViewer component
+  - Only visible log entries are rendered, dramatically improving performance
+  - Smooth scrolling and searching even with massive log files (100k+ lines)
+  - Maintains accurate scrollbar position and height
+  - Significantly faster search and filter operations
+
+- 🔔 **Unified Notification System** - Centralized notification service:
+  - Single `notificationService` for both Toast and platform notifications
+  - Priority-based notification routing (high priority → platform notification)
+  - Automatic decision making based on app state (foreground/background)
+  - Backward compatible with existing notification functions
+  - Configurable notification preferences (Toast on/off, platform notification on/off, priority levels)
+
+- 🎯 **UI/UX Improvements**:
+  - System Diagnostics moved from Backup section to Log Management section (more logical placement)
+  - TypeScript linter errors fixed (unused variables, type mismatches)
+  - Improved code quality and maintainability
+
+### v1.8.0 (2025) - 📊 Advanced Logging & Factory Reset Enhancements
+
+- 🔄 **Factory Reset Progress Modal** - Visual progress indicator for factory reset:
+  - 4-step animated progress (backup deletion, log deletion, config deletion, completion)
+  - Real-time status updates with success/error messages
+  - 10-second countdown before language selector appears
+  - Non-dismissible modal during reset process
+  - Fully localized in all 13 supported languages
+
+- 📋 **Complete Logging System Overhaul** - Professional logging infrastructure:
+  - Cross-platform log file paths (platform-specific data directories)
+  - System information logging (CPU, memory, OS, GPU, disk, app version)
+  - Directory information logging (log and backup folders, file counts, sizes)
+  - Detailed loading status logging (success/warning/error/critical)
+  - Log levels (DEBUG, INFO, WARN, ERROR) with filtering
+  - Structured log format support (text and JSON)
+  - Log rotation with automatic cleanup (configurable retention days)
+  - Log Viewer modal with filtering, search, highlight, and export
+  - Log configuration in Settings (format, level, retention days)
+  - Log file content preserved across app restarts (append mode)
+
+- 🔍 **System Diagnostics** - System health-check modal:
+  - System information display and validation
+  - Memory usage monitoring with warnings
+  - File existence checks
+  - Module availability verification
+  - Data store accessibility tests
+  - Progress bar and summary display
+  - Fully localized in all 13 supported languages
+
+- 🛠️ **Technical Improvements**:
+  - Logging disabled during Factory Reset to prevent log pollution
+  - data.json creation delayed until language selection (cleaner Factory Reset flow)
+  - Log file initialization delayed until language selection
+  - Automatic app restart after language selection
+  - Backend commands for backup and log file management
+  - Cross-platform path handling for backups and logs
+  - Fixed memory calculation (sysinfo 0.31 compatibility)
+  - React style warnings fixed (CSS shorthand conflicts)
+
+### v1.7.0 (2025) - 💾 Backup System & Autosave Integration
+
+- 💾 **Automatic Backup System** - Comprehensive backup solution:
+  - Automatic daily backup creation (one file per day, updated if exists)
+  - Backup history display with color-coded age indicators (green/yellow/red/gray)
+  - Automatic cleanup (old backups deleted after 5 days)
+  - Deletion countdown timer (hour:minute:second format)
+  - Backup reminder system with configurable intervals
+  - Backup directory opening button in Settings
+  - Cross-platform backup path handling
+
+- 🔄 **Autosave Integration**:
+  - Autosave synchronized with automatic backups (creates backup on each save)
+  - Modal dialog when enabling autosave (explains functionality and limitations)
+  - Header displays last backup time (accurate time since last backup)
+  - Backup reminder suppressed when autosave is enabled
+  - Backup history auto-refreshes when autosave is enabled
+
+- 🏭 **Factory Reset Improvements**:
+  - Deletes all automatic backup files during factory reset
+  - Deletes all log files during factory reset
+  - Physical file deletion (data.json, filamentLibrary.json, update_filamentLibrary.json)
+  - Store instance reset without page reload
+  - Language selector appears after factory reset
+  - Logging disabled during factory reset process
+
+- 🎨 **UI/UX Enhancements**:
+  - Loading screen improvements (slower pace, error checks, physical logging)
+  - Backup reminder hidden during tutorial
+  - Filament library colors displayed in user's selected language (13 languages)
+  - Loading info translations added to all language files
+
+### v1.6.0 (2025) - 📊 Interactive Widgets & Large Table Performance
+
+- 🧠 **Interactive Charts & Detail Modals**
+  - All main dashboard charts now use a unified `InteractiveChart` with clickable data points and animated detail modals.
+  - Tooltips and modals show localized, human‑readable labels for revenue, costs, profit and offer count.
+  - Trend charts support direct period filtering from the brush (weekly / monthly / yearly slices sent to the dashboard).
+
+- 🧵 **Virtual Scrolling for Large Lists**
+  - Custom virtual scrolling for Offers list and Filaments table – only visible rows are rendered, keeping scrolling smooth even with 10k+ items.
+  - Settings → Filament Library uses the same virtual scrolling pattern, so the full 12,000+ color entries remain responsive.
+  - Scrollbar position and height remain accurate thanks to spacer elements above and below the visible window.
+
+- 📋 **Advanced Table Sorting & Filtering**
+  - Multi‑column sorting for Filaments and Offers (click for ascending/descending, Shift+click to build sort chains like “Brand ↑, then Price/kg ↓”).
+  - Sort configuration is persisted in settings, so the preferred order is restored on next launch.
+  - Filaments: per‑column filters for brand, material/type, and color/HEX.
+  - Offers: numeric range filters for total amount (min/max) and date range filters (from/to).
+
+### v1.5.0 (2025) - 🧠 Smart Dashboard & Deadline Reminders
+
+- ⏱️ **Print Deadline Reminders** – New reminder system for accepted quotes:
+  - Scheduled Tasks widget now automatically receives tasks from offers with upcoming print deadlines
+  - Header shows rotating "Today / Tomorrow / Day after tomorrow" style reminders for near-term print jobs
+  - Persistent info toast warns about urgent deadlines until the user manually closes it
+- 🧵 **Filament Stock Management** – New, dedicated filament inventory view:
+  - Search by brand / type / color, with status filters (critical / low / OK)
+  - Adjustable critical and low threshold values, inline stock editing and quick +100g / −100g buttons
+  - Filament Stock Alert widget now reads directly from these thresholds and live stock levels
+- 📊 **Dashboard Enhancements** – All widgets enabled by default in dashboard view:
+  - Quick Actions, Recent Offers, Filament Stock Alerts, Financial Trends, Active Projects, Scheduled Tasks
+  - Classic Home view and Widget Dashboard now share a more consistent set of statistics and charts
+- 🧱 **Offers UX Improvements** – Smoother editing and selection:
+  - Fixed cases where saving an edited quote didn't immediately update the main offers list
+  - Multi-select checkbox moved out of the title text so customer names remain fully readable
+- 🧭 **Header & Layout Refinements**:
+  - Breadcrumb bar removed from the header to keep the layout cleaner
+  - Minimum window size (1280x720) now enforced at the Tauri window level without introducing horizontal scrollbars
+
+### v1.4.33 (2025) - 🔧 Widget Layout & Drag Improvements + Tutorial Demo Data
+
+- 📊 **Widget Layout Fixes** - Fixed widget positioning and drag functionality:
+  - Fixed automatic positioning of 6 small "S" size widgets to align side by side
+  - Widgets now maintain their positions after manual drag and drop
+  - Fixed layout persistence - widgets no longer jump back to original positions
+  - Improved drag handle functionality - widgets can be dragged from header or drag handle bar
+  - Fixed empty space issues below widgets after repositioning
+  - Enhanced layout change handling to prevent overwriting manual changes
+- 🎓 **Tutorial Demo Data System** - Automatic demo data generation and cleanup:
+  - Demo data automatically generated when tutorial starts (if no existing data)
+  - Demo data includes sample printers, filaments, offers, and customers
+  - Demo data automatically deleted when tutorial completes or is skipped
+  - Application automatically restarts after demo data deletion to clear memory
+  - Settings preserved during demo data cleanup (language, tutorial status)
+  - Fixed infinite loop issue - tutorial no longer restarts after completion
+- 🔧 **Main Build Release Fix** - Improved GitHub release creation:
+  - Added release file verification before creating GitHub release
+  - Enhanced release creation to ensure latest version is properly displayed
+  - Fixed release name format for consistency
+
+### v1.3.12 (2025) - 🎨 Widget System & Currency Enhancements
+
+- 📊 **Widget System Improvements** - Enhanced widget functionality and localization:
+  - New widgets added: Print Time Chart, Customer Stats Chart, Offer Status Chart
+  - Widget export functionality fixed - all chart widgets now exportable as SVG
+  - Dynamic widget title translation based on selected language
+  - Localized export filenames with proper OS-compatible naming (underscores, no special chars)
+  - Widget language updates immediately after language change
+  - Toast notifications for successful chart exports
+  - All widget elements and loading states fully translated in all 13 languages
+- 💱 **Currency Support Expansion** - Extended currency support:
+  - Added currencies: GBP (British Pound), PLN (Polish Zloty), CZK (Czech Koruna), CNY (Chinese Yuan), UAH (Ukrainian Hryvnia), RUB (Russian Ruble)
+  - Currency symbols and labels for all new currencies
+  - Proper currency conversion and display across all components
+  - Currency selection dropdown updated with all supported currencies
+- 💰 **Cost Calculation Precision Fix** - Fixed floating-point precision issues:
+  - All cost calculations (filament, electricity, drying, usage, total) now rounded to 2 decimal places
+  - Eliminated long decimal displays (e.g., `0.17500000000000002` → `0.18`)
+  - Consistent number formatting throughout the application
+- 🏢 **Company Information Dialog** - Improved company info management:
+  - Company information form moved to modal dialog (similar to Goods/Filaments)
+  - "Company Details" button to open/edit company information
+  - Dialog can be closed via X button, backdrop click, or Escape key
+  - Better UX with animated modal transitions
+  - All company info fields accessible in organized dialog interface
+
+### v1.3.11 (2025) - 🎨 Widget Dashboard Improvements
+
+- 📊 **Widget Dashboard Enhancements** - Improved widget dashboard functionality:
+  - Fixed widget container padding and margins for better edge-to-edge layout
+  - Improved scroll behavior - widgets now properly scroll when content exceeds viewport
+  - Fixed widget shrinking issue on window resize - widgets maintain size across all breakpoints
+  - Consistent 12-column layout across all screen sizes
+  - Better widget positioning and spacing
+- 🔧 **Layout Fixes**:
+  - Removed fixed container padding that prevented widgets from reaching app edges
+  - Fixed ResponsiveGridLayout height calculation for proper scrolling
+  - Improved container overflow handling
+  - Better widget group layout consistency
+
+### v1.2.1 (2025) - 🎨 UI Consistency and Column Management
+
+- 📊 **Filaments Column Management** - Added column visibility and sorting to Filaments component:
+  - Column visibility toggle menu (same as Printers component)
+  - Sortable columns: Brand, Type, Weight, Price/kg
+  - Column visibility preferences saved in settings
+  - Consistent UI with Printers component (manage button, dropdown menu, sort indicators)
+- 🎨 **Theme Color Consistency** - Improved theme color usage across all components:
+  - All buttons and dropdown menus now consistently use theme colors (Filaments, Printers, Calculator, PriceTrends)
+  - Removed hardcoded colors (gray buttons replaced with primary theme color)
+  - Header component fully adapts to all themes and colors
+  - Status info card uses theme colors instead of hardcoded rgba values
+  - Consistent hover effects using themeStyles.buttonHover
+- 🔧 **UI Improvements**:
+  - "Oszlopok kezelése" button now uses primary theme color instead of secondary
+  - PriceTrends select dropdown uses proper focus styles
+  - All dropdown menus consistently styled with theme colors
+  - Better visual consistency across all pages
+
+### v1.1.6 (2025) - 🌍 Complete Translation Coverage
+
+- 🌍 **Tutorial Translations** - Added missing tutorial translation keys to all language files:
+  - 8 new tutorial steps fully translated (Status Dashboard, PDF Preview, Drag & Drop, Context Menu, Price History, Online Price, Export/Import, Backup/Restore)
+  - All tutorial content now available in all 14 supported languages
+  - Complete tutorial experience in Czech, Spanish, French, Italian, Polish, Portuguese, Russian, Slovak, Ukrainian, and Chinese
+- 🎨 **Theme Names Translation** - Theme names now fully translated in all languages:
+  - 15 theme names added to all language files (Light, Dark, Blue, Green, Forest, Purple, Orange, Pastel, Charcoal, Midnight, Gradient, Neon, Cyberpunk, Sunset, Ocean)
+  - Theme names dynamically loaded from translation system instead of hardcoded values
+  - Fallback mechanism: translation key → displayName → theme name
+  - All themes now display in user's selected language in Settings
+
+### v1.1.5 (2025) - 🎨 UI Improvements and Log Management
+
+- 🎨 **Filament Add Dialog Redesign** - Improved two-column layout for better organization:
+  - Left column: Basic data (Brand, Type, Weight, Price, Image upload)
+  - Right column: Color selection with all color options
+  - All input fields have consistent width
+  - Better visual hierarchy and spacing
+  - Image upload moved to left column below Price field
+- 📋 **Log Files Management** - New log management section in Data Management settings:
+  - Configurable automatic deletion of old log files (5, 10, 15, 30, 60, 90 days or never)
+  - Button to open log folder in file manager
+  - Automatic cleanup when setting is changed
+  - Platform-specific folder opening (macOS, Windows, Linux)
+- 📦 **Export/Import Layout** - Export and Import sections now side by side:
+  - Two-column responsive layout
+  - Better space utilization
+  - Improved visual balance
+- 🍎 **macOS Notification Warning** - Dismissible warning dialog:
+  - Only appears on macOS platform
+  - Two dismissal options: temporary (X button) or permanent (Close button)
+  - Temporary dismissal: hidden for current session only, reappears after restart
+  - Permanent dismissal: saved to settings, never appears again
+  - Clear visual distinction between dismissal types
+
+### v1.1.4 (2025) - 🐛 Filament Library Update File Auto-Creation
+
+- 🐛 **Auto-Create Update File** - Fixed issue where `update_filamentLibrary.json` was not automatically created:
+  - File is now automatically created from `filamentLibrarySample.json` on first launch
+  - Ensures update file is always available for merging
+  - Only creates if file doesn't exist (doesn't overwrite existing)
+  - Improved error handling and logging for update file operations
+
+### v1.1.3 (2025) - 🪟 Windows Compatibility Fixes
+
+- 🪟 **Windows Compatibility Fix** - Filament library loading improvements:
+  - Dynamic import for large JSON files (instead of static import)
+  - Caching mechanism to avoid multiple loads
+  - Improved error handling for file not found cases on Windows
+  - Cross-platform compatibility (Windows, macOS, Linux)
+- 🔧 **Error Handling Improvements** - Enhanced error messages:
+  - Proper handling of Windows-specific error messages
+  - Silent handling of file not found cases (not as warnings)
+
+### v1.1.2 (2025) - 🌍 Language Selector and Improvements
+
+- 🌍 **Language Selector on First Launch** - Modern, animated language selector dialog on first launch:
+  - Support for 13 languages with flag icons
+  - Theme-aware design
+  - Smooth animations
+  - Tutorial runs in selected language
+- 🔄 **Factory Reset** - Complete data deletion feature:
+  - Deletes all stored data (printers, filaments, offers, customers, settings)
+  - Confirmation dialog for dangerous operations
+  - Application restarts as if first launch
+- 🎨 **UI Improvements**:
+  - Footer text contrast fix (dynamic color selection)
+  - Immediate save on language change
+  - Improved tooltip positioning
+- 📚 **Tutorial Translations** - Complete tutorial translation in all supported languages (Russian, Ukrainian, Chinese added)
+
+### v1.1.1 (2025) - 🎨 Header Layout Improvements
+
+- 🎨 **Header Redesign** - Complete header layout overhaul:
+  - Three-section structure (left: logo/menu, center: breadcrumb, right: actions/status)
+  - Status info card always positioned on the far right
+  - Modern card-style design for status information
+  - Improved spacing and alignment throughout header
+- 📱 **Responsive Design** - Better mobile and small screen experience:
+  - Dynamic breakpoints for element visibility
+  - Breadcrumb truncation fixes
+  - Quick actions adapt to screen size
+  - Status info card responsive sizing
+- 🔧 **Layout Fixes**:
+  - Fixed breadcrumb overflow and truncation issues
+  - Status info card positioning improvements
+  - Better flexbox layout management
+  - Improved element spacing and gaps
+
+### v1.1.0 (2025) - 🚀 Feature Update
+
+- 🔍 **Global Search Extended** - Enhanced search functionality:
+  - Search offers by customer name, ID, status, and date
+  - Search filaments from database (filamentLibrary) by brand, type, and color
+  - Add filaments to saved list with one click from search results
+  - Improved search results with type indicators
+- 💀 **Skeleton Loading System** - Spectacular loading experience:
+  - Animated skeleton components with shimmer effects
+  - Progress tracking with visual indicators
+  - Loading steps with checkmarks for completed steps
+  - Smooth fade-in transitions
+  - Theme-aware skeleton colors
+  - Page-specific skeleton loaders
+- 🎨 **UI/UX Improvements**:
+  - Better loading states
+  - Improved user feedback during data loading
+  - Enhanced visual experience
+
+### v1.0.0 (2025) - 🎉 First Stable Release
+
+- 🎨 **Modern UI Components** - Complete UI overhaul with modern components:
+  - Empty State component for better user experience
+  - Card component with hover effects
+  - Progress Bar component for PDF export/import operations
+  - Tooltip component with theme integration
+  - Breadcrumb navigation for clear page hierarchy
+- ⚡ **Quick Actions** - Header quick action buttons for faster workflow:
+  - Quick add buttons for Filaments, Printers, and Customers
+  - Dynamic buttons based on active page
+  - Keyboard shortcuts integration
+- 🔍 **Global Search (Command Palette)** - Powerful search functionality:
+  - `Ctrl/Cmd+K` to open global search
+  - Search pages and quick actions
+  - Keyboard navigation (↑↓, Enter, Esc)
+  - Theme-aware styling
+- ⏪ **Undo/Redo Functionality** - History management for Filaments:
+  - `Ctrl/Cmd+Z` for undo
+  - `Ctrl/Cmd+Shift+Z` for redo
+  - Visual undo/redo buttons in UI
+  - 50-step history support
+- ⭐ **Favorite Filaments** - Mark and filter favorite filaments:
+  - Star icon to toggle favorite status
+  - Filter to show only favorites
+  - Persistent favorite state
+- 📦 **Bulk Operations** - Efficient bulk management:
+  - Checkbox selection for multiple filaments
+  - Select all / Deselect all functionality
+  - Bulk delete with confirmation dialog
+  - Visual selection indicators
+- 🎨 **Modal Dialogs** - Modern modal experience:
+  - Blurred background modals for add/edit forms
+  - Fixed-size input fields
+  - Escape key to close
+  - Smooth animations with framer-motion
+- ⌨️ **Keyboard Shortcuts** - Enhanced shortcut system:
+  - Customizable keyboard shortcuts
+  - Shortcut help dialog (`Ctrl/Cmd+?`)
+  - Edit shortcuts with key capture
+  - Persistent shortcut storage
+- 📝 **Logging System** - Comprehensive logging:
+  - Separate log files for frontend and backend
+  - Platform-independent log directory resolution
+  - Automatic log rotation
+  - Console integration
+- 🔔 **Notification Improvements** - Better notification system:
+  - Customer name in offer deletion notifications
+  - Cross-platform notification support
+  - Improved error handling
+- 🎯 **UI/UX Improvements**:
+  - Fixed input field sizes
+  - Better form layouts
+  - Improved theme integration
+  - Enhanced accessibility
+
+### v0.6.0 (2025)
+
+- 👥 **Customer Database** - Complete customer management system with:
+  - Add, edit, delete customers
+  - Contact information (email, phone)
+  - Company details (optional)
+  - Address and notes
+  - Customer statistics (total offers, last offer date)
+  - Search functionality
+  - Integration with Calculator for quick customer selection
+- 📊 **Price History & Trends** - Track filament price changes:
+  - Automatic price history tracking when filament prices are updated
+  - Price trends visualization with SVG charts
+  - Price statistics (current, average, min, max prices)
+  - Trend analysis (increasing, decreasing, stable)
+  - Price history table with detailed change information
+  - Significant price change warnings (10%+ changes)
+  - Price history display in Filaments component during editing
+- 🔧 **Improvements**:
+  - Enhanced Calculator with customer selection dropdown
+  - Price history integration in Filament editing form
+  - Improved data persistence for customers and price history
+
+### v0.5.58 (2025)
+- 🌍 **Ukrainian and Russian Language Support** – Added full translation support for Ukrainian (uk) and Russian (ru) languages:
+  - Complete translation files with all 813 translation keys for both languages
+  - Ukrainian locale support (uk-UA) for date/time formatting
+  - Russian locale support (ru-RU) for date/time formatting
+  - Updated all README files with new languages in language menu
+  - Language count updated from 12 to 14 languages
+  - Created README.uk.md and README.ru.md documentation files
+
+### v0.5.57 (2025)
+- 🍎 **Platform-Specific Features** – Native platform integration for macOS, Windows, and Linux:
+  - **macOS**: Dock badge support (numeric/textual badge on app icon), native Notification Center integration with permission management
+  - **Windows**: Native Windows notifications
+  - **Linux**: System tray integration, desktop notifications support
+  - **All Platforms**: Native notification API integration with permission request system, platform detection and automatic feature enabling
+- 🔔 **Notification System** – Native notification support with permission management:
+  - Permission request system for macOS notifications
+  - Notification test buttons in Settings
+  - Automatic permission checking and status display
+  - Platform-specific notification handling (macOS Notification Center, Windows Action Center, Linux desktop notifications)
+
+
+### v0.5.56 (2025)
+- 🌍 **Complete Language Translations** – Completed full translations for 6 remaining language files: Czech (cs), Spanish (es), Italian (it), Polish (pl), Portuguese (pt), and Slovak (sk). Each file contains all 813 translation keys, so the application is now fully supported in 13 languages (total language count updated from 7 to 13).
+- 🔒 **Tauri Permissions Fix** – The `update_filamentLibrary.json` file is now explicitly enabled for read, write, and create operations in the Tauri capabilities file, ensuring filament library updates work reliably.
+
+### v0.5.55 (2025)
+- 🧵 **Quote Editing Enhancement** – Saved quotes now allow direct printer selection or modification, with costs automatically recalculated along with filament changes.
+- 🧮 **Accuracy and Logging** – Detailed logging helps track cost calculation steps (filament, electricity, drying, usage), making it easier to find errors in imported G-code files.
+- 🌍 **Translation Additions** – New i18n keys and labels added for printer selector, ensuring consistent editor UI in all supported languages.
+- 📄 **Documentation Update** – README expanded with new features description, v0.5.55 release added to version history.
+
+### v0.5.11 (2025)
+- 🗂️ **Language Modularization** – Expanded the app with translation files organized into a new `languages/` directory, making it easier to add new languages and manage existing texts.
+- 🌍 **Unified UI Translations** – The slicer import interface now works from the central translation system, with all buttons, error messages, and summaries localized.
+- 🔁 **Language Selector Update** – In Settings, the language selector loads based on discovered language files, so in the future it's enough to add a new language file.
+- 🌐 **New Language Foundations** – Translation files prepared for French, Italian, Spanish, Polish, Czech, Slovak, Brazilian Portuguese, and Simplified Chinese (with English fallback), actual translations can be easily filled in.
+
+### v0.5.0 (2025)
+- 🔎 **Filament Price Comparison Button** – Every custom filament now has a magnifying glass icon that opens Google/Bing search based on brand/type/color, providing quick links to current prices.
+- 💶 **Decimal Price Support** – Filament price fields now accept decimals (14.11 € etc.), input is automatically validated and formatted when saved.
+- 🌐 **Reversed Search Fallback** – If Tauri shell cannot open the browser, the application automatically opens a new tab, so search works on all platforms.
+
+### v0.4.99 (2025)
+- 🧾 **Built-in G-code Import in Calculator** – New modal `SlicerImportModal` at the top of the calculator that loads G-code/JSON exports with one click, transferring print time, filament quantity, and creates a quote draft.
+- 📊 **Slicer Data from Header** – G-code header `total filament weight/length/volume` values automatically take over summaries, accurately handling color change losses.
+
+### v0.4.98 (2025)
+- 🧵 **Multicolor Filament Support** – Filament library and management UI now separately mark multicolor (rainbow/dual/tricolor) filaments with notes and rainbow preview.
+- 🌐 **Automatic Translation on CSV Import** – Color names imported from external database receive Hungarian and German labels, keeping the color selector multilingual without manual editing.
+- 🔄 **Update Library Merge** – The `update_filamentLibrary.json` file content is automatically deduplicated and merged with the existing library on startup, without overwriting user modifications.
+- 📁 **CSV Converter Update** – The `convert-filament-csv.mjs` script no longer overwrites the persistent `filamentLibrary.json`, instead creates an update file and generates multilingual labels.
+- ✨ **Animation Experience Tuning** – New page transition options (flip, parallax), microinteraction style selector, pulsing feedback, filament library skeleton list and fine-tuned card hover effects.
+- 🎨 **Theme Workshop Extensions** – Four new built-in themes (Forest, Pastel, Charcoal, Midnight), instant duplication of active theme for custom editing, improved gradient/contrast handling and simplified sharing process.
+
+### v0.4.0 (2025)
+- 🧵 **Filament Database Integration** – 12,000+ factory colors from built-in JSON library (filamentcolors.xyz snapshot), organized by brand and material
+- 🪟 **Fixed Size Selector Panels** – Button-opened, searchable, scrollable brand and type lists that exclude each other, making the form more transparent
+- 🎯 **Color Selector Improvements** – When library items are recognized, finish and hex code are automatically set, separate fields available when switching to custom mode
+- 💾 **Filament Library Editor** – New settings tab with popup form, duplicate handling and Tauri FS-based persistent `filamentLibrary.json` saving
+- 📄 **Documentation Update** – New bullet in main feature list for filament color library, README/FEATURE_SUGGESTIONS cleanup
+
+### v0.3.9 (2025)
+- 🔍 **Quote Filter Presets** – Saveable, nameable filter settings, default quick presets (Today, Yesterday, Weekly, Monthly etc.) and one-click apply/delete
+- 📝 **Status Change Notes** – New modal for quote status modification with optional note that is stored in status history
+- 🖼️ **PDF Export Extension** – Images stored with filaments appear in PDF table, print-optimized styling
+- 🧾 **Company Branding Data Sheet** – Company name, address, tax ID, bank account, contact and logo upload; automatically included in PDF header
+- 🎨 **PDF Template Selector** – Three styles (Modern, Minimalist, Professional) to choose from for quote appearance
+- 👁️ **Built-in PDF Preview** – Separate button at quote details for instant visual check before export
+- 📊 **Status Dashboard** – Status cards with summary, quick status filters and timeline of recent status changes at quotes
+- 📈 **Statistical Charts** – Revenue/cost/profit trend chart, filament distribution pie chart, revenue per printer bar chart, all exportable in SVG/PNG format, and can also be saved to PDF
+
+### v0.3.8 (2025)
+- 🐛 **Report Number Formatting Fix** - Formatting to 2 decimal places in reports:
+  - Main statistics cards (Revenue, Expenses, Profit, Quotes): `formatNumber(formatCurrency(...), 2)`
+  - Values above charts: `formatNumber(formatCurrency(...), 2)`
+  - Detailed statistics (Average profit/quote): `formatNumber(formatCurrency(...), 2)`
+  - Now consistent with home page (e.g. `6.45` instead of `6.45037688333333`)
+- 🎨 **Settings Tab Navigation Fix** - Background and text color improvements:
+  - Tab navigation section background: `rgba(255, 255, 255, 0.85)` for gradient themes + `blur(10px)`
+  - Tab button backgrounds: Active `rgba(255, 255, 255, 0.9)`, inactive `rgba(255, 255, 255, 0.7)` for gradient themes
+  - Tab button text color: `#1a202c` (dark) for gradient themes for readability
+  - Hover effects: `rgba(255, 255, 255, 0.85)` for gradient themes
+  - Backdrop filter: `blur(8px)` for tab buttons, `blur(10px)` for navigation section
+
+### v0.3.7 (2025)
+- 🎨 **Design Modernization** - Complete visual transformation with animations and new themes:
+  - New themes: Gradient, Neon, Cyberpunk, Sunset, Ocean (5 new modern themes)
+  - Framer Motion animations integrated (fadeIn, slideIn, stagger, hover effects)
+  - Glassmorphism effect for gradient themes (blur + transparent background)
+  - Neon glow effect for neon/cyberpunk themes
+  - Modernized cards and surfaces (larger padding, rounded corners, better shadows)
+- 🎨 **Color Improvements** - Better contrast and readability for all themes:
+  - Dark text (#1a202c) on white/light background for gradient themes
+  - Input fields, labels, h3 colorization improved in all components
+  - Consistent color handling on all pages (Filaments, Printers, Calculator, Offers, Settings, Console)
+  - Text shadow added for gradient themes for better readability
+- 📊 **Table Style Improvements** - More blurred background and better text contrast:
+  - Background color: rgba(255, 255, 255, 0.85) for gradient themes (previously 0.95)
+  - Backdrop filter: blur(8px) for more blurred effect
+  - Text color: #333 (dark gray) for gradient themes for better readability
+  - Cell backgrounds: rgba(255, 255, 255, 0.7) for more blurred effect
+- 🎨 **Card Background Color Improvements** - More blurred background, better readability:
+  - Background color: rgba(255, 255, 255, 0.75) for gradient themes (previously 0.95)
+  - Backdrop filter: blur(12px) for stronger blurring
+  - Opacity: 0.85 for matte effect
+  - Text color: #1a202c (dark) for gradient themes
+- 📈 **Home Page Modernization** - Weekly/monthly/yearly statistics and period comparison:
+  - Period comparison cards (Weekly, Monthly, Yearly) with colored accent bars
+  - StatCard components modernized (icons with colored backgrounds, accent bars)
+  - Summary section arranged in cards with icons
+  - Period Comparison section added
+- 🐛 **Date Filter Fix** - More accurate period filtering:
+  - Time reset (00:00:00) for accurate comparison
+  - Upper limit set (today is included)
+  - Weekly: last 7 days (today included)
+  - Monthly: last 30 days (today included)
+  - Yearly: last 365 days (today included)
+- 🎨 **Sidebar Modernization** - Icons, glassmorphism, neon glow effects
+- 🎨 **ConfirmDialog Modernization** - Theme prop added, harmonized coloring
+
+### v0.3.6 (2025)
+- 🎨 **Settings UI Reorganization** - Tab system (General, Appearance, Advanced, Data Management) for better UX and cleaner navigation
+- 🌐 **Translation Improvements** - All hardcoded Hungarian text translated in all components (HU/EN/DE):
+  - Calculator: "3D printing cost calculation"
+  - Filaments: "Manage and edit filaments"
+  - Printers: "Manage printers and AMS systems"
+  - Offers: "Manage and export saved quotes"
+  - Home: Statistics titles, summary, CSV export labels (hour/Std/hrs, pcs/Stk/pcs)
+  - VersionHistory: "No version history available"
+- 💾 **Version History Cache System** - Physical save to localStorage, GitHub check every 1 hour:
+  - Checksum-based change detection (only downloads on new releases)
+  - Separate cache per language (Hungarian/English/German)
+  - Fast language switching from cache (no re-translation)
+  - Automatic cache invalidation on new release
+- 🌐 **Smart Translation** - Only translates new releases, uses old translations from cache:
+  - Cache validation (don't cache if same text)
+  - MyMemory API fallback if translation fails
+  - Error counter auto-reset (resets after 5 minutes)
+  - MAX_CONSECUTIVE_ERRORS: 10, MAX_RETRIES: 2
+- 🔧 **LibreTranslate Removed** - Only MyMemory API usage (400 errors eliminated, GET request, no CORS)
+- 🔄 **Retry Button Refactoring** - Simpler trigger mechanism with useEffect
+- 🐛 **Build Error Fixes** - JSX indentation issues fixed (Settings.tsx Export/Import section)
+
+### v0.3.5 (2025)
+- ✅ **MyMemory API Integration** - Free translation API instead of LibreTranslate
+- ✅ **GitHub Releases Page Opening** - Button to open GitHub releases page on rate limit
+- ✅ **Rate Limit Error Handling Improvement** - Clear error messages and retry button
+- 🐛 **Build Error Fixes** - Unused imports removed (offerCalc.ts)
+
+### v0.3.4 (2025)
+- ✅ **Input Validation Enhancement** - Central validation utility created and integrated into Calculator, Filaments, Printers components
+- ✅ **Validation Error Messages** - Multilingual (HU/EN/DE) error messages with toast notifications
+- ✅ **Performance Optimization** - Lazy loading components (code splitting), useMemo and useCallback optimization
+- ✅ **Platform-Specific Initialization** - macOS, Windows, Linux platform-specific initialization basics
+- 🐛 **Build Error Fix** - Printers.tsx context menu functions added
+
+### v0.3.3 (2025)
+- 🖱️ **Drag & Drop Features** - Reorder quotes, filaments and printers by dragging
+- 📱 **Context Menus** - Right-click menus for quick actions (edit, delete, duplicate, PDF export)
+- 🎨 **Visual Feedback** - Opacity and cursor change during drag & drop
+- 🔔 **Toast Notifications** - Notifications after reordering
+- 🐛 **Build Error Fix** - Calculator.tsx theme.colors.error -> theme.colors.danger fix
+
+### v0.3.2 (2025)
+- 📋 **Template Features** - Save and load calculations as templates in Calculator component
+- 📜 **History/Versioning for Quotes** - Quote versioning, view history, track changes
+- 🧹 **Duplication Fix** - Duplicate CSV/JSON export/import functions removed from Filaments and Printers components (remained in Settings)
+
+### v0.3.1 (2025)
+- ✅ **Input Validation Enhancement** - Negative numbers disabled, maximum values set (filament weight, print time, power, etc.)
+- 📊 **CSV/JSON Export/Import** - Bulk export/import of filaments and printers in CSV and JSON format
+- 📥 **Import/Export Buttons** - Easy access to export/import functions on Filaments and Printers pages
+- 🎨 **Empty States Improvement** - Informative empty states displayed when there is no data
+
+### v0.3.0 (2025)
+- ✏️ **Quote Editing** - Edit saved quotes (customer name, contact, description, profit percentage, filaments)
+- ✏️ **Edit Filaments in Quote** - Modify, add, delete filaments within the quote
+- ✏️ **Edit Button** - New edit button next to delete button in quotes list
+- 📊 **Statistics Export Function** - Export statistics in JSON or CSV format from Home page
+- 📈 **Report Generation** - Generate weekly/monthly/yearly/all reports in JSON format with period filtering
+- 📋 **Version History Display** - View version history in settings, GitHub Releases API integration
+- 🌐 **GitHub Releases Translation** - Automatic translation Hungarian -> English/German (MyMemory API)
+- 💾 **Translation Cache** - localStorage cache for translated release notes
+- 🔄 **Dynamic Version History** - Beta and release versions displayed separately
+- 🐛 **Bugfixes** - Unused variables removed, code cleanup, linter errors fixed
+
+### v0.2.55 (2025)
+- 🖥️ **Console/Log Function** - New Console menu item for debugging and viewing logs
+- 🖥️ **Console Setting** - Can enable Console menu item display in settings
+- 📊 **Log Collection** - Automatic recording of all console.log, console.error, console.warn messages
+- 📊 **Global Error Recording** - Automatic recording of window error and unhandled promise rejection events
+- 🔍 **Log Filtering** - Filter by level (all, error, warn, info, log, debug)
+- 🔍 **Log Export** - Export logs in JSON format
+- 🧹 **Log Deletion** - Delete logs with one button
+- 📜 **Auto-scroll** - Automatic scrolling to new logs
+- 💾 **Full Logging** - All critical operations logged (save, export, import, delete, PDF export, update download)
+- 🔄 **Update Button Fix** - Download button now uses Tauri shell plugin, works reliably
+- 🔄 **Update Logging** - Full logging of update check and download
+- ⌨️ **Keyboard Shortcuts** - `Ctrl/Cmd+N` (new), `Ctrl/Cmd+S` (save), `Escape` (cancel), `Ctrl/Cmd+?` (help)
+- ⌨️ **Keyboard Shortcuts macOS Fix** - Cmd vs Ctrl handling, capture phase event handling
+- ⏳ **Loading States** - LoadingSpinner component for loading states
+- 💾 **Backup and Restore** - Full data backup and restore with Tauri dialog and fs plugins
+- 🛡️ **Error Boundaries** - React ErrorBoundary for application-level error handling
+- 💾 **Auto Save** - Debounced auto-save with configurable interval (default 30 seconds)
+- 🔔 **Notification Settings** - Toast notifications on/off and duration setting
+- ⌨️ **Shortcut Help Menu** - List of keyboard shortcuts in modal window (`Ctrl/Cmd+?`)
+- 🎬 **Animations and Transitions** - Smooth transitions and keyframe animations (fadeIn, slideIn, scaleIn, pulse)
+- 💬 **Tooltips** - Contextual help for all important elements on hover
+- 🐛 **React Render Error Fix** - Console logger async operation so it doesn't block rendering
+- 🔧 **num-bigint-dig Update** - Updated to v0.9.1 (deprecation warning fix)
+
+### v0.2.0 (2025)
+- 🎨 **Theme System** - 6 modern themes (Light, Dark, Blue, Green, Purple, Orange)
+- 🎨 **Theme Selector** - Selectable theme in settings, takes effect immediately
+- 🎨 **Full Theme Integration** - All components (Filaments, Printers, Calculator, Offers, Home, Settings, Sidebar) use themes
+- 🎨 **Dynamic Colors** - All hard-coded colors replaced with theme colors
+- 🎨 **Responsive Theme** - Quotes and Sidebar footer also use themes
+- 💱 **Dynamic Currency Conversion** - Quotes now display in current settings currency (automatic conversion)
+- 💱 **Currency Change** - Currency changed in settings immediately affects quote display
+- 💱 **PDF Currency Conversion** - PDF export also created in current settings currency
+- 💱 **Filament Price Conversion** - Filament prices also automatically converted
+
+### v0.1.85 (2025)
+- 🎨 **UI/UX Improvements**:
+  - ✏️ Duplicate icons removed (Edit, Save, Cancel buttons)
+  - 📐 Export/Import sections in 2-column layout (side by side)
+  - 💾 Native save dialog used for PDF saving (Tauri dialog)
+  - 📊 Toast notifications for PDF saving (success/error)
+  - 🖼️ Application window size: 1280x720 (previously 1000x700)
+- 🐛 **Bugfixes**:
+  - Missing information added in PDF generation (customerContact, profit in separate line, revenue)
+  - Translation keys added (calculator.profit, calculator.revenue, calculator.totalPrice, offers.customerContact, common.close)
+- 📄 **PDF Export Improvements**:
+  - Customer contact (email/phone) displayed in PDF
+  - Profit calculation in separate line with profit percentage
+  - Revenue (Total Price) in separate line, highlighted
+  - Full cost breakdown in PDF
+
+### v0.1.56 (2025)
+- ✨ **Calculator Layout Improvements**: Filament cards overflow fixed, responsive flexbox layout
+- ✨ **Cost Breakdown Responsive**: Now dynamically responds to window size changes
+- 🐛 **Bugfix**: Content doesn't overflow window when adding filament
+- 🐛 **Bugfix**: All Calculator elements properly respond to window size changes
+
+### v0.1.55 (2025)
+- ✨ **Confirmation Dialogs**: Confirmation requested before deletion (Filaments, Printers, Quotes)
+- ✨ **Toast Notifications**: Notifications after successful operations (add, update, delete)
+- ✨ **Input Validation**: Negative numbers disabled, maximum values set
+- ✨ **Loading States**: Loading spinner on application startup
+- ✨ **Error Boundary**: Application-level error handling
+- ✨ **Search and Filter**: Search filaments, printers and quotes
+- ✨ **Duplication**: Easy quote duplication
+- ✨ **Collapsible Forms**: Filament and printer add forms are collapsible
+- ✨ **Quote Extensions**: Customer name, contact and description fields added
+- 🐛 **Console.log Cleanup**: No console.logs in production build
+- 🐛 **Description Field Fix**: Long texts properly wrap.
+
+---
+
+**Version**: 1.6.0
+
+If you have any questions or find a bug, please open an issue in the GitHub repository!

@@ -1,0 +1,117 @@
+// Közös stílusok az egész alkalmazásban
+// Megjegyzés: A témák használatához használd a getThemeStyles függvényt a themes.ts-ből
+
+export const commonStyles = {
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: "12px",
+    padding: "24px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    border: "1px solid #e9ecef",
+    transition: "transform 0.2s, box-shadow 0.2s",
+  },
+  cardHover: {
+    transform: "translateY(-2px)",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+  },
+  input: {
+    padding: "12px 16px",
+    borderRadius: "8px",
+    border: "2px solid #e9ecef",
+    fontSize: "14px",
+    color: "#212529",
+    backgroundColor: "#fff",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+    outline: "none",
+  },
+  inputFocus: {
+    borderColor: "#007bff",
+    boxShadow: "0 0 0 3px rgba(0, 123, 255, 0.1)",
+  },
+  select: {
+    padding: "12px 16px",
+    borderRadius: "8px",
+    border: "2px solid #e9ecef",
+    fontSize: "14px",
+    color: "#212529",
+    backgroundColor: "#fff",
+    cursor: "pointer",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+    outline: "none",
+  },
+  selectFocus: {
+    borderColor: "#007bff",
+    boxShadow: "0 0 0 3px rgba(0, 123, 255, 0.1)",
+  },
+  button: {
+    padding: "12px 24px",
+    borderRadius: "8px",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.2s",
+    outline: "none",
+  },
+  buttonPrimary: {
+    backgroundColor: "#007bff",
+    color: "#fff",
+    boxShadow: "0 2px 4px rgba(0, 123, 255, 0.2)",
+  },
+  buttonSuccess: {
+    backgroundColor: "#28a745",
+    color: "#fff",
+    boxShadow: "0 2px 4px rgba(40, 167, 69, 0.2)",
+  },
+  buttonDanger: {
+    backgroundColor: "#dc3545",
+    color: "#fff",
+    boxShadow: "0 2px 4px rgba(220, 53, 69, 0.2)",
+  },
+  buttonSecondary: {
+    backgroundColor: "#6c757d",
+    color: "#fff",
+    boxShadow: "0 2px 4px rgba(108, 117, 125, 0.2)",
+  },
+  buttonHover: {
+    transform: "translateY(-1px)",
+    boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse" as const,
+    backgroundColor: "#fff",
+    borderRadius: "12px",
+    overflow: "hidden",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+  },
+  tableHeader: {
+    backgroundColor: "#f8f9fa",
+    padding: "16px",
+    textAlign: "left" as const,
+    fontWeight: "600",
+    fontSize: "14px",
+    color: "#495057",
+    borderBottom: "2px solid #e9ecef",
+  },
+  tableCell: {
+    padding: "16px",
+    borderBottom: "1px solid #e9ecef",
+    fontSize: "14px",
+    color: "#212529",
+  },
+  pageTitle: {
+    margin: 0,
+    marginBottom: "8px",
+    fontSize: "32px",
+    fontWeight: "bold",
+    color: "#1a1a1a",
+  },
+  pageSubtitle: {
+    margin: 0,
+    marginBottom: "24px",
+    color: "#6c757d",
+    fontSize: "16px",
+  },
+};
+

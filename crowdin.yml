@@ -1,0 +1,21 @@
+files:
+  - source: frontend/src/utils/languages/language_cs
+    translation: frontend/src/utils/languages/%file_name%_update.ts
+  - source: frontend/src/utils/languages/language_fr
+    translation: frontend/src/utils/languages/%file_name%_update.ts
+  - source: frontend/src/utils/languages/language_it
+    translation: frontend/src/utils/languages/%file_name%_update.ts
+  - source: frontend/src/utils/languages/language_es
+    translation: frontend/src/utils/languages/%file_name%_update.ts
+  - source: frontend/src/utils/languages/language_pl
+    translation: frontend/src/utils/languages/%file_name%_update.ts
+  - source: frontend/src/utils/languages/language_sk
+    translation: frontend/src/utils/languages/%file_name%_update.ts
+  - source: frontend/src/utils/languages/language_zh
+    translation: frontend/src/utils/languages/%file_name%_update.ts
+  - source: frontend/src/utils/languages/language_pt
+    translation: frontend/src/utils/languages/%file_name%_update.ts
+  - source: frontend/src/utils/languages/language_en
+    translation: frontend/src/utils/languages/%file_name%_update.ts
+  - source: frontend/src/utils/languages/language_hu
+    translation: frontend/src/utils/languages/%file_name%_update.ts

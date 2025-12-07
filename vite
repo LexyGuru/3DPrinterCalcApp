@@ -1,0 +1,71 @@
+
+3:41:34 PM [vite] (client) Forced re-optimization of dependencies
+
+  VITE v7.1.12  ready in 296 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+     Running DevCommand (`cargo  run --no-default-features --color always --`)
+        Info Watching /Users/lekszikov/3DPrinterCalcApp/src-tauri for changes...
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.62s
+     Running `target/debug/app`
+[BACKEND] [2025-11-30 15:41:41.105] [INFO] === Backend log inicializálva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/backend-2025-11-30.log ===
+✅ Backend log fájl inicializálva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/backend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:41.105] [INFO] Alkalmazás indítása - Backend log fájl: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/backend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:41.105] [INFO] macOS platform specifikus funkciók inicializálva
+[BACKEND] [2025-11-30 15:41:41.105] [INFO] - Dock badge támogatás
+[BACKEND] [2025-11-30 15:41:41.105] [INFO] - Notification Center integráció
+[BACKEND] [2025-11-30 15:41:44.263] [INFO] Frontend log fájl inicializálva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:54.645] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:54.647] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:54.648] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:54.650] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:54.651] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:54.652] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:54.821] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:54.824] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:54.955] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:54.957] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:55.036] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:55.037] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:55.150] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:55.151] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:55.211] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:55.212] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:55.357] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:55.358] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:55.390] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:55.391] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:55.803] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:55.804] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:55.805] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:55.806] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:55.986] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:55.987] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:55.988] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:55.990] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:56.528] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:56.531] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:56.533] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:56.533] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:56.690] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:56.724] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:56.725] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:56.726] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:58.581] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:58.583] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:58.584] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:58.677] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:59.125] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:59.151] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:41:59.152] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:41:59.179] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:42:01.025] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:42:01.026] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:42:01.029] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:42:01.057] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:42:01.462] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:42:01.463] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:42:01.522] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
+[BACKEND] [2025-11-30 15:42:01.588] [INFO] Log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/logs/frontend-2025-11-30.log
+[BACKEND] [2025-11-30 15:42:01.589] [INFO] Audit log fájl beolvasva: /Users/lekszikov/Library/Application Support/3DPrinterCalcApp/audit_logs/audit-2025-11-30.json
