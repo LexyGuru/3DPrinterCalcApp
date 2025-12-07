@@ -14,6 +14,7 @@ interface ConfirmDialogProps {
   type?: "danger" | "warning" | "info";
   theme?: Theme;
   customContent?: React.ReactNode; // Egyedi tartalom a message helyett
+  confirmDisabled?: boolean; // Ha true, a megerősítő gomb letiltva
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -27,6 +28,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   type = "danger",
   theme,
   customContent,
+  confirmDisabled = false,
 }) => {
   const isGradientBackground = theme?.colors.background?.includes('gradient');
   const dialogBg = isGradientBackground 
@@ -158,28 +160,34 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onConfirm();
+                  if (!confirmDisabled) {
+                    onConfirm();
+                  }
                 }}
+                disabled={confirmDisabled}
                 style={{
                   ...commonStyles.button,
                   ...buttonStyle,
                   padding: "10px 20px",
                   borderRadius: "8px",
                   border: "none",
-                  cursor: "pointer",
+                  cursor: confirmDisabled ? "not-allowed" : "pointer",
                   fontSize: "14px",
                   fontWeight: "600",
                   transition: "all 0.2s",
                   position: "relative",
                   zIndex: 10,
                   pointerEvents: "auto",
+                  opacity: confirmDisabled ? 0.6 : 1,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = "0.9";
-                  e.currentTarget.style.transform = "translateY(-1px)";
+                  if (!confirmDisabled) {
+                    e.currentTarget.style.opacity = "0.9";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.opacity = confirmDisabled ? "0.6" : "1";
                   e.currentTarget.style.transform = "translateY(0)";
                 }}
               >

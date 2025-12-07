@@ -5,18 +5,22 @@ import type { Customer } from "../types";
 import { encryptData, decryptData, hashPassword } from "./auth";
 
 /**
- * Customer tömb titkosítása
+ * Customer tömb titkosítása (ID-k NÉLKÜL)
+ * FONTOS: Az ID-k külön vannak tárolva (nem titkosítva), hogy megjeleníthetők legyenek
  * @param customers - A titkosítandó customer tömb
  * @param password - A titkosítási jelszó
- * @returns Titkosított JSON string
+ * @returns Titkosított JSON string (ID-k nélkül)
  */
 export async function encryptCustomers(
   customers: Customer[],
   password: string
 ): Promise<string> {
   try {
-    // Customer tömb JSON stringgé alakítása
-    const customerJson = JSON.stringify(customers);
+    // Kivesszük az ID-kat a customer objektumokból, mert azok külön lesznek tárolva
+    const customersWithoutIds = customers.map(({ id, ...rest }) => rest);
+    
+    // Customer tömb (ID-k nélkül) JSON stringgé alakítása
+    const customerJson = JSON.stringify(customersWithoutIds);
     
     // Titkosítás backend-ből
     const encrypted = await encryptData(customerJson, password);
@@ -30,14 +34,16 @@ export async function encryptCustomers(
 
 /**
  * Customer tömb visszafejtése
+ * FONTOS: Visszafelé kompatibilis - ha a visszafejtett adatokban vannak ID-k (régi formátum), akkor azokat használja
+ * Ha nincsenek ID-k (új formátum), akkor Omit<Customer, 'id'>[]-t ad vissza
  * @param encrypted - A titkosított JSON string
  * @param password - A visszafejtési jelszó
- * @returns Visszafejtett Customer tömb
+ * @returns Visszafejtett Customer tömb (ID-kkal, ha régi formátum) vagy Omit<Customer, 'id'>[] (ha új formátum)
  */
 export async function decryptCustomers(
   encrypted: string,
   password: string
-): Promise<Customer[]> {
+): Promise<Customer[] | Omit<Customer, 'id'>[]> {
   try {
     if (import.meta.env.DEV) {
       console.log("🔓 Customer adatok visszafejtése...", { 
@@ -55,13 +61,22 @@ export async function decryptCustomers(
     }
     
     // JSON string Customer tömbgé alakítása
-    const customers: Customer[] = JSON.parse(decryptedJson);
+    const customers: Customer[] | Omit<Customer, 'id'>[] = JSON.parse(decryptedJson);
     
-    if (import.meta.env.DEV) {
-      console.log("✅ Customer tömb parse sikeres", { count: customers.length });
+    // Ellenőrizzük, hogy vannak-e ID-k (régi formátum) vagy nincsenek (új formátum)
+    if (customers.length > 0 && 'id' in customers[0]) {
+      // Régi formátum - ID-k benne vannak
+      if (import.meta.env.DEV) {
+        console.log("✅ Customer tömb parse sikeres (régi formátum - ID-k benne vannak)", { count: customers.length });
+      }
+      return customers as Customer[];
+    } else {
+      // Új formátum - ID-k nélkül
+      if (import.meta.env.DEV) {
+        console.log("✅ Customer tömb parse sikeres (új formátum - ID-k nélkül)", { count: customers.length });
+      }
+      return customers as Omit<Customer, 'id'>[];
     }
-    
-    return customers;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("❌ Customer adatok visszafejtési hiba:", errorMessage);

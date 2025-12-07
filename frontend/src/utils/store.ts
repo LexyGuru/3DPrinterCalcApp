@@ -214,7 +214,32 @@ export async function saveOffers(offers: Offer[]): Promise<void> {
       console.log("💾 Árajánlatok mentése...", { count: offers.length });
     }
     const store = await getStore();
-    await store.set("offers", offers);
+    
+    // 🔒 TITKOSÍTOTT ADATOK ELREJTÉSE: Ha van titkosított customer data, akkor ne mentsük a customerName és customerContact mezőket
+    // Ellenőrizzük, hogy van-e titkosított customer data
+    const hasEncryptedData = await hasEncryptedCustomerData();
+    
+    const sanitizedOffers = offers.map(offer => {
+      // Ha van customerId és titkosított customer data van, akkor ne mentsük a customerName és customerContact mezőket
+      if (offer.customerId && hasEncryptedData) {
+        return {
+          ...offer,
+          customerName: "TITKOSITOTT ADATOK",
+          customerContact: undefined, // Ne mentsük a contact-ot sem
+        };
+      }
+      // Ha van customerId de nincs customerName (régi formátum vagy már titkosított), akkor is "TITKOSITOTT ADATOK"
+      if (offer.customerId && !offer.customerName) {
+        return {
+          ...offer,
+          customerName: "TITKOSITOTT ADATOK",
+          customerContact: undefined,
+        };
+      }
+      return offer;
+    });
+    
+    await store.set("offers", sanitizedOffers);
     await store.save();
     if (import.meta.env.DEV) {
       console.log("✅ Árajánlatok sikeresen mentve", { count: offers.length });
@@ -375,14 +400,25 @@ export async function saveCustomers(
       }
     }
     
-    // Ha van titkosítási jelszó, akkor titkosítva mentjük
+    // Ha van titkosítási jelszó, akkor titkosítva mentjük (ID-k külön tárolva)
     if (encryptionPassword) {
       try {
+        // Kivesszük az ID-kat és külön tároljuk őket (nem titkosítva)
+        const customerIds: Record<string, boolean> = {};
+        customers.forEach(customer => {
+          customerIds[customer.id.toString()] = true;
+        });
+        
+        // Titkosítjuk az adatokat (ID-k nélkül)
         const encrypted = await encryptCustomers(customers, encryptionPassword);
         await customerStore.set("customers_encrypted", encrypted);
+        await customerStore.set("customer_ids", customerIds); // ID-k külön tárolva (nem titkosítva)
         await customerStore.set("customers", null); // Régi plain text adatok törlése
         if (import.meta.env.DEV) {
-          console.log("🔒 Ügyfelek titkosítva mentve customers.json-ban", { count: customers.length });
+          console.log("🔒 Ügyfelek titkosítva mentve customers.json-ban (ID-k külön tárolva)", { 
+            count: customers.length,
+            idsCount: Object.keys(customerIds).length 
+          });
         }
       } catch (error) {
         console.error("❌ Hiba az ügyfelek titkosításakor:", error);
@@ -392,6 +428,7 @@ export async function saveCustomers(
       // Nincs titkosítás, plain text mentés
       await customerStore.set("customers", customers);
       await customerStore.set("customers_encrypted", null); // Régi titkosított adatok törlése
+      await customerStore.set("customer_ids", null); // ID-k törlése (plain text esetén nem kell)
       if (import.meta.env.DEV) {
         console.log("✅ Ügyfelek sikeresen mentve customers.json-ban (nem titkosított)", { count: customers.length });
       }
@@ -445,9 +482,10 @@ export async function loadCustomers(
           (error as any).code = "ENCRYPTION_PASSWORD_REQUIRED";
           throw error;
         }
-        const customers = await decryptCustomers(oldEncryptedData, encryptionPassword);
-        // Migráljuk a customers.json-ba
-        await saveCustomers(customers, encryptionPassword);
+        // Régi formátum: az ID-k benne vannak a visszafejtett adatokban
+        const customersOldFormat = await decryptCustomers(oldEncryptedData, encryptionPassword) as Customer[];
+        // Migráljuk a customers.json-ba (új formátum: ID-k külön tárolva)
+        await saveCustomers(customersOldFormat, encryptionPassword);
         // Töröljük a régi adatokat
         await mainStore.set("customers_encrypted", null);
         await mainStore.set("customers", null);
@@ -455,7 +493,7 @@ export async function loadCustomers(
         if (import.meta.env.DEV) {
           console.log("✅ Ügyfelek migrálva data.json-ból customers.json-ba");
         }
-        return customers;
+        return customersOldFormat;
       } else if (oldPlainData && Array.isArray(oldPlainData) && oldPlainData.length > 0) {
         // Van régi plain text adat
         await saveCustomers(oldPlainData, null);
@@ -501,11 +539,45 @@ export async function loadCustomers(
         throw error;
       }
       
-      // Visszafejtett adatok betöltése
+      // Visszafejtett adatok betöltése (ID-kkal kombinálva)
       try {
-        const customers = await decryptCustomers(encryptedData, encryptionPassword);
+        // Betöltjük az ID-kat (nem titkosítva)
+        const customerIds = await customerStore.get("customer_ids") as Record<string, boolean> | null | undefined;
+        
+        // Visszafejtjük az adatokat (ID-k nélkül)
+        const customersWithoutIds = await decryptCustomers(encryptedData, encryptionPassword);
+        
+        // Kombináljuk az ID-kat a visszafejtett adatokkal
+        let customers: Customer[];
+        if (customerIds && Object.keys(customerIds).length > 0) {
+          // Van customerIds objektum - az ID-kat onnan vesszük és kombináljuk
+          const idArray = Object.keys(customerIds).map(Number).sort((a, b) => a - b);
+          customers = customersWithoutIds.map((customer, index) => ({
+            ...customer,
+            id: idArray[index] || (Date.now() + index) // Ha nincs elég ID, generálunk újakat
+          }));
+        } else {
+          // Nincs customerIds - visszafelé kompatibilitás: próbáljuk a régi formátumot (ID-k benne vannak)
+          // Ha a visszafejtett adatokban vannak ID-k (régi formátum), akkor azokat használjuk
+          const customersWithPossibleIds = customersWithoutIds as any[];
+          if (customersWithPossibleIds.length > 0 && customersWithPossibleIds[0].id !== undefined) {
+            // Régi formátum - ID-k benne vannak
+            customers = customersWithPossibleIds as Customer[];
+          } else {
+            // Új formátum, de nincs customerIds - generálunk új ID-kat
+            customers = customersWithoutIds.map((customer, index) => ({
+              ...customer,
+              id: Date.now() + index
+            }));
+          }
+        }
+        
         if (import.meta.env.DEV) {
-          console.log("🔓 Ügyfelek visszafejtve betöltve customers.json-ból", { count: customers.length });
+          console.log("🔓 Ügyfelek visszafejtve betöltve customers.json-ból (ID-kkal kombinálva)", { 
+            count: customers.length,
+            hasCustomerIds: !!customerIds,
+            idsCount: customerIds ? Object.keys(customerIds).length : 0
+          });
         }
         return customers;
       } catch (error) {

@@ -104,7 +104,7 @@ export default defineConfig({
             // Nagy utility fájlok külön chunk-ba
             if (id.includes('filamentLibrary') || id.includes('store') || id.includes('backup')) {
               return 'utils-large';
-            }
+              }
             return 'utils';
           }
         }

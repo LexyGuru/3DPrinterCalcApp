@@ -51,11 +51,11 @@ try {
     rootElement.innerHTML = ''; // Töröljük a fallback UI-t
     
     root.render(
-      <StrictMode>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </StrictMode>,
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode>,
     );
     console.log("✅ [MAIN] App komponens renderelve");
   }, 100);

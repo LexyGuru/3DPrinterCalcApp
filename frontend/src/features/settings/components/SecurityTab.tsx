@@ -44,6 +44,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
   const [showEnableEncryptionModal, setShowEnableEncryptionModal] = useState(false);
   const [tempUseAppPassword, setTempUseAppPassword] = useState(false);
   const [tempEncryptionPassword, setTempEncryptionPassword] = useState("");
+  const [tempConfirmEncryptionPassword, setTempConfirmEncryptionPassword] = useState("");
   const [useAppPasswordForEncryption, setUseAppPasswordForEncryption] = useState<boolean>(
     settings.useAppPasswordForEncryption ?? false
   );
@@ -327,41 +328,22 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
     }
   };
 
-  const handleDisableEncryption = async (password?: string | null) => {
+  const handleDisableEncryption = async (password: string) => {
     try {
       const encryptionDisableLogMessage = t("encryption.disableStart" as any) || "🔓 Ügyféladat titkosítás kikapcsolása...";
       console.log(encryptionDisableLogMessage);
       
+      // MINDIG jelszó szükséges - a password paraméter kötelező
+      if (!password) {
+        // Ha nincs jelszó, kérjük a jelszót
+        setShowDisableEncryptionPasswordDialog(true);
+        return;
+      }
+      
       // Ha van titkosított adat, visszafejtjük és plain textként mentjük
       if (settings.encryptedCustomerData) {
-        // Jelszó meghatározása:
-        // 1. Ha van password paraméter (felhasználó dialógusban adta meg), azt használjuk
-        // 2. Ha nincs password paraméter, akkor memóriából próbáljuk betölteni
-        let passwordToUse: string | null | undefined = undefined;
-        
-        if (password) {
-          // A felhasználó megadta a jelszót a dialógusban - ezt használjuk
-          passwordToUse = password;
-          if (import.meta.env.DEV) {
-            console.log("🔑 Jelszó használata a dialógusból a visszafejtéshez");
-          }
-        } else {
-          // Nincs password paraméter, próbáljuk memóriából betölteni
-          passwordToUse = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
-          if (import.meta.env.DEV) {
-            console.log("🔑 Jelszó betöltése memóriából:", { 
-              useAppPassword: settings.useAppPasswordForEncryption ?? false,
-              hasPassword: !!passwordToUse 
-            });
-          }
-        }
-        
-        if (!passwordToUse) {
-          // Nincs jelszó memóriában, kérjük a jelszót
-          setShowDisableEncryptionConfirm(false);
-          setShowDisableEncryptionPasswordDialog(true);
-          return;
-        }
+        // MINDIG a dialógusból kapott jelszót használjuk (nem memóriából)
+        const passwordToUse = password;
         
         try {
           if (import.meta.env.DEV) {
@@ -692,6 +674,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
                   // Ha bekapcsoljuk, akkor megnyitjuk a modal ablakot
                   setTempUseAppPassword(false);
                   setTempEncryptionPassword("");
+                  setTempConfirmEncryptionPassword("");
                   setShowEnableEncryptionModal(true);
                 } else {
                   // Ha kikapcsoljuk, akkor megerősítést kérünk
@@ -842,6 +825,14 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
         isOpen={showEnableEncryptionModal}
         title={t("encryption.enableEncryption" as any) || "🔐 Ügyféladat titkosítás bekapcsolása"}
         message=""
+        confirmDisabled={
+          !tempUseAppPassword && (
+            !tempEncryptionPassword || 
+            !tempConfirmEncryptionPassword || 
+            tempEncryptionPassword.length < 4 ||
+            tempEncryptionPassword !== tempConfirmEncryptionPassword
+          )
+        }
         onConfirm={async () => {
           try {
             // Validáció
@@ -855,6 +846,14 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
             if (!tempUseAppPassword && tempEncryptionPassword.length < 4) {
               showToast(
                 t("encryption.passwordTooShort" as any) || "A jelszónak legalább 4 karakternek kell lennie.",
+                "error"
+              );
+              return;
+            }
+            // Jelszó megerősítés ellenőrzése
+            if (!tempUseAppPassword && tempEncryptionPassword !== tempConfirmEncryptionPassword) {
+              showToast(
+                t("auth.passwordsDoNotMatch" as any) || "A jelszavak nem egyeznek. Kérjük, ellenőrizze a beírt jelszavakat.",
                 "error"
               );
               return;
@@ -879,6 +878,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
             setShowEnableEncryptionModal(false);
             setTempUseAppPassword(false);
             setTempEncryptionPassword("");
+            setTempConfirmEncryptionPassword("");
           } catch (error) {
             // Hiba esetén a modal nyitva marad, hogy a felhasználó újra próbálhasson
             // A hiba üzenet már megjelenik a toast-ban és a handleEnableEncryption-ban
@@ -889,6 +889,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           setShowEnableEncryptionModal(false);
           setTempUseAppPassword(false);
           setTempEncryptionPassword("");
+          setTempConfirmEncryptionPassword("");
           // Visszaállítjuk a checkbox-ot
           onChange({ ...settings, encryptionEnabled: false });
         }}
@@ -921,6 +922,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
                       setTempUseAppPassword(e.target.checked);
                       if (e.target.checked) {
                         setTempEncryptionPassword(""); // Töröljük a jelszót, ha app jelszót választunk
+                        setTempConfirmEncryptionPassword(""); // Töröljük a megerősítő jelszót is
                       }
                     }}
                     style={{ 
@@ -989,42 +991,108 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
             
             {/* Jelszó mező - csak akkor aktív, ha nincs app jelszó bepipálva */}
             {!tempUseAppPassword && (
-              <div style={{ marginTop: "8px" }}>
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "10px",
-                  color: theme.colors.text,
-                  fontWeight: "600",
-                  fontSize: "14px"
-                }}>
-                  {t("encryption.encryptionPassword" as any) || "Titkosítási jelszó"}:
-                </label>
-                <input
-                  type="password"
-                  value={tempEncryptionPassword}
-                  onChange={(e) => setTempEncryptionPassword(e.target.value)}
-                  placeholder={t("encryption.enterEncryptionPassword" as any) || "Adja meg a titkosítási jelszót (min. 4 karakter)"}
-                  style={{
-                    width: "100%",
-                    padding: "14px",
-                    borderRadius: "10px",
-                    border: `2px solid ${theme.colors.border}`,
-                    backgroundColor: theme.colors.background,
+              <>
+                <div style={{ marginTop: "8px" }}>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "10px",
                     color: theme.colors.text,
-                    fontSize: "14px",
-                    outline: "none",
-                    transition: "border-color 0.2s",
-                    boxSizing: "border-box"
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = theme.colors.primary || "#007bff";
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = theme.colors.border || "#ccc";
-                  }}
-                  minLength={4}
-                  autoComplete="new-password"
-                />
+                    fontWeight: "600",
+                    fontSize: "14px"
+                  }}>
+                    {t("encryption.encryptionPassword" as any) || "Titkosítási jelszó"}:
+                  </label>
+                  <input
+                    type="password"
+                    value={tempEncryptionPassword}
+                    onChange={(e) => setTempEncryptionPassword(e.target.value)}
+                    placeholder={t("encryption.enterEncryptionPassword" as any) || "Adja meg a titkosítási jelszót (min. 4 karakter)"}
+                    style={{
+                      width: "100%",
+                      padding: "14px",
+                      borderRadius: "10px",
+                      border: `2px solid ${theme.colors.border}`,
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.text,
+                      fontSize: "14px",
+                      outline: "none",
+                      transition: "border-color 0.2s",
+                      boxSizing: "border-box"
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = theme.colors.primary || "#007bff";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = theme.colors.border || "#ccc";
+                    }}
+                    minLength={4}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <div style={{ marginTop: "16px" }}>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "10px",
+                    color: theme.colors.text,
+                    fontWeight: "600",
+                    fontSize: "14px"
+                  }}>
+                    {t("auth.confirmPassword" as any) || "Jelszó megerősítése"}:
+                  </label>
+                  <input
+                    type="password"
+                    value={tempConfirmEncryptionPassword}
+                    onChange={(e) => setTempConfirmEncryptionPassword(e.target.value)}
+                    placeholder={t("auth.confirmPasswordPlaceholder" as any) || "Erősítse meg a jelszót"}
+                    style={{
+                      width: "100%",
+                      padding: "14px",
+                      borderRadius: "10px",
+                      border: `2px solid ${
+                        tempConfirmEncryptionPassword && tempEncryptionPassword !== tempConfirmEncryptionPassword
+                          ? theme.colors.danger || "#dc3545"
+                          : theme.colors.border
+                      }`,
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.text,
+                      fontSize: "14px",
+                      outline: "none",
+                      transition: "border-color 0.2s",
+                      boxSizing: "border-box"
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = theme.colors.primary || "#007bff";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 
+                        tempConfirmEncryptionPassword && tempEncryptionPassword !== tempConfirmEncryptionPassword
+                          ? theme.colors.danger || "#dc3545"
+                          : theme.colors.border || "#ccc";
+                    }}
+                    minLength={4}
+                    autoComplete="new-password"
+                  />
+                  {tempConfirmEncryptionPassword && tempEncryptionPassword !== tempConfirmEncryptionPassword && (
+                    <p style={{ 
+                      marginTop: "6px", 
+                      fontSize: "12px", 
+                      color: theme.colors.danger || "#dc3545",
+                      marginBottom: 0
+                    }}>
+                      {t("auth.passwordsDoNotMatch" as any) || "A jelszavak nem egyeznek"}
+                    </p>
+                  )}
+                  {tempConfirmEncryptionPassword && tempEncryptionPassword === tempConfirmEncryptionPassword && (
+                    <p style={{ 
+                      marginTop: "6px", 
+                      fontSize: "12px", 
+                      color: theme.colors.success || "#28a745",
+                      marginBottom: 0
+                    }}>
+                      {t("auth.passwordsMatch" as any) || "✅ A jelszavak egyeznek"}
+                    </p>
+                  )}
+                </div>
                 <p style={{ 
                   marginTop: "6px", 
                   fontSize: "12px", 
@@ -1033,7 +1101,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
                 }}>
                   {t("encryption.passwordMinLength" as any) || "Minimum 4 karakter"}
                 </p>
-              </div>
+              </>
             )}
             
             {tempUseAppPassword && (
@@ -1190,18 +1258,12 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
       <ConfirmDialog
         isOpen={showDisableEncryptionConfirm}
         title={t("encryption.disableEncryption" as any) || "Titkosítás kikapcsolása"}
-        message={t("encryption.disableEncryptionMessage" as any) || "Biztosan ki szeretné kapcsolni az ügyféladat titkosítást? Az összes titkosított adat visszafejtésre kerül és plain textként kerül tárolásra. Ez biztonsági kockázatot jelenthet!"}
+        message={t("encryption.disableEncryptionWarning" as any) || "⚠️ FIGYELEM: Ha kikapcsolja a titkosítást, az összes ügyféladat (név, kapcsolattartási információk, megjegyzések) visszafejtésre kerül és plain textként kerül tárolásra. Ez biztonsági kockázatot jelenthet! Az adatok többé nem lesznek titkosítva."}
         onConfirm={async () => {
-          // Ha van titkosított adat és nincs jelszó memóriában, akkor jelszó kérése
-          if (settings.encryptedCustomerData) {
-            const passwordToUse = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
-            if (!passwordToUse) {
-              // Nincs jelszó, jelszó kérése
-              setShowDisableEncryptionPasswordDialog(true);
-              return;
-            }
-          }
-          await handleDisableEncryption();
+          // MINDIG jelszó kérése, még akkor is, ha van memóriában
+          // Ez biztosítja, hogy a tulaj törli, nem más
+          setShowDisableEncryptionConfirm(false);
+          setShowDisableEncryptionPasswordDialog(true);
         }}
         onCancel={() => {
           setShowDisableEncryptionConfirm(false);
@@ -1210,20 +1272,20 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
             onChange({ ...settings, encryptionEnabled: true });
           }
         }}
-        confirmText={t("encryption.disableEncryption" as any) || "Kikapcsolás"}
+        confirmText={t("encryption.continueToPassword" as any) || "Folytatás"}
         cancelText={t("common.cancel" as any) || "Mégse"}
         type="warning"
         theme={theme}
       />
 
-      {/* Jelszó kérés a titkosítás kikapcsolásakor (visszafejtéshez) */}
+      {/* Jelszó kérés a titkosítás kikapcsolásakor (visszafejtéshez) - MINDIG megjelenik */}
       <PasswordDialog
         isOpen={showDisableEncryptionPasswordDialog}
-        title={t("encryption.decryptRequired" as any) || "Jelszó szükséges"}
+        title={t("encryption.decryptRequired" as any) || "Jelszó szükséges a titkosítás kikapcsolásához"}
         message={
           settings.useAppPasswordForEncryption
-            ? (t("encryption.enterAppPasswordToDecrypt" as any) || "Kérjük, adja meg az app jelszavas védelem jelszavát az adatok visszafejtéséhez.")
-            : (t("encryption.enterEncryptionPasswordToDecrypt" as any) || "Kérjük, adja meg a titkosítási jelszót az adatok visszafejtéséhez.")
+            ? (t("encryption.enterAppPasswordToDisable" as any) || "⚠️ FIGYELEM: A titkosítás kikapcsolásához meg kell adnia az app jelszavas védelem jelszavát. Az összes ügyféladat visszafejtésre kerül és plain textként kerül tárolásra. Ez biztonsági kockázatot jelenthet!")
+            : (t("encryption.enterEncryptionPasswordToDisable" as any) || "⚠️ FIGYELEM: A titkosítás kikapcsolásához meg kell adnia a titkosítási jelszót. Az összes ügyféladat visszafejtésre kerül és plain textként kerül tárolásra. Ez biztonsági kockázatot jelenthet!")
         }
         onConfirm={async (password: string) => {
           await handleDisableEncryption(password);
@@ -1232,7 +1294,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           setShowDisableEncryptionPasswordDialog(false);
           setShowDisableEncryptionConfirm(true); // Vissza a confirm dialog-ra
         }}
-        confirmText={t("common.confirm" as any) || "Rendben"}
+        confirmText={t("encryption.disableEncryption" as any) || "Titkosítás kikapcsolása"}
         cancelText={t("common.cancel" as any) || "Mégse"}
         showError={false}
         theme={theme}

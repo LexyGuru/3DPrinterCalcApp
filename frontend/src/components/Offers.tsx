@@ -26,6 +26,8 @@ import { notifyExportComplete, notifyOfferStatusChange } from "../utils/platform
 import { useUndoRedo } from "../hooks/useUndoRedo";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { auditCreate, auditUpdate, auditDelete } from "../utils/auditLog";
+import { saveCustomers } from "../utils/store";
+import { getEncryptionPassword } from "../utils/encryptionPasswordManager";
 // Offers feature modul importok
 import { OfferFilters, OfferStatusFilters, OfferSortControls, useOfferFilter } from "../features/offers";
 
@@ -41,6 +43,7 @@ interface Props {
   filaments: Filament[];
   setFilaments: (filaments: Filament[]) => void;
   customers: Customer[];
+  setCustomers?: (customers: Customer[]) => void; // Callback az ügyfelek frissítéséhez
   onSettingsChange?: (newSettings: Settings) => void;
 }
 
@@ -54,6 +57,7 @@ export const Offers: React.FC<Props> = ({
   filaments,
   setFilaments,
   customers,
+  setCustomers,
   onSettingsChange,
 }) => {
   const t = useTranslation(settings.language);
@@ -630,10 +634,72 @@ export const Offers: React.FC<Props> = ({
       editPrintDueDate,
     });
 
+    // 🔹 AUTOMATIKUS ÜGYFÉL LÉTREHOZÁS: Ha az ügyfél még nem létezik, létrehozzuk
+    let customerId: number | undefined = editingOffer.customerId;
+    const trimmedCustomerName = editCustomerName.trim();
+    const trimmedCustomerContact = editCustomerContact.trim() || undefined;
+    
+    // Ellenőrizzük, hogy létezik-e az ügyfél (név és contact alapján)
+    let existingCustomer = customers.find(
+      c => c.name === trimmedCustomerName && 
+      (c.contact || "") === (trimmedCustomerContact || "")
+    );
+    
+    // Ha nincs meglévő ügyfél, létrehozzuk
+    if (!existingCustomer) {
+      try {
+        // Új ügyfél ID generálása
+        const newCustomerId = customers.length > 0 
+          ? Math.max(...customers.map(c => c.id)) + 1 
+          : Date.now();
+        
+        const newCustomer: Customer = {
+          id: newCustomerId,
+          name: trimmedCustomerName,
+          contact: trimmedCustomerContact,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        
+        // Hozzáadjuk az új ügyfelet a listához
+        const updatedCustomers = [...customers, newCustomer];
+        
+        // Mentjük az ügyfeleket (titkosítási jelszóval, ha van)
+        const encryptionPassword = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
+        await saveCustomers(updatedCustomers, encryptionPassword || null);
+        
+        // Frissítjük a customers state-et (ha van callback)
+        if (setCustomers) {
+          setCustomers(updatedCustomers);
+        }
+        
+        customerId = newCustomerId;
+        existingCustomer = newCustomer;
+        
+        if (import.meta.env.DEV) {
+          console.log("✅ Új ügyfél automatikusan létrehozva:", { id: newCustomerId, name: trimmedCustomerName });
+        }
+        showToast(t("offers.toast.customerCreated") || `Ügyfél létrehozva: ${trimmedCustomerName}`, "success");
+      } catch (error) {
+        console.error("❌ Hiba az ügyfél létrehozásakor:", error);
+        // Folytatjuk az árajánlat mentésével, még ha az ügyfél létrehozása sikertelen volt is
+      }
+    } else {
+      // Ha létezik az ügyfél, használjuk az ID-ját
+      customerId = existingCustomer.id;
+    }
+
+    // 🔒 TITKOSÍTOTT ADATOK KEZELÉSE: Ha az ügyfél adatai titkosítva vannak, ne mentsük a customerName és customerContact mezőket
+    // Ellenőrizzük, hogy van-e titkosított customer data
+    const isCustomerDataEncrypted = settings.encryptionEnabled && settings.encryptedCustomerData;
+    
+    // Ha titkosítva vannak az ügyfél adatok, akkor csak a customerId-t mentjük, ne a customerName-t és customerContact-ot
     const updatedOffer: Offer = {
       ...editingOffer,
-      customerName: editCustomerName.trim(),
-      customerContact: editCustomerContact.trim() || undefined,
+      customerId: customerId, // Ügyfél ID hozzáadása (nem titkosítva, így megjeleníthető)
+      // Ha titkosítva vannak az ügyfél adatok, ne mentsük a customerName és customerContact mezőket
+      customerName: isCustomerDataEncrypted ? undefined : trimmedCustomerName,
+      customerContact: isCustomerDataEncrypted ? undefined : trimmedCustomerContact,
       description: editDescription.trim() || undefined,
       profitPercentage: editProfitPercentage,
       printDueDate: printDueDateISO,
@@ -2073,7 +2139,9 @@ export const Offers: React.FC<Props> = ({
                               >
                                 {offer.customerName
                                   ? offer.customerName
-                                  : `${t("offers.label.quote")} #${offer.id}`}
+                                  : (offer.customerId
+                                    ? `${t("offers.details.customerId") || "Ügyfél ID"}: ${offer.customerId}`
+                                    : `${t("offers.label.quote")} #${offer.id}`)}
                               </strong>
                               {offer.status && (
                                 <span
@@ -2295,7 +2363,11 @@ export const Offers: React.FC<Props> = ({
                             fontWeight: "600", 
                             color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text 
                           }}>
-                            📄 {selectedOffer.customerName ? selectedOffer.customerName : `${t("offers.label.quote")} #${selectedOffer.id}`}
+                            📄 {selectedOffer.customerName 
+                              ? selectedOffer.customerName 
+                              : (selectedOffer.customerId 
+                                ? `${t("offers.details.customerId") || "Ügyfél ID"}: ${selectedOffer.customerId}` 
+                                : `${t("offers.label.quote")} #${selectedOffer.id}`)}
                           </h3>
                           {selectedOffer.status && (
                             <span
@@ -2467,10 +2539,14 @@ export const Offers: React.FC<Props> = ({
                             {t("offers.details.customer")}
                           </span>
                           <div style={{ fontSize: "14px", fontWeight: "600", color: theme.colors.background?.includes("gradient") ? "#1a202c" : theme.colors.text }}>
-                            {selectedOffer.customerName || t("offers.details.customerMissing")}
+                            {selectedOffer.customerName 
+                              ? selectedOffer.customerName 
+                              : (selectedOffer.customerId 
+                                ? `${t("offers.details.customerId") || "Ügyfél ID"}: ${selectedOffer.customerId}` 
+                                : t("offers.details.customerMissing"))}
                           </div>
                           <span style={{ fontSize: "11px", color: theme.colors.background?.includes("gradient") ? "#4a5568" : theme.colors.textMuted }}>
-                            {selectedOffer.customerContact || t("offers.details.contactMissing")}
+                            {selectedOffer.customerContact || (selectedOffer.customerId ? "" : t("offers.details.contactMissing"))}
                           </span>
                         </div>
                         {selectedOffer.printDueDate && (
@@ -3010,12 +3086,20 @@ export const Offers: React.FC<Props> = ({
                       ) : (
                         <>
                           <div style={{ marginBottom: "20px", padding: "16px", backgroundColor: theme.colors.surfaceHover, borderRadius: "8px" }}>
-                            {selectedOffer.customerName && (
+                            {selectedOffer.customerName ? (
                               <div style={{ marginBottom: "12px" }}>
                                 <strong style={{ color: theme.colors.text }}>{t("offers.customerName")}:</strong> 
                                 <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerName}</span>
                               </div>
-                            )}
+                            ) : selectedOffer.customerId ? (
+                              <div style={{ marginBottom: "12px" }}>
+                                <strong style={{ color: theme.colors.text }}>{t("offers.details.customerId") || "Ügyfél ID"}:</strong> 
+                                <span style={{ marginLeft: "8px", color: theme.colors.text }}>{selectedOffer.customerId}</span>
+                                <span style={{ marginLeft: "8px", fontSize: "11px", color: theme.colors.textMuted, fontStyle: "italic" }}>
+                                  ({t("offers.details.customerEncrypted") || "Titkosított adatok"})
+                                </span>
+                              </div>
+                            ) : null}
                             {selectedOffer.customerContact && (
                               <div style={{ marginBottom: "12px" }}>
                                 <strong style={{ color: theme.colors.text }}>

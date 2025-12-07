@@ -135,6 +135,7 @@ export function OffersWrapper() {
       filaments={context.filaments}
       setFilaments={context.setFilaments}
       customers={context.customers}
+      setCustomers={context.setCustomers}
       onSettingsChange={(newSettings: Settings) => {
         context.setSettings(newSettings);
         context.debouncedSaveSettings();

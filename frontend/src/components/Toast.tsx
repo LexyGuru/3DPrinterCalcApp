@@ -9,6 +9,10 @@ interface ToastProps {
   onClose: () => void;
   duration?: number; // ha <= 0, akkor csak manuálisan záródik be
   animationSettings?: AnimationSettings;
+  actionButton?: {
+    label: string;
+    onClick: () => void;
+  }; // Opcionális gomb a toast-ban
 }
 
 export const Toast: React.FC<ToastProps> = ({
@@ -17,6 +21,7 @@ export const Toast: React.FC<ToastProps> = ({
   onClose,
   duration = 3000,
   animationSettings,
+  actionButton,
 }) => {
   useEffect(() => {
     // Ha a duration <= 0, vagy info típusú toast, nem indítunk automatikus időzítőt –
@@ -64,6 +69,36 @@ export const Toast: React.FC<ToastProps> = ({
       >
         <span style={{ fontSize: "18px" }}>{color.icon}</span>
         <span style={{ flex: 1, fontWeight: "500" }}>{message}</span>
+        {actionButton && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              actionButton.onClick();
+            }}
+            style={{
+              background: "rgba(255, 255, 255, 0.2)",
+              border: "1px solid rgba(255, 255, 255, 0.3)",
+              color: "#fff",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor: "pointer",
+              padding: "6px 12px",
+              borderRadius: "6px",
+              marginRight: "8px",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              if (animationConfig.microInteractions) {
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
+            }}
+          >
+            {actionButton.label}
+          </button>
+        )}
         <button
           onClick={onClose}
           style={{
@@ -158,6 +193,38 @@ export const Toast: React.FC<ToastProps> = ({
         {color.icon}
       </motion.span>
       <span style={{ flex: 1, fontWeight: "500" }}>{message}</span>
+      {actionButton && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            actionButton.onClick();
+          }}
+          style={{
+            background: "rgba(255, 255, 255, 0.2)",
+            border: "1px solid rgba(255, 255, 255, 0.3)",
+            color: "#fff",
+            fontSize: "13px",
+            fontWeight: "600",
+            cursor: "pointer",
+            padding: "6px 12px",
+            borderRadius: "6px",
+            marginRight: "8px",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            if (animationConfig.microInteractions) {
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
+              e.currentTarget.style.transform = "scale(1.05)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
+            e.currentTarget.style.transform = "scale(1)";
+          }}
+        >
+          {actionButton.label}
+        </button>
+      )}
       <button
         onClick={onClose}
         style={{
@@ -190,22 +257,22 @@ export const Toast: React.FC<ToastProps> = ({
 // Toast context és provider
 
 interface ToastContextType {
-  showToast: (message: string, type: "success" | "error" | "info" | "warning") => void;
+  showToast: (message: string, type: "success" | "error" | "info" | "warning", actionButton?: { label: string; onClick: () => void }) => void;
 }
 
 export const ToastContext = React.createContext<ToastContextType | null>(null);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode; settings?: Settings }> = ({ children, settings }) => {
-  const [toasts, setToasts] = React.useState<Array<{ id: number; message: string; type: "success" | "error" | "info" | "warning" }>>([]);
+  const [toasts, setToasts] = React.useState<Array<{ id: number; message: string; type: "success" | "error" | "info" | "warning"; actionButton?: { label: string; onClick: () => void } }>>([]);
 
-  const showToast = React.useCallback((message: string, type: "success" | "error" | "info" | "warning") => {
+  const showToast = React.useCallback((message: string, type: "success" | "error" | "info" | "warning", actionButton?: { label: string; onClick: () => void }) => {
     // Ellenőrizzük, hogy az értesítések engedélyezve vannak-e
     if (settings?.notificationEnabled === false) {
       return;
     }
 
     const id = Date.now();
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts(prev => [...prev, { id, message, type, actionButton }]);
   }, [settings?.notificationEnabled]);
 
   // Notification service inicializálása és frissítése
@@ -245,8 +312,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode; settings?: Set
               message={toast.message}
               type={toast.type}
               onClose={() => removeToast(toast.id)}
-              duration={notificationDuration}
+              duration={toast.type === "info" ? -1 : notificationDuration} // Info típusú toast nem tűnik el automatikusan
               animationSettings={settings?.animationSettings}
+              actionButton={toast.actionButton}
             />
           ))}
         </AnimatePresence>

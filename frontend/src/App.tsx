@@ -2,7 +2,7 @@
 console.log("📦 [APP] App.tsx modul betöltve");
 console.log("📦 [APP] Imports kezdete...");
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { Sidebar } from "./components/Sidebar";
@@ -46,6 +46,7 @@ import { auditCreate } from "./utils/auditLog"; // Audit log
 import { AuthGuard } from "./components/AuthGuard"; // Auth guard - jelszavas védelem
 import { getEncryptionPassword, getAppPasswordInMemory } from "./utils/encryptionPasswordManager"; // Titkosítási jelszó kezelés
 import { EncryptionPasswordPrompt } from "./components/EncryptionPasswordPrompt"; // Jelszó kérés titkosított adatokhoz
+import { useToast } from "./components/Toast"; // Toast üzenetekhez
 
 // Belső AppContent komponens - használja a Router hook-okat
 function AppContent() {
@@ -222,19 +223,55 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
         }
         // Ha nincs app password memóriában, akkor várjuk az AuthGuard promptot (ne jelenítünk encryption promptot)
         // Az automatikus betöltés az appPasswordSetTrigger useEffect-ben történik
-      } else if (!encryptionPassword && !showEncryptionPasswordPrompt && !showWelcomeMessage) {
+      } else if (!encryptionPassword && !showEncryptionPasswordPrompt && !showWelcomeMessage && !passwordPromptCancelled) {
         // Nincs jelszó memóriában és nincs megnyitva prompt vagy welcome message
-        // DE: csak akkor, ha NEM useAppPasswordForEncryption
+        // DE: csak akkor, ha NEM useAppPasswordForEncryption ÉS nem lett megszakítva
         if (import.meta.env.DEV) {
           console.log("🔒 Ügyfelek oldalra navigálva, jelszó szükséges - prompt megjelenítése");
         }
-        // Reset a flag-et, hogy mindig megjelenjen, ha rámegyünk az ügyfelek oldalra
-        setPasswordPromptCancelled(false);
+        // NE reseteljük a flag-et, hogy ne jelenjen meg újra, ha megszakították
         setShowEncryptionPasswordPrompt(true);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInitialized, activePage, settings.encryptionEnabled, settings.encryptedCustomerData, settings.useAppPasswordForEncryption, showEncryptionPasswordPrompt, showWelcomeMessage, passwordPromptCancelled, customers.length]);
+
+  // 🔹 Toast üzenet jelszó hiányához (ügyfelek oldalra navigáláskor, ha megszakították a jelszó ablakot) - belső komponens a ToastProvider-en belül
+  const CustomerPasswordWarningToast = () => {
+    const { showToast } = useToast();
+    const t = useTranslation(settings.language);
+    const hasShownToastRef = useRef(false);
+    
+    useEffect(() => {
+      // Ha az ügyfelek oldalra navigálunk, van titkosított adat, de nincs jelszó memóriában ÉS megszakították a jelszó ablakot
+      if (isInitialized && activePage === 'customers' && settings.encryptionEnabled && settings.encryptedCustomerData && passwordPromptCancelled) {
+        const encryptionPassword = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
+        if (!encryptionPassword && !settings.useAppPasswordForEncryption && !hasShownToastRef.current) {
+          // Toast üzenet megjelenítése jelszó kérő gombbal (csak egyszer)
+          hasShownToastRef.current = true;
+          showToast(
+            t("encryption.passwordRequiredForCustomers" as any) || "⚠️ Jelszó szükséges az ügyféladatok betöltéséhez. Az adatok titkosítva vannak.",
+            "info",
+            {
+              label: t("encryption.enterPassword" as any) || "Jelszó megadása",
+              onClick: () => {
+                hasShownToastRef.current = false;
+                setPasswordPromptCancelled(false);
+                setShowEncryptionPasswordPrompt(true);
+              }
+            }
+          );
+        }
+      }
+      // Reset a flag-et, ha elhagyjuk az ügyfelek oldalt
+      if (activePage !== 'customers') {
+        hasShownToastRef.current = false;
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isInitialized, activePage, settings.encryptionEnabled, settings.encryptedCustomerData, settings.useAppPasswordForEncryption, passwordPromptCancelled, showToast, t]);
+    
+    return null;
+  };
 
   // 🔹 Első indítás ellenőrzése - nyelvválasztó megjelenítése
   // NE hívjuk meg a loadSettings()-et, mert az automatikusan létrehozza a data.json fájlt!
@@ -1679,6 +1716,7 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
   return (
     <ErrorBoundary>
       <ToastProvider settings={settings}>
+        <CustomerPasswordWarningToast />
         <AppProvider value={appContextValue}>
           <AuthGuard
             settings={settings}

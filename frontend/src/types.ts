@@ -328,6 +328,7 @@ export interface Offer {
     totalCost: number;
   };
   currency: Currency;
+  customerId?: number; // Ügyfél ID (nem titkosítva, így megjeleníthető, ha az ügyfél titkosítva van)
   customerName?: string;
   customerContact?: string; // Email vagy telefon
   description?: string;
