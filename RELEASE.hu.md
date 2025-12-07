@@ -4,6 +4,39 @@ Ez a dokumentum tartalmazza a 3D Printer Calculator App verzióinak részletes v
 
 ---
 
+## v3.0.2 (2025) - 🔧 Hotfix: Tutorial Javítások, Permission-ök, Factory Reset Logging
+
+### 🐛 Hibajavítások
+
+#### Tutorial Javítások
+- **Tutorial adatok megőrzése** - Ha a tutorial már egyszer lefutott, a meglévő adatok nem törlődnek újra
+- **Tutorial bővítve 18 lépésre** - Hozzáadva: Projektek, Feladatok, Naptár, Backup/Restore lépések
+- **Tutorial fordítási kulcsok** - Hiányzó fordítási kulcsok hozzáadva minden nyelvi fájlhoz:
+  - `tutorial.projects.title` és `tutorial.projects.description`
+  - `tutorial.tasks.title` és `tutorial.tasks.description`
+  - `tutorial.calendar.title` és `tutorial.calendar.description`
+
+#### Permission-ök Javítása
+- **customers.json permission-ök** - Hozzáadva a `customers.json` fájl törléséhez szükséges permission-ök:
+  - `fs:allow-remove` - Fájl törlés engedélyezve
+  - `fs:allow-read-text-file` - Fájl olvasás engedélyezve
+  - `fs:allow-write-text-file` - Fájl írás engedélyezve
+  - `fs:allow-create` - Fájl létrehozás engedélyezve
+
+#### Factory Reset Logging
+- **Backend log fájlba írás** - Factory reset során a lépések most már a backend log fájlba kerülnek
+- **Részletes logging** - Minden factory reset lépés (beleértve a `customers.json` törlését) részletesen logolva
+- **Backend log törlés visszaállítva** - A backend log fájl most már törlésre kerül factory reset során
+
+### 📝 Műszaki Részletek
+
+- **Verzió frissítve**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+- **Tutorial logika módosítva**: `tutorialCompleted` flag alapján dönt, hogy törölje-e a meglévő adatokat
+- **Backend log command hozzáadva**: `write_backend_log` command létrehozva a factory reset logging-hoz
+- **Capability fájl frissítve**: `customers.json` permission-ök hozzáadva minden releváns scope-hoz
+
+---
+
 ## v3.0.1 (2025) - 🔧 Hotfix: Factory Reset, Fordítások, Beta Build Workflow
 
 ### 🐛 Hibajavítások

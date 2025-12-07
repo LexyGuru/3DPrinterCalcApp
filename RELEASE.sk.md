@@ -4,6 +4,29 @@ Tento dokument obsahuje podrobný changelog pre všetky verzie aplikácie 3D Pri
 
 ---
 
+## v3.0.2 (2025) - 🔧 Hotfix: Opravy Tutoriálu, Oprávnenia, Protokolovanie Factory Reset
+
+### 🐛 Opravy Chýb
+
+#### Opravy Tutoriálu
+- **Zachovanie dát tutoriálu** - Ak bol tutoriál už raz spustený, existujúce dáta nie sú znova vymazané
+- **Tutoriál rozšírený na 18 krokov** - Pridané: Projekty, Úlohy, Kalendár, kroky Zálohovanie/Obnovenie
+- **Kľúče prekladu tutoriálu** - Chýbajúce kľúče prekladu pridané do všetkých jazykových súborov
+
+#### Opravy Oprávnení
+- **Oprávnenia customers.json** - Oprávnenia pridané na mazanie súboru `customers.json`
+
+#### Protokolovanie Factory Reset
+- **Zápis do súboru protokolu backend** - Kroky Factory Reset sú teraz zapisované do súboru protokolu backend
+- **Detailné protokolovanie** - Každý krok Factory Reset je detailne protokolovaný
+- **Mazanie protokolu backend obnovené** - Súbor protokolu backend je teraz mazaný počas Factory Reset
+
+### 📝 Technické Detaily
+
+- **Verzia aktualizovaná**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
 ## v3.0.0 (2025) - 🔒 Šifrovanie Dát Zákazníkov & Súlad s GDPR + ⚡ Optimalizácia Výkonu
 
 ### ⚡ Optimalizácia Výkonu a Code Splitting

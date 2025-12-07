@@ -63,13 +63,13 @@ export const FactoryResetProgress: React.FC<FactoryResetProgressProps> = ({
           status: "pending",
         },
         {
-          id: "delete-logs",
-          label: t("factoryResetProgress.step.deleteLogs"),
+          id: "delete-config",
+          label: t("factoryResetProgress.step.deleteConfig"),
           status: "pending",
         },
         {
-          id: "delete-config",
-          label: t("factoryResetProgress.step.deleteConfig"),
+          id: "delete-logs",
+          label: t("factoryResetProgress.step.deleteLogs"),
           status: "pending",
         },
         {
@@ -131,10 +131,44 @@ export const FactoryResetProgress: React.FC<FactoryResetProgressProps> = ({
 
         await new Promise(resolve => setTimeout(resolve, 1000)); // Várakozás az ellenőrzéshez
 
-        // 2. Log fájlok törlése
+        // 2. Konfigurációs fájlok törlése és adatok resetelése
+        // FONTOS: Először a clearAllData()-t hívjuk, hogy a factory reset logok a backend log fájlba kerüljenek
         setCurrentStepIndex(1);
         setSteps(prev => prev.map((s, i) => 
           i === 1 ? { ...s, status: "in_progress" as const } : s
+        ));
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        try {
+          await clearAllData();
+          
+          // Nagyobb szünet az ellenőrzéshez, hogy a fájlok törlődtek-e
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          setSteps(prev => prev.map((s, i) => 
+            i === 1 
+              ? { 
+                  ...s, 
+                  status: "completed" as const,
+                  message: t("factoryResetProgress.message.filesDeletedShort")
+                }
+              : s
+          ));
+        } catch (error) {
+          setSteps(prev => prev.map((s, i) => 
+            i === 1 
+              ? { ...s, status: "error" as const, message: String(error) }
+              : s
+          ));
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // 3. Log fájlok törlése (FONTOS: a backend log fájlt NE töröljük, hogy a factory reset logok megmaradjanak)
+        setCurrentStepIndex(2);
+        setSteps(prev => prev.map((s, i) => 
+          i === 2 ? { ...s, status: "in_progress" as const } : s
         ));
 
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -149,46 +183,13 @@ export const FactoryResetProgress: React.FC<FactoryResetProgressProps> = ({
           const totalDeleted = deletedLogCount + deletedAuditLogCount;
           
           setSteps(prev => prev.map((s, i) => 
-            i === 1 
+            i === 2 
               ? { 
                   ...s, 
                   status: "completed" as const,
                   message: totalDeleted > 0
                     ? `${totalDeleted} ${t("factoryResetProgress.message.filesDeleted")} (${deletedLogCount} log, ${deletedAuditLogCount} audit)`
                     : t("factoryResetProgress.message.noFilesToDelete")
-                }
-              : s
-          ));
-        } catch (error) {
-          setSteps(prev => prev.map((s, i) => 
-            i === 1 
-              ? { ...s, status: "error" as const, message: String(error) }
-              : s
-          ));
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // 3. Konfigurációs fájlok törlése és adatok resetelése
-        setCurrentStepIndex(2);
-        setSteps(prev => prev.map((s, i) => 
-          i === 2 ? { ...s, status: "in_progress" as const } : s
-        ));
-
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        try {
-          await clearAllData();
-          
-          // Nagyobb szünet az ellenőrzéshez, hogy a fájlok törlődtek-e
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          setSteps(prev => prev.map((s, i) => 
-            i === 2 
-              ? { 
-                  ...s, 
-                  status: "completed" as const,
-                  message: t("factoryResetProgress.message.filesDeletedShort")
                 }
               : s
           ));

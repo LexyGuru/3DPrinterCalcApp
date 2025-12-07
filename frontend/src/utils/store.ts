@@ -4,11 +4,12 @@ import type { Printer, Filament, Settings, Offer, CalculationTemplate, Customer,
 import { remove, exists } from "@tauri-apps/plugin-fs";
 import { BaseDirectory } from "@tauri-apps/plugin-fs";
 import { encryptCustomers, decryptCustomers } from "./customerEncryption";
+import { writeFrontendLog, writeFrontendLogAlways } from "./fileLogger";
 
 // Lazy-initialized store
 let storeInstance: Store | null = null;
 
-async function getStore(): Promise<Store> {
+export async function getStore(): Promise<Store> {
   if (!storeInstance) {
     // Ellenőrizzük, hogy létezik-e a data.json fájl, mielőtt betöltjük a Store-t
     // Ha nem létezik, akkor nem hozzuk létre automatikusan (Factory Reset után)
@@ -50,8 +51,8 @@ export async function savePrinters(printers: Printer[]): Promise<void> {
 }
 
 export async function loadPrinters(): Promise<Printer[]> {
-  const store = await getStore();
   try {
+    const store = await getStore();
     if (import.meta.env.DEV) {
       console.log("📥 Nyomtatók betöltése...");
     }
@@ -62,6 +63,13 @@ export async function loadPrinters(): Promise<Printer[]> {
     }
     return printers;
   } catch (error) {
+    // Ha nincs data.json, akkor nincs adat, üres tömböt adunk vissza
+    if (error instanceof Error && error.message.includes("data.json fájl nem létezik")) {
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ data.json nem létezik, nincs mentett nyomtató");
+      }
+      return [];
+    }
     console.error("❌ Hiba a nyomtatók betöltésekor:", error);
     return [];
   }
@@ -86,8 +94,8 @@ export async function saveFilaments(filaments: Filament[]): Promise<void> {
 }
 
 export async function loadFilaments(): Promise<Filament[]> {
-  const store = await getStore();
   try {
+    const store = await getStore();
     if (import.meta.env.DEV) {
       console.log("📥 Filamentek betöltése...");
     }
@@ -102,6 +110,13 @@ export async function loadFilaments(): Promise<Filament[]> {
       console.log("ℹ️ Nincs mentett filament");
     }
   } catch (error) {
+    // Ha nincs data.json, akkor nincs adat, üres tömböt adunk vissza
+    if (error instanceof Error && error.message.includes("data.json fájl nem létezik")) {
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ data.json nem létezik, nincs mentett filament");
+      }
+      return [];
+    }
     console.error("❌ Hiba a filamentek betöltésekor:", error);
   }
   // Üres tömböt adunk vissza, ha nincs mentett adat (nem adjuk vissza az alapértelmezett filamenteket)
@@ -211,8 +226,8 @@ export async function saveOffers(offers: Offer[]): Promise<void> {
 }
 
 export async function loadOffers(): Promise<Offer[]> {
-  const store = await getStore();
   try {
+    const store = await getStore();
     if (import.meta.env.DEV) {
       console.log("📥 Árajánlatok betöltése...");
     }
@@ -246,6 +261,13 @@ export async function loadOffers(): Promise<Offer[]> {
     }
     return fixedOffers;
   } catch (error) {
+    // Ha nincs data.json, akkor nincs adat, üres tömböt adunk vissza
+    if (error instanceof Error && error.message.includes("data.json fájl nem létezik")) {
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ data.json nem létezik, nincs mentett árajánlat");
+      }
+      return [];
+    }
     console.error("❌ Hiba az árajánlatok betöltésekor:", error);
     return [];
   }
@@ -285,10 +307,19 @@ let customerStoreInstance: Store | null = null;
 
 async function getCustomerStore(): Promise<Store> {
   if (!customerStoreInstance) {
-    // Store.load() automatikusan létrehozza a fájlt, ha nem létezik
+    // Először ellenőrizzük, hogy létezik-e a customers.json fájl
+    // Ha nem létezik, NE hozzuk létre automatikusan (Factory Reset után)
+    const customersJsonExists = await exists("customers.json", { baseDir: BaseDirectory.AppConfig });
+    if (!customersJsonExists) {
+      // Ha nincs customers.json, akkor még nem hozzuk létre a Store-t
+      // Ez biztosítja, hogy a Factory Reset után ne generálódjon automatikusan a fájl
+      // A Store.load() automatikusan létrehozza a fájlt, ha nem létezik, ezért először
+      // ellenőrizzük, és csak akkor hozzuk létre a Store-t, ha a fájl már létezik
+      throw new Error("customers.json fájl nem létezik.");
+    }
     customerStoreInstance = await Store.load("customers.json");
     if (import.meta.env.DEV) {
-      console.log("✅ Customer Store betöltve/létrehozva (customers.json)");
+      console.log("✅ Customer Store betöltve (customers.json)");
     }
   }
   return customerStoreInstance;
@@ -316,7 +347,19 @@ export async function saveCustomers(
     if (import.meta.env.DEV) {
       console.log("💾 Ügyfelek mentése...", { count: customers.length, hasEncryption: !!encryptionPassword });
     }
-    const customerStore = await getCustomerStore();
+    
+    // Ha a getCustomerStore() hibát dob (mert nincs customers.json), akkor először létrehozzuk a Store-t
+    let customerStore: Store;
+    try {
+      customerStore = await getCustomerStore();
+    } catch (error) {
+      // Ha nincs customers.json, akkor most létrehozzuk (pl. első mentéskor vagy factory reset után)
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ customers.json nem létezik, létrehozás...");
+      }
+      customerStore = await Store.load("customers.json");
+      customerStoreInstance = customerStore; // Frissítjük a customerStoreInstance-t
+    }
     
     // KRITIKUS: Ha üres tömböt akarunk menteni, ellenőrizzük, hogy van-e már titkosított adat
     // Ha van titkosított adat és üres tömböt akarunk menteni (nincs jelszó), NE mentse!
@@ -374,7 +417,22 @@ export async function loadCustomers(
       if (import.meta.env.DEV) {
         console.log("ℹ️ customers.json nem létezik, próbáljuk a régi data.json-ból betölteni...");
       }
-      const mainStore = await getStore();
+      
+      // Próbáljuk betölteni a data.json-t (migrációhoz)
+      let mainStore;
+      try {
+        mainStore = await getStore();
+      } catch (getStoreError) {
+        // Ha nincs data.json sem, akkor nincs régi adat, üres tömböt adunk vissza
+        if (getStoreError instanceof Error && getStoreError.message.includes("data.json fájl nem létezik")) {
+          if (import.meta.env.DEV) {
+            console.log("ℹ️ data.json sem létezik, nincs régi adat");
+          }
+          return [];
+        }
+        // Egyéb hiba esetén továbbdobjuk
+        throw getStoreError;
+      }
       
       // Régi formátum ellenőrzése (data.json-ból)
       const oldEncryptedData = await mainStore.get("customers_encrypted");
@@ -460,7 +518,11 @@ export async function loadCustomers(
       const data = await customerStore.get("customers");
       const customers = Array.isArray(data) ? data : [];
       if (import.meta.env.DEV) {
-        console.log("✅ Ügyfelek betöltve customers.json-ból (nem titkosított)", { count: customers.length });
+        console.log("✅ Ügyfelek betöltve customers.json-ból (nem titkosított)", { 
+          count: customers.length,
+          source: "customers.json",
+          encrypted: false
+        });
       }
       return customers;
     }
@@ -598,21 +660,56 @@ export async function loadTasks(): Promise<Task[]> {
 // Clear all data - Factory reset
 export async function clearAllData(): Promise<void> {
   try {
-    if (import.meta.env.DEV) {
-      console.log("🗑️ Összes adat törlése (Factory reset)...");
-    }
+    // MINDIG logoljuk, még ha a fileLogger ki van kapcsolva is (console.log mindig működik)
+    // writeFrontendLogAlways() használata, hogy biztosan logoljon, még ha a logolás ki van kapcsolva is
+    console.log("🗑️ [Factory Reset] Összes adat törlése kezdete...");
+    await writeFrontendLogAlways('INFO', '🗑️ [Factory Reset] Összes adat törlése kezdete...').catch(() => {});
+    console.log("🗑️ [Factory Reset] getStore() hívása...");
+    await writeFrontendLogAlways('INFO', '🗑️ [Factory Reset] getStore() hívása...').catch(() => {});
+    
     const store = await getStore();
+    console.log("✅ [Factory Reset] Store betöltve, adatok törlése...");
+    await writeFrontendLogAlways('INFO', '✅ [Factory Reset] Store betöltve, adatok törlése...').catch(() => {});
     
     // Töröljük az összes kulcsot a Store-ból
+    console.log("🗑️ [Factory Reset] Store kulcsok törlése...");
+    await writeFrontendLogAlways('INFO', '🗑️ [Factory Reset] Store kulcsok törlése...').catch(() => {});
+    
     await store.delete("printers");
+    console.log("✅ [Factory Reset] printers törölve");
+    await writeFrontendLogAlways('INFO', '✅ [Factory Reset] printers törölve').catch(() => {});
+    
     await store.delete("filaments");
+    console.log("✅ [Factory Reset] filaments törölve");
+    await writeFrontendLogAlways('INFO', '✅ [Factory Reset] filaments törölve').catch(() => {});
+    
     await store.delete("offers");
+    console.log("✅ [Factory Reset] offers törölve");
+    await writeFrontendLogAlways('INFO', '✅ [Factory Reset] offers törölve').catch(() => {});
+    
     await store.delete("customers");
+    console.log("✅ [Factory Reset] customers kulcs törölve (data.json-ból)");
+    await writeFrontendLogAlways('INFO', '✅ [Factory Reset] customers kulcs törölve (data.json-ból)').catch(() => {});
+    
     await store.delete("settings");
+    console.log("✅ [Factory Reset] settings törölve");
+    await writeFrontendLogAlways('INFO', '✅ [Factory Reset] settings törölve').catch(() => {});
+    
     await store.delete("templates");
+    console.log("✅ [Factory Reset] templates törölve");
+    await writeFrontendLogAlways('INFO', '✅ [Factory Reset] templates törölve').catch(() => {});
+    
     await store.delete("priceHistory");
+    console.log("✅ [Factory Reset] priceHistory törölve");
+    await writeFrontendLogAlways('INFO', '✅ [Factory Reset] priceHistory törölve').catch(() => {});
+    
     await store.delete("projects");
+    console.log("✅ [Factory Reset] projects törölve");
+    await writeFrontendLogAlways('INFO', '✅ [Factory Reset] projects törölve').catch(() => {});
+    
     await store.delete("tasks");
+    console.log("✅ [Factory Reset] tasks törölve");
+    await writeFrontendLogAlways('INFO', '✅ [Factory Reset] tasks törölve').catch(() => {});
     
     // MEGJEGYZÉS: A backup és log fájlok törlése a FactoryResetProgress komponensben történik
     // Itt nem töröljük őket, hogy a progress modal-ban külön kezelhessük őket
@@ -633,18 +730,21 @@ export async function clearAllData(): Promise<void> {
       // Töröljük a data.json fájlt (Store fájl)
       try {
         const dataJsonExists = await exists("data.json", { baseDir: BaseDirectory.AppConfig });
+        console.log("🔍 [Factory Reset] data.json létezés ellenőrzése:", dataJsonExists);
+        await writeFrontendLogAlways('INFO', `🔍 [Factory Reset] data.json létezés ellenőrzése: ${dataJsonExists}`).catch(() => {});
+        
         if (dataJsonExists) {
           await remove("data.json", { baseDir: BaseDirectory.AppConfig });
-          if (import.meta.env.DEV) {
-            console.log("🗑️ data.json törölve");
-          }
+          console.log("🗑️ [Factory Reset] data.json törölve");
+          await writeFrontendLogAlways('INFO', '🗑️ [Factory Reset] data.json törölve').catch(() => {});
         } else {
-          if (import.meta.env.DEV) {
-            console.log("ℹ️ data.json nem létezett");
-          }
+          console.log("ℹ️ [Factory Reset] data.json nem létezett");
+          await writeFrontendLogAlways('INFO', 'ℹ️ [Factory Reset] data.json nem létezett').catch(() => {});
         }
       } catch (error) {
-        console.error("❌ Hiba a data.json törlésekor:", error);
+        const errorMsg = `❌ [Factory Reset] Hiba a data.json törlésekor: ${error instanceof Error ? error.message : String(error)}`;
+        console.error(errorMsg);
+        await writeFrontendLogAlways('ERROR', errorMsg).catch(() => {});
         // Folytatjuk a többi fájl törlésével
       }
       
@@ -669,48 +769,148 @@ export async function clearAllData(): Promise<void> {
       // Töröljük az update_filamentLibrary.json fájlt
       try {
         const updateFilamentLibraryExists = await exists("update_filamentLibrary.json", { baseDir: BaseDirectory.AppConfig });
+        console.log("🔍 [Factory Reset] update_filamentLibrary.json létezés ellenőrzése:", updateFilamentLibraryExists);
+        await writeFrontendLogAlways('INFO', `🔍 [Factory Reset] update_filamentLibrary.json létezés ellenőrzése: ${updateFilamentLibraryExists}`).catch(() => {});
+        
         if (updateFilamentLibraryExists) {
           await remove("update_filamentLibrary.json", { baseDir: BaseDirectory.AppConfig });
-          if (import.meta.env.DEV) {
-            console.log("🗑️ update_filamentLibrary.json törölve");
-          }
+          console.log("🗑️ [Factory Reset] update_filamentLibrary.json törölve");
+          await writeFrontendLogAlways('INFO', '🗑️ [Factory Reset] update_filamentLibrary.json törölve').catch(() => {});
         } else {
-          if (import.meta.env.DEV) {
-            console.log("ℹ️ update_filamentLibrary.json nem létezett");
-          }
+          console.log("ℹ️ [Factory Reset] update_filamentLibrary.json nem létezett");
+          await writeFrontendLogAlways('INFO', 'ℹ️ [Factory Reset] update_filamentLibrary.json nem létezett').catch(() => {});
         }
       } catch (error) {
-        console.error("❌ Hiba az update_filamentLibrary.json törlésekor:", error);
+        const errorMsg = `❌ [Factory Reset] Hiba az update_filamentLibrary.json törlésekor: ${error instanceof Error ? error.message : String(error)}`;
+        console.error(errorMsg);
+        await writeFrontendLogAlways('ERROR', errorMsg).catch(() => {});
         // Folytatjuk
       }
       
       // Töröljük a customers.json fájlt is (titkosított ügyféladatok)
+      // FONTOS: Először reseteljük a customerStoreInstance-t, hogy biztosan bezáruljon
+      console.log("🔍 [Factory Reset] customers.json törlésének kezdete...");
+      await writeFrontendLogAlways('INFO', '🔍 [Factory Reset] customers.json törlésének kezdete...').catch(() => {});
+      
+      customerStoreInstance = null;
+      // Nagyobb késleltetés, hogy a Store biztosan bezáruljon
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       try {
         const customersJsonExists = await exists("customers.json", { baseDir: BaseDirectory.AppConfig });
+        console.log("🔍 [Factory Reset] customers.json létezés ellenőrzése:", customersJsonExists);
+        await writeFrontendLogAlways('INFO', `🔍 [Factory Reset] customers.json létezés ellenőrzése: ${customersJsonExists}`).catch(() => {});
+        
         if (customersJsonExists) {
+          console.log("🗑️ [Factory Reset] customers.json törlése kezdete...");
+          await writeFrontendLogAlways('INFO', '🗑️ [Factory Reset] customers.json törlése kezdete...').catch(() => {});
+          
           await remove("customers.json", { baseDir: BaseDirectory.AppConfig });
-          if (import.meta.env.DEV) {
-            console.log("🗑️ customers.json törölve");
+          console.log("🗑️ [Factory Reset] customers.json törlés parancs végrehajtva");
+          await writeFrontendLogAlways('INFO', '🗑️ [Factory Reset] customers.json törlés parancs végrehajtva').catch(() => {});
+          
+          // Nagyobb késleltetés, hogy a fájl törlés biztosan megtörténjen
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Ellenőrizzük, hogy valóban törlődött-e
+          const stillExists = await exists("customers.json", { baseDir: BaseDirectory.AppConfig });
+          if (stillExists) {
+            const errorMsg = "❌ [Factory Reset] HIBA: customers.json még mindig létezik törlés után!";
+            console.error(errorMsg);
+            await writeFrontendLogAlways('ERROR', errorMsg).catch(() => {});
+            
+            // Próbáljuk újra törölni
+            try {
+              console.log("🔄 [Factory Reset] customers.json újratörlési kísérlet...");
+              await writeFrontendLogAlways('INFO', '🔄 [Factory Reset] customers.json újratörlési kísérlet...').catch(() => {});
+              
+              await remove("customers.json", { baseDir: BaseDirectory.AppConfig });
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              const stillExistsAfterRetry = await exists("customers.json", { baseDir: BaseDirectory.AppConfig });
+              if (stillExistsAfterRetry) {
+                const errorMsg2 = "❌ [Factory Reset] HIBA: customers.json még mindig létezik második törlési kísérlet után is!";
+                console.error(errorMsg2);
+                await writeFrontendLogAlways('ERROR', errorMsg2).catch(() => {});
+              } else {
+                console.log("✅ [Factory Reset] customers.json sikeresen törölve (második kísérlet után)");
+                await writeFrontendLogAlways('INFO', '✅ [Factory Reset] customers.json sikeresen törölve (második kísérlet után)').catch(() => {});
+              }
+            } catch (retryError) {
+              const errorMsg3 = `❌ [Factory Reset] Hiba a customers.json újratörléskor: ${retryError instanceof Error ? retryError.message : String(retryError)}`;
+              console.error(errorMsg3);
+              await writeFrontendLogAlways('ERROR', errorMsg3).catch(() => {});
+            }
+          } else {
+            console.log("✅ [Factory Reset] customers.json sikeresen törölve (ellenőrzés)");
+            await writeFrontendLogAlways('INFO', '✅ [Factory Reset] customers.json sikeresen törölve (ellenőrzés)').catch(() => {});
           }
         } else {
-          if (import.meta.env.DEV) {
-            console.log("ℹ️ customers.json nem létezett");
-          }
+          console.log("ℹ️ [Factory Reset] customers.json nem létezett");
+          await writeFrontendLogAlways('INFO', 'ℹ️ [Factory Reset] customers.json nem létezett').catch(() => {});
         }
       } catch (error) {
-        console.error("❌ Hiba a customers.json törlésekor:", error);
+        const errorMsg = `❌ [Factory Reset] Hiba a customers.json törlésekor: ${error instanceof Error ? error.message : String(error)}`;
+        console.error(errorMsg);
+        await writeFrontendLogAlways('ERROR', errorMsg).catch(() => {});
         // Folytatjuk
       }
     } catch (error) {
-      console.error("❌ Hiba a fizikai fájlok törlésekor:", error);
+      console.error("❌ [Factory Reset] Hiba a fizikai fájlok törlésekor:", error);
       // Ne dobjuk el a hibát, mert a Store már törölve lett
     }
     
-    if (import.meta.env.DEV) {
-      console.log("✅ Összes adat törölve (Factory reset kész)");
+    // VÉGLEGES ELLENŐRZÉS: Ellenőrizzük, hogy a customers.json valóban törlődött-e
+    try {
+      const finalCheck = await exists("customers.json", { baseDir: BaseDirectory.AppConfig });
+      console.log("🔍 [Factory Reset] Végleges ellenőrzés: customers.json létezik:", finalCheck);
+      await writeFrontendLogAlways('INFO', `🔍 [Factory Reset] Végleges ellenőrzés: customers.json létezik: ${finalCheck}`).catch(() => {});
+      
+      if (finalCheck) {
+        const errorMsg = "❌ [Factory Reset] KRITIKUS HIBA: customers.json még mindig létezik a factory reset után!";
+        console.error(errorMsg);
+        await writeFrontendLogAlways('ERROR', errorMsg).catch(() => {});
+        
+        // Próbáljuk még egyszer törölni
+        try {
+          console.log("🔄 [Factory Reset] customers.json végső törlési kísérlet...");
+          await writeFrontendLogAlways('INFO', '🔄 [Factory Reset] customers.json végső törlési kísérlet...').catch(() => {});
+          
+          customerStoreInstance = null;
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await remove("customers.json", { baseDir: BaseDirectory.AppConfig });
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          const finalCheckAfterRetry = await exists("customers.json", { baseDir: BaseDirectory.AppConfig });
+          if (finalCheckAfterRetry) {
+            const errorMsg2 = "❌ [Factory Reset] KRITIKUS HIBA: customers.json még mindig létezik a végső törlési kísérlet után is!";
+            console.error(errorMsg2);
+            await writeFrontendLogAlways('ERROR', errorMsg2).catch(() => {});
+          } else {
+            console.log("✅ [Factory Reset] customers.json végül sikeresen törölve (végső kísérlet után)");
+            await writeFrontendLogAlways('INFO', '✅ [Factory Reset] customers.json végül sikeresen törölve (végső kísérlet után)').catch(() => {});
+          }
+        } catch (finalRetryError) {
+          const errorMsg3 = `❌ [Factory Reset] Hiba a customers.json végső törlési kísérletkor: ${finalRetryError instanceof Error ? finalRetryError.message : String(finalRetryError)}`;
+          console.error(errorMsg3);
+          await writeFrontendLogAlways('ERROR', errorMsg3).catch(() => {});
+        }
+      } else {
+        console.log("✅ [Factory Reset] customers.json végleges ellenőrzés: törölve");
+        await writeFrontendLogAlways('INFO', '✅ [Factory Reset] customers.json végleges ellenőrzés: törölve').catch(() => {});
+      }
+    } catch (finalCheckError) {
+      const errorMsg = `❌ [Factory Reset] Hiba a customers.json végleges ellenőrzésekor: ${finalCheckError instanceof Error ? finalCheckError.message : String(finalCheckError)}`;
+      console.error(errorMsg);
+      await writeFrontendLogAlways('ERROR', errorMsg).catch(() => {});
     }
+    
+    console.log("✅ [Factory Reset] Összes adat törlése befejezve (Factory reset kész)");
+    await writeFrontendLog('INFO', '✅ [Factory Reset] Összes adat törlése befejezve (Factory reset kész)').catch(() => {});
   } catch (error) {
-    console.error("❌ Hiba az adatok törlésekor:", error);
+    const errorMsg = `❌ [Factory Reset] Hiba az adatok törlésekor: ${error instanceof Error ? error.message : String(error)}`;
+    console.error(errorMsg);
+    await writeFrontendLog('ERROR', errorMsg).catch(() => {});
     throw error;
   }
 }

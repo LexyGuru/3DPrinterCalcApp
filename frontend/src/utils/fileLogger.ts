@@ -129,6 +129,60 @@ function shouldLogLevel(level: LogLevel, minLevel?: LogLevel): boolean {
  * Szűri a FilamentLibrary logokat, hogy ne jelenjenek meg túl korán
  * Támogatja a strukturált (JSON) és szöveges formátumot is
  */
+/**
+ * Speciális logolási függvény, ami MINDIG logol, még ha a logolás ki van kapcsolva is
+ * Használható factory reset során, hogy lássuk mi történik
+ */
+export async function writeFrontendLogAlways(
+  level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG', 
+  message: string,
+  component?: string,
+  context?: Record<string, any>,
+  error?: Error | unknown
+): Promise<void> {
+  try {
+    // Ez a függvény MINDIG logol, még ha a logolás ki van kapcsolva is
+    // Használható factory reset során
+    // FONTOS: A backend log fájlba ír, nem a frontend log fájlba, hogy a factory reset logok megmaradjanak
+    
+    const { invoke } = await import('@tauri-apps/api/core');
+    
+    // Formázzuk az üzenetet (szöveges formátumban, mert a backend log fájl szöveges)
+    let formattedMessage: string;
+    
+    if (component || context || error) {
+      // Strukturált üzenet
+      const parts: string[] = [];
+      if (component) {
+        parts.push(`[${component}]`);
+      }
+      parts.push(message);
+      if (context && Object.keys(context).length > 0) {
+        parts.push(JSON.stringify(context));
+      }
+      if (error instanceof Error) {
+        parts.push(`Error: ${error.message}`);
+        if (error.stack) {
+          parts.push(`Stack: ${error.stack}`);
+        }
+      }
+      formattedMessage = parts.join(' ');
+    } else {
+      formattedMessage = message;
+    }
+    
+    // Backend log fájlba írás (közvetlenül a backend log fájlba, nem a frontend log fájlba)
+    // Ez biztosítja, hogy a factory reset logok megmaradjanak, még ha a frontend log fájl törlődik is
+    await invoke('write_backend_log', { 
+      level,
+      message: formattedMessage
+    });
+  } catch (error) {
+    // Csendben ignoráljuk a hibákat, hogy ne akadályozza a factory reset folyamatát
+    // console.error("Hiba a writeFrontendLogAlways során:", error);
+  }
+}
+
 export async function writeFrontendLog(
   level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG', 
   message: string,

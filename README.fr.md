@@ -53,7 +53,7 @@ For detailed version history and changelog, please see [RELEASE.fr.md](RELEASE.f
 
 ---
 
-**Version**: 1.6.0
+**Version**: 3.0.2
 
 Si vous avez des questions ou trouvez un bug, veuillez ouvrir une issue dans le dépôt GitHub!
 

@@ -4,6 +4,29 @@ Questo documento contiene il changelog dettagliato per tutte le versioni dell'ap
 
 ---
 
+## v3.0.2 (2025) - 🔧 Hotfix: Correzioni Tutorial, Permessi, Registrazione Factory Reset
+
+### 🐛 Correzioni di Bug
+
+#### Correzioni Tutorial
+- **Preservazione dati tutorial** - Se il tutorial è già stato eseguito una volta, i dati esistenti non vengono eliminati nuovamente
+- **Tutorial espanso a 18 passaggi** - Aggiunti: Progetti, Attività, Calendario, passaggi Backup/Ripristino
+- **Chiavi di traduzione tutorial** - Chiavi di traduzione mancanti aggiunte a tutti i file di lingua
+
+#### Correzioni Permessi
+- **Permessi customers.json** - Permessi aggiunti per l'eliminazione del file `customers.json`
+
+#### Registrazione Factory Reset
+- **Scrittura file di log backend** - I passaggi di Factory Reset sono ora registrati nel file di log backend
+- **Registrazione dettagliata** - Ogni passaggio di Factory Reset è registrato in dettaglio
+- **Eliminazione log backend ripristinata** - Il file di log backend viene ora eliminato durante il Factory Reset
+
+### 📝 Dettagli Tecnici
+
+- **Versione aggiornata**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
 ## v3.0.0 (2025) - 🔒 Crittografia Dati Clienti & Conformità GDPR + ⚡ Ottimizzazione delle Prestazioni
 
 ### ⚡ Ottimizzazione delle Prestazioni e Code Splitting

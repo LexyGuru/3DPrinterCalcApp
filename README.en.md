@@ -250,7 +250,7 @@ For detailed version history and changelog, please see [RELEASE.en.md](RELEASE.e
 
 ---
 
-**Version**: 1.6.0
+**Version**: 3.0.2
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
 

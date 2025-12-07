@@ -62,6 +62,8 @@ export const Tutorial: React.FC<Props> = ({
     if (isOpen && !demoDataGeneratedRef.current) {
       const initializeDemoData = async () => {
         try {
+          console.log("🎓 [Tutorial] Demo adatok inicializálás kezdete...");
+          
           // 🔹 ELŐSZÖR beállítjuk a lastBackupDate-et, hogy ne jelenjen meg a backup emlékeztető tutorial alatt
           const currentSettings = await loadSettings();
           if (currentSettings && !currentSettings.lastBackupDate) {
@@ -70,29 +72,49 @@ export const Tutorial: React.FC<Props> = ({
               lastBackupDate: new Date().toISOString(),
             };
             await saveSettings(updatedSettings);
-            if (import.meta.env.DEV) {
-              console.log("✅ Settings frissítve - lastBackupDate beállítva tutorial kezdéshez");
-            }
+            console.log("✅ [Tutorial] Settings frissítve - lastBackupDate beállítva tutorial kezdéshez");
+          }
+          
+          // FONTOS: Ha a tutorial már egyszer lefutott, NE generáljunk demo adatokat és NE töröljük a meglévő adatokat
+          if (currentSettings?.tutorialCompleted) {
+            console.log("ℹ️ [Tutorial] Tutorial már lefutott korábban (tutorialCompleted=true), demo adatok NEM generálódnak és meglévő adatok NEM törlődnek");
+            return; // Ne generáljunk demo adatokat, ha a tutorial már lefutott
           }
           
           // Ellenőrizzük, hogy van-e már adat
+          console.log("🔍 [Tutorial] Adatok ellenőrzése (hasExistingData hívása)...");
           const hasData = await hasExistingData();
+          console.log("🔍 [Tutorial] hasExistingData eredménye:", hasData);
+          
           if (!hasData) {
-            console.log("🎓 Tutorial elindult - demo adatok generálása...");
+            console.log("🎓 [Tutorial] Nincs adat - demo adatok generálása...");
             await generateTutorialDemoData(settings);
             demoDataGeneratedRef.current = true;
+            console.log("✅ [Tutorial] Demo adatok generálva, onDataReload hívása...");
             // Frissítjük az adatokat az App.tsx-ben
             if (onDataReload) {
               onDataReload();
+              console.log("✅ [Tutorial] onDataReload meghívva");
+            } else {
+              console.warn("⚠️ [Tutorial] onDataReload nincs definiálva!");
             }
           } else {
-            console.log("ℹ️ Már van adat az alkalmazásban, demo adatok nem generálódnak");
+            console.log("ℹ️ [Tutorial] Már van adat az alkalmazásban, demo adatok NEM generálódnak");
           }
         } catch (error) {
-          console.error("❌ Hiba a demo adatok generálásakor:", error);
+          console.error("❌ [Tutorial] Hiba a demo adatok generálásakor:", error);
         }
       };
       initializeDemoData();
+    } else {
+      if (import.meta.env.DEV) {
+        if (!isOpen) {
+          console.log("ℹ️ [Tutorial] Tutorial nincs megnyitva (isOpen=false)");
+        }
+        if (demoDataGeneratedRef.current) {
+          console.log("ℹ️ [Tutorial] Demo adatok már generálva voltak korábban");
+        }
+      }
     }
   }, [isOpen, settings, onDataReload]);
 
@@ -125,16 +147,6 @@ export const Tutorial: React.FC<Props> = ({
         t("tutorial.home.description") ||
         "A kezdőlapon láthatod a statisztikákat és összefoglalókat az árajánlataidról. Ide kerülnek a számított adatok.",
       position: "bottom",
-      page: "home",
-    },
-    {
-      id: "widget-interactivity",
-      target: "[data-tutorial='home-content']",
-      title: t("tutorial.widgetInteractivity.title") || "Grafikon interaktivitás",
-      description:
-        t("tutorial.widgetInteractivity.description") ||
-        "A grafikonokon kattinthatasz, hogy részletes nézetet kapj. Használhatod az időszak szűrést közvetlenül a grafikonról (heti/havi/éves váltó) és exportálhatod SVG formátumban.",
-      position: "bottom-right",
       page: "home",
     },
     {
@@ -191,26 +203,6 @@ export const Tutorial: React.FC<Props> = ({
       page: "filaments",
     },
     {
-      id: "filament-library-multilang",
-      target: "[data-page='filaments']",
-      title: t("tutorial.filamentLibraryMultilang.title") || "Többnyelvű színnevek",
-      description:
-        t("tutorial.filamentLibraryMultilang.description") ||
-        "A filament színeinek nevei automatikusan megjelennek az Ön által választott nyelven! Az alkalmazás 14 nyelven támogatja a színneveket, így könnyen navigálhatsz a könyvtárban.",
-      position: "bottom-right",
-      page: "filaments",
-    },
-    {
-      id: "table-sorting",
-      target: "[data-page='filaments']",
-      title: t("tutorial.tableSorting.title") || "Táblázat szűrés és rendezés",
-      description:
-        t("tutorial.tableSorting.description") ||
-        "A táblázatokban oszlopok szerint rendezhetsz és szűrhetsz. Több oszlop szerint is rendezhetsz egyszerre, és a rendezési beállítások mentésre kerülnek. A nagy listákhoz virtuális scrollozás is használható.",
-      position: "bottom-right",
-      page: "filaments",
-    },
-    {
       id: "customers",
       target: "[data-page='customers']",
       title: t("tutorial.customers.title") || "Ügyfelek kezelése",
@@ -254,6 +246,39 @@ export const Tutorial: React.FC<Props> = ({
       action: () => onNavigate?.("offers"),
     },
     {
+      id: "projects",
+      target: "[data-page='projects']",
+      title: t("tutorial.projects.title") || "Projektek",
+      description:
+        t("tutorial.projects.description") ||
+        "A Projektek oldalon kezelheted a projekteidet. Itt követheted a projektek állapotát, határidőit és kapcsolódó árajánlatokat.",
+      position: "bottom-right",
+      page: "projects",
+      action: () => onNavigate?.("projects"),
+    },
+    {
+      id: "tasks",
+      target: "[data-page='tasks']",
+      title: t("tutorial.tasks.title") || "Feladatok",
+      description:
+        t("tutorial.tasks.description") ||
+        "A Feladatok oldalon kezelheted a teendőidet. Itt hozhatsz létre feladatokat, állíthatod be a prioritásukat és követheted a haladásukat.",
+      position: "bottom-right",
+      page: "tasks",
+      action: () => onNavigate?.("tasks"),
+    },
+    {
+      id: "calendar",
+      target: "[data-page='calendar']",
+      title: t("tutorial.calendar.title") || "Naptár",
+      description:
+        t("tutorial.calendar.description") ||
+        "A Naptár oldalon láthatod a projektek és feladatok határidejét naptár nézetben. Itt is hozzáadhatsz új eseményeket.",
+      position: "bottom-right",
+      page: "calendar",
+      action: () => onNavigate?.("calendar"),
+    },
+    {
       id: "settings",
       target: "[data-page='settings']",
       title: t("tutorial.settings.title") || "Beállítások",
@@ -265,12 +290,12 @@ export const Tutorial: React.FC<Props> = ({
       action: () => onNavigate?.("settings"),
     },
     {
-      id: "autosave-backup",
-      target: "[data-tutorial='autosave-section']",
-      title: t("tutorial.autosaveBackup.title") || "Automatikus mentés és backup",
+      id: "backup-restore",
+      target: "[data-page='settings']",
+      title: t("tutorial.backupRestore.title") || "Backup és visszaállítás",
       description:
-        t("tutorial.autosaveBackup.description") ||
-        "Az automatikus mentés funkció naponta egyszer készít backup fájlt az összes adatodról. A backup történetben láthatod a korábbi backupokat színes jelölésekkel (zöld=ma, sárga=tegnap, piros=2-4 nap, szürke=5+ nap, hamarosan törlődik).",
+        t("tutorial.backupRestore.description") ||
+        "A Beállításokban találod a backup és visszaállítás funkciókat. Itt készíthetsz biztonsági másolatot az adataidról, vagy visszaállíthatod egy korábbi mentésből.",
       position: "bottom-right",
       page: "settings",
     },
@@ -680,8 +705,9 @@ export const Tutorial: React.FC<Props> = ({
       // Bezárjuk a GlobalSearch-et, ha nyitva van
       onCloseGlobalSearch?.();
       
-      // Demo adatok törlése, ha generáltuk őket
-      if (demoDataGeneratedRef.current) {
+      // Demo adatok törlése, ha generáltuk őket ÉS a tutorial még nem futott le korábban
+      // FONTOS: Ha a tutorial már lefutott korábban (tutorialCompleted=true), NE töröljük a meglévő adatokat
+      if (demoDataGeneratedRef.current && !settings.tutorialCompleted) {
         try {
           // Először mentjük el a tutorial completed státuszt, hogy ne jelenjen meg újra
           console.log("💾 Tutorial completed státusz mentése...");
@@ -704,6 +730,18 @@ export const Tutorial: React.FC<Props> = ({
           return; // Ne hívjuk meg az onComplete-et, mert újraindítjuk az appot
         } catch (error) {
           console.error("❌ Hiba a demo adatok törlésekor:", error);
+        }
+      } else if (settings.tutorialCompleted) {
+        // Ha a tutorial már lefutott korábban, csak mentjük el a beállításokat, de NE töröljük az adatokat
+        console.log("ℹ️ [Tutorial] Tutorial már lefutott korábban, meglévő adatok NEM törlődnek");
+        try {
+          const updatedSettings = {
+            ...settings,
+            showTutorialOnStartup: false,
+          };
+          await saveSettings(updatedSettings);
+        } catch (error) {
+          console.error("❌ Hiba a tutorial beállítások mentésekor:", error);
         }
       }
       
@@ -749,21 +787,22 @@ export const Tutorial: React.FC<Props> = ({
     onCloseGlobalSearch?.();
 
     // Skip esetén is mentsük el, hogy indításkor NE induljon el automatikusan újra a tutorial
+    // FONTOS: Ha a tutorial már lefutott korábban (tutorialCompleted=true), NE töröljük a meglévő adatokat
     try {
       const updatedSettings = {
         ...settings,
+        tutorialCompleted: true, // Skip esetén is beállítjuk, hogy ne törölje a meglévő adatokat a következő indításkor
         showTutorialOnStartup: false,
       };
       await saveSettings(updatedSettings);
-      console.log("⏭️ Tutorial kihagyva - showTutorialOnStartup false-ra állítva");
+      console.log("⏭️ Tutorial kihagyva - showTutorialOnStartup false-ra állítva, tutorialCompleted true-ra állítva");
     } catch (error) {
       console.error("❌ Hiba a tutorial skip beállítás mentésekor:", error);
     }
     
-    // Demo adatok törlése, ha generáltuk őket
-    if (demoDataGeneratedRef.current) {
+    // Demo adatok törlése, ha generáltuk őket ÉS a tutorial még nem futott le korábban
+    if (demoDataGeneratedRef.current && !settings.tutorialCompleted) {
       try {
-        // Skip esetén nem mentjük el a tutorialCompleted-et, csak a demo adatokat töröljük
         console.log("🗑️ Tutorial kihagyva - demo adatok törlése...");
         await clearTutorialDemoData();
         demoDataGeneratedRef.current = false;
@@ -777,6 +816,8 @@ export const Tutorial: React.FC<Props> = ({
       } catch (error) {
         console.error("❌ Hiba a demo adatok törlésekor:", error);
       }
+    } else if (settings.tutorialCompleted) {
+      console.log("ℹ️ [Tutorial] Tutorial már lefutott korábban, meglévő adatok NEM törlődnek skip esetén sem");
     }
     
     if (onSkip) {

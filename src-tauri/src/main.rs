@@ -20,6 +20,7 @@ fn main() {
             open_file,
             init_frontend_log,
             write_frontend_log,
+            write_backend_log,
             get_frontend_log_path,
             get_backend_log_path,
             delete_old_logs,

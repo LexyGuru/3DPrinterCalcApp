@@ -54,7 +54,7 @@ A részletes verziótörténetet a [RELEASE.hu.md](RELEASE.hu.md) fájlban talá
 
 ---
 
-**Verzió**: 1.6.0
+**Verzió**: 3.0.2
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 

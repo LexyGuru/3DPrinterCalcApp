@@ -49,25 +49,31 @@ export function AppRouter({
       });
   }, []);
 
-  const element = useRoutes(routes);
+  // Placeholder route, amíg a routes betöltődnek - így elkerüljük a "No routes matched" figyelmeztetést
+  // FONTOS: React hook-ok nem lehetnek feltételesen meghívva, ezért mindig hívjuk meg a useRoutes-t
+  const placeholderRoutes: RouteObject[] = [
+    {
+      path: "*",
+      element: (
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+          width: "100%",
+          backgroundColor: theme.colors.background?.includes('gradient') 
+            ? 'transparent' 
+            : theme.colors.background,
+        }}>
+          <LoadingSpinner size="large" message={t("loading.title")} />
+        </div>
+      ),
+    }
+  ];
 
-  // Ha még nincsenek routes, mutassunk loading állapotot
-  if (routes.length === 0) {
-    return (
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100%",
-        width: "100%",
-        backgroundColor: theme.colors.background?.includes('gradient') 
-          ? 'transparent' 
-          : theme.colors.background,
-      }}>
-        <LoadingSpinner size="large" message={t("loading.title")} />
-      </div>
-    );
-  }
+  // Használjuk a placeholder routes-ot, ha még nincsenek routes, különben a valódi routes-ot
+  const routesToUse = routes.length > 0 ? routes : placeholderRoutes;
+  const element = useRoutes(routesToUse);
 
   return (
     <LazyErrorBoundary 

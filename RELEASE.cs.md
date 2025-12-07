@@ -4,6 +4,29 @@ Tento dokument obsahuje podrobný changelog pro všechny verze aplikace 3D Print
 
 ---
 
+## v3.0.2 (2025) - 🔧 Hotfix: Opravy Tutoriálu, Oprávnění, Protokolování Factory Reset
+
+### 🐛 Opravy Chyb
+
+#### Opravy Tutoriálu
+- **Zachování dat tutoriálu** - Pokud byl tutoriál již jednou spuštěn, existující data nejsou znovu smazána
+- **Tutoriál rozšířen na 18 kroků** - Přidáno: Projekty, Úkoly, Kalendář, kroky Zálohování/Obnovení
+- **Klíče překladu tutoriálu** - Chybějící klíče překladu přidány do všech jazykových souborů
+
+#### Opravy Oprávnění
+- **Oprávnění customers.json** - Oprávnění přidána pro mazání souboru `customers.json`
+
+#### Protokolování Factory Reset
+- **Zápis do souboru protokolu backend** - Kroky Factory Reset jsou nyní zapisovány do souboru protokolu backend
+- **Detailní protokolování** - Každý krok Factory Reset je detailně protokolován
+- **Mazání protokolu backend obnoveno** - Soubor protokolu backend je nyní mazán během Factory Reset
+
+### 📝 Technické Detaily
+
+- **Verze aktualizována**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
 ## v3.0.0 (2025) - 🔒 Šifrování Dat Zákazníků & Soulad s GDPR + ⚡ Optimalizace Výkonu
 
 ### ⚡ Optimalizace Výkonu a Code Splitting

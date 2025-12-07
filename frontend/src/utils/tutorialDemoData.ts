@@ -1,5 +1,5 @@
 import type { Printer, Filament, Offer, Customer, Settings } from "../types";
-import { savePrinters, saveFilaments, saveOffers, saveCustomers, saveSettings, loadSettings } from "./store";
+import { savePrinters, saveFilaments, saveOffers, saveCustomers, saveSettings, loadSettings, getStore, resetStoreInstance } from "./store";
 import { calculateOfferCosts } from "./offerCalc";
 import { Store } from "@tauri-apps/plugin-store";
 
@@ -9,7 +9,37 @@ import { Store } from "@tauri-apps/plugin-store";
  */
 export async function generateTutorialDemoData(settings: Settings): Promise<void> {
   try {
-    console.log("🎓 Tutorial demo adatok generálása...");
+    console.log("🎓 [Tutorial] Demo adatok generálása kezdete...");
+    
+    // ELŐSZÖR biztosítjuk, hogy a data.json fájl létezik
+    // A saveSettings() automatikusan létrehozza a fájlt, ha nincs
+    try {
+      console.log("💾 [Tutorial] Settings mentése (data.json létrehozása)...");
+      await saveSettings(settings);
+      console.log("✅ [Tutorial] Settings mentve, data.json fájl biztosan létezik");
+      // Kis késleltetés, hogy a fájl biztosan kiírásra kerüljön
+      await new Promise(resolve => setTimeout(resolve, 100));
+      // NE reseteljük a storeInstance-t itt, mert a következő save műveletek ugyanazt a store-t használják
+      // A getStore() automatikusan használja a meglévő storeInstance-t, ha van
+    } catch (error) {
+      console.error("❌ [Tutorial] Hiba a settings mentésekor (demo adatok generálása előtt):", error);
+      // Ha még mindig nincs fájl, próbáljuk közvetlenül létrehozni
+      try {
+        console.log("🔄 [Tutorial] data.json közvetlen létrehozása...");
+        const store = await Store.load("data.json");
+        await store.set("settings", settings);
+        await store.save();
+        // Kis késleltetés, hogy a fájl biztosan kiírásra kerüljön
+        await new Promise(resolve => setTimeout(resolve, 100));
+        // Reseteljük a storeInstance-t, hogy a getStore() újra létrehozza a storeInstance-t
+        // Ez biztosítja, hogy a következő save műveletek ugyanazt a store-t használják
+        resetStoreInstance();
+        console.log("✅ [Tutorial] data.json fájl közvetlenül létrehozva");
+      } catch (createError) {
+        console.error("❌ [Tutorial] Hiba a data.json fájl létrehozásakor:", createError);
+        throw createError;
+      }
+    }
 
     // Demo nyomtatók
     const demoPrinters: Printer[] = [
@@ -547,11 +577,24 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
     // Logoljuk az összes árajánlatot, hogy lássuk, mi van bennük
     console.log("[TutorialDemoData] All demo offers:", JSON.stringify(demoOffers, null, 2));
 
-    // Mentjük a demo adatokat
+    // Mentjük a demo adatokat - sorban, hogy minden művelet befejeződjön
+    // FONTOS: printers, filaments, offers -> data.json fájlba
+    //         customers -> customers.json fájlba
+    console.log("💾 [Tutorial] Demo nyomtatók mentése -> data.json...");
     await savePrinters(demoPrinters);
+    console.log("✅ [Tutorial] Demo nyomtatók mentve -> data.json");
+    
+    console.log("💾 [Tutorial] Demo filamentek mentése -> data.json...");
     await saveFilaments(demoFilaments);
+    console.log("✅ [Tutorial] Demo filamentek mentve -> data.json");
+    
+    console.log("💾 [Tutorial] Demo ügyfelek mentése -> customers.json...");
     await saveCustomers(demoCustomers, null); // Tutorial demo adatoknál nincs titkosítás
+    console.log("✅ [Tutorial] Demo ügyfelek mentve -> customers.json");
+    
+    console.log("💾 [Tutorial] Demo árajánlatok mentése -> data.json...");
     await saveOffers(demoOffers);
+    console.log("✅ [Tutorial] Demo árajánlatok mentve -> data.json");
     
     // Frissítjük a settings-et, hogy beállítsuk a lastBackupDate-et (így nem jelenik meg a backup emlékeztető tutorial alatt)
     const currentSettings = await loadSettings();
@@ -566,14 +609,19 @@ export async function generateTutorialDemoData(settings: Settings): Promise<void
       }
     }
 
-    console.log("✅ Tutorial demo adatok sikeresen generálva", {
-      printers: demoPrinters.length,
-      filaments: demoFilaments.length,
-      customers: demoCustomers.length,
-      offers: demoOffers.length,
+    console.log("✅ [Tutorial] Demo adatok sikeresen generálva:", {
+      printers: { count: demoPrinters.length, file: "data.json" },
+      filaments: { count: demoFilaments.length, file: "data.json" },
+      customers: { count: demoCustomers.length, file: "customers.json" },
+      offers: { count: demoOffers.length, file: "data.json" },
     });
+    console.log("🎉 [Tutorial] Demo adatok generálása befejezve!");
   } catch (error) {
-    console.error("❌ Hiba a tutorial demo adatok generálásakor:", error);
+    console.error("❌ [Tutorial] Hiba a demo adatok generálásakor:", error);
+    console.error("❌ [Tutorial] Hiba részletei:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     throw error;
   }
 }
@@ -587,32 +635,91 @@ export async function clearTutorialDemoData(): Promise<void> {
   try {
     console.log("🗑️ Tutorial demo adatok törlése...");
     
-    // Lazy-initialized store (ugyanaz, mint a store.ts-ben)
-    const store = await Store.load("data.json");
+    // Ugyanazt a getStore() logikát használjuk, mint a store.ts-ben
+    let store;
+    try {
+      store = await getStore();
+    } catch (error) {
+      // Ha nincs data.json, akkor nincs mit törölni
+      if (error instanceof Error && error.message.includes("data.json fájl nem létezik")) {
+        console.log("ℹ️ data.json nem létezik, nincs mit törölni");
+        // De még ellenőrizzük a customers.json fájlt
+        try {
+          const { exists, remove } = await import("@tauri-apps/plugin-fs");
+          const { BaseDirectory } = await import("@tauri-apps/plugin-fs");
+          const customersJsonExists = await exists("customers.json", { baseDir: BaseDirectory.AppConfig });
+          if (customersJsonExists) {
+            await remove("customers.json", { baseDir: BaseDirectory.AppConfig });
+            console.log("✅ customers.json törölve");
+          }
+        } catch (fsError) {
+          console.error("❌ Hiba a customers.json törlésekor:", fsError);
+        }
+        return;
+      }
+      throw error;
+    }
     
     // Csak a demo adatokat töröljük, a settings-et megtartjuk
+    // FONTOS: printers, filaments, offers -> data.json fájlból töröljük
+    //         customers -> customers.json fájlt töröljük teljesen
+    console.log("🗑️ [Tutorial] Nyomtatók törlése -> data.json...");
     await store.delete("printers");
+    console.log("✅ [Tutorial] Nyomtatók törölve -> data.json");
+    
+    console.log("🗑️ [Tutorial] Filamentek törlése -> data.json...");
     await store.delete("filaments");
+    console.log("✅ [Tutorial] Filamentek törölve -> data.json");
+    
+    console.log("🗑️ [Tutorial] Árajánlatok törlése -> data.json...");
     await store.delete("offers");
-    await store.delete("customers");
+    console.log("✅ [Tutorial] Árajánlatok törölve -> data.json");
+    
+    console.log("🗑️ [Tutorial] Template-ek törlése -> data.json...");
     await store.delete("templates");
+    console.log("✅ [Tutorial] Template-ek törölve -> data.json");
+    
+    console.log("🗑️ [Tutorial] Ár előzmények törlése -> data.json...");
     await store.delete("priceHistory");
+    console.log("✅ [Tutorial] Ár előzmények törölve -> data.json");
+    
+    // Töröljük a customers.json fájlt is (ha létezik)
+    // FONTOS: customers.json teljes fájl törlése, mert külön fájlban van
+    try {
+      const { exists, remove } = await import("@tauri-apps/plugin-fs");
+      const { BaseDirectory } = await import("@tauri-apps/plugin-fs");
+      const customersJsonExists = await exists("customers.json", { baseDir: BaseDirectory.AppConfig });
+      if (customersJsonExists) {
+        console.log("🗑️ [Tutorial] customers.json fájl törlése...");
+        await remove("customers.json", { baseDir: BaseDirectory.AppConfig });
+        console.log("✅ [Tutorial] customers.json fájl törölve");
+      } else {
+        console.log("ℹ️ [Tutorial] customers.json nem létezett");
+      }
+    } catch (fsError) {
+      console.error("❌ [Tutorial] Hiba a customers.json törlésekor:", fsError);
+      // Folytatjuk, nem kritikus hiba
+    }
     
     // Mentjük az üres store-t (de a settings megmarad)
+    console.log("💾 Store mentése törlés után...");
     await store.save();
+    console.log("✅ Store mentve");
     
-    console.log("✅ Tutorial demo adatok sikeresen törölve (settings megmaradt)");
+    // Kis késleltetés, hogy a fájl biztosan kiírásra kerüljön
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    console.log("✅ [Tutorial] Demo adatok sikeresen törölve (settings megmaradt)");
     
     // Ellenőrizzük, hogy valóban törlődtek-e az adatok
     const printers = await store.get("printers");
     const filaments = await store.get("filaments");
     const offers = await store.get("offers");
-    const customers = await store.get("customers");
-    console.log("🔍 Ellenőrzés törlés után:", {
-      printers: printers ? "van" : "nincs",
-      filaments: filaments ? "van" : "nincs",
-      offers: offers ? "van" : "nincs",
-      customers: customers ? "van" : "nincs",
+    console.log("🔍 [Tutorial] Ellenőrzés törlés után:", {
+      printers: { status: printers ? "van" : "nincs", file: "data.json" },
+      filaments: { status: filaments ? "van" : "nincs", file: "data.json" },
+      offers: { status: offers ? "van" : "nincs", file: "data.json" },
+      customers: { status: "törölve", file: "customers.json (teljes fájl törölve)" },
     });
   } catch (error) {
     console.error("❌ Hiba a tutorial demo adatok törlésekor:", error);
@@ -626,14 +733,77 @@ export async function clearTutorialDemoData(): Promise<void> {
 export async function hasExistingData(): Promise<boolean> {
   try {
     const { loadPrinters, loadFilaments, loadOffers, loadCustomers } = await import("./store");
-    const printers = await loadPrinters();
-    const filaments = await loadFilaments();
-    const offers = await loadOffers();
-    const customers = await loadCustomers(null); // Tutorial demo adatoknál nincs titkosítás
     
-    return printers.length > 0 || filaments.length > 0 || offers.length > 0 || customers.length > 0;
+    // Betöltjük az adatokat, és kezeljük a hibákat
+    let printers: any[] = [];
+    let filaments: any[] = [];
+    let offers: any[] = [];
+    let customers: any[] = [];
+    
+    try {
+      printers = await loadPrinters();
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ [Tutorial] Nyomtatók betöltése sikertelen:", error);
+      }
+      printers = [];
+    }
+    
+    try {
+      filaments = await loadFilaments();
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ [Tutorial] Filamentek betöltése sikertelen:", error);
+      }
+      filaments = [];
+    }
+    
+    try {
+      offers = await loadOffers();
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.log("ℹ️ [Tutorial] Árajánlatok betöltése sikertelen:", error);
+      }
+      offers = [];
+    }
+    
+    try {
+      customers = await loadCustomers(null); // Tutorial demo adatoknál nincs titkosítás
+    } catch (error) {
+      // Ha nincs customers.json, akkor nincs adat, ez nem hiba
+      if (error instanceof Error && (
+        error.message.includes("customers.json fájl nem létezik") ||
+        error.message.includes("data.json fájl nem létezik")
+      )) {
+        if (import.meta.env.DEV) {
+          console.log("ℹ️ [Tutorial] customers.json nem létezik, nincs ügyfél adat");
+        }
+        customers = [];
+      } else {
+        if (import.meta.env.DEV) {
+          console.log("ℹ️ [Tutorial] Ügyfelek betöltése sikertelen:", error);
+        }
+        customers = [];
+      }
+    }
+    
+    const hasData = printers.length > 0 || filaments.length > 0 || offers.length > 0 || customers.length > 0;
+    if (import.meta.env.DEV) {
+      console.log("🔍 [Tutorial] Adatok ellenőrzése (hasExistingData):", {
+        printers: { count: printers.length, source: "data.json" },
+        filaments: { count: filaments.length, source: "data.json" },
+        offers: { count: offers.length, source: "data.json" },
+        customers: { count: customers.length, source: "customers.json" },
+        hasData,
+        note: hasData ? "Van adat, demo adatok NEM generálódnak" : "Nincs adat, demo adatok generálódnak"
+      });
+    }
+    return hasData;
   } catch (error) {
-    console.error("❌ Hiba az adatok ellenőrzésekor:", error);
+    // Ha bármilyen hiba történik, akkor nincs adat, demo adatok generálódnak
+    if (import.meta.env.DEV) {
+      console.log("ℹ️ [Tutorial] Hiba az adatok ellenőrzésekor, demo adatok generálódnak:", error);
+    }
     return false;
   }
 }

@@ -279,6 +279,14 @@ pub fn write_frontend_log(level: String, message: String, format: Option<String>
     Ok(())
 }
 
+/// Backend log fájlba írás (Factory Reset során használjuk)
+/// Ez közvetlenül a backend log fájlba ír, nem a frontend log fájlba
+#[tauri::command]
+pub fn write_backend_log(level: String, message: String) -> Result<(), String> {
+    logger::write_to_log_file(&level, &message);
+    Ok(())
+}
+
 /// Frontend log fájl útvonalának lekérése
 #[tauri::command]
 pub fn get_frontend_log_path() -> Result<Option<String>, String> {

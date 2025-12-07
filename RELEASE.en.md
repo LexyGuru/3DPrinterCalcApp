@@ -4,6 +4,39 @@ This document contains detailed changelog for all versions of the 3D Printer Cal
 
 ---
 
+## v3.0.2 (2025) - 🔧 Hotfix: Tutorial Fixes, Permissions, Factory Reset Logging
+
+### 🐛 Bug Fixes
+
+#### Tutorial Fixes
+- **Tutorial data preservation** - If the tutorial has already run once, existing data is not deleted again
+- **Tutorial expanded to 18 steps** - Added: Projects, Tasks, Calendar, Backup/Restore steps
+- **Tutorial translation keys** - Missing translation keys added to all language files:
+  - `tutorial.projects.title` and `tutorial.projects.description`
+  - `tutorial.tasks.title` and `tutorial.tasks.description`
+  - `tutorial.calendar.title` and `tutorial.calendar.description`
+
+#### Permission Fixes
+- **customers.json permissions** - Added permissions required for `customers.json` file deletion:
+  - `fs:allow-remove` - File deletion enabled
+  - `fs:allow-read-text-file` - File reading enabled
+  - `fs:allow-write-text-file` - File writing enabled
+  - `fs:allow-create` - File creation enabled
+
+#### Factory Reset Logging
+- **Backend log file writing** - Factory reset steps are now logged to the backend log file
+- **Detailed logging** - Every factory reset step (including `customers.json` deletion) is logged in detail
+- **Backend log deletion restored** - Backend log file is now deleted during factory reset
+
+### 📝 Technical Details
+
+- **Version updated**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+- **Tutorial logic modified**: Decides whether to delete existing data based on `tutorialCompleted` flag
+- **Backend log command added**: `write_backend_log` command created for factory reset logging
+- **Capability file updated**: `customers.json` permissions added to all relevant scopes
+
+---
+
 ## v3.0.1 (2025) - 🔧 Hotfix: Factory Reset, Translations, Beta Build Workflow
 
 ### 🐛 Bug Fixes

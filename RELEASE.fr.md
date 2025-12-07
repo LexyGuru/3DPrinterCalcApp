@@ -4,6 +4,29 @@ Ce document contient le journal des modifications détaillé pour toutes les ver
 
 ---
 
+## v3.0.2 (2025) - 🔧 Hotfix: Corrections du Tutoriel, Permissions, Journalisation Factory Reset
+
+### 🐛 Corrections de Bugs
+
+#### Corrections du Tutoriel
+- **Préservation des données du tutoriel** - Si le tutoriel a déjà été exécuté une fois, les données existantes ne sont pas supprimées à nouveau
+- **Tutoriel étendu à 18 étapes** - Ajouté: Projets, Tâches, Calendrier, étapes de Sauvegarde/Restauration
+- **Clés de traduction du tutoriel** - Clés de traduction manquantes ajoutées à tous les fichiers de langue
+
+#### Corrections des Permissions
+- **Permissions customers.json** - Permissions ajoutées pour la suppression du fichier `customers.json`
+
+#### Journalisation Factory Reset
+- **Écriture du fichier de journal backend** - Les étapes de Factory Reset sont maintenant enregistrées dans le fichier de journal backend
+- **Journalisation détaillée** - Chaque étape de Factory Reset est enregistrée en détail
+- **Suppression du journal backend restaurée** - Le fichier de journal backend est maintenant supprimé lors du Factory Reset
+
+### 📝 Détails Techniques
+
+- **Version mise à jour**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
 ## v3.0.0 (2025) - 🔒 Chiffrement des Données Clients & Conformité RGPD + ⚡ Optimisation des Performances
 
 ### ⚡ Optimisation des Performances et Code Splitting

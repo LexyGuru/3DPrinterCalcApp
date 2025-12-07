@@ -20,7 +20,8 @@
       "allow": [
         { "path": "$APPCONFIG/filamentLibrary.json" },
         { "path": "$APPCONFIG/filamentLibrary*.json" },
-        { "path": "$APPCONFIG/update_filamentLibrary.json" }
+        { "path": "$APPCONFIG/update_filamentLibrary.json" },
+        { "path": "$APPCONFIG/customers.json" }
       ]
     },
     {
@@ -28,14 +29,16 @@
       "allow": [
         { "path": "$APPCONFIG/filamentLibrary.json" },
         { "path": "$APPCONFIG/filamentLibrary*.json" },
-        { "path": "$APPCONFIG/update_filamentLibrary.json" }
+        { "path": "$APPCONFIG/update_filamentLibrary.json" },
+        { "path": "$APPCONFIG/customers.json" }
       ]
     },
     {
       "identifier": "fs:allow-create",
       "allow": [
         { "path": "$APPCONFIG/filamentLibrary.json" },
-        { "path": "$APPCONFIG/update_filamentLibrary.json" }
+        { "path": "$APPCONFIG/update_filamentLibrary.json" },
+        { "path": "$APPCONFIG/customers.json" }
       ]
     },
     {
@@ -64,6 +67,7 @@
         { "path": "$APPCONFIG/filamentLibrary.json" },
         { "path": "$APPCONFIG/filamentLibrary*.json" },
         { "path": "$APPCONFIG/update_filamentLibrary.json" },
+        { "path": "$APPCONFIG/customers.json" },
         { "path": "$APPDATA/backups/**" },
         { "path": "$APPDATA/3DPrinterCalcApp/backups/**" },
         { "path": "$APPDATA/**/*.log" }
@@ -75,6 +79,7 @@
         { "path": "$APPCONFIG/filamentLibrary.json" },
         { "path": "$APPCONFIG/filamentLibrary*.json" },
         { "path": "$APPCONFIG/update_filamentLibrary.json" },
+        { "path": "$APPCONFIG/customers.json" },
         { "path": "$APPDATA/backups/**" },
         { "path": "$APPDATA/3DPrinterCalcApp/backups/**" }
       ]
@@ -84,6 +89,7 @@
       "allow": [
         { "path": "$APPCONFIG/filamentLibrary.json" },
         { "path": "$APPCONFIG/update_filamentLibrary.json" },
+        { "path": "$APPCONFIG/customers.json" },
         { "path": "$APPDATA/3DPrinterCalcApp/backups/**" }
       ]
     },
@@ -93,6 +99,7 @@
         { "path": "$APPDATA/backups/**" },
         { "path": "$APPDATA/3DPrinterCalcApp/backups/**" },
         { "path": "$APPCONFIG/data.json" },
+        { "path": "$APPCONFIG/customers.json" },
         { "path": "$APPCONFIG/filamentLibrary.json" },
         { "path": "$APPCONFIG/update_filamentLibrary.json" }
       ]

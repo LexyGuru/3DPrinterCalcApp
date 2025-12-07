@@ -4,6 +4,29 @@ Ten dokument zawiera szczegółowy dziennik zmian dla wszystkich wersji aplikacj
 
 ---
 
+## v3.0.2 (2025) - 🔧 Hotfix: Poprawki Tutorialu, Uprawnienia, Logowanie Factory Reset
+
+### 🐛 Poprawki Błędów
+
+#### Poprawki Tutorialu
+- **Zachowanie danych tutorialu** - Jeśli tutorial został już uruchomiony raz, istniejące dane nie są ponownie usuwane
+- **Tutorial rozszerzony do 18 kroków** - Dodano: Projekty, Zadania, Kalendarz, kroki Backup/Przywracanie
+- **Klucze tłumaczenia tutorialu** - Brakujące klucze tłumaczenia dodane do wszystkich plików językowych
+
+#### Poprawki Uprawnień
+- **Uprawnienia customers.json** - Uprawnienia dodane do usuwania pliku `customers.json`
+
+#### Logowanie Factory Reset
+- **Zapisywanie pliku logu backend** - Kroki Factory Reset są teraz zapisywane w pliku logu backend
+- **Szczegółowe logowanie** - Każdy krok Factory Reset jest szczegółowo logowany
+- **Usuwanie logu backend przywrócone** - Plik logu backend jest teraz usuwany podczas Factory Reset
+
+### 📝 Szczegóły Techniczne
+
+- **Wersja zaktualizowana**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
 ## v3.0.0 (2025) - 🔒 Szyfrowanie Danych Klientów & Zgodność z RODO + ⚡ Optymalizacja Wydajności
 
 ### ⚡ Optymalizacja Wydajności i Code Splitting

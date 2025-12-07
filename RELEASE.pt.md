@@ -4,6 +4,29 @@ Este documento contém o changelog detalhado para todas as versões do aplicativ
 
 ---
 
+## v3.0.2 (2025) - 🔧 Hotfix: Correções do Tutorial, Permissões, Registro de Factory Reset
+
+### 🐛 Correções de Erros
+
+#### Correções do Tutorial
+- **Preservação de dados do tutorial** - Se o tutorial já foi executado uma vez, os dados existentes não são excluídos novamente
+- **Tutorial expandido para 18 passos** - Adicionado: Projetos, Tarefas, Calendário, passos de Backup/Restauração
+- **Chaves de tradução do tutorial** - Chaves de tradução faltantes adicionadas a todos os arquivos de idioma
+
+#### Correções de Permissões
+- **Permissões customers.json** - Permissões adicionadas para exclusão do arquivo `customers.json`
+
+#### Registro de Factory Reset
+- **Gravação de arquivo de log do backend** - Os passos de Factory Reset agora são registrados no arquivo de log do backend
+- **Registro detalhado** - Cada passo de Factory Reset é registrado em detalhes
+- **Exclusão de log do backend restaurada** - O arquivo de log do backend agora é excluído durante o Factory Reset
+
+### 📝 Detalhes Técnicos
+
+- **Versão atualizada**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
 ## v3.0.0 (2025) - 🔒 Criptografia de Dados de Clientes & Conformidade GDPR + ⚡ Otimização de Desempenho
 
 ### ⚡ Otimização de Desempenho e Code Splitting

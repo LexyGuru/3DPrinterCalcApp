@@ -4,6 +4,29 @@ Dieses Dokument enthält detaillierte Änderungsprotokolle für alle Versionen d
 
 ---
 
+## v3.0.2 (2025) - 🔧 Hotfix: Tutorial-Fixes, Berechtigungen, Factory Reset-Protokollierung
+
+### 🐛 Fehlerbehebungen
+
+#### Tutorial-Fixes
+- **Tutorial-Datenerhaltung** - Wenn das Tutorial bereits einmal ausgeführt wurde, werden vorhandene Daten nicht erneut gelöscht
+- **Tutorial auf 18 Schritte erweitert** - Hinzugefügt: Projekte, Aufgaben, Kalender, Backup/Wiederherstellung Schritte
+- **Tutorial-Übersetzungsschlüssel** - Fehlende Übersetzungsschlüssel zu allen Sprachdateien hinzugefügt
+
+#### Berechtigungs-Fixes
+- **customers.json Berechtigungen** - Berechtigungen für `customers.json` Dateilöschung hinzugefügt
+
+#### Factory Reset-Protokollierung
+- **Backend-Log-Datei schreiben** - Factory Reset-Schritte werden jetzt in die Backend-Log-Datei geschrieben
+- **Detaillierte Protokollierung** - Jeder Factory Reset-Schritt wird detailliert protokolliert
+- **Backend-Log-Löschung wiederhergestellt** - Backend-Log-Datei wird jetzt beim Factory Reset gelöscht
+
+### 📝 Technische Details
+
+- **Version aktualisiert**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
 ## v3.0.0 (2025) - 🔒 Kundendatenverschlüsselung & DSGVO-Konformität + ⚡ Performance-Optimierung
 
 ### ⚡ Performance-Optimierung und Code Splitting

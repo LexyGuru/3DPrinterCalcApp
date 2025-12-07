@@ -4,6 +4,29 @@ Este documento contiene el registro detallado de cambios para todas las versione
 
 ---
 
+## v3.0.2 (2025) - 🔧 Hotfix: Correcciones del Tutorial, Permisos, Registro de Factory Reset
+
+### 🐛 Correcciones de Errores
+
+#### Correcciones del Tutorial
+- **Preservación de datos del tutorial** - Si el tutorial ya se ejecutó una vez, los datos existentes no se eliminan nuevamente
+- **Tutorial expandido a 18 pasos** - Agregado: Proyectos, Tareas, Calendario, pasos de Backup/Restauración
+- **Claves de traducción del tutorial** - Claves de traducción faltantes agregadas a todos los archivos de idioma
+
+#### Correcciones de Permisos
+- **Permisos de customers.json** - Permisos agregados para la eliminación del archivo `customers.json`
+
+#### Registro de Factory Reset
+- **Escritura de archivo de registro del backend** - Los pasos de Factory Reset ahora se registran en el archivo de registro del backend
+- **Registro detallado** - Cada paso de Factory Reset se registra en detalle
+- **Eliminación de registro del backend restaurada** - El archivo de registro del backend ahora se elimina durante el Factory Reset
+
+### 📝 Detalles Técnicos
+
+- **Versión actualizada**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
 ## v3.0.0 (2025) - 🔒 Cifrado de Datos de Clientes & Cumplimiento RGPD + ⚡ Optimización de Rendimiento
 
 ### ⚡ Optimización de Rendimiento y Code Splitting
