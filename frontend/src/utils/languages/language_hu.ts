@@ -1831,6 +1831,7 @@ export const languageHu: TranslationMap = {
   "settings.logs.auditLogManagement": "Log és Audit Log kezelés",
   "settings.logs.deleteOlderAuditLogs": "Törlés régebbi audit log fájlok",
   "settings.logs.folderLocation": "Mappa helye",
+  "settings.logs.openFolder": "Mappa megnyitása",
   "settings.logs.auditLogHistory": "Audit Log történet",
   "settings.logs.logHistory": "Log történet",
   "settings.calendar.provider": "Naptár szolgáltató",
