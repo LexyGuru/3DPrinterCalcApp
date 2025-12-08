@@ -317,22 +317,33 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
       if (isInitialized && activePage === 'customers' && settings.encryptionEnabled && settings.encryptedCustomerData && passwordPromptCancelled) {
         const encryptionPassword = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
         if (!encryptionPassword && !settings.useAppPasswordForEncryption && !hasShownToastRef.current) {
-          // Toast üzenet megjelenítése jelszó kérő gombbal (csak egyszer)
-          // A ToastProvider már ellenőrzi, hogy van-e már ilyen toast, így csak egy példány jelenik meg
-          hasShownToastRef.current = true;
-          showToast(
-            passwordToastMessage,
-            "info",
-            {
-              label: t("encryption.enterPassword" as any) || "Jelszó megadása",
-              onClick: () => {
-                // 🔒 TOAST BEZÁRÁS: A toast automatikusan bezáródik az actionButton.onClick-ben
-                hasShownToastRef.current = false;
-                setPasswordPromptCancelled(false);
-                setShowEncryptionPasswordPrompt(true);
-              }
+          // 🔒 FONTOS: Ellenőrizzük, hogy valóban van-e titkosított adat a fájlban (factory reset után lehet, hogy nincs)
+          hasEncryptedCustomerData().then((hasEncryptedData) => {
+            // Csak akkor jelenítjük meg a toast-ot, ha valóban van titkosított adat a fájlban
+            if (hasEncryptedData && !hasShownToastRef.current) {
+              // Toast üzenet megjelenítése jelszó kérő gombbal (csak egyszer)
+              // A ToastProvider már ellenőrzi, hogy van-e már ilyen toast, így csak egy példány jelenik meg
+              hasShownToastRef.current = true;
+              showToast(
+                passwordToastMessage,
+                "info",
+                {
+                  label: t("encryption.enterPassword" as any) || "Jelszó megadása",
+                  onClick: () => {
+                    // 🔒 TOAST BEZÁRÁS: A toast automatikusan bezáródik az actionButton.onClick-ben
+                    hasShownToastRef.current = false;
+                    setPasswordPromptCancelled(false);
+                    setShowEncryptionPasswordPrompt(true);
+                  }
+                }
+              );
             }
-          );
+          }).catch((error) => {
+            // Ha hiba történik az ellenőrzés során (pl. nincs customers.json), ne jelenítsük meg a toast-ot
+            if (import.meta.env.DEV) {
+              console.log("ℹ️ Nincs titkosított adat a fájlban vagy hiba történt az ellenőrzés során:", error);
+            }
+          });
         }
       }
       // Reset a flag-et, ha elhagyjuk az ügyfelek oldalt
