@@ -4,6 +4,44 @@ This document contains detailed changelog for all versions of the 3D Printer Cal
 
 ---
 
+## v3.0.3 (2025) - 🔧 Hotfix: Customer Data Encryption Fixes and UI Improvements
+
+### 🐛 Bug Fixes
+
+#### Customer Data Encryption Fixes
+- **Offer actions disabled for encrypted data** - If customer data is encrypted and no password is provided, offer editing, duplication, and status changes are now disabled
+- **Duplicate key issue fixed** - No more "Encountered two children with the same key" errors in offers list and status history
+- **Offer counter fix** - Customer offer counter now counts by `customerId` as well, not just by name, working correctly with encrypted data
+- **Offers refresh after password entry** - When password is provided and customers are decrypted, customer names in offers are restored instead of "ENCRYPTED DATA"
+- **Status history list** - Status history list now shows only customer ID, not customer name, even after password entry (compliant with encryption requirements)
+
+#### Toast Messages Improvements
+- **Duplicate toast messages prevention** - Toast messages now appear only once, even if called multiple times
+- **Toast closes on button click** - When clicking the "Enter Password" button in toast message, the toast automatically closes
+- **Toast message redesign** - Toast messages now have a cleaner, more professional appearance with column layout for action buttons
+
+#### Translation Keys Added
+- **New translation keys** - Added to all 13 languages:
+  - `encryption.passwordRequired` - "Encryption password required"
+  - `encryption.passwordRequiredForOfferEdit` - "Encryption password required to edit the offer"
+  - `encryption.passwordRequiredForOfferDuplicate` - "Encryption password required to duplicate the offer"
+  - `encryption.passwordRequiredForOfferStatusChange` - "Encryption password required to change the offer status"
+  - `encryption.passwordRequiredForCustomerCreate` - "Encryption password required to create a new customer"
+  - `encryption.passwordRequiredForCustomerEdit` - "Encryption password required to edit"
+  - `encryption.encryptedData` - "ENCRYPTED DATA"
+  - `customers.id` - "Customer ID"
+  - `customers.encryptedDataMessage` - "🔒 Encrypted data - password required to view"
+
+### 📝 Technical Details
+
+- **Version updated**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.3`
+- **Hardcoded strings replaced**: All hardcoded Hungarian strings replaced with translation keys
+- **TypeScript types updated**: New translation keys added to `TranslationKey` type
+- **Toast Provider modified**: Duplicate toast check and automatic close added
+- **Offer refresh logic**: Automatic offer refresh after customer decryption when password is provided
+
+---
+
 ## v3.0.2 (2025) - 🔧 Hotfix: Tutorial Fixes, Permissions, Factory Reset Logging
 
 ### 🐛 Bug Fixes

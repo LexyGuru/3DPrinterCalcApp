@@ -166,6 +166,30 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
                   if (import.meta.env.DEV) {
                     console.log("✅ Ügyfelek automatikusan betöltve app password-tal:", { count: loadedCustomers.length });
                   }
+                  // 🔒 ÁRAJÁNLATOK FRISSÍTÉSE: Amikor az ügyfelek dekódolódnak, frissítsük az árajánlatokat is
+                  setOffers(prevOffers => {
+                    const updatedOffers = prevOffers.map(offer => {
+                      if (offer.customerId) {
+                        const customer = loadedCustomers.find(c => c.id === offer.customerId);
+                        if (customer && customer.name) {
+                          if (import.meta.env.DEV) {
+                            console.log("🔒 [App] Árajánlat frissítése ügyfél adatokkal (app password):", {
+                              offerId: offer.id,
+                              customerId: offer.customerId,
+                              customerName: customer.name
+                            });
+                          }
+                          return {
+                            ...offer,
+                            customerName: customer.name,
+                            customerContact: customer.contact || undefined,
+                          };
+                        }
+                      }
+                      return offer;
+                    });
+                    return updatedOffers;
+                  });
                 }
               }).catch((error) => {
                 console.error("❌ Hiba az ügyfelek automatikus betöltésekor (app password):", error);
@@ -216,6 +240,30 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
           loadCustomers(encryptionPassword).then((loadedCustomers) => {
             if (loadedCustomers.length > 0) {
               setCustomers(loadedCustomers);
+              // 🔒 ÁRAJÁNLATOK FRISSÍTÉSE: Amikor az ügyfelek dekódolódnak, frissítsük az árajánlatokat is
+              setOffers(prevOffers => {
+                const updatedOffers = prevOffers.map(offer => {
+                  if (offer.customerId) {
+                    const customer = loadedCustomers.find(c => c.id === offer.customerId);
+                    if (customer && customer.name) {
+                      if (import.meta.env.DEV) {
+                        console.log("🔒 [App] Árajánlat frissítése ügyfél adatokkal (navigáció):", {
+                          offerId: offer.id,
+                          customerId: offer.customerId,
+                          customerName: customer.name
+                        });
+                      }
+                      return {
+                        ...offer,
+                        customerName: customer.name,
+                        customerContact: customer.contact || undefined,
+                      };
+                    }
+                  }
+                  return offer;
+                });
+                return updatedOffers;
+              });
             }
           }).catch((error) => {
             console.error("❌ Hiba az ügyfelek automatikus betöltésekor:", error);
@@ -223,14 +271,35 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
         }
         // Ha nincs app password memóriában, akkor várjuk az AuthGuard promptot (ne jelenítünk encryption promptot)
         // Az automatikus betöltés az appPasswordSetTrigger useEffect-ben történik
-      } else if (!encryptionPassword && !showEncryptionPasswordPrompt && !showWelcomeMessage && !passwordPromptCancelled) {
-        // Nincs jelszó memóriában és nincs megnyitva prompt vagy welcome message
-        // DE: csak akkor, ha NEM useAppPasswordForEncryption ÉS nem lett megszakítva
-        if (import.meta.env.DEV) {
-          console.log("🔒 Ügyfelek oldalra navigálva, jelszó szükséges - prompt megjelenítése");
+      } else if (!encryptionPassword) {
+        // Nincs jelszó memóriában - betöltjük az ügyfeleket csak ID-kkal
+        if (customers.length === 0) {
+          if (import.meta.env.DEV) {
+            console.log("🔒 Nincs jelszó, csak ID-k betöltése...");
+          }
+          loadCustomers(null).then((loadedCustomers) => {
+            if (loadedCustomers.length > 0) {
+              setCustomers(loadedCustomers);
+              if (import.meta.env.DEV) {
+                console.log("✅ Ügyfelek betöltve csak ID-kkal (nincs jelszó):", { count: loadedCustomers.length });
+              }
+            }
+          }).catch((error) => {
+            // Ha hiba van, csak logoljuk, ne dobjuk el
+            if (import.meta.env.DEV) {
+              console.log("ℹ️ Ügyfelek betöltése csak ID-kkal:", error);
+            }
+          });
         }
-        // NE reseteljük a flag-et, hogy ne jelenjen meg újra, ha megszakították
-        setShowEncryptionPasswordPrompt(true);
+        
+        // Opcionálisan megjeleníthetjük a jelszó promptot, ha még nincs megnyitva
+        if (!showEncryptionPasswordPrompt && !showWelcomeMessage && !passwordPromptCancelled) {
+          // Opcionális: jelszó prompt megjelenítése (kikommentezve, mert most csak ID-kat jelenítünk meg)
+          // if (import.meta.env.DEV) {
+          //   console.log("🔒 Ügyfelek oldalra navigálva, jelszó szükséges - prompt megjelenítése");
+          // }
+          // setShowEncryptionPasswordPrompt(true);
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -241,6 +310,7 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
     const { showToast } = useToast();
     const t = useTranslation(settings.language);
     const hasShownToastRef = useRef(false);
+    const passwordToastMessage = t("encryption.passwordRequiredForCustomers" as any) || "⚠️ Jelszó szükséges az ügyféladatok betöltéséhez. Az adatok titkosítva vannak.";
     
     useEffect(() => {
       // Ha az ügyfelek oldalra navigálunk, van titkosított adat, de nincs jelszó memóriában ÉS megszakították a jelszó ablakot
@@ -248,13 +318,15 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
         const encryptionPassword = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
         if (!encryptionPassword && !settings.useAppPasswordForEncryption && !hasShownToastRef.current) {
           // Toast üzenet megjelenítése jelszó kérő gombbal (csak egyszer)
+          // A ToastProvider már ellenőrzi, hogy van-e már ilyen toast, így csak egy példány jelenik meg
           hasShownToastRef.current = true;
           showToast(
-            t("encryption.passwordRequiredForCustomers" as any) || "⚠️ Jelszó szükséges az ügyféladatok betöltéséhez. Az adatok titkosítva vannak.",
+            passwordToastMessage,
             "info",
             {
               label: t("encryption.enterPassword" as any) || "Jelszó megadása",
               onClick: () => {
+                // 🔒 TOAST BEZÁRÁS: A toast automatikusan bezáródik az actionButton.onClick-ben
                 hasShownToastRef.current = false;
                 setPasswordPromptCancelled(false);
                 setShowEncryptionPasswordPrompt(true);
@@ -268,7 +340,7 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
         hasShownToastRef.current = false;
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isInitialized, activePage, settings.encryptionEnabled, settings.encryptedCustomerData, settings.useAppPasswordForEncryption, passwordPromptCancelled, showToast, t]);
+    }, [isInitialized, activePage, settings.encryptionEnabled, settings.encryptedCustomerData, settings.useAppPasswordForEncryption, passwordPromptCancelled, showToast, t, passwordToastMessage]);
     
     return null;
   };
@@ -450,6 +522,30 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
         const loadedCustomers = await loadCustomers(encryptionPassword);
         if (loadedCustomers.length > 0) {
           setCustomers(loadedCustomers);
+          // 🔒 ÁRAJÁNLATOK FRISSÍTÉSE: Amikor az ügyfelek dekódolódnak, frissítsük az árajánlatokat is
+          setOffers(prevOffers => {
+            const updatedOffers = prevOffers.map(offer => {
+              if (offer.customerId) {
+                const customer = loadedCustomers.find(c => c.id === offer.customerId);
+                if (customer && customer.name) {
+                  if (import.meta.env.DEV) {
+                    console.log("🔒 [App] Árajánlat frissítése ügyfél adatokkal (reloadData):", {
+                      offerId: offer.id,
+                      customerId: offer.customerId,
+                      customerName: customer.name
+                    });
+                  }
+                  return {
+                    ...offer,
+                    customerName: customer.name,
+                    customerContact: customer.contact || undefined,
+                  };
+                }
+              }
+              return offer;
+            });
+            return updatedOffers;
+          });
         }
       } catch (error) {
         // Ha jelszó szükséges, akkor megjelenítjük a jelszó dialog-ot
@@ -788,6 +884,30 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
                 setCustomers(loadedCustomers);
                 await writeFrontendLog('INFO', `✅ [MODUL: Ügyfelek] Betöltve - ${loadedCustomers.length} ügyfél`);
                 await writeFrontendLog('INFO', "✅ [MODUL: Ügyfelek] Státusz: Minden rendben");
+                // 🔒 ÁRAJÁNLATOK FRISSÍTÉSE: Amikor az ügyfelek dekódolódnak, frissítsük az árajánlatokat is
+                setOffers(prevOffers => {
+                  const updatedOffers = prevOffers.map(offer => {
+                    if (offer.customerId) {
+                      const customer = loadedCustomers.find(c => c.id === offer.customerId);
+                      if (customer && customer.name) {
+                        if (import.meta.env.DEV) {
+                          console.log("🔒 [App] Árajánlat frissítése ügyfél adatokkal (inicializálás):", {
+                            offerId: offer.id,
+                            customerId: offer.customerId,
+                            customerName: customer.name
+                          });
+                        }
+                        return {
+                          ...offer,
+                          customerName: customer.name,
+                          customerContact: customer.contact || undefined,
+                        };
+                      }
+                    }
+                    return offer;
+                  });
+                  return updatedOffers;
+                });
               } else {
                 customersStatus = "warning";
                 await writeFrontendLog('INFO', "ℹ️ [MODUL: Ügyfelek] Nincs mentett ügyfél");
@@ -1927,6 +2047,33 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
                   if (loadedCustomers.length > 0) {
                     setCustomers(loadedCustomers);
                     await writeFrontendLog('INFO', `✅ [MODUL: Ügyfelek] Betöltve - ${loadedCustomers.length} ügyfél`);
+                    
+                    // 🔒 ÁRAJÁNLATOK FRISSÍTÉSE: Amikor az ügyfelek dekódolódnak, frissítsük az árajánlatokat is
+                    // hogy a customerName és customerContact visszaálljon a "TITKOSITOTT ADATOK" helyett
+                    setOffers(prevOffers => {
+                      const updatedOffers = prevOffers.map(offer => {
+                        if (offer.customerId) {
+                          const customer = loadedCustomers.find(c => c.id === offer.customerId);
+                          if (customer && customer.name) {
+                            // Ha találtunk ügyfelet névvel, frissítsük az árajánlatot
+                            if (import.meta.env.DEV) {
+                              console.log("🔒 [App] Árajánlat frissítése ügyfél adatokkal:", {
+                                offerId: offer.id,
+                                customerId: offer.customerId,
+                                customerName: customer.name
+                              });
+                            }
+                            return {
+                              ...offer,
+                              customerName: customer.name,
+                              customerContact: customer.contact || undefined,
+                            };
+                          }
+                        }
+                        return offer;
+                      });
+                      return updatedOffers;
+                    });
                   } else {
                     await writeFrontendLog('INFO', `ℹ️ [MODUL: Ügyfelek] Nincs ügyfél betölthető`);
                   }

@@ -4,6 +4,44 @@ Este documento contém o changelog detalhado para todas as versões do aplicativ
 
 ---
 
+## v3.0.3 (2025) - 🔧 Hotfix: Correções de Criptografia de Dados do Cliente e Melhorias de UI
+
+### 🐛 Correções de Erros
+
+#### Correções de Criptografia de Dados do Cliente
+- **Ações de oferta desabilitadas para dados criptografados** - Se os dados do cliente estão criptografados e nenhuma senha é fornecida, a edição, duplicação e mudança de status das ofertas agora estão desabilitadas
+- **Problema de chave duplicada corrigido** - Não há mais erros "Encountered two children with the same key" na lista de ofertas e histórico de status
+- **Correção do contador de ofertas** - O contador de ofertas do cliente agora conta também por `customerId`, não apenas por nome, funcionando corretamente com dados criptografados
+- **Atualização de ofertas após inserir senha** - Quando a senha é fornecida e os clientes são descriptografados, os nomes dos clientes nas ofertas são restaurados em vez de "DADOS CRIPTOGRAFADOS"
+- **Lista de histórico de status** - A lista de histórico de status agora mostra apenas o ID do cliente, não o nome do cliente, mesmo após inserir a senha (conforme requisitos de criptografia)
+
+#### Melhorias de Mensagens Toast
+- **Prevenção de mensagens toast duplicadas** - As mensagens toast agora aparecem apenas uma vez, mesmo se chamadas múltiplas vezes
+- **Toast fecha ao clicar no botão** - Ao clicar no botão "Inserir senha" na mensagem toast, o toast fecha automaticamente
+- **Redesign da mensagem toast** - As mensagens toast agora têm uma aparência mais limpa e profissional com layout de coluna para botões de ação
+
+#### Chaves de Tradução Adicionadas
+- **Novas chaves de tradução** - Adicionadas a todos os 13 idiomas:
+  - `encryption.passwordRequired` - "Senha de criptografia necessária"
+  - `encryption.passwordRequiredForOfferEdit` - "Senha de criptografia necessária para editar a oferta"
+  - `encryption.passwordRequiredForOfferDuplicate` - "Senha de criptografia necessária para duplicar a oferta"
+  - `encryption.passwordRequiredForOfferStatusChange` - "Senha de criptografia necessária para alterar o status da oferta"
+  - `encryption.passwordRequiredForCustomerCreate` - "Senha de criptografia necessária para criar um novo cliente"
+  - `encryption.passwordRequiredForCustomerEdit` - "Senha de criptografia necessária para editar"
+  - `encryption.encryptedData` - "DADOS CRIPTOGRAFADOS"
+  - `customers.id` - "ID do Cliente"
+  - `customers.encryptedDataMessage` - "🔒 Dados criptografados - senha necessária para visualizar"
+
+### 📝 Detalhes Técnicos
+
+- **Versão atualizada**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.3`
+- **Strings hardcoded substituídas**: Todas as strings hardcoded em húngaro substituídas por chaves de tradução
+- **Tipos TypeScript atualizados**: Novas chaves de tradução adicionadas ao tipo `TranslationKey`
+- **Toast Provider modificado**: Verificação de toast duplicado e fechamento automático adicionados
+- **Lógica de atualização de ofertas**: Atualização automática de ofertas após descriptografia de clientes quando senha é fornecida
+
+---
+
 ## v3.0.2 (2025) - 🔧 Hotfix: Correções do Tutorial, Permissões, Registro de Factory Reset
 
 ### 🐛 Correções de Erros
@@ -24,6 +62,45 @@ Este documento contém o changelog detalhado para todas as versões do aplicativ
 ### 📝 Detalhes Técnicos
 
 - **Versão atualizada**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
+## v3.0.1 (2025) - 🔧 Hotfix: Factory Reset, Traduções, Beta Build Workflow
+
+### 🐛 Correções de Erros
+
+#### Correção do Factory Reset
+- **Factory reset corrigido** - O arquivo `customers.json` agora é explicitamente excluído durante o factory reset
+- **Exclusão completa dos dados do cliente** - O arquivo de dados do cliente criptografados (`customers.json`) também é excluído, garantindo a exclusão completa dos dados
+
+#### Chaves de Tradução Faltantes
+- **Chave `encryption.noAppPassword` adicionada** - Chave de tradução faltante adicionada a todos os 14 idiomas
+- **Traduções de mensagens de backup** - Traduções para a mensagem "Ainda não há arquivos de backup automático" adicionadas
+- **Traduções de gerenciamento de logs** - Traduções para textos de gerenciamento de Log e Audit Log adicionadas:
+  - `settings.logs.auditLogManagement`
+  - `settings.logs.deleteOlderAuditLogs`
+  - `settings.logs.folderLocation`
+  - `settings.logs.openFolder`
+  - `settings.logs.auditLogHistory`
+  - `settings.logs.logHistory`
+- **Traduções do calendário** - Traduções para nomes de meses e dias adicionadas:
+  - `calendar.monthNames`
+  - `calendar.dayNames`
+  - `calendar.dayNamesShort`
+  - `settings.calendar.provider`
+- **Descrição do menu de ajuda** - Traduções para a descrição "Show Help menu item in Sidebar" adicionadas
+
+#### Correção do Workflow Beta Build
+- **Checkout explícito do branch beta** - O workflow agora usa explicitamente o commit mais recente do branch `beta`
+- **Correção do commit da tag** - A tag `beta-v3.0.1` agora aponta para o commit correto (não o commit antigo)
+- **Correção da data do código-fonte** - A data "Source code" agora mostra o tempo de compilação, não a data do commit antigo
+- **Etapas de verificação adicionadas** - Verificação Git pull e commit SHA adicionada ao workflow
+
+### 📝 Detalhes Técnicos
+
+- **Versão atualizada**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.1`
+- **Chaves duplicadas removidas**: Duplicações de `settings.logs.openFolder` removidas de todos os arquivos de idioma
+- **Tipos TypeScript atualizados**: `encryption.noAppPassword` adicionado ao tipo `TranslationKey`
 
 ---
 

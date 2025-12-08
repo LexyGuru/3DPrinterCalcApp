@@ -4,6 +4,44 @@ Tento dokument obsahuje podrobný changelog pre všetky verzie aplikácie 3D Pri
 
 ---
 
+## v3.0.3 (2025) - 🔧 Hotfix: Opravy Šifrovania Údajov Zákazníkov a Vylepšenia UI
+
+### 🐛 Opravy Chýb
+
+#### Opravy Šifrovania Údajov Zákazníkov
+- **Akcie ponuky zakázané pre šifrované údaje** - Ak sú údaje zákazníka šifrované a nie je poskytnuté heslo, úprava, duplikácia a zmena stavu ponúk sú teraz zakázané
+- **Problém duplicitného kľúča opravený** - Už žiadne chyby "Encountered two children with the same key" v zozname ponúk a histórii stavu
+- **Oprava počítadla ponúk** - Počítadlo ponúk zákazníka teraz počíta aj podľa `customerId`, nielen podľa mena, správne funguje so šifrovanými údajmi
+- **Aktualizácia ponúk po zadaní hesla** - Keď je heslo poskytnuté a zákazníci sú dešifrovaní, mená zákazníkov v ponukách sú obnovené namiesto "ŠIFROVANÉ ÚDAJE"
+- **Zoznam histórie stavu** - Zoznam histórie stavu teraz zobrazuje len ID zákazníka, nie meno zákazníka, dokonca aj po zadaní hesla (v súlade s požiadavkami na šifrovanie)
+
+#### Vylepšenia Toast Správ
+- **Prevencia duplicitných toast správ** - Toast správy sa teraz zobrazujú len raz, aj keď sú volané viackrát
+- **Toast sa zatvorí pri kliknutí na tlačítko** - Pri kliknutí na tlačítko "Zadať heslo" v toast správe sa toast automaticky zatvorí
+- **Prepracovanie toast správy** - Toast správy majú teraz čistejší, profesionálnejší vzhľad s rozvrhnutím stĺpcov pre akčné tlačítka
+
+#### Pridané Kľúče Prekladu
+- **Nové kľúče prekladu** - Pridané do všetkých 13 jazykov:
+  - `encryption.passwordRequired` - "Vyžadované šifrovacie heslo"
+  - `encryption.passwordRequiredForOfferEdit` - "Vyžadované šifrovacie heslo na úpravu ponuky"
+  - `encryption.passwordRequiredForOfferDuplicate` - "Vyžadované šifrovacie heslo na duplikáciu ponuky"
+  - `encryption.passwordRequiredForOfferStatusChange` - "Vyžadované šifrovacie heslo na zmenu stavu ponuky"
+  - `encryption.passwordRequiredForCustomerCreate` - "Vyžadované šifrovacie heslo na vytvorenie nového zákazníka"
+  - `encryption.passwordRequiredForCustomerEdit` - "Vyžadované šifrovacie heslo na úpravu"
+  - `encryption.encryptedData` - "ŠIFROVANÉ ÚDAJE"
+  - `customers.id` - "ID zákazníka"
+  - `customers.encryptedDataMessage` - "🔒 Šifrované údaje - heslo vyžadované na zobrazenie"
+
+### 📝 Technické Detaily
+
+- **Verzia aktualizovaná**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.3`
+- **Hardcodované reťazce nahradené**: Všetky hardcodované maďarské reťazce nahradené kľúčmi prekladu
+- **TypeScript typy aktualizované**: Nové kľúče prekladu pridané do typu `TranslationKey`
+- **Toast Provider upravený**: Kontrola duplicitných toast a automatické zatvorenie pridané
+- **Logika aktualizácie ponúk**: Automatická aktualizácia ponúk po dešifrovaní zákazníkov pri poskytnutí hesla
+
+---
+
 ## v3.0.2 (2025) - 🔧 Hotfix: Opravy Tutoriálu, Oprávnenia, Protokolovanie Factory Reset
 
 ### 🐛 Opravy Chýb

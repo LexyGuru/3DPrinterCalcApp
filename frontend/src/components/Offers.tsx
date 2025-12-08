@@ -26,7 +26,7 @@ import { notifyExportComplete, notifyOfferStatusChange } from "../utils/platform
 import { useUndoRedo } from "../hooks/useUndoRedo";
 import { useKeyboardShortcut } from "../utils/keyboardShortcuts";
 import { auditCreate, auditUpdate, auditDelete } from "../utils/auditLog";
-import { saveCustomers } from "../utils/store";
+import { saveCustomers, hasEncryptedCustomerData } from "../utils/store";
 import { getEncryptionPassword } from "../utils/encryptionPasswordManager";
 // Offers feature modul importok
 import { OfferFilters, OfferStatusFilters, OfferSortControls, useOfferFilter } from "../features/offers";
@@ -173,11 +173,21 @@ export const Offers: React.FC<Props> = ({
     if (selectedEditCustomerId !== "" && selectedEditCustomerId !== null) {
       const customer = customers.find(c => c.id === selectedEditCustomerId);
       if (customer) {
-        setEditCustomerName(customer.name);
-        setEditCustomerContact(customer.contact || "");
+        // 🔒 TITKOSÍTOTT ADATOK KEZELÉSE: Ha az ügyfél adatai titkosítva vannak, ne töltse be a nevét és elérhetőségét
+        const isCustomerDataEncrypted = settings.encryptionEnabled && settings.encryptedCustomerData;
+        if (isCustomerDataEncrypted) {
+          // Ha titkosítva vannak az adatok, az ügyfél ID-ját írjuk be az ügyfélnév mezőbe
+          // Így a felhasználó látja, hogy melyik ügyfél van kiválasztva, és a validáció is átmegy
+          setEditCustomerName(`${t("offers.details.customerId")}: ${selectedEditCustomerId}`);
+          setEditCustomerContact("");
+        } else {
+          // Ha nincsenek titkosítva, akkor betöltjük az adatokat
+          setEditCustomerName(customer.name);
+          setEditCustomerContact(customer.contact || "");
+        }
       }
     }
-  }, [selectedEditCustomerId, customers]);
+  }, [selectedEditCustomerId, customers, settings.encryptionEnabled, settings.encryptedCustomerData]);
   const [editDescription, setEditDescription] = useState("");
   const [editProfitPercentage, setEditProfitPercentage] = useState<number>(30);
   const [editPrintDueDate, setEditPrintDueDate] = useState<string>("");
@@ -353,6 +363,15 @@ export const Offers: React.FC<Props> = ({
   };
 
   const duplicateOffer = async (offer: Offer) => {
+    // 🔒 TITKOSÍTOTT ADATOK KEZELÉSE: Ha titkosítva vannak az adatok és nincs jelszó, ne engedjük a duplikálást
+    if (settings.encryptionEnabled && settings.encryptedCustomerData) {
+      const encryptionPassword = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
+      if (!encryptionPassword && offer.customerId) {
+        showToast(t("encryption.passwordRequiredForOfferDuplicate"), "error");
+        return;
+      }
+    }
+    
     logWithLanguage(settings.language, "log", "offers.duplicate.start", {
       originalOfferId: offer.id,
       customerName: offer.customerName,
@@ -450,6 +469,15 @@ export const Offers: React.FC<Props> = ({
     note?: string,
     options?: { deductOnCompleted?: boolean }
   ) => {
+    // 🔒 TITKOSÍTOTT ADATOK KEZELÉSE: Ha titkosítva vannak az adatok és nincs jelszó, ne engedjük a státusz változtatást
+    if (settings.encryptionEnabled && settings.encryptedCustomerData) {
+      const encryptionPassword = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
+      if (!encryptionPassword && offer.customerId) {
+        showToast("Titkosítási jelszó szükséges az árajánlat státuszának módosításához", "error");
+        return;
+      }
+    }
+    
     const timestamp = new Date().toISOString();
     const historyEntry: OfferStatusHistory = {
       status: newStatus,
@@ -504,6 +532,16 @@ export const Offers: React.FC<Props> = ({
   };
 
   const startEditOffer = (offer: Offer) => {
+    // 🔒 TITKOSÍTOTT ADATOK KEZELÉSE: Ha titkosítva vannak az adatok és nincs jelszó, ne engedjük a szerkesztést
+    if (settings.encryptionEnabled && settings.encryptedCustomerData) {
+      const encryptionPassword = getEncryptionPassword(settings.useAppPasswordForEncryption ?? false);
+      if (!encryptionPassword && offer.customerId) {
+        // Ha van customerId, akkor valószínűleg titkosított adatokról van szó
+        showToast(t("encryption.passwordRequiredForOfferEdit"), "error");
+        return;
+      }
+    }
+    
     logWithLanguage(settings.language, "log", "offers.edit.start", {
       offerId: offer.id,
       customerName: offer.customerName,
@@ -531,9 +569,15 @@ export const Offers: React.FC<Props> = ({
     setSelectedLibraryFilamentIndex("");
     
     // Próbáljuk meg megtalálni a megfelelő ügyfelet a customers listából
-    const matchedCustomer = offer.customerName 
-      ? customers.find(c => c.name === offer.customerName && c.contact === (offer.customerContact || ""))
-      : null;
+    // Először customerId alapján keresünk (ez a legmegbízhatóbb)
+    let matchedCustomer = null;
+    if (offer.customerId) {
+      matchedCustomer = customers.find(c => c.id === offer.customerId);
+    }
+    // Ha nem találtunk customerId alapján, akkor név alapján keresünk
+    if (!matchedCustomer && offer.customerName) {
+      matchedCustomer = customers.find(c => c.name === offer.customerName && c.contact === (offer.customerContact || ""));
+    }
     setSelectedEditCustomerId(matchedCustomer ? matchedCustomer.id : "");
   };
 
@@ -639,14 +683,27 @@ export const Offers: React.FC<Props> = ({
     const trimmedCustomerName = editCustomerName.trim();
     const trimmedCustomerContact = editCustomerContact.trim() || undefined;
     
-    // Ellenőrizzük, hogy létezik-e az ügyfél (név és contact alapján)
-    let existingCustomer = customers.find(
-      c => c.name === trimmedCustomerName && 
-      (c.contact || "") === (trimmedCustomerContact || "")
-    );
+    // 🔒 TITKOSÍTOTT ADATOK KEZELÉSE: Ha az ügyfélnév "Ügyfél ID: X" formátumú, akkor a selectedEditCustomerId-t használjuk
+    const customerIdLabel = t("offers.details.customerId");
+    const isCustomerIdFormat = new RegExp(`^${customerIdLabel}:\\s*\\d+$`, "i").test(trimmedCustomerName);
+    // Ellenőrizzük, hogy titkosítva vannak-e az adatok (settings alapján)
+    const isEncryptedFromSettings = settings.encryptionEnabled && settings.encryptedCustomerData;
     
-    // Ha nincs meglévő ügyfél, létrehozzuk
-    if (!existingCustomer) {
+    // Ha titkosítva vannak az adatok és van kiválasztott ügyfél ID, akkor azt használjuk
+    if ((isCustomerIdFormat || isEncryptedFromSettings) && selectedEditCustomerId !== "" && selectedEditCustomerId !== null) {
+      customerId = typeof selectedEditCustomerId === "number" ? selectedEditCustomerId : Number(selectedEditCustomerId);
+      if (import.meta.env.DEV) {
+        console.log("🔒 [saveEditOffer] Titkosított adatok esetén kiválasztott ügyfél ID használata:", customerId);
+      }
+    } else {
+      // Ellenőrizzük, hogy létezik-e az ügyfél (név és contact alapján)
+      let existingCustomer = customers.find(
+        c => c.name === trimmedCustomerName && 
+        (c.contact || "") === (trimmedCustomerContact || "")
+      );
+      
+      // Ha nincs meglévő ügyfél, létrehozzuk
+      if (!existingCustomer) {
       try {
         // Új ügyfél ID generálása
         const newCustomerId = customers.length > 0 
@@ -688,10 +745,25 @@ export const Offers: React.FC<Props> = ({
       // Ha létezik az ügyfél, használjuk az ID-ját
       customerId = existingCustomer.id;
     }
+    }
 
     // 🔒 TITKOSÍTOTT ADATOK KEZELÉSE: Ha az ügyfél adatai titkosítva vannak, ne mentsük a customerName és customerContact mezőket
-    // Ellenőrizzük, hogy van-e titkosított customer data
-    const isCustomerDataEncrypted = settings.encryptionEnabled && settings.encryptedCustomerData;
+    // Ellenőrizzük, hogy van-e titkosított customer data (két módon: settings-ből ÉS közvetlenül a store-ból)
+    const isCustomerDataEncryptedFromSettings = settings.encryptionEnabled && settings.encryptedCustomerData;
+    // KRITIKUS: Ellenőrizzük közvetlenül a store-ból is, hogy biztosan megkapjuk a helyes értéket
+    const hasEncryptedData = await hasEncryptedCustomerData();
+    const isCustomerDataEncrypted = isCustomerDataEncryptedFromSettings || hasEncryptedData;
+    
+    if (import.meta.env.DEV && isCustomerDataEncrypted) {
+      console.log("🔒 [saveEditOffer] Titkosítás aktív, customerName és customerContact törlése", {
+        offerId: editingOffer.id,
+        isCustomerDataEncryptedFromSettings,
+        hasEncryptedData,
+        customerId,
+        trimmedCustomerName,
+        trimmedCustomerContact
+      });
+    }
     
     // Ha titkosítva vannak az ügyfél adatok, akkor csak a customerId-t mentjük, ne a customerName-t és customerContact-ot
     const updatedOffer: Offer = {
@@ -714,7 +786,20 @@ export const Offers: React.FC<Props> = ({
       date: hasChanges ? new Date().toISOString() : editingOffer.date, // Frissítjük a dátumot, ha változott
     };
 
-    const updatedOffers = offersWithHistory.map(o => o.id === editingOffer.id ? updatedOffer : o);
+    const updatedOffersRaw = offersWithHistory.map(o => o.id === editingOffer.id ? updatedOffer : o);
+    
+    // 🔒 DUPLIKÁLT ID ELTÁVOLÍTÁS: Biztosítjuk, hogy minden ID csak egyszer szerepeljen
+    const seenOfferIds = new Set<number>();
+    const updatedOffers = updatedOffersRaw.filter(offer => {
+      if (seenOfferIds.has(offer.id)) {
+        if (import.meta.env.DEV) {
+          console.warn("⚠️ Duplikált offer ID eltávolítva saveEditOffer során:", offer.id);
+        }
+        return false;
+      }
+      seenOfferIds.add(offer.id);
+      return true;
+    });
 
     // Frissítjük a lokális undo/redo állapotot ÉS az App szintű offers state-et is,
     // így a módosítás azonnal látszik minden nézetben, nem csak az autosave után.
@@ -1253,7 +1338,7 @@ export const Offers: React.FC<Props> = ({
       status: OfferStatus;
       date: string;
       note?: string;
-      customerName?: string;
+      customerId?: number;
     }> = [];
 
     offersWithHistory.forEach(offer => {
@@ -1265,7 +1350,7 @@ export const Offers: React.FC<Props> = ({
               status: history.status,
               date: history.date,
               note: history.note,
-              customerName: offer.customerName,
+              customerId: offer.customerId,
             });
           }
         });
@@ -1274,7 +1359,7 @@ export const Offers: React.FC<Props> = ({
           offerId: offer.id,
           status: offer.status,
           date: offer.statusUpdatedAt,
-          customerName: offer.customerName,
+          customerId: offer.customerId,
         });
       }
     });
@@ -1826,7 +1911,9 @@ export const Offers: React.FC<Props> = ({
                                 {getStatusLabel(entry.status)}
                               </strong>
                               <span style={{ fontSize: "12px", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted }}>
-                                {(entry.customerName || t("offers.label.quote"))} #{entry.offerId}
+                                {entry.customerId 
+                                  ? `🆔 ${entry.customerId}`
+                                  : `${t("offers.label.quote")} #${entry.offerId}`}
                               </span>
                               {entry.note && (
                                 <span style={{ fontSize: "11px", fontStyle: "italic", color: theme.colors.background?.includes('gradient') ? "#4a5568" : theme.colors.textMuted, wordBreak: "break-word" }}>
@@ -2004,12 +2091,25 @@ export const Offers: React.FC<Props> = ({
               >
                 {(() => {
                   const shouldVirtualize = sortedOffers.length > VIRTUAL_SCROLL_THRESHOLD;
-                  const offersToRender = shouldVirtualize
+                  const offersToRenderRaw = shouldVirtualize
                     ? sortedOffers.slice(
                         Math.max(0, visibleOfferRange.start),
                         Math.min(sortedOffers.length, visibleOfferRange.end + 1)
                       )
                     : sortedOffers;
+                  
+                  // 🔒 DUPLIKÁLT ID ELTÁVOLÍTÁS: Biztosítjuk, hogy minden ID csak egyszer szerepeljen
+                  const seenOfferIds = new Set<number>();
+                  const offersToRender = offersToRenderRaw.filter(offer => {
+                    if (seenOfferIds.has(offer.id)) {
+                      if (import.meta.env.DEV) {
+                        console.warn("⚠️ Duplikált offer ID eltávolítva:", offer.id);
+                      }
+                      return false;
+                    }
+                    seenOfferIds.add(offer.id);
+                    return true;
+                  });
                   const topSpacer = shouldVirtualize
                     ? Math.max(0, visibleOfferRange.start) * VIRTUAL_ROW_HEIGHT
                     : 0;
@@ -2388,41 +2488,77 @@ export const Offers: React.FC<Props> = ({
                           )}
                         </div>
                         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                          {!editingOffer && (
-                            <Tooltip content={t("offers.tooltip.edit")}>
-                              <button
-                                onClick={() => startEditOffer(selectedOffer)}
-                                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                                onMouseLeave={(e) => {
-                                  const btn = e.currentTarget as HTMLButtonElement;
-                                  btn.style.transform = "translateY(0)";
-                                  btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow;
-                                }}
-                                style={{
-                                  ...themeStyles.button,
-                                  ...themeStyles.buttonSuccess,
-                                  ...actionButtonStyle,
-                                }}
-                              >
-                                ✏️ {t("common.edit")}
-                              </button>
-                            </Tooltip>
-                          )}
-                          <Tooltip content={t("offers.tooltip.duplicate")}>
-                            <button
-                              onClick={() => duplicateOffer(selectedOffer)}
-                              onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover)}
-                              onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.transform = "translateY(0)"; btn.style.boxShadow = "#6c757d 0 2px 4px"; }}
-                              style={{
-                                ...themeStyles.button,
-                                backgroundColor: theme.colors.secondary,
-                                color: "#fff",
-                                ...actionButtonStyle,
-                              }}
-                            >
-                              📋 {t("common.duplicate")}
-                            </button>
-                          </Tooltip>
+                          {!editingOffer && (() => {
+                            const isEncryptedWithoutPassword = settings.encryptionEnabled && settings.encryptedCustomerData && 
+                              !getEncryptionPassword(settings.useAppPasswordForEncryption ?? false) && !!selectedOffer.customerId;
+                            return (
+                              <Tooltip content={
+                                isEncryptedWithoutPassword 
+                                  ? t("encryption.passwordRequired")
+                                  : t("offers.tooltip.edit")
+                              }>
+                                <button
+                                  onClick={() => startEditOffer(selectedOffer)}
+                                  disabled={isEncryptedWithoutPassword}
+                                  onMouseEnter={(e) => {
+                                    if (!isEncryptedWithoutPassword) {
+                                      Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    const btn = e.currentTarget as HTMLButtonElement;
+                                    btn.style.transform = "translateY(0)";
+                                    btn.style.boxShadow = themeStyles.buttonSuccess.boxShadow;
+                                  }}
+                                  style={{
+                                    ...themeStyles.button,
+                                    ...themeStyles.buttonSuccess,
+                                    ...actionButtonStyle,
+                                    opacity: isEncryptedWithoutPassword ? 0.5 : 1,
+                                    cursor: isEncryptedWithoutPassword ? "not-allowed" : "pointer",
+                                  }}
+                                >
+                                  ✏️ {t("common.edit")}
+                                </button>
+                              </Tooltip>
+                            );
+                          })()}
+                          {(() => {
+                            const isEncryptedWithoutPassword = settings.encryptionEnabled && settings.encryptedCustomerData && 
+                              !getEncryptionPassword(settings.useAppPasswordForEncryption ?? false) && !!selectedOffer.customerId;
+                            return (
+                              <Tooltip content={
+                                isEncryptedWithoutPassword 
+                                  ? t("encryption.passwordRequired")
+                                  : t("offers.tooltip.duplicate")
+                              }>
+                                <button
+                                  onClick={() => duplicateOffer(selectedOffer)}
+                                  disabled={isEncryptedWithoutPassword}
+                                  onMouseEnter={(e) => {
+                                    if (!isEncryptedWithoutPassword) {
+                                      Object.assign((e.currentTarget as HTMLButtonElement).style, themeStyles.buttonHover);
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => { 
+                                    const btn = e.currentTarget as HTMLButtonElement; 
+                                    btn.style.transform = "translateY(0)"; 
+                                    btn.style.boxShadow = "#6c757d 0 2px 4px"; 
+                                  }}
+                                  style={{
+                                    ...themeStyles.button,
+                                    backgroundColor: theme.colors.secondary,
+                                    color: "#fff",
+                                    ...actionButtonStyle,
+                                    opacity: isEncryptedWithoutPassword ? 0.5 : 1,
+                                    cursor: isEncryptedWithoutPassword ? "not-allowed" : "pointer",
+                                  }}
+                                >
+                                  📋 {t("common.duplicate")}
+                                </button>
+                              </Tooltip>
+                            );
+                          })()}
                           <Tooltip content={t("offers.tooltip.exportPdf")}>
                             <button
                               onClick={() => exportToPDF(selectedOffer)}
@@ -2574,14 +2710,19 @@ export const Offers: React.FC<Props> = ({
                         {(["draft", "sent", "accepted", "rejected", "completed"] as OfferStatus[]).map(status => {
                           if (selectedOffer.status === status) return null;
                           const color = getStatusColor(status);
+                          const isEncryptedWithoutPassword = settings.encryptionEnabled && settings.encryptedCustomerData && 
+                            !getEncryptionPassword(settings.useAppPasswordForEncryption ?? false) && !!selectedOffer.customerId;
                           return (
                             <button
                               key={status}
                               onClick={() => {
-                                setStatusChangeOffer(selectedOffer);
-                                setStatusChangeTarget(status);
-                                setStatusChangeNote("");
+                                if (!isEncryptedWithoutPassword) {
+                                  setStatusChangeOffer(selectedOffer);
+                                  setStatusChangeTarget(status);
+                                  setStatusChangeNote("");
+                                }
                               }}
+                              disabled={isEncryptedWithoutPassword}
                               style={{
                                 padding: "8px 14px",
                                 fontSize: "12px",
@@ -2590,12 +2731,15 @@ export const Offers: React.FC<Props> = ({
                                 color,
                                 border: `1px solid ${color}`,
                                 borderRadius: "999px",
-                                cursor: "pointer",
+                                cursor: isEncryptedWithoutPassword ? "not-allowed" : "pointer",
                                 transition: "all 0.2s",
+                                opacity: isEncryptedWithoutPassword ? 0.5 : 1,
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = color;
-                                e.currentTarget.style.color = "#fff";
+                                if (!isEncryptedWithoutPassword) {
+                                  e.currentTarget.style.backgroundColor = color;
+                                  e.currentTarget.style.color = "#fff";
+                                }
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.backgroundColor = color + "18";
@@ -2623,6 +2767,31 @@ export const Offers: React.FC<Props> = ({
                                 color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
                                 whiteSpace: "nowrap" 
                               }}>
+                                {t("offers.customerName")} *
+                              </label>
+                              <input
+                                type="text"
+                                placeholder={t("offers.customerName")}
+                                value={editCustomerName}
+                                onChange={e => {
+                                  setEditCustomerName(e.target.value);
+                                  // Ha manuálisan módosítjuk, töröljük a kiválasztott ügyfelet
+                                  setSelectedEditCustomerId("");
+                                }}
+                                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
+                                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
+                                style={{ ...themeStyles.input, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}
+                              />
+                            </div>
+                            <div style={{ width: "200px", flexShrink: 0 }}>
+                              <label style={{ 
+                                display: "block", 
+                                marginBottom: "8px", 
+                                fontWeight: "600", 
+                                fontSize: "14px", 
+                                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
+                                whiteSpace: "nowrap" 
+                              }}>
                                 {t("offers.selectCustomer")}
                               </label>
                               <select
@@ -2639,31 +2808,6 @@ export const Offers: React.FC<Props> = ({
                                   </option>
                                 ))}
                               </select>
-                            </div>
-                            <div style={{ width: "200px", flexShrink: 0 }}>
-                              <label style={{ 
-                                display: "block", 
-                                marginBottom: "8px", 
-                                fontWeight: "600", 
-                                fontSize: "14px", 
-                                color: theme.colors.background?.includes('gradient') ? "#1a202c" : theme.colors.text, 
-                                whiteSpace: "nowrap" 
-                              }}>
-                                {t("offers.customerName")} *
-                              </label>
-                              <input
-                                type="text"
-                                placeholder={t("offers.customerName")}
-                                value={editCustomerName}
-                                onChange={e => {
-                                  setEditCustomerName(e.target.value);
-                                  // Ha manuálisan módosítjuk, töröljük a kiválasztott ügyfelet
-                                  setSelectedEditCustomerId("");
-                                }}
-                                onFocus={(e) => Object.assign(e.target.style, themeStyles.inputFocus)}
-                                onBlur={(e) => { e.target.style.borderColor = theme.colors.inputBorder; e.target.style.boxShadow = "none"; }}
-                                style={{ ...themeStyles.input, width: "100%", maxWidth: "200px", boxSizing: "border-box" }}
-                              />
                             </div>
                             <div style={{ width: "200px", flexShrink: 0 }}>
                               <label style={{ 
@@ -3426,7 +3570,9 @@ export const Offers: React.FC<Props> = ({
               {t("offers.statusModal.title")}
             </h3>
             <p style={{ margin: "0 0 16px", fontSize: "14px", color: theme.colors.textMuted, lineHeight: 1.6 }}>
-          {statusChangeOffer?.customerName || t("offers.label.quote")} #{statusChangeOffer?.id} →{" "}
+              {statusChangeOffer?.customerId 
+                ? `🆔 ${statusChangeOffer.customerId}`
+                : `${t("offers.label.quote")} #${statusChangeOffer?.id}`} →{" "}
               <strong style={{ color: getStatusColor(statusChangeTarget) }}>{getStatusLabel(statusChangeTarget)}</strong>
             </p>
             <label

@@ -250,7 +250,16 @@ For detailed version history and changelog, please see [RELEASE.en.md](RELEASE.e
 
 ---
 
-**Version**: 3.0.2
+**Version**: 3.0.3
+
+### v3.0.3 (2025) - 🔧 Hotfix: Customer Data Encryption Fixes and UI Improvements
+- Offer actions disabled for encrypted data without password
+- Duplicate key issue fixed
+- Offer counter fix (counts by customerId as well)
+- Offers refresh after password entry
+- Status history list shows only ID
+- Toast messages improvements and redesign
+- New translation keys added to all languages
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
 

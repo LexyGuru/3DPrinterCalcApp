@@ -4,6 +4,44 @@ Ez a dokumentum tartalmazza a 3D Printer Calculator App verzióinak részletes v
 
 ---
 
+## v3.0.3 (2025) - 🔧 Hotfix: Ügyféladat Titkosítás Javítások és UI Fejlesztések
+
+### 🐛 Hibajavítások
+
+#### Ügyféladat Titkosítás Javítások
+- **Árajánlat műveletek letiltása titkosított adatok esetén** - Ha az ügyféladatok titkosítva vannak és nincs jelszó megadva, az árajánlat szerkesztése, duplikálása és státusz változtatása most már letiltva van
+- **Duplikált key probléma javítása** - Az árajánlatok listájában és a státuszváltozásoknál már nem jelentkezik "Encountered two children with the same key" hiba
+- **Árajánlat számláló javítása** - Az ügyfeleknél az árajánlat számláló most már `customerId` alapján is számol, nem csak név alapján, így működik titkosított adatok esetén is
+- **Árajánlatok frissítése jelszó megadása után** - Amikor megadják a jelszót és az ügyfelek dekódolódnak, az árajánlatokban is visszaáll az ügyfél neve a "TITKOSITOTT ADATOK" helyett
+- **Státuszváltozások listája** - A státuszváltozások listájában most már csak az ügyfél ID jelenik meg, nem az ügyfél neve, még jelszó megadása után sem (titkosítási előírásoknak megfelelően)
+
+#### Toast Üzenetek Javítása
+- **Duplikált toast üzenetek elkerülése** - A toast üzenetek most már csak egyszer jelennek meg, még akkor is, ha többször hívódik meg
+- **Toast bezárása gombra kattintáskor** - Amikor rákattintanak a "Jelszó megadása" gombra a toast üzenetben, a toast automatikusan bezáródik
+- **Toast üzenet újragondolása** - A toast üzenetek most már szebb, professzionálisabb megjelenésűek, oszlopos elrendezés action button esetén
+
+#### Fordítási Kulcsok Hozzáadása
+- **Új fordítási kulcsok** - Hozzáadva mind a 13 nyelvhez:
+  - `encryption.passwordRequired` - "Titkosítási jelszó szükséges"
+  - `encryption.passwordRequiredForOfferEdit` - "Titkosítási jelszó szükséges az árajánlat szerkesztéséhez"
+  - `encryption.passwordRequiredForOfferDuplicate` - "Titkosítási jelszó szükséges az árajánlat duplikálásához"
+  - `encryption.passwordRequiredForOfferStatusChange` - "Titkosítási jelszó szükséges az árajánlat státuszának módosításához"
+  - `encryption.passwordRequiredForCustomerCreate` - "Titkosítási jelszó szükséges az új ügyfél létrehozásához"
+  - `encryption.passwordRequiredForCustomerEdit` - "Titkosítási jelszó szükséges a szerkesztéshez"
+  - `encryption.encryptedData` - "TITKOSITOTT ADATOK" / "ENCRYPTED DATA" stb.
+  - `customers.id` - "Ügyfél ID" / "Customer ID" stb.
+  - `customers.encryptedDataMessage` - "🔒 Titkosított adatok - jelszó szükséges a megtekintéshez"
+
+### 📝 Műszaki Részletek
+
+- **Verzió frissítve**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.3`
+- **Hardcoded szövegek lecserélve**: Minden hardcoded magyar szöveg lecserélve fordítási kulcsokra
+- **TypeScript típusok frissítve**: Új fordítási kulcsok hozzáadva a `TranslationKey` típushoz
+- **Toast Provider módosítva**: Duplikált toast ellenőrzés és automatikus bezárás hozzáadva
+- **Árajánlat frissítési logika**: Jelszó megadása után automatikus árajánlat frissítés az ügyfelek dekódolása után
+
+---
+
 ## v3.0.2 (2025) - 🔧 Hotfix: Tutorial Javítások, Permission-ök, Factory Reset Logging
 
 ### 🐛 Hibajavítások

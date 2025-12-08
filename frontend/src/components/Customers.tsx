@@ -142,6 +142,7 @@ export const Customers: React.FC<Props> = ({
   const [notes, setNotes] = useState("");
   const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<Partial<Customer> | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -210,10 +211,26 @@ export const Customers: React.FC<Props> = ({
 
   // Számított mezők: összes árajánlat száma és utolsó árajánlat dátuma
   const customersWithStats = useMemo(() => {
-    return customers.map(customer => {
-      const customerOffers = offers.filter(o => 
-        o.customerName?.toLowerCase() === customer.name.toLowerCase()
-      );
+    // 🔒 DUPLIKÁLT ID ELLENŐRZÉS: Ha titkosítva vannak az adatok és nincs jelszó, ne engedjük a duplikált ID-kat
+    // Eltávolítjuk a duplikált ID-kat (ha vannak)
+    const uniqueCustomers = customers.filter((customer, index, self) => 
+      index === self.findIndex(c => c.id === customer.id)
+    );
+    
+    return uniqueCustomers.map(customer => {
+      // Árajánlatok keresése: először customerId alapján, majd név alapján
+      const customerOffers = offers.filter(o => {
+        // Ha van customerId, akkor azt használjuk (ez a legmegbízhatóbb)
+        if (o.customerId && customer.id === o.customerId) {
+          return true;
+        }
+        // Ha nincs customerId, de van customerName, akkor név alapján keresünk
+        if (customer.name && o.customerName) {
+          return o.customerName.toLowerCase() === customer.name.toLowerCase();
+        }
+        return false;
+      });
+      
       const totalOffers = customerOffers.length;
       const lastOffer = customerOffers
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
@@ -231,9 +248,10 @@ export const Customers: React.FC<Props> = ({
     if (!searchTerm) return customersWithStats;
     const term = searchTerm.toLowerCase();
     return customersWithStats.filter(c => 
-      c.name.toLowerCase().includes(term) ||
-      c.contact?.toLowerCase().includes(term) ||
-      c.company?.toLowerCase().includes(term)
+      (c.name && c.name.toLowerCase().includes(term)) ||
+      (c.contact && c.contact.toLowerCase().includes(term)) ||
+      (c.company && c.company.toLowerCase().includes(term)) ||
+      c.id.toString().includes(term) // ID alapján is lehet keresni
     );
   }, [customersWithStats, searchTerm]);
 
@@ -241,6 +259,15 @@ export const Customers: React.FC<Props> = ({
     if (!name.trim()) {
       showToast(`${t("common.error")}: ${t("customers.error.nameRequired")}`, "error");
       return;
+    }
+
+    // 🔒 TITKOSÍTOTT ADATOK KEZELÉSE: Ha titkosítva vannak az adatok és nincs jelszó, ne engedjük az új ügyfél létrehozását
+    if (settings.encryptionEnabled && settings.encryptedCustomerData) {
+      const encryptionPassword = getEncryptionPasswordForCustomers();
+      if (!encryptionPassword) {
+        showToast(t("encryption.passwordRequiredForCustomerCreate"), "error");
+        return;
+      }
     }
 
     const newId = Date.now();
@@ -335,6 +362,15 @@ export const Customers: React.FC<Props> = ({
   };
 
   const startEdit = (customer: Customer) => {
+    // 🔒 TITKOSÍTOTT ADATOK KEZELÉSE: Ha titkosítva vannak az adatok és nincs jelszó, ne engedjük a szerkesztést
+    if (settings.encryptionEnabled && settings.encryptedCustomerData) {
+      const encryptionPassword = getEncryptionPasswordForCustomers();
+      if (!encryptionPassword) {
+        showToast(t("encryption.passwordRequiredForCustomerEdit"), "error");
+        return;
+      }
+    }
+    
     setEditingCustomer({
       name: customer.name,
       contact: customer.contact || "",
@@ -343,11 +379,13 @@ export const Customers: React.FC<Props> = ({
       notes: customer.notes || "",
     });
     setEditingCustomerId(customer.id);
+    setShowEditModal(true);
   };
 
   const cancelEdit = () => {
     setEditingCustomerId(null);
     setEditingCustomer(null);
+    setShowEditModal(false);
   };
 
   const saveCustomer = async (customerId: number) => {
@@ -586,7 +624,8 @@ export const Customers: React.FC<Props> = ({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h3 style={{ 
                   ...themeStyles.heading, 
-                  margin: 0, 
+                  margin: "0 0 0 0",
+                  marginBottom: "0",
                   fontSize: '20px',
                   color: typeof theme.colors.background === 'string' && theme.colors.background.includes('gradient')
                     ? '#1a202c'
@@ -903,12 +942,25 @@ export const Customers: React.FC<Props> = ({
           >
             {(() => {
               const shouldVirtualize = filteredCustomers.length > CUSTOMER_VIRTUAL_THRESHOLD;
-              const customersToRender = shouldVirtualize
+              const customersToRenderRaw = shouldVirtualize
                 ? filteredCustomers.slice(
                     Math.max(0, visibleCustomerRange.start),
                     Math.min(filteredCustomers.length, visibleCustomerRange.end + 1)
                   )
                 : filteredCustomers;
+              
+              // 🔒 DUPLIKÁLT ID ELTÁVOLÍTÁS: Biztosítjuk, hogy minden ID csak egyszer szerepeljen
+              const seenIds = new Set<number>();
+              const customersToRender = customersToRenderRaw.filter(customer => {
+                if (seenIds.has(customer.id)) {
+                  if (import.meta.env.DEV) {
+                    console.warn("⚠️ Duplikált customer ID eltávolítva:", customer.id);
+                  }
+                  return false;
+                }
+                seenIds.add(customer.id);
+                return true;
+              });
               const topSpacer = shouldVirtualize
                 ? Math.max(0, visibleCustomerRange.start) * CUSTOMER_ROW_HEIGHT
                 : 0;
@@ -942,146 +994,128 @@ export const Customers: React.FC<Props> = ({
                 gridColumn: "1 / -1",
               }}
             >
-              {/* Checkbox a kártya bal felső sarkában */}
-              <div style={{ position: "absolute", top: "12px", left: "12px" }}>
-                <input
-                  type="checkbox"
-                  checked={selectedCustomerIds.has(customer.id)}
-                  onChange={() => toggleSelection(customer.id)}
-                  style={{
-                    width: "18px",
-                    height: "18px",
-                    cursor: "pointer",
-                  }}
-                  aria-label={t("customers.bulk.select")}
-                />
-              </div>
-              {editingCustomerId === customer.id ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                      {t("customers.name")} *
-                    </label>
-                    <input
-                      type="text"
-                      value={editingCustomer?.name || ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
-                      style={themeStyles.input}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                      {t("customers.contact")}
-                    </label>
-                    <input
-                      type="text"
-                      value={editingCustomer?.contact || ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, contact: e.target.value })}
-                      style={themeStyles.input}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                      {t("customers.company")}
-                    </label>
-                    <input
-                      type="text"
-                      value={editingCustomer?.company || ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, company: e.target.value })}
-                      style={themeStyles.input}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                      {t("customers.address")}
-                    </label>
-                    <input
-                      type="text"
-                      value={editingCustomer?.address || ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
-                      style={themeStyles.input}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                      {t("customers.notes")}
-                    </label>
-                    <textarea
-                      value={editingCustomer?.notes || ""}
-                      onChange={(e) => setEditingCustomer({ ...editingCustomer, notes: e.target.value })}
-                      style={{
-                        ...themeStyles.input,
-                        minHeight: "80px",
-                        resize: "vertical",
-                      }}
-                    />
-                  </div>
-                  <div style={{ display: "flex", gap: "12px" }}>
-                    <button 
-                      onClick={() => saveCustomer(customer.id)} 
-                      style={themeStyles.buttonPrimary}
-                    >
-                      {t("common.save")}
-                    </button>
-                    <button onClick={cancelEdit} style={themeStyles.buttonSecondary}>
-                      {t("common.cancel")}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-                    <div>
-                      <h3 style={{ 
-                        margin: 0, 
-                        marginBottom: "8px", 
-                        fontSize: "20px", 
-                        fontWeight: "600",
-                        color: theme.colors.text 
-                      }}>
-                        {customer.name}
-                      </h3>
-                      {customer.company && (
-                        <p style={{ margin: 0, marginBottom: "4px", color: theme.colors.textSecondary }}>
-                          🏢 {customer.company}
-                        </p>
-                      )}
-                      {customer.contact && (
-                        <p style={{ margin: 0, marginBottom: "4px", color: theme.colors.textSecondary }}>
-                          📧 {customer.contact}
-                        </p>
-                      )}
-                      {customer.address && (
-                        <p style={{ margin: 0, marginBottom: "4px", color: theme.colors.textSecondary }}>
-                          📍 {customer.address}
-                        </p>
-                      )}
-                      {customer.notes && (
-                        <p style={{ margin: 0, marginTop: "8px", color: theme.colors.textSecondary, fontStyle: "italic" }}>
-                          {customer.notes}
-                        </p>
-                      )}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", flex: 1 }}>
+                    {/* Checkbox az ügyfél neve előtt */}
+                    <div style={{ marginTop: "2px", flexShrink: 0 }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedCustomerIds.has(customer.id)}
+                        onChange={() => toggleSelection(customer.id)}
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          cursor: "pointer",
+                        }}
+                        aria-label={t("customers.bulk.select")}
+                      />
                     </div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <Tooltip content={t("common.edit")}>
+                    <div style={{ flex: 1 }}>
+                      {/* Ha titkosítva vannak az adatok és nincs jelszó, csak az ID-t jelenítjük meg */}
+                      {settings.encryptionEnabled && settings.encryptedCustomerData && !getEncryptionPasswordForCustomers() ? (
+                        <>
+                          <h3 style={{ 
+                            margin: "0 0 4px 0", 
+                            fontSize: "20px", 
+                            fontWeight: "600",
+                            color: theme.colors.text 
+                          }}>
+                            🆔 {t("customers.id")}: {customer.id}
+                          </h3>
+                          <p style={{ 
+                            margin: "8px 0 0 0", 
+                            fontSize: "12px", 
+                            color: theme.colors.textMuted || theme.colors.textSecondary,
+                            fontStyle: "italic"
+                          }}>
+                              {t("customers.encryptedDataMessage")}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <h3 style={{ 
+                            margin: "0 0 4px 0", 
+                            fontSize: "20px", 
+                            fontWeight: "600",
+                            color: theme.colors.text 
+                          }}>
+                            {customer.name}
+                          </h3>
+                          <p style={{ 
+                            margin: "0 0 8px 0", 
+                            fontSize: "12px", 
+                            color: theme.colors.textMuted || theme.colors.textSecondary,
+                            fontStyle: "italic"
+                          }}>
+                            🆔 {t("customers.id")}: {customer.id}
+                          </p>
+                          {customer.company && (
+                            <p style={{ margin: "0 0 4px 0", color: theme.colors.textSecondary }}>
+                              🏢 {customer.company}
+                            </p>
+                          )}
+                          {customer.contact && (
+                            <p style={{ margin: "0 0 4px 0", color: theme.colors.textSecondary }}>
+                              📧 {customer.contact}
+                            </p>
+                          )}
+                          {customer.address && (
+                            <p style={{ margin: "0 0 4px 0", color: theme.colors.textSecondary }}>
+                              📍 {customer.address}
+                            </p>
+                          )}
+                          {customer.notes && (
+                            <p style={{ margin: "8px 0 0 0", color: theme.colors.textSecondary, fontStyle: "italic" }}>
+                              {customer.notes}
+                            </p>
+                          )}
+                        </>
+                      )}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+                      <Tooltip content={
+                        (settings.encryptionEnabled && settings.encryptedCustomerData && !getEncryptionPasswordForCustomers())
+                          ? t("encryption.passwordRequired")
+                          : t("common.edit")
+                      }>
                         <button
                           onClick={() => startEdit(customer)}
+                          disabled={
+                            settings.encryptionEnabled && 
+                            settings.encryptedCustomerData && 
+                            !getEncryptionPasswordForCustomers()
+                          }
                           style={{
                             ...themeStyles.buttonSecondary,
                             padding: "8px 12px",
                             fontSize: "14px",
+                            opacity: (settings.encryptionEnabled && settings.encryptedCustomerData && !getEncryptionPasswordForCustomers()) ? 0.5 : 1,
+                            cursor: (settings.encryptionEnabled && settings.encryptedCustomerData && !getEncryptionPasswordForCustomers()) ? "not-allowed" : "pointer",
                           }}
                         >
                           ✏️
                         </button>
                       </Tooltip>
-                      <Tooltip content={t("common.delete")}>
+                      <Tooltip content={
+                        (settings.encryptionEnabled && settings.encryptedCustomerData && !getEncryptionPasswordForCustomers())
+                          ? t("encryption.passwordRequired")
+                          : t("common.delete")
+                      }>
                         <button
                           onClick={() => deleteCustomer(customer.id)}
+                          disabled={
+                            settings.encryptionEnabled && 
+                            settings.encryptedCustomerData && 
+                            !getEncryptionPasswordForCustomers()
+                          }
                           style={{
                             ...themeStyles.buttonDanger,
                             padding: "8px 12px",
                             fontSize: "14px",
+                            opacity: (settings.encryptionEnabled && settings.encryptedCustomerData && !getEncryptionPasswordForCustomers()) ? 0.5 : 1,
+                            cursor: (settings.encryptionEnabled && settings.encryptedCustomerData && !getEncryptionPasswordForCustomers()) ? "not-allowed" : "pointer",
                           }}
                         >
                           🗑️
@@ -1089,31 +1123,33 @@ export const Customers: React.FC<Props> = ({
                       </Tooltip>
                     </div>
                   </div>
-                  <div style={{ 
-                    marginTop: "12px", 
-                    paddingTop: "12px", 
-                    borderTop: `1px solid ${theme.colors.border}`,
-                    fontSize: "14px",
-                    color: theme.colors.textSecondary,
-                  }}>
-                    <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-                      <span>
-                        📋 {t("customers.totalOffers")}: <strong>{customer.totalOffers || 0}</strong>
-                      </span>
-                      {customer.lastOfferDate && (
+                  {/* Stats csak akkor jelenik meg, ha van jelszó vagy nincs titkosítás */}
+                  {!(settings.encryptionEnabled && settings.encryptedCustomerData && !getEncryptionPasswordForCustomers()) && (
+                    <div style={{ 
+                      marginTop: "12px", 
+                      paddingTop: "12px", 
+                      borderTop: `1px solid ${theme.colors.border}`,
+                      fontSize: "14px",
+                      color: theme.colors.textSecondary,
+                    }}>
+                      <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
                         <span>
-                          📅 {t("customers.lastOffer")}: <strong>
-                            {new Date(customer.lastOfferDate).toLocaleDateString(LANGUAGE_LOCALES[settings.language] ?? "en-US")}
-                          </strong>
+                          📋 {t("customers.totalOffers")}: <strong>{customer.totalOffers || 0}</strong>
                         </span>
-                      )}
-                      <span>
-                        🕒 {t("customers.created")}: {new Date(customer.createdAt).toLocaleDateString(LANGUAGE_LOCALES[settings.language] ?? "en-US")}
-                      </span>
+                        {customer.lastOfferDate && (
+                          <span>
+                            📅 {t("customers.lastOffer")}: <strong>
+                              {new Date(customer.lastOfferDate).toLocaleDateString(LANGUAGE_LOCALES[settings.language] ?? "en-US")}
+                            </strong>
+                          </span>
+                        )}
+                        <span>
+                          🕒 {t("customers.created")}: {new Date(customer.createdAt).toLocaleDateString(LANGUAGE_LOCALES[settings.language] ?? "en-US")}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
             </div>
           ))}
                   {bottomSpacer > 0 && (
@@ -1150,6 +1186,265 @@ export const Customers: React.FC<Props> = ({
         message={t("customers.bulk.deleteConfirm.message").replace("{{count}}", selectedCustomerIds.size.toString())}
         theme={theme}
       />
+
+      {/* Ügyfél szerkesztés modal ablak */}
+      <AnimatePresence>
+        {showEditModal && editingCustomerId !== null && editingCustomer && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={cancelEdit}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              padding: "20px",
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: theme.colors.surface || "#fff",
+                borderRadius: "12px",
+                padding: "28px",
+                maxWidth: "600px",
+                width: "100%",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
+                border: `1px solid ${theme.colors.border || "#e0e0e0"}`,
+              }}
+            >
+              {/* Fejléc */}
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center",
+                marginBottom: "24px",
+                paddingBottom: "16px",
+                borderBottom: `2px solid ${theme.colors.border || "#e0e0e0"}`,
+              }}>
+                <h2 style={{ 
+                  margin: 0, 
+                  fontSize: "24px", 
+                  fontWeight: "600",
+                  color: theme.colors.text 
+                }}>
+                  ✏️ {t("common.edit") || "Ügyfél szerkesztése"}
+                </h2>
+                <button
+                  onClick={cancelEdit}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    color: theme.colors.textSecondary || "#666",
+                    padding: "0",
+                    width: "32px",
+                    height: "32px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "4px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.colors.surfaceHover || "#f5f5f5";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              
+              {/* Ügyfél ID megjelenítése (nem szerkeszthető) - felül, kiemelt */}
+              <div style={{ 
+                marginBottom: "20px",
+                padding: "12px",
+                backgroundColor: theme.colors.surfaceHover || "#f5f5f5",
+                borderRadius: "8px",
+                border: `1px solid ${theme.colors.border || "#e0e0e0"}`,
+              }}>
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "6px", 
+                  fontSize: "12px",
+                  fontWeight: "600", 
+                  color: theme.colors.textSecondary,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}>
+                  {t("customers.id")}
+                </label>
+                <div style={{
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  color: theme.colors.text,
+                }}>
+                  {editingCustomerId}
+                </div>
+              </div>
+
+              {/* Mezők grid elrendezésben */}
+              <div style={{ 
+                display: "grid", 
+                gridTemplateColumns: "1fr 1fr",
+                gap: "16px",
+                marginBottom: "20px",
+              }}>
+                {/* Név - teljes szélesség */}
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.text 
+                  }}>
+                    {t("customers.name")} *
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCustomer?.name || ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
+                    style={themeStyles.input}
+                    placeholder={t("customers.name")}
+                  />
+                </div>
+                
+                {/* Contact és Company két oszlopban */}
+                <div>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.text 
+                  }}>
+                    {t("customers.contact")}
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCustomer?.contact || ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, contact: e.target.value })}
+                    style={themeStyles.input}
+                    placeholder={t("customers.contact")}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.text 
+                  }}>
+                    {t("customers.company")}
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCustomer?.company || ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, company: e.target.value })}
+                    style={themeStyles.input}
+                    placeholder={t("customers.company")}
+                  />
+                </div>
+                
+                {/* Address - teljes szélesség */}
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.text 
+                  }}>
+                    {t("customers.address")}
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCustomer?.address || ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
+                    style={themeStyles.input}
+                    placeholder={t("customers.address")}
+                  />
+                </div>
+                
+                {/* Notes - teljes szélesség */}
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.text 
+                  }}>
+                    {t("customers.notes")}
+                  </label>
+                  <textarea
+                    value={editingCustomer?.notes || ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, notes: e.target.value })}
+                    style={{
+                      ...themeStyles.input,
+                      minHeight: "100px",
+                      resize: "vertical",
+                    }}
+                    placeholder={t("customers.notes")}
+                  />
+                </div>
+              </div>
+              
+              {/* Gombok */}
+              <div style={{ 
+                display: "flex", 
+                gap: "12px", 
+                justifyContent: "flex-end",
+                marginTop: "24px",
+                paddingTop: "20px",
+                borderTop: `1px solid ${theme.colors.border || "#e0e0e0"}`,
+              }}>
+                <button 
+                  onClick={cancelEdit} 
+                  style={{
+                    ...themeStyles.buttonSecondary,
+                    minWidth: "100px",
+                  }}
+                >
+                  {t("common.cancel")}
+                </button>
+                <button 
+                  onClick={() => {
+                    if (editingCustomerId !== null) {
+                      saveCustomer(editingCustomerId);
+                      setShowEditModal(false);
+                    }
+                  }} 
+                  style={{
+                    ...themeStyles.buttonPrimary,
+                    minWidth: "100px",
+                  }}
+                >
+                  {t("common.save")}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

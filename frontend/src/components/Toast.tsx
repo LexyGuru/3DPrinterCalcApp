@@ -57,71 +57,90 @@ export const Toast: React.FC<ToastProps> = ({
         style={{
           backgroundColor: color.bg,
           color: "#fff",
-          padding: "12px 20px",
-          borderRadius: "8px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          padding: actionButton ? "16px 20px" : "12px 20px",
+          borderRadius: "12px",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
           display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          minWidth: "250px",
-          maxWidth: "360px",
+          flexDirection: actionButton ? "column" : "row",
+          alignItems: actionButton ? "flex-start" : "center",
+          gap: actionButton ? "12px" : "10px",
+          minWidth: "280px",
+          maxWidth: "400px",
         }}
       >
-        <span style={{ fontSize: "18px" }}>{color.icon}</span>
-        <span style={{ flex: 1, fontWeight: "500" }}>{message}</span>
-        {actionButton && (
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
+          <span style={{ fontSize: "20px", flexShrink: 0 }}>{color.icon}</span>
+          <span style={{ flex: 1, fontWeight: "500", fontSize: "14px", lineHeight: "1.4" }}>{message}</span>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              actionButton.onClick();
-            }}
+            onClick={onClose}
             style={{
-              background: "rgba(255, 255, 255, 0.2)",
-              border: "1px solid rgba(255, 255, 255, 0.3)",
+              background: "rgba(255, 255, 255, 0.15)",
+              border: "none",
               color: "#fff",
-              fontSize: "13px",
-              fontWeight: "600",
+              fontSize: "16px",
               cursor: "pointer",
-              padding: "6px 12px",
+              padding: "4px 8px",
               borderRadius: "6px",
-              marginRight: "8px",
+              opacity: 0.9,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "24px",
+              height: "24px",
               transition: "all 0.2s",
             }}
             onMouseEnter={(e) => {
               if (animationConfig.microInteractions) {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
+                e.currentTarget.style.opacity = "1";
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.25)";
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
+              e.currentTarget.style.opacity = "0.9";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)";
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        {actionButton && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              // 🔒 TOAST BEZÁRÁS: Amikor rákattintanak a gombra, bezárjuk a toast-ot is
+              onClose();
+              actionButton.onClick();
+            }}
+            style={{
+              background: "#fff",
+              border: "none",
+              color: color.bg,
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: "pointer",
+              padding: "10px 20px",
+              borderRadius: "8px",
+              width: "100%",
+              transition: "all 0.2s",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            }}
+            onMouseEnter={(e) => {
+              if (animationConfig.microInteractions) {
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.95)";
+                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#fff";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
             }}
           >
             {actionButton.label}
           </button>
         )}
-        <button
-          onClick={onClose}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#fff",
-            fontSize: "18px",
-            cursor: "pointer",
-            padding: "0",
-            marginLeft: "8px",
-            opacity: 0.8,
-          }}
-          onMouseEnter={(e) => {
-            if (animationConfig.microInteractions) {
-              e.currentTarget.style.opacity = "1";
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = "0.8";
-          }}
-        >
-          ✕
-        </button>
       </div>
     );
   }
@@ -179,77 +198,94 @@ export const Toast: React.FC<ToastProps> = ({
       style={{
         backgroundColor: color.bg,
         color: "#fff",
-        padding: "12px 20px",
-        borderRadius: "8px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+        padding: actionButton ? "16px 20px" : "12px 20px",
+        borderRadius: "12px",
+        boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
         display: "flex",
-        alignItems: "center",
-        gap: "10px",
-        minWidth: "250px",
-        maxWidth: "360px",
+        flexDirection: actionButton ? "column" : "row",
+        alignItems: actionButton ? "flex-start" : "center",
+        gap: actionButton ? "12px" : "10px",
+        minWidth: "280px",
+        maxWidth: "400px",
       }}
     >
-      <motion.span style={{ fontSize: "18px", display: "inline-flex" }} {...iconMotionProps}>
-        {color.icon}
-      </motion.span>
-      <span style={{ flex: 1, fontWeight: "500" }}>{message}</span>
-      {actionButton && (
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
+        <motion.span style={{ fontSize: "20px", display: "inline-flex", flexShrink: 0 }} {...iconMotionProps}>
+          {color.icon}
+        </motion.span>
+        <span style={{ flex: 1, fontWeight: "500", fontSize: "14px", lineHeight: "1.4" }}>{message}</span>
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            actionButton.onClick();
-          }}
+          onClick={onClose}
           style={{
-            background: "rgba(255, 255, 255, 0.2)",
-            border: "1px solid rgba(255, 255, 255, 0.3)",
+            background: "rgba(255, 255, 255, 0.15)",
+            border: "none",
             color: "#fff",
-            fontSize: "13px",
-            fontWeight: "600",
+            fontSize: "16px",
             cursor: "pointer",
-            padding: "6px 12px",
+            padding: "4px 8px",
             borderRadius: "6px",
-            marginRight: "8px",
+            opacity: 0.9,
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "24px",
+            height: "24px",
             transition: "all 0.2s",
           }}
           onMouseEnter={(e) => {
             if (animationConfig.microInteractions) {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
-              e.currentTarget.style.transform = "scale(1.05)";
+              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.25)";
+              e.currentTarget.style.transform = "scale(1.1)";
             }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
+            e.currentTarget.style.opacity = "0.9";
+            e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)";
             e.currentTarget.style.transform = "scale(1)";
+          }}
+        >
+          ✕
+        </button>
+      </div>
+      {actionButton && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            // 🔒 TOAST BEZÁRÁS: Amikor rákattintanak a gombra, bezárjuk a toast-ot is
+            onClose();
+            actionButton.onClick();
+          }}
+          style={{
+            background: "#fff",
+            border: "none",
+            color: color.bg,
+            fontSize: "14px",
+            fontWeight: "600",
+            cursor: "pointer",
+            padding: "10px 20px",
+            borderRadius: "8px",
+            width: "100%",
+            transition: "all 0.2s",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          }}
+          onMouseEnter={(e) => {
+            if (animationConfig.microInteractions) {
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.95)";
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "#fff";
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
           }}
         >
           {actionButton.label}
         </button>
       )}
-      <button
-        onClick={onClose}
-        style={{
-          background: "none",
-          border: "none",
-          color: "#fff",
-          fontSize: "18px",
-          cursor: "pointer",
-          padding: "0",
-          marginLeft: "8px",
-          opacity: 0.8,
-        }}
-        onMouseEnter={(e) => {
-          if (animationConfig.microInteractions) {
-            e.currentTarget.style.opacity = "1";
-            e.currentTarget.style.transform = "scale(1.07)";
-          }
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.opacity = "0.8";
-          e.currentTarget.style.transform = "scale(1)";
-        }}
-      >
-        ✕
-      </button>
     </motion.div>
   );
 };
@@ -271,8 +307,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode; settings?: Set
       return;
     }
 
-    const id = Date.now();
-    setToasts(prev => [...prev, { id, message, type, actionButton }]);
+    // 🔒 DUPLIKÁLT TOAST ELTÁVOLÍTÁS: Ha már van ilyen toast üzenet, ne jelenítse meg újra
+    setToasts(prev => {
+      // Ellenőrizzük, hogy van-e már ilyen toast üzenet (ugyanaz az üzenet és típus)
+      const existingToast = prev.find(t => t.message === message && t.type === type);
+      if (existingToast) {
+        // Ha van már ilyen toast, ne jelenítse meg újra
+        return prev;
+      }
+      // Ha nincs ilyen toast, hozzáadjuk az újat
+      const id = Date.now();
+      return [...prev, { id, message, type, actionButton }];
+    });
   }, [settings?.notificationEnabled]);
 
   // Notification service inicializálása és frissítése

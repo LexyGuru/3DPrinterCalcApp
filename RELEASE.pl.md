@@ -4,6 +4,44 @@ Ten dokument zawiera szczegółowy dziennik zmian dla wszystkich wersji aplikacj
 
 ---
 
+## v3.0.3 (2025) - 🔧 Hotfix: Poprawki Szyfrowania Danych Klientów i Ulepszenia UI
+
+### 🐛 Poprawki Błędów
+
+#### Poprawki Szyfrowania Danych Klientów
+- **Akcje oferty wyłączone dla zaszyfrowanych danych** - Jeśli dane klienta są zaszyfrowane i nie podano hasła, edycja, duplikacja i zmiana statusu ofert są teraz wyłączone
+- **Problem zduplikowanego klucza naprawiony** - Brak błędów "Encountered two children with the same key" na liście ofert i historii statusu
+- **Poprawka licznika ofert** - Licznik ofert klienta teraz liczy również według `customerId`, nie tylko według nazwy, działając poprawnie z zaszyfrowanymi danymi
+- **Aktualizacja ofert po wprowadzeniu hasła** - Gdy hasło jest podane i klienci są odszyfrowywani, nazwy klientów w ofertach są przywracane zamiast "ZASZYFROWANE DANE"
+- **Lista historii statusu** - Lista historii statusu teraz pokazuje tylko ID klienta, nie nazwę klienta, nawet po wprowadzeniu hasła (zgodnie z wymaganiami szyfrowania)
+
+#### Ulepszenia Wiadomości Toast
+- **Zapobieganie zduplikowanym wiadomościom toast** - Wiadomości toast teraz pojawiają się tylko raz, nawet jeśli są wywoływane wielokrotnie
+- **Toast zamyka się po kliknięciu przycisku** - Po kliknięciu przycisku "Wprowadź hasło" w wiadomości toast, toast automatycznie się zamyka
+- **Przeprojektowanie wiadomości toast** - Wiadomości toast mają teraz czystszy, bardziej profesjonalny wygląd z układem kolumnowym dla przycisków akcji
+
+#### Dodane Klucze Tłumaczenia
+- **Nowe klucze tłumaczenia** - Dodane do wszystkich 13 języków:
+  - `encryption.passwordRequired` - "Wymagane hasło szyfrowania"
+  - `encryption.passwordRequiredForOfferEdit` - "Wymagane hasło szyfrowania do edycji oferty"
+  - `encryption.passwordRequiredForOfferDuplicate` - "Wymagane hasło szyfrowania do duplikacji oferty"
+  - `encryption.passwordRequiredForOfferStatusChange` - "Wymagane hasło szyfrowania do zmiany statusu oferty"
+  - `encryption.passwordRequiredForCustomerCreate` - "Wymagane hasło szyfrowania do utworzenia nowego klienta"
+  - `encryption.passwordRequiredForCustomerEdit` - "Wymagane hasło szyfrowania do edycji"
+  - `encryption.encryptedData` - "ZASZYFROWANE DANE"
+  - `customers.id` - "ID Klienta"
+  - `customers.encryptedDataMessage` - "🔒 Zaszyfrowane dane - wymagane hasło do wyświetlenia"
+
+### 📝 Szczegóły Techniczne
+
+- **Wersja zaktualizowana**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.3`
+- **Zastąpione hardcoded stringi**: Wszystkie hardcoded stringi węgierskie zastąpione kluczami tłumaczenia
+- **Zaktualizowane typy TypeScript**: Nowe klucze tłumaczenia dodane do typu `TranslationKey`
+- **Zmodyfikowany Toast Provider**: Dodana kontrola zduplikowanych toastów i automatyczne zamykanie
+- **Logika aktualizacji ofert**: Automatyczna aktualizacja ofert po odszyfrowaniu klientów gdy hasło jest podane
+
+---
+
 ## v3.0.2 (2025) - 🔧 Hotfix: Poprawki Tutorialu, Uprawnienia, Logowanie Factory Reset
 
 ### 🐛 Poprawki Błędów
@@ -24,6 +62,45 @@ Ten dokument zawiera szczegółowy dziennik zmian dla wszystkich wersji aplikacj
 ### 📝 Szczegóły Techniczne
 
 - **Wersja zaktualizowana**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
+## v3.0.1 (2025) - 🔧 Hotfix: Factory Reset, Tłumaczenia, Beta Build Workflow
+
+### 🐛 Poprawki Błędów
+
+#### Poprawka Factory Reset
+- **Factory reset naprawiony** - Plik `customers.json` jest teraz jawnie usuwany podczas factory reset
+- **Pełne usunięcie danych klientów** - Plik zaszyfrowanych danych klientów (`customers.json`) jest również usuwany, zapewniając pełne wymazanie danych
+
+#### Brakujące Klucze Tłumaczenia
+- **Klucz `encryption.noAppPassword` dodany** - Brakujący klucz tłumaczenia dodany do wszystkich 14 języków
+- **Tłumaczenia komunikatów backup** - Tłumaczenia dla komunikatu "Brak jeszcze automatycznych plików kopii zapasowych" dodane
+- **Tłumaczenia zarządzania logami** - Tłumaczenia dla tekstów zarządzania Log i Audit Log dodane:
+  - `settings.logs.auditLogManagement`
+  - `settings.logs.deleteOlderAuditLogs`
+  - `settings.logs.folderLocation`
+  - `settings.logs.openFolder`
+  - `settings.logs.auditLogHistory`
+  - `settings.logs.logHistory`
+- **Tłumaczenia kalendarza** - Tłumaczenia dla nazw miesięcy i dni dodane:
+  - `calendar.monthNames`
+  - `calendar.dayNames`
+  - `calendar.dayNamesShort`
+  - `settings.calendar.provider`
+- **Opis menu pomocy** - Tłumaczenia dla opisu "Show Help menu item in Sidebar" dodane
+
+#### Poprawka Workflow Beta Build
+- **Jawne checkout branch beta** - Workflow teraz używa jawnego najnowszego commitu z brancha `beta`
+- **Poprawka commitu tagu** - Tag `beta-v3.0.1` teraz wskazuje na poprawny commit (nie stary commit)
+- **Poprawka daty kodu źródłowego** - Data "Source code" teraz pokazuje czas kompilacji, nie datę starego commitu
+- **Dodane kroki weryfikacji** - Weryfikacja Git pull i commit SHA dodana do workflow
+
+### 📝 Szczegóły Techniczne
+
+- **Wersja zaktualizowana**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.1`
+- **Zduplikowane klucze usunięte**: Duplikacje `settings.logs.openFolder` usunięte ze wszystkich plików językowych
+- **Typy TypeScript zaktualizowane**: `encryption.noAppPassword` dodany do typu `TranslationKey`
 
 ---
 

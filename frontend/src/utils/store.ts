@@ -5,6 +5,7 @@ import { remove, exists } from "@tauri-apps/plugin-fs";
 import { BaseDirectory } from "@tauri-apps/plugin-fs";
 import { encryptCustomers, decryptCustomers } from "./customerEncryption";
 import { writeFrontendLog, writeFrontendLogAlways } from "./fileLogger";
+import { getEncryptionPassword } from "./encryptionPasswordManager";
 
 // Lazy-initialized store
 let storeInstance: Store | null = null;
@@ -219,14 +220,69 @@ export async function saveOffers(offers: Offer[]): Promise<void> {
     // Ellenőrizzük, hogy van-e titkosított customer data
     const hasEncryptedData = await hasEncryptedCustomerData();
     
+    // 🔒 JELSZÓ ELLENŐRZÉS: Ha van jelszó memóriában, akkor az adatok dekódolva vannak, ne sanitizáljuk
+    // Próbáljuk meg ellenőrizni, hogy van-e jelszó memóriában (app password vagy encryption password)
+    let hasPasswordInMemory = false;
+    try {
+      // Próbáljuk meg app password-ot
+      const { getAppPasswordInMemory } = await import("./encryptionPasswordManager");
+      const appPassword = getAppPasswordInMemory();
+      if (appPassword) {
+        hasPasswordInMemory = true;
+      } else {
+        // Próbáljuk meg encryption password-ot (false paraméterrel, hogy ne használja az app password-ot)
+        const encryptionPassword = getEncryptionPassword(false);
+        if (encryptionPassword) {
+          hasPasswordInMemory = true;
+        }
+      }
+    } catch (error) {
+      // Ha hiba van, akkor nincs jelszó memóriában
+      if (import.meta.env.DEV) {
+        console.log("🔒 [saveOffers] Jelszó ellenőrzés hiba:", error);
+      }
+    }
+    
+    if (import.meta.env.DEV) {
+      console.log("🔒 [saveOffers] Titkosítás ellenőrzés:", { hasEncryptedData, hasPasswordInMemory });
+    }
+    
     const sanitizedOffers = offers.map(offer => {
-      // Ha van customerId és titkosított customer data van, akkor ne mentsük a customerName és customerContact mezőket
-      if (offer.customerId && hasEncryptedData) {
-        return {
-          ...offer,
-          customerName: "TITKOSITOTT ADATOK",
-          customerContact: undefined, // Ne mentsük a contact-ot sem
-        };
+      // KRITIKUS JAVÍTÁS: Ha van titkosított customer data ÉS nincs jelszó memóriában, akkor sanitizáljuk
+      // Ha van jelszó memóriában, akkor az adatok dekódolva vannak, ne sanitizáljuk
+      if (hasEncryptedData && !hasPasswordInMemory) {
+        // Ha van customerId, akkor biztosan sanitizáljuk
+        if (offer.customerId) {
+          if (import.meta.env.DEV && (offer.customerName || offer.customerContact)) {
+            console.log("🔒 [saveOffers] Sanitizálás: customerId van, customerName/customerContact törlése", {
+              offerId: offer.id,
+              customerId: offer.customerId,
+              customerName: offer.customerName,
+              customerContact: offer.customerContact
+            });
+          }
+          return {
+            ...offer,
+            customerName: "TITKOSITOTT ADATOK",
+            customerContact: undefined, // Ne mentsük a contact-ot sem
+          };
+        }
+        // Ha nincs customerId DE van customerName vagy customerContact, akkor is sanitizáljuk
+        // (ez az új offer esetén történhet, amikor még nincs customerId, de van customerName)
+        if (offer.customerName || offer.customerContact) {
+          if (import.meta.env.DEV) {
+            console.log("🔒 [saveOffers] Sanitizálás: customerId nincs, de customerName/customerContact van, törlés", {
+              offerId: offer.id,
+              customerName: offer.customerName,
+              customerContact: offer.customerContact
+            });
+          }
+          return {
+            ...offer,
+            customerName: "TITKOSITOTT ADATOK",
+            customerContact: undefined,
+          };
+        }
       }
       // Ha van customerId de nincs customerName (régi formátum vagy már titkosított), akkor is "TITKOSITOTT ADATOK"
       if (offer.customerId && !offer.customerName) {
@@ -400,6 +456,10 @@ export async function saveCustomers(
       }
     }
     
+    // KRITIKUS: Ellenőrizzük, hogy van-e már titkosított adat
+    const existingEncryptedData = await customerStore.get("customers_encrypted");
+    const hasExistingEncryptedData = existingEncryptedData && typeof existingEncryptedData === "string" && existingEncryptedData.length > 0;
+    
     // Ha van titkosítási jelszó, akkor titkosítva mentjük (ID-k külön tárolva)
     if (encryptionPassword) {
       try {
@@ -425,7 +485,32 @@ export async function saveCustomers(
         throw error;
       }
     } else {
-      // Nincs titkosítás, plain text mentés
+      // Nincs jelszó - de ha van már titkosított adat, NE írjuk felül plain text formátumban!
+      if (hasExistingEncryptedData) {
+        if (import.meta.env.DEV) {
+          console.log("⚠️ Van már titkosított adat, de nincs jelszó - NE írjuk felül plain text formátumban!");
+        }
+        // NE mentjük plain text formátumban, ha van már titkosított adat!
+        // Csak az ID-kat frissítjük, ha szükséges
+        const existingCustomerIds = await customerStore.get("customer_ids") as Record<string, boolean> | null | undefined;
+        if (existingCustomerIds) {
+          // Frissítjük az ID-kat az új ügyfelekkel (ha vannak)
+          const updatedCustomerIds: Record<string, boolean> = { ...existingCustomerIds };
+          customers.forEach(customer => {
+            updatedCustomerIds[customer.id.toString()] = true;
+          });
+          await customerStore.set("customer_ids", updatedCustomerIds);
+          if (import.meta.env.DEV) {
+            console.log("🔒 Customer IDs frissítve (titkosított adatok megőrizve)", { 
+              idsCount: Object.keys(updatedCustomerIds).length 
+            });
+          }
+        }
+        // NE írjuk felül a customers_encrypted-et és NE írjuk a customers mezőt!
+        return; // Kilépünk, nem mentünk plain text formátumban
+      }
+      
+      // Nincs titkosítás ÉS nincs már titkosított adat - plain text mentés
       await customerStore.set("customers", customers);
       await customerStore.set("customers_encrypted", null); // Régi titkosított adatok törlése
       await customerStore.set("customer_ids", null); // ID-k törlése (plain text esetén nem kell)
@@ -530,13 +615,40 @@ export async function loadCustomers(
       }
       
       if (!encryptionPassword) {
-        // Nincs jelszó - speciális hiba dobása
+        // Nincs jelszó - csak az ID-kat töltjük be (nem titkosítva)
         if (import.meta.env.DEV) {
-          console.log("⚠️ Nincs jelszó memóriában, ENCRYPTION_PASSWORD_REQUIRED hiba dobása");
+          console.log("⚠️ Nincs jelszó memóriában, csak ID-k betöltése...");
         }
-        const error = new Error("ENCRYPTION_PASSWORD_REQUIRED");
-        (error as any).code = "ENCRYPTION_PASSWORD_REQUIRED";
-        throw error;
+        const customerIds = await customerStore.get("customer_ids") as Record<string, boolean> | null | undefined;
+        
+        if (customerIds && Object.keys(customerIds).length > 0) {
+          // Csak az ID-kat használjuk, üres ügyfeleket hozunk létre csak ID-vel
+          const idArray = Object.keys(customerIds).map(Number).sort((a, b) => a - b);
+          const customersWithIdsOnly: Customer[] = idArray.map(id => ({
+            id: id,
+            name: "", // Üres, mert nincs jelszó
+            contact: undefined,
+            company: undefined,
+            address: undefined,
+            notes: undefined,
+            createdAt: new Date().toISOString(), // Alapértelmezett dátum
+            updatedAt: new Date().toISOString(),
+          }));
+          
+          if (import.meta.env.DEV) {
+            console.log("🔒 Csak ID-k betöltve (nincs jelszó)", { 
+              count: customersWithIdsOnly.length,
+              idsCount: idArray.length
+            });
+          }
+          return customersWithIdsOnly;
+        }
+        
+        // Ha nincs customerIds, üres tömböt adunk vissza
+        if (import.meta.env.DEV) {
+          console.log("⚠️ Nincs customer_ids, üres tömb visszaadása");
+        }
+        return [];
       }
       
       // Visszafejtett adatok betöltése (ID-kkal kombinálva)

@@ -4,6 +4,44 @@
 
 ---
 
+## v3.0.3 (2025) - 🔧 热修复：客户数据加密修复和UI改进
+
+### 🐛 错误修复
+
+#### 客户数据加密修复
+- **报价操作对加密数据禁用** - 如果客户数据已加密且未提供密码，报价编辑、复制和状态更改现已禁用
+- **重复键问题已修复** - 报价列表和状态历史中不再出现"Encountered two children with the same key"错误
+- **报价计数器修复** - 客户报价计数器现在也按`customerId`计数，不仅按名称，与加密数据正确配合工作
+- **输入密码后更新报价** - 当提供密码并解密客户时，报价中的客户名称会恢复，而不是"加密数据"
+- **状态历史列表** - 状态历史列表现在仅显示客户ID，不显示客户名称，即使在输入密码后也是如此（符合加密要求）
+
+#### Toast消息改进
+- **防止重复的toast消息** - Toast消息现在只出现一次，即使被多次调用
+- **点击按钮时关闭toast** - 点击toast消息中的"输入密码"按钮时，toast会自动关闭
+- **Toast消息重新设计** - Toast消息现在具有更干净、更专业的外观，操作按钮采用列布局
+
+#### 添加的翻译键
+- **新的翻译键** - 已添加到所有13种语言：
+  - `encryption.passwordRequired` - "需要加密密码"
+  - `encryption.passwordRequiredForOfferEdit` - "需要加密密码才能编辑报价"
+  - `encryption.passwordRequiredForOfferDuplicate` - "需要加密密码才能复制报价"
+  - `encryption.passwordRequiredForOfferStatusChange` - "需要加密密码才能更改报价状态"
+  - `encryption.passwordRequiredForCustomerCreate` - "需要加密密码才能创建新客户"
+  - `encryption.passwordRequiredForCustomerEdit` - "需要加密密码才能编辑"
+  - `encryption.encryptedData` - "加密数据"
+  - `customers.id` - "客户ID"
+  - `customers.encryptedDataMessage` - "🔒 加密数据 - 需要密码才能查看"
+
+### 📝 技术细节
+
+- **版本已更新**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.3`
+- **硬编码字符串已替换**: 所有硬编码的匈牙利语字符串已替换为翻译键
+- **TypeScript类型已更新**: 新翻译键已添加到`TranslationKey`类型
+- **Toast Provider已修改**: 已添加重复toast检查和自动关闭
+- **报价更新逻辑**: 提供密码后解密客户时自动更新报价
+
+---
+
 ## v3.0.2 (2025) - 🔧 热修复：教程修复、权限、工厂重置日志记录
 
 ### 🐛 错误修复

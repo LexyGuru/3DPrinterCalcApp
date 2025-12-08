@@ -4,6 +4,44 @@ Este documento contiene el registro detallado de cambios para todas las versione
 
 ---
 
+## v3.0.3 (2025) - 🔧 Hotfix: Correcciones de Cifrado de Datos de Clientes y Mejoras de UI
+
+### 🐛 Correcciones de Errores
+
+#### Correcciones de Cifrado de Datos de Clientes
+- **Acciones de oferta deshabilitadas para datos cifrados** - Si los datos del cliente están cifrados y no se proporciona contraseña, la edición, duplicación y cambio de estado de ofertas ahora están deshabilitadas
+- **Problema de clave duplicada corregido** - Ya no aparecen errores "Encountered two children with the same key" en la lista de ofertas e historial de estado
+- **Corrección del contador de ofertas** - El contador de ofertas del cliente ahora cuenta también por `customerId`, no solo por nombre, funcionando correctamente con datos cifrados
+- **Actualización de ofertas después de ingresar contraseña** - Cuando se proporciona la contraseña y los clientes se descifran, los nombres de clientes en las ofertas se restauran en lugar de "DATOS CIFRADOS"
+- **Lista de historial de estado** - La lista de historial de estado ahora muestra solo el ID del cliente, no el nombre del cliente, incluso después de ingresar la contraseña (cumpliendo con los requisitos de cifrado)
+
+#### Mejoras de Mensajes Toast
+- **Prevención de mensajes toast duplicados** - Los mensajes toast ahora aparecen solo una vez, incluso si se llaman múltiples veces
+- **Toast se cierra al hacer clic en el botón** - Al hacer clic en el botón "Ingresar contraseña" en el mensaje toast, el toast se cierra automáticamente
+- **Rediseño de mensaje toast** - Los mensajes toast ahora tienen una apariencia más limpia y profesional con diseño de columna para botones de acción
+
+#### Claves de Traducción Agregadas
+- **Nuevas claves de traducción** - Agregadas a los 13 idiomas:
+  - `encryption.passwordRequired` - "Se requiere contraseña de cifrado"
+  - `encryption.passwordRequiredForOfferEdit` - "Se requiere contraseña de cifrado para editar la oferta"
+  - `encryption.passwordRequiredForOfferDuplicate` - "Se requiere contraseña de cifrado para duplicar la oferta"
+  - `encryption.passwordRequiredForOfferStatusChange` - "Se requiere contraseña de cifrado para cambiar el estado de la oferta"
+  - `encryption.passwordRequiredForCustomerCreate` - "Se requiere contraseña de cifrado para crear un nuevo cliente"
+  - `encryption.passwordRequiredForCustomerEdit` - "Se requiere contraseña de cifrado para editar"
+  - `encryption.encryptedData` - "DATOS CIFRADOS"
+  - `customers.id` - "ID de Cliente"
+  - `customers.encryptedDataMessage` - "🔒 Datos cifrados - se requiere contraseña para ver"
+
+### 📝 Detalles Técnicos
+
+- **Versión actualizada**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.3`
+- **Cadenas hardcodeadas reemplazadas**: Todas las cadenas hardcodeadas en húngaro reemplazadas con claves de traducción
+- **Tipos TypeScript actualizados**: Nuevas claves de traducción agregadas al tipo `TranslationKey`
+- **Toast Provider modificado**: Verificación de toast duplicado y cierre automático agregados
+- **Lógica de actualización de ofertas**: Actualización automática de ofertas después del descifrado de clientes cuando se proporciona contraseña
+
+---
+
 ## v3.0.2 (2025) - 🔧 Hotfix: Correcciones del Tutorial, Permisos, Registro de Factory Reset
 
 ### 🐛 Correcciones de Errores
@@ -24,6 +62,45 @@ Este documento contiene el registro detallado de cambios para todas las versione
 ### 📝 Detalles Técnicos
 
 - **Versión actualizada**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.2`
+
+---
+
+## v3.0.1 (2025) - 🔧 Hotfix: Factory Reset, Traducciones, Beta Build Workflow
+
+### 🐛 Correcciones de Errores
+
+#### Corrección de Factory Reset
+- **Factory reset corregido** - El archivo `customers.json` ahora se elimina explícitamente durante el factory reset
+- **Eliminación completa de datos de clientes** - El archivo de datos de clientes cifrados (`customers.json`) también se elimina, asegurando la eliminación completa de datos
+
+#### Claves de Traducción Faltantes
+- **Clave `encryption.noAppPassword` agregada** - Clave de traducción faltante agregada a los 14 idiomas
+- **Traducciones de mensajes de backup** - Traducciones para el mensaje "Aún no hay archivos de respaldo automático" agregadas
+- **Traducciones de gestión de logs** - Traducciones para textos de gestión de Log y Audit Log agregadas:
+  - `settings.logs.auditLogManagement`
+  - `settings.logs.deleteOlderAuditLogs`
+  - `settings.logs.folderLocation`
+  - `settings.logs.openFolder`
+  - `settings.logs.auditLogHistory`
+  - `settings.logs.logHistory`
+- **Traducciones de calendario** - Traducciones para nombres de meses y días agregadas:
+  - `calendar.monthNames`
+  - `calendar.dayNames`
+  - `calendar.dayNamesShort`
+  - `settings.calendar.provider`
+- **Descripción del menú de ayuda** - Traducciones para la descripción "Show Help menu item in Sidebar" agregadas
+
+#### Corrección del Workflow de Beta Build
+- **Checkout explícito de branch beta** - El workflow ahora usa explícitamente el commit más reciente de la rama `beta`
+- **Corrección del commit del tag** - El tag `beta-v3.0.1` ahora apunta al commit correcto (no al commit antiguo)
+- **Corrección de la fecha del código fuente** - La fecha "Source code" ahora muestra el tiempo de compilación, no la fecha del commit antiguo
+- **Pasos de verificación agregados** - Verificación de Git pull y commit SHA agregada al workflow
+
+### 📝 Detalles Técnicos
+
+- **Versión actualizada**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.1`
+- **Claves duplicadas eliminadas**: Duplicaciones de `settings.logs.openFolder` eliminadas de todos los archivos de idioma
+- **Tipos TypeScript actualizados**: `encryption.noAppPassword` agregado al tipo `TranslationKey`
 
 ---
 

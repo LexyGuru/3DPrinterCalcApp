@@ -321,6 +321,8 @@ export const languageEn: TranslationMap = {
   "customers.bulk.delete.success": "{{count}} customers successfully deleted",
   "customers.selectCustomer": "Select Customer",
   "customers.selectCustomerPlaceholder": "-- Select customer --",
+  "customers.id": "Customer ID",
+  "customers.encryptedDataMessage": "🔒 Encrypted data - password required to view",
   // Price Trends
   "priceTrends.title": "Price Trends and History",
   "priceTrends.selectFilament": "Select Filament",
@@ -1854,6 +1856,13 @@ export const languageEn: TranslationMap = {
   "encryption.passwordMinLength": "Minimum 4 characters",
   "encryption.passwordVerificationError": "Error verifying password",
   "encryption.noAppPassword": "No app password set",
+  "encryption.passwordRequired": "Encryption password required",
+  "encryption.passwordRequiredForOfferEdit": "Encryption password required to edit the offer",
+  "encryption.passwordRequiredForOfferDuplicate": "Encryption password required to duplicate the offer",
+  "encryption.passwordRequiredForOfferStatusChange": "Encryption password required to change the offer status",
+  "encryption.passwordRequiredForCustomerCreate": "Encryption password required to create a new customer",
+  "encryption.passwordRequiredForCustomerEdit": "Encryption password required to edit",
+  "encryption.encryptedData": "ENCRYPTED DATA",
   "common.processing": "Processing...",
   "common.ok": "OK"
 

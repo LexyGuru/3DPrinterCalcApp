@@ -283,6 +283,21 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+## v3.0.3 (2025) - 🔧 Hotfix: Customer Data Encryption Fixes and UI Improvements
+
+### 🐛 Bug Fixes
+- **Offer actions disabled for encrypted data** - If customer data is encrypted and no password is provided, offer editing, duplication, and status changes are now disabled
+- **Duplicate key issue fixed** - No more "Encountered two children with the same key" errors in offers list and status history
+- **Offer counter fix** - Customer offer counter now counts by `customerId` as well, not just by name, working correctly with encrypted data
+- **Offers refresh after password entry** - When password is provided and customers are decrypted, customer names in offers are restored instead of "ENCRYPTED DATA"
+- **Status history list** - Status history list now shows only customer ID, not customer name, even after password entry (compliant with encryption requirements)
+- **Toast messages improvements** - Duplicate toast prevention, automatic close on button click, redesigned appearance
+
+### 🌍 Translation Keys Added
+- Added 9 new translation keys to all 13 languages for encryption-related messages and customer ID display
+
+---
+
 ## v3.0.0 (2025) - 🔒 Customer Data Encryption & GDPR Compliance
 
 ### 🔒 Customer Data Encryption
