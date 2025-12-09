@@ -64,7 +64,7 @@ try {
   </StrictMode>,
     );
     console.log("✅ [MAIN] App komponens renderelve");
-  }, 100);
+  }, delay);
 } catch (error) {
   console.error('❌ [MAIN] Hiba az app renderelésekor:', error);
   console.error('❌ [MAIN] Hiba részletei:', {
