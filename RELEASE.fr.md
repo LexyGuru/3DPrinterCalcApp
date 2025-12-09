@@ -4,6 +4,22 @@ Ce document contient le journal des modifications détaillé pour toutes les ver
 
 ---
 
+## v3.0.4 (2025) - 🔧 Hotfix: Corrections de Traduction et Changement de Langue
+
+### 🐛 Corrections de Bugs
+
+#### Améliorations de Traduction et Changement de Langue
+- **Internationalisation du texte des données chiffrées** - Le texte codé en dur "TITKOSITOTT ADATOK" s'affiche maintenant correctement dans toutes les langues
+- **Mise à jour automatique des données après changement de langue** - Toutes les données sont automatiquement enregistrées dans la nouvelle langue
+- **Correction des couleurs de filament lors du changement de langue** - Les couleurs de filament se mettent maintenant à jour automatiquement lors du changement de langue, à la fois dans le champ de saisie et dans la liste/tableau
+
+### 📝 Détails Techniques
+
+- **Version mise à jour**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.4`
+- **Modifications de `Filaments.tsx`**: Ajout de la mise à jour automatique des couleurs lors du changement de langue
+
+---
+
 ## v3.0.3 (2025) - 🔧 Hotfix: Corrections du Chiffrement des Données Clients et Améliorations UI
 
 ### 🐛 Corrections de Bugs

@@ -4,6 +4,22 @@ Questo documento contiene il changelog dettagliato per tutte le versioni dell'ap
 
 ---
 
+## v3.0.4 (2025) - 🔧 Hotfix: Correzioni Traduzione e Cambio Lingua
+
+### 🐛 Correzioni di Bug
+
+#### Miglioramenti Traduzione e Cambio Lingua
+- **Internazionalizzazione testo dati crittografati** - Il testo hardcoded "TITKOSITOTT ADATOK" ora viene visualizzato correttamente in tutte le lingue
+- **Aggiornamento automatico dati dopo cambio lingua** - Tutti i dati vengono automaticamente salvati nella nuova lingua
+- **Correzione colori filamento al cambio lingua** - I colori del filamento ora si aggiornano automaticamente al cambio lingua, sia nel campo di input che nella lista/tabella
+
+### 📝 Dettagli Tecnici
+
+- **Versione aggiornata**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.4`
+- **Modifiche `Filaments.tsx`**: Aggiunto aggiornamento automatico colori al cambio lingua
+
+---
+
 ## v3.0.3 (2025) - 🔧 Hotfix: Correzioni Crittografia Dati Cliente e Miglioramenti UI
 
 ### 🐛 Correzioni di Bug

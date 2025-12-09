@@ -4,6 +4,22 @@ Tento dokument obsahuje podrobný changelog pre všetky verzie aplikácie 3D Pri
 
 ---
 
+## v3.0.4 (2025) - 🔧 Hotfix: Opravy Prekladov a Zmeny Jazyka
+
+### 🐛 Opravy Chýb
+
+#### Vylepšenia Prekladov a Zmeny Jazyka
+- **Internacionalizácia textu šifrovaných údajov** - Hardcodovaný text "TITKOSITOTT ADATOK" sa teraz zobrazuje správne vo všetkých jazykoch
+- **Automatická aktualizácia údajov po zmene jazyka** - Všetky údaje sa automaticky ukladajú v novom jazyku
+- **Oprava farieb filamentu pri zmene jazyka** - Farby filamentu sa teraz automaticky aktualizujú pri zmene jazyka, ako vo vstupnom poli, tak v zozname/tabulke
+
+### 📝 Technické Detaily
+
+- **Verzia aktualizovaná**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.4`
+- **Modifikácie `Filaments.tsx`**: Pridaná automatická aktualizácia farieb pri zmene jazyka
+
+---
+
 ## v3.0.3 (2025) - 🔧 Hotfix: Opravy Šifrovania Údajov Zákazníkov a Vylepšenia UI
 
 ### 🐛 Opravy Chýb

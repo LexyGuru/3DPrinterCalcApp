@@ -4,6 +4,22 @@ Dieses Dokument enthält detaillierte Änderungsprotokolle für alle Versionen d
 
 ---
 
+## v3.0.4 (2025) - 🔧 Hotfix: Übersetzungs- und Sprachwechsel-Fixes
+
+### 🐛 Fehlerbehebungen
+
+#### Übersetzungs- und Sprachwechsel-Verbesserungen
+- **Internationalisierung verschlüsselter Daten** - Der hardcodierte "TITKOSITOTT ADATOK" Text wird jetzt korrekt in allen Sprachen angezeigt
+- **Automatische Datenaktualisierung nach Sprachwechsel** - Alle Daten werden automatisch in der neuen Sprache gespeichert
+- **Filament-Farben Sprachwechsel-Fix** - Filament-Farben aktualisieren sich jetzt automatisch bei Sprachwechsel, sowohl im Eingabefeld als auch in der Liste/Tabelle
+
+### 📝 Technische Details
+
+- **Version aktualisiert**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.4`
+- **`Filaments.tsx` Modifikationen**: Automatische Farbaktualisierung bei Sprachwechsel hinzugefügt
+
+---
+
 ## v3.0.3 (2025) - 🔧 Hotfix: Kundendaten-Verschlüsselung Fixes und UI-Verbesserungen
 
 ### 🐛 Fehlerbehebungen

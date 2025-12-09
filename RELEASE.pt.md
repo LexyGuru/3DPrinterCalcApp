@@ -4,6 +4,22 @@ Este documento contém o changelog detalhado para todas as versões do aplicativ
 
 ---
 
+## v3.0.4 (2025) - 🔧 Hotfix: Correções de Tradução e Mudança de Idioma
+
+### 🐛 Correções de Erros
+
+#### Melhorias de Tradução e Mudança de Idioma
+- **Internacionalização do texto de dados criptografados** - O texto hardcoded "TITKOSITOTT ADATOK" agora é exibido corretamente em todos os idiomas
+- **Atualização automática de dados após mudança de idioma** - Todos os dados são automaticamente salvos no novo idioma
+- **Correção de cores de filamento ao mudar idioma** - As cores do filamento agora são atualizadas automaticamente ao mudar o idioma, tanto no campo de entrada quanto na lista/tabela
+
+### 📝 Detalhes Técnicos
+
+- **Versão atualizada**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.4`
+- **Modificações de `Filaments.tsx`**: Adicionada atualização automática de cores ao mudar idioma
+
+---
+
 ## v3.0.3 (2025) - 🔧 Hotfix: Correções de Criptografia de Dados do Cliente e Melhorias de UI
 
 ### 🐛 Correções de Erros

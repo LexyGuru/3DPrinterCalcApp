@@ -4,6 +4,22 @@ Tento dokument obsahuje podrobný changelog pro všechny verze aplikace 3D Print
 
 ---
 
+## v3.0.4 (2025) - 🔧 Hotfix: Opravy Překladů a Změny Jazyka
+
+### 🐛 Opravy Chyb
+
+#### Vylepšení Překladů a Změny Jazyka
+- **Internationalizace textu šifrovaných dat** - Hardcodovaný text "TITKOSITOTT ADATOK" se nyní zobrazuje správně ve všech jazycích
+- **Automatická aktualizace dat po změně jazyka** - Všechna data se automaticky ukládají v novém jazyce
+- **Oprava barev filamentů při změně jazyka** - Barvy filamentů se nyní automaticky aktualizují při změně jazyka, jak ve vstupním poli, tak v seznamu/tabulce
+
+### 📝 Technické Detaily
+
+- **Verze aktualizována**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.4`
+- **Modifikace `Filaments.tsx`**: Přidána automatická aktualizace barev při změně jazyka
+
+---
+
 ## v3.0.3 (2025) - 🔧 Hotfix: Opravy Šifrování Dat Zákazníků a Vylepšení UI
 
 ### 🐛 Opravy Chyb

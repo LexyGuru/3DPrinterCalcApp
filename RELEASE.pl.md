@@ -4,6 +4,22 @@ Ten dokument zawiera szczegółowy dziennik zmian dla wszystkich wersji aplikacj
 
 ---
 
+## v3.0.4 (2025) - 🔧 Hotfix: Poprawki Tłumaczeń i Zmiany Języka
+
+### 🐛 Poprawki Błędów
+
+#### Ulepszenia Tłumaczeń i Zmiany Języka
+- **Internacjonalizacja tekstu zaszyfrowanych danych** - Hardcodowany tekst "TITKOSITOTT ADATOK" jest teraz wyświetlany poprawnie we wszystkich językach
+- **Automatyczna aktualizacja danych po zmianie języka** - Wszystkie dane są automatycznie zapisywane w nowym języku
+- **Poprawka kolorów filamentu przy zmianie języka** - Kolory filamentu są teraz automatycznie aktualizowane przy zmianie języka, zarówno w polu wprowadzania, jak i na liście/tabeli
+
+### 📝 Szczegóły Techniczne
+
+- **Zaktualizowana wersja**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.4`
+- **Modyfikacje `Filaments.tsx`**: Dodano automatyczną aktualizację kolorów przy zmianie języka
+
+---
+
 ## v3.0.3 (2025) - 🔧 Hotfix: Poprawki Szyfrowania Danych Klientów i Ulepszenia UI
 
 ### 🐛 Poprawki Błędów
