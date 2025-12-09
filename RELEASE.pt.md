@@ -393,3 +393,80 @@ Este documento contém o changelog detalhado para todas as versões do aplicativ
 **Última atualização**: 1 de dezembro de 2025
 
 
+
+- **Sistema automático de backup** - Um arquivo de backup por dia (criado apenas em dia novo)
+- **Hook de lembrete de backup e componente UI** - Notificação se não houver backup
+- **UI de Histórico de Backup em Configurações** - Lista codificada por cores (verde/amarelo/vermelho/cinza) para idade do arquivo de backup e contagem regressiva de exclusão
+- **Janela modal de autosave** - Explicação quando autosave está habilitado
+- **Sincronização de autosave e backup automático** - Backup automático ao salvar com autosave
+- **Reset de Fábrica com exclusão automática de arquivos de backup**
+- **Histórico de backup atualiza automaticamente** quando autosave está habilitado
+
+### 🔧 Otimização do Backend do Sistema de Backup
+- **Comandos do backend adicionados** para excluir backups antigos (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+- **Funções de limpeza do frontend atualizadas para usar comandos do backend**, eliminando erros de "forbidden path"
+- **Todas as operações de arquivos (criar, excluir, listar) agora acontecem do backend**, evitando problemas de permissões Tauri
+
+### ⚡ Otimização de Desempenho do Sistema de Backup
+- `hasTodayBackup()` otimizado: usa comando backend `list_backup_files`, não precisa ler todos os arquivos
+- **Mecanismo de bloqueio adicionado** para prevenir backups paralelos
+- **Operação mais rápida** mesmo com grande número de arquivos de backup
+
+### 📁 Abertura do Diretório de Backup e Histórico de Logs
+- **Botão adicionado** na seção Configurações → Histórico de Backup para abrir pasta de backup
+- **Nova seção de histórico de logs** em Configurações - listar e abrir arquivos de log
+- **Exclusão automática de arquivos de log** configurável por dias
+- **Suporte multiplataforma** (macOS, Windows, Linux)
+
+### 🎨 Revisão Completa da Tela de Carregamento
+- **Logo do aplicativo integrado** como fundo com efeito glassmorphism
+- **Layout fixo para marcas de verificação** - Rolagem automática, apenas 3 módulos visíveis por vez
+- **Efeito shimmer, animações de pontos pulsantes**
+- **Contêiner de rolagem** com barra de rolagem oculta
+
+### ⚙️ Melhorias do Processo de Carregamento
+- **Carregamento desacelerado** (atrasos de 800ms) - mensagens de carregamento são legíveis
+- **Tratamento de erros para todos os módulos** (blocos try-catch)
+- **Arquivo de log físico** para todos os status e erros
+- **Resumo de carregamento** no final
+
+### 🎨 Suporte Multilíngue da Biblioteca de Filamentos
+- **Cores de filamentos exibidas** em todos os idiomas suportados (não apenas Húngaro/Alemão/Inglês)
+- **Lógica de fallback**: Inglês → Húngaro → Alemão → cor/nome bruto
+- Componentes Settings, GlobalSearch e Filaments atualizados
+
+### 🔄 Melhorias de Reset de Fábrica
+- **Exclusão física de arquivos** (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+- **Reset de instância de Store** sem recarregamento
+- **Exibição do seletor de idioma** após Reset de Fábrica
+
+### 🎓 Atualização do Tutorial com Novos Recursos v1.7.0
+- Novos passos: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+- Dados de demonstração expandidos: 6 filamentos → 11 filamentos, 3 ofertas → 5 ofertas
+- Chaves de tradução adicionadas para todos os idiomas
+
+---
+
+## v1.6.0 (2025) - 📊 Widgets interativos & ajuste de desempenho de tabelas grandes
+
+### 🧠 Gráficos Interativos e Visualizações Modais Detalhadas
+- **Gráficos principais do painel usam componente unificado `InteractiveChart`** com pontos de dados clicáveis e visualização modal detalhada animada
+- **Tooltip e visualização detalhada estão localizados**, mostrando rótulos legíveis (receita, custo, lucro líquido, contagem de ofertas)
+- **Período de tempo pode ser definido diretamente do gráfico de tendências** (semanal / mensal / anual) usando brush, dados fatiados fluem para Home → Dashboard
+
+### 🧵 Rolagem Virtual para Listas Grandes
+- **Rolagem virtual personalizada** para lista de Ofertas e tabela de Filamentos – apenas linhas visíveis são renderizadas, garantindo rolagem suave mesmo com 10k+ registros
+- **Configurações → Biblioteca de Filamentos** usa o mesmo padrão, mantendo a paleta completa de 12,000+ cores responsiva
+- **Posição/altura da barra de rolagem permanece correta** graças aos elementos espaçadores acima e abaixo do intervalo visível
+
+### 📋 Classificação e Filtragem Avançada de Tabelas
+- **Classificação de várias colunas** nas páginas de Filamentos e Ofertas (clique: crescente/decrescente, Shift+clique: construir cadeia de classificação – ex., "Marca ↑, então Preço/kg ↓")
+- **Configurações de classificação salvas em `settings`**, então a ordem preferida persiste após reinicialização
+- **Filamentos**: filtros de nível de coluna para marca, material/tipo e valor de cor/HEX
+- **Ofertas**: filtro de valor com valores min/máx e filtros de intervalo de datas (de / até)
+
+---
+
+**Última atualização**: 1 de dezembro de 2025
+
+

@@ -393,3 +393,80 @@ Ten dokument zawiera szczegółowy dziennik zmian dla wszystkich wersji aplikacj
 **Ostatnia aktualizacja**: 1 grudnia 2025
 
 
+
+- **Automatyczny system kopii zapasowych** - Jeden plik kopii zapasowej dziennie (tworzony tylko w nowy dzień)
+- **Hook przypomnienia o kopii zapasowej i komponent UI** - Powiadomienie, jeśli nie ma kopii zapasowej
+- **UI Historii Kopii Zapasowych w Ustawieniach** - Lista kodowana kolorami (zielony/żółty/czerwony/szary) dla wieku pliku kopii zapasowej i odliczanie usuwania
+- **Okno modalne autozapisu** - Wyjaśnienie, gdy autozapis jest włączony
+- **Synchronizacja autozapisu i automatycznej kopii zapasowej** - Automatyczna kopia zapasowa przy zapisie autozapisu
+- **Reset do Ustawień Fabrycznych z automatycznym usuwaniem plików kopii zapasowych**
+- **Historia kopii zapasowych automatycznie odświeża się**, gdy autozapis jest włączony
+
+### 🔧 Optymalizacja Backendu Systemu Kopii Zapasowych
+- **Dodane polecenia backendu** do usuwania starych kopii zapasowych (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+- **Funkcje czyszczenia frontendu zaktualizowane, aby używały poleceń backendu**, eliminując błędy "forbidden path"
+- **Wszystkie operacje plików (tworzenie, usuwanie, listowanie) teraz odbywają się z backendu**, unikając problemów z uprawnieniami Tauri
+
+### ⚡ Optymalizacja Wydajności Systemu Kopii Zapasowych
+- `hasTodayBackup()` zoptymalizowane: używa polecenia backendu `list_backup_files`, nie trzeba czytać wszystkich plików
+- **Dodany mechanizm blokady** w celu zapobieżenia równoległym kopiom zapasowym
+- **Szybsza operacja** nawet przy dużej liczbie plików kopii zapasowych
+
+### 📁 Otwieranie Katalogu Kopii Zapasowych i Historia Dzienników
+- **Dodany przycisk** w sekcji Ustawienia → Historia Kopii Zapasowych do otwarcia folderu kopii zapasowych
+- **Nowa sekcja historii dzienników** w Ustawieniach - listuj i otwieraj pliki dzienników
+- **Automatyczne usuwanie plików dziennika** konfigurowalne według dni
+- **Wsparcie multiplatformowe** (macOS, Windows, Linux)
+
+### 🎨 Kompleksowa Przegląd Ekranu Ładowania
+- **Logo aplikacji zintegrowane** jako tło z efektem glassmorphism
+- **Naprawiony układ dla znaczników** - Automatyczne przewijanie, tylko 3 moduły widoczne naraz
+- **Efekt shimmer, animacje pulsujących kropek**
+- **Kontener przewijania** z ukrytym paskiem przewijania
+
+### ⚙️ Ulepszenia Procesu Ładowania
+- **Spowolnione ładowanie** (opóźnienia 800ms) - komunikaty ładowania są czytelne
+- **Obsługa błędów dla wszystkich modułów** (bloki try-catch)
+- **Fizyczny plik dziennika** dla wszystkich statusów i błędów
+- **Podsumowanie ładowania** na końcu
+
+### 🎨 Wielojęzyczne Wsparcie Biblioteki Filamentów
+- **Kolory filamentów wyświetlane** we wszystkich obsługiwanych językach (nie tylko węgierski/niemiecki/angielski)
+- **Logika zapasowa**: Angielski → Węgierski → Niemiecki → surowy kolor/nazwa
+- Zaktualizowane komponenty Settings, GlobalSearch i Filaments
+
+### 🔄 Ulepszenia Resetu do Ustawień Fabrycznych
+- **Fizyczne usuwanie plików** (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+- **Reset instancji Store** bez przeładowania
+- **Wyświetlanie selektora języka** po Resecie do Ustawień Fabrycznych
+
+### 🎓 Aktualizacja Samouczka z Nowymi Funkcjami v1.7.0
+- Nowe kroki: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+- Rozszerzone dane demonstracyjne: 6 filamentów → 11 filamentów, 3 oferty → 5 ofert
+- Dodane klucze tłumaczeń dla wszystkich języków
+
+---
+
+## v1.6.0 (2025) - 📊 Interaktywne widgety & dostrojenie wydajności dużych tabel
+
+### 🧠 Interaktywne Wykresy i Szczegółowe Widoki Modalne
+- **Główne wykresy pulpitu używają ujednoliconego komponentu `InteractiveChart`** z klikalnymi punktami danych i animowanym szczegółowym widokiem modalnym
+- **Tooltip i widok szczegółowy są zlokalizowane**, pokazując czytelne etykiety (przychody, koszty, zysk netto, liczba ofert)
+- **Okres czasu można ustawić bezpośrednio z wykresu trendu** (tygodniowy / miesięczny / roczny) używając pędzla, pokrojone dane płyną do Home → Dashboard
+
+### 🧵 Wirtualne Przewijanie dla Dużych List
+- **Niestandardowe wirtualne przewijanie** dla listy Ofert i tabeli Filamentów – renderowane są tylko widoczne wiersze, zapewniając płynne przewijanie nawet przy 10k+ rekordach
+- **Ustawienia → Biblioteka Filamentów** używa tego samego wzorca, utrzymując pełną paletę 12,000+ kolorów responsywną
+- **Pozycja/wysokość paska przewijania pozostaje poprawna** dzięki elementom spacerów powyżej i poniżej widocznego zakresu
+
+### 📋 Zaawansowane Sortowanie i Filtrowanie Tabel
+- **Sortowanie wielokolumnowe** na stronach Filamentów i Ofert (klik: rosnąco/malejąco, Shift+klik: buduj łańcuch sortowania – np. "Marka ↑, następnie Cena/kg ↓")
+- **Ustawienia sortowania zapisane w `settings`**, więc preferowana kolejność utrzymuje się po ponownym uruchomieniu
+- **Filamenty**: filtry na poziomie kolumny dla marki, materiału/typu i wartości koloru/HEX
+- **Oferty**: filtr kwoty z wartościami min/max i filtry zakresu dat (od / do)
+
+---
+
+**Ostatnia aktualizacja**: 1 grudnia 2025
+
+

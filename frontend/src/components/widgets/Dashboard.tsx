@@ -543,6 +543,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Ref, hogy követni tudjuk, hogy éppen mentünk-e változást
   const isSavingLayoutRef = React.useRef(false);
   const previousLayoutRef = React.useRef<string | undefined>(undefined);
+  const previousLanguageRef = React.useRef<string>(settings.language);
   
   // Frissítés, ha a settings.dashboardLayout változik (csak ha nem mi mentettük)
   useEffect(() => {
@@ -555,8 +556,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const savedWidgets = settings.dashboardLayout?.widgets;
     const currentLayoutKey = savedWidgets ? JSON.stringify(savedWidgets.map(w => ({ id: w.id, x: w.layout.x, y: w.layout.y }))) : undefined;
     
+    // Ha a nyelv változott, akkor frissítjük a widget title-eket
+    const languageChanged = previousLanguageRef.current !== settings.language;
+    if (languageChanged) {
+      previousLanguageRef.current = settings.language;
+      if (savedWidgets && savedWidgets.length > 0) {
+        // Frissítjük a widget-eket a lefordított title-ekkel
+        setWidgets(prevWidgets => {
+          return prevWidgets.map(prevWidget => {
+            const savedWidget = savedWidgets.find(w => w.id === prevWidget.id);
+            if (savedWidget && savedWidget.title !== prevWidget.title) {
+              return { ...prevWidget, title: savedWidget.title };
+            }
+            return prevWidget;
+          });
+        });
+      }
+    }
+    
     // Ha a layout nem változott, ne töltjük be újra
-    if (currentLayoutKey === previousLayoutRef.current) {
+    if (currentLayoutKey === previousLayoutRef.current && !languageChanged) {
       return;
     }
     
@@ -587,7 +606,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       // Csak akkor állítjuk vissza az alapértelmezettet, ha valóban nincs mentett layout
       setWidgets(createDefaultWidgets(t).map(normalizeWidgetSize));
     }
-  }, [settings.dashboardLayout, onLayoutChange, t]);
+  }, [settings.dashboardLayout, settings.language, onLayoutChange, t]);
 
   // Widget címek dinamikus fordítása
   const getWidgetTitle = useCallback((widget: WidgetConfig): string => {
@@ -665,7 +684,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       default:
         return widget.title || "";
     }
-  }, [t]);
+  }, [t, settings.language]);
 
   // Widget címeket nem frissítjük a state-ben, hanem csak rendereléskor fordítjuk
   // Ez elkerüli a végtelen ciklust, és a címek automatikusan frissülnek, amikor a nyelv változik

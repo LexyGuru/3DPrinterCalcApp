@@ -29,6 +29,8 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
   const t = useTranslation(settings.language);
   const [lastImport, setLastImport] = useState<SlicerJobData | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
+  const [importStatus, setImportStatus] = useState("");
 
   const sumNumbers = (values?: number[]): number | undefined =>
     values && values.length ? values.reduce((acc: number, value: number) => acc + value, 0) : undefined;
@@ -36,6 +38,9 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
   const handleSlicerImport = async () => {
     try {
       setIsImporting(true);
+      setImportProgress(0);
+      setImportStatus(t("slicerImport.progress.selectingFile" as any) || "Fájl kiválasztása...");
+      
       const selected = await open({
         multiple: false,
         filters: [
@@ -47,26 +52,51 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
       });
 
       if (!selected) {
+        setImportProgress(0);
+        setImportStatus("");
         return;
       }
 
       const filePath = Array.isArray(selected) ? selected[0] : selected;
       if (!filePath || typeof filePath !== "string") {
         showToast(t("slicerImport.invalidSelection"), "error");
+        setImportProgress(0);
+        setImportStatus("");
         return;
       }
 
       if (filePath.toLowerCase().endsWith(".3mf")) {
         showToast(t("slicerImport.unsupported3mf"), "error");
+        setImportProgress(0);
+        setImportStatus("");
         return;
       }
 
+      // Fájl beolvasása
+      setImportProgress(33);
+      setImportStatus(t("slicerImport.progress.readingFile" as any) || "Fájl beolvasása...");
       const fileContent = await readTextFile(filePath);
+      
+      // Adatok feldolgozása
+      setImportProgress(66);
+      setImportStatus(t("slicerImport.progress.processingData" as any) || "Adatok feldolgozása...");
       const job = await parseSlicerFile(filePath, fileContent);
+      
+      // Befejezés
+      setImportProgress(100);
+      setImportStatus(t("slicerImport.progress.complete" as any) || "Kész!");
       setLastImport(job);
 
       showToast(t("slicerImport.importSuccess"), "success");
+      
+      // Progress bar eltüntetése 1 másodperc után
+      setTimeout(() => {
+        setImportProgress(0);
+        setImportStatus("");
+      }, 1000);
     } catch (error) {
+      setImportProgress(0);
+      setImportStatus("");
       if (error instanceof SlicerParseError) {
         showToast(t("slicerImport.importFailedPrefix") + error.message, "error");
       } else {
@@ -479,6 +509,41 @@ export const SlicerImportModal: React.FC<SlicerImportModalProps> = ({
               {t("slicerImport.supportedFormats")}
               </span>
             </div>
+
+            {/* Progress bar */}
+            {isImporting && importProgress > 0 && (
+              <div style={{ marginTop: "8px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                  <span style={{ fontSize: "13px", color: theme.colors.text, fontWeight: 500 }}>
+                    {importStatus}
+                  </span>
+                  <span style={{ fontSize: "12px", color: theme.colors.textMuted }}>
+                    {Math.round(importProgress)}%
+                  </span>
+                </div>
+                <div
+                  style={{
+                    width: "100%",
+                    height: "8px",
+                    backgroundColor: theme.colors.surface,
+                    borderRadius: "4px",
+                    overflow: "hidden",
+                    border: `1px solid ${theme.colors.border}`,
+                  }}
+                >
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${importProgress}%` }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    style={{
+                      height: "100%",
+                      backgroundColor: theme.colors.primary,
+                      borderRadius: "4px",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
             {renderSummary()}
 

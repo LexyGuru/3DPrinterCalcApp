@@ -31,9 +31,12 @@ try {
     console.log("🗑️ [MAIN] HTML fallback UI eltávolítva");
   }
   
-  // Fallback UI azonnali megjelenítése (ha valami elakad)
-  rootElement.innerHTML = '<div id="loading-fallback" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui; background: #1a1a1a; color: white;"><div style="font-size: 24px; margin-bottom: 20px;">⏳ React betöltése...</div><div style="font-size: 12px; color: #888;" id="main-status">Várakozás React renderelésre...</div></div>';
-  console.log("📺 [MAIN] Fallback UI megjelenítve");
+  // Fallback UI azonnali megjelenítése (ha valami elakad) - csak development módban
+  const isDev = import.meta.env.DEV;
+  if (isDev) {
+    rootElement.innerHTML = '<div id="loading-fallback" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui; background: #1a1a1a; color: white;"><div style="font-size: 24px; margin-bottom: 20px;">⏳ React betöltése...</div><div style="font-size: 12px; color: #888;" id="main-status">Várakozás React renderelésre...</div></div>';
+    console.log("📺 [MAIN] Fallback UI megjelenítve (DEV mód)");
+  }
   
   // Status frissítés
   const statusEl = document.getElementById('main-status');
@@ -41,14 +44,17 @@ try {
     statusEl.textContent = 'React root létrehozása...';
   }
   
-  // Kis késleltetés, hogy látható legyen a fallback
+  // Kis késleltetés, hogy látható legyen a fallback (csak DEV módban)
+  const delay = isDev ? 100 : 0;
   setTimeout(() => {
     console.log("🔄 [MAIN] Fallback UI eltávolítása, React renderelés...");
     if (statusEl) {
       statusEl.textContent = 'React renderelés...';
     }
     
-    rootElement.innerHTML = ''; // Töröljük a fallback UI-t
+    if (isDev) {
+      rootElement.innerHTML = ''; // Töröljük a fallback UI-t
+    }
     
     root.render(
   <StrictMode>

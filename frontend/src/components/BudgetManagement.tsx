@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import type { Offer, Settings } from "../types";
 import type { Theme } from "../utils/themes";
-import { useTranslation } from "../utils/translations";
+import { useTranslation, translations as translationRegistry } from "../utils/translations";
 import { useToast } from "./Toast";
 import { saveOffers } from "../utils/store";
 import { auditUpdate } from "../utils/auditLog";
@@ -53,7 +53,9 @@ export const BudgetManagement: React.FC<Props> = ({
     });
 
     setOffers(updatedOffers);
-    await saveOffers(updatedOffers);
+    // A fordítást közvetlenül a translations objektumból kérjük le
+    const encryptedDataText = translationRegistry[settings.language]?.["encryption.encryptedData"] || "ENCRYPTED DATA";
+    await saveOffers(updatedOffers, encryptedDataText);
     showToast(t("budget.paymentStatusUpdated") || "Fizetési státusz frissítve", "success");
   };
 

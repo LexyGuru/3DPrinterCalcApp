@@ -39,7 +39,8 @@ import "./utils/consoleLogger"; // Initialize console logger
 import "./utils/keyboardShortcuts"; // Initialize keyboard shortcuts
 import { initFrontendLog, frontendLogger, writeFrontendLog, setAppLoaded, setLogSettings } from "./utils/fileLogger"; // Initialize file logger
 import { logWithLanguage } from "./utils/languages/global_console";
-import { useTranslation } from "./utils/translations";
+import { useTranslation, translations as translationRegistry, type TranslationKey } from "./utils/translations";
+import { findColorOptionByLabel, getLocalizedColorLabel, COLOR_PRESETS } from "./utils/filamentColors";
 import { logApplicationStartup, resetLoggingFlags } from "./utils/appLogging"; // Centralized application logging
 import { PerformanceTimer, logMemoryUsage, logPerformanceSummary, logPeriodicPerformanceMetrics, type PerformanceMetric } from "./utils/performance"; // Performance metrikák
 import { auditCreate } from "./utils/auditLog"; // Audit log
@@ -121,6 +122,7 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(new Date()); // Kezdeti érték, hogy azonnal látható legyen
   const [previousAutosaveState, setPreviousAutosaveState] = useState<boolean | undefined>(settings.autosave); // Előző autosave állapot követése
+  const previousLanguageRef = useRef<string | null>(null); // Előző nyelv követése - csak akkor mentjük újra az adatokat, ha valóban megváltozott
   const [quickActionTrigger, setQuickActionTrigger] = useState<string | null>(null);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -274,7 +276,7 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
       } else if (!encryptionPassword) {
         // Nincs jelszó memóriában - betöltjük az ügyfeleket csak ID-kkal
         if (customers.length === 0) {
-          if (import.meta.env.DEV) {
+        if (import.meta.env.DEV) {
             console.log("🔒 Nincs jelszó, csak ID-k betöltése...");
           }
           loadCustomers(null).then((loadedCustomers) => {
@@ -332,9 +334,9 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
                   onClick: () => {
                     // 🔒 TOAST BEZÁRÁS: A toast automatikusan bezáródik az actionButton.onClick-ben
                     hasShownToastRef.current = false;
-                    setPasswordPromptCancelled(false);
-                    setShowEncryptionPasswordPrompt(true);
-                  }
+        setPasswordPromptCancelled(false);
+        setShowEncryptionPasswordPrompt(true);
+      }
                 }
               );
             }
@@ -349,8 +351,8 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
       // Reset a flag-et, ha elhagyjuk az ügyfelek oldalt
       if (activePage !== 'customers') {
         hasShownToastRef.current = false;
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isInitialized, activePage, settings.encryptionEnabled, settings.encryptedCustomerData, settings.useAppPasswordForEncryption, passwordPromptCancelled, showToast, t, passwordToastMessage]);
     
     return null;
@@ -674,12 +676,16 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
               }
               
               setSettings(loadedSettings);
+              // Elmentjük az inicializáláskor betöltött nyelvet, hogy ne mentse újra az adatokat
+              previousLanguageRef.current = loadedSettings.language;
             } else {
               settingsStatus = "warning";
               settingsStatusMessage = "⚠️ [MODUL: Beállítások] FIGYELMEZTETÉS: Nincs mentett beállítás, alapértelmezett használata";
               await writeFrontendLog('WARN', settingsStatusMessage);
               setSettings(defaultSettings);
               loadedSettings = defaultSettings;
+              // Elmentjük az alapértelmezett nyelvet is
+              previousLanguageRef.current = defaultSettings.language;
             }
           } catch (error) {
             settingsStatus = "error";
@@ -689,6 +695,8 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
             console.error("❌ Hiba a beállítások betöltésekor:", error);
             setSettings(defaultSettings);
             loadedSettings = defaultSettings;
+            // Elmentjük az alapértelmezett nyelvet is
+            previousLanguageRef.current = defaultSettings.language;
         }
         
         // Státusz logolása
@@ -1323,17 +1331,24 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
     }
   }, autosaveInterval);
 
-  const debouncedSaveOffers = debounce(() => {
-    if (isInitialized && autosaveEnabled) {
-      saveOffers(offers).then(() => {
-        updateLastSaved();
-        // 🔹 Autosave mentés után automatikus vészbackup létrehozása
-        debouncedAutomaticBackup();
-      }).catch((error) => {
-        console.error("Hiba az árajánlatok mentésekor:", error);
-      });
-    }
-  }, autosaveInterval);
+  // Debounced save offers - useMemo-val, hogy a settings.language változásakor újra létrejöjjön
+  const debouncedSaveOffers = useMemo(() => {
+    return debounce(() => {
+      if (isInitialized && autosaveEnabled) {
+        // A fordítást közvetlenül a translations objektumból kérjük le, hogy mindig a legfrissebb nyelvet használjuk
+        const currentLanguage = settings.language;
+        const currentEncryptedDataText = translationRegistry[currentLanguage]?.["encryption.encryptedData"] || "ENCRYPTED DATA";
+        saveOffers(offers, currentEncryptedDataText).then(() => {
+          updateLastSaved();
+          // 🔹 Autosave mentés után automatikus vészbackup létrehozása
+          debouncedAutomaticBackup();
+        }).catch((error) => {
+          console.error("Hiba az árajánlatok mentésekor:", error);
+        });
+      }
+    }, autosaveInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offers, isInitialized, autosaveEnabled, settings.language, autosaveInterval]);
 
   const debouncedSaveCustomers = debounce(() => {
     if (isInitialized && autosaveEnabled) {
@@ -1377,9 +1392,300 @@ function AppInner({ activePage, setActivePage }: { activePage: string; setActive
     if (isInitialized && autosaveEnabled) {
       debouncedSaveOffers();
     } else if (isInitialized && !autosaveEnabled) {
-      saveOffers(offers).then(() => updateLastSaved());
+      // A fordítást közvetlenül a translations objektumból kérjük le
+      const encryptedDataText = translationRegistry[settings.language]?.["encryption.encryptedData"] || "ENCRYPTED DATA";
+      saveOffers(offers, encryptedDataText).then(() => updateLastSaved());
     }
-  }, [offers, isInitialized, autosaveEnabled]);
+  }, [offers, isInitialized, autosaveEnabled, debouncedSaveOffers]);
+
+  // Nyelvváltozás esetén azonnal újra kell menteni az összes adatot, hogy a fordított szövegek frissüljenek
+  useEffect(() => {
+    if (!isInitialized) {
+      // Inicializáláskor elmentjük az aktuális nyelvet, de nem mentjük újra az adatokat
+      previousLanguageRef.current = settings.language;
+      return;
+    }
+    
+    // Csak akkor mentjük újra az adatokat, ha a nyelv valóban megváltozott (nem csak inicializálódott)
+    if (previousLanguageRef.current === settings.language) {
+      return; // Nincs változás, nem kell újra menteni
+    }
+    
+    // Elmentjük az előző nyelvet (debug céljából), majd frissítjük az újra
+    const oldLanguage = previousLanguageRef.current;
+    previousLanguageRef.current = settings.language;
+    
+    if (import.meta.env.DEV) {
+      console.log(`🔄 Nyelvváltozás észlelve: ${oldLanguage} → ${settings.language}`);
+    }
+    
+    // A nyelvváltozás után azonnal újra mentjük az összes adatot a friss fordítással
+    const saveAllDataWithNewLanguage = async () => {
+      try {
+        const encryptedDataText = translationRegistry[settings.language]?.["encryption.encryptedData"] || "ENCRYPTED DATA";
+        
+        // 1. Offers előkészítése (description fordítása és titkosított adatok kezelése)
+        let offersToSave = offers;
+        if (offers.length > 0) {
+          // Összegyűjtjük az összes nyelv "slicerImport.importedFilePrefix" fordítását
+          const allImportedFilePrefixes = Object.values(translationRegistry).map(
+            (lang) => lang["slicerImport.importedFilePrefix"]
+          ).filter(Boolean);
+          
+          // Összegyűjtjük az összes nyelv "slicerImport.statusNote" fordítását
+          const allStatusNotes = Object.values(translationRegistry).map(
+            (lang) => lang["slicerImport.statusNote"]
+          ).filter(Boolean);
+          
+          // Helper függvény a description fordításához
+          const translateDescription = (description: string | undefined): string | undefined => {
+            if (!description) return description;
+            
+            // Keresünk minden prefix-et, hogy van-e egyezés
+            const matchingPrefix = allImportedFilePrefixes.find(prefix => 
+              description.startsWith(`${prefix}:`) || description.startsWith(`${prefix} `)
+            );
+            
+            if (matchingPrefix) {
+              const newPrefix = translationRegistry[settings.language]?.["slicerImport.importedFilePrefix"] || "Importált fájl:";
+              // Eltávolítjuk a régi prefix-et (akár ":" akár " " után jön)
+              const fileName = description
+                .replace(new RegExp(`^${matchingPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[:\\s]+`), "")
+                .trim();
+              return `${newPrefix}: ${fileName}`;
+            } else {
+              // Ha nem találunk egyezést, akkor is próbáljuk meg fordítani, ha van "Importált fájl:" vagy hasonló
+              // Keresünk minden nyelvben a prefix-eket
+              for (const [, langTranslations] of Object.entries(translationRegistry)) {
+                const langPrefix = langTranslations["slicerImport.importedFilePrefix"];
+                if (langPrefix && (description.startsWith(`${langPrefix}:`) || description.startsWith(`${langPrefix} `))) {
+                  const newPrefix = translationRegistry[settings.language]?.["slicerImport.importedFilePrefix"] || "Importált fájl:";
+                  const fileName = description
+                    .replace(new RegExp(`^${langPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[:\\s]+`), "")
+                    .trim();
+                  return `${newPrefix}: ${fileName}`;
+                }
+              }
+            }
+            return description;
+          };
+          
+          // Helper függvény a status note fordításához
+          const translateStatusNote = (note: string | undefined): string | undefined => {
+            if (!note) return note;
+            
+            // Keresünk minden nyelvben a status note-ot
+            const matchingNote = allStatusNotes.find(statusNote => 
+              note === statusNote
+            );
+            
+            if (matchingNote) {
+              // Ha megtaláltuk, akkor lefordítjuk az új nyelvre
+              return translationRegistry[settings.language]?.["slicerImport.statusNote"] || note;
+            }
+            return note;
+          };
+          
+          offersToSave = offers.map(offer => {
+            let updatedOffer = { ...offer };
+            
+            // Description fordítása
+            updatedOffer.description = translateDescription(offer.description);
+            
+            // History array-ben lévő description-ök fordítása
+            if (offer.history && offer.history.length > 0) {
+              updatedOffer.history = offer.history.map(historyItem => ({
+                ...historyItem,
+                description: translateDescription(historyItem.description)
+              }));
+            }
+            
+            // StatusHistory array-ben lévő note-ok fordítása
+            if (offer.statusHistory && offer.statusHistory.length > 0) {
+              updatedOffer.statusHistory = offer.statusHistory.map(statusItem => ({
+                ...statusItem,
+                note: translateStatusNote(statusItem.note)
+              }));
+            }
+            
+            // Filaments array-ben lévő multiColorHint-ek fordítása
+            if (offer.filaments && offer.filaments.length > 0) {
+              // Összegyűjtjük az összes nyelv "slicerImport.importedData" fordítását
+              const allImportedDataLabels = Object.values(translationRegistry).map(
+                (lang) => lang["slicerImport.importedData"]
+              ).filter(Boolean);
+              
+              updatedOffer.filaments = offer.filaments.map(filament => {
+                if (filament.multiColorHint) {
+                  // Keresünk minden nyelvben az "Importált adat" vagy "Imported data" prefix-et
+                  for (const importedDataLabel of allImportedDataLabels) {
+                    if (filament.multiColorHint.startsWith(`${importedDataLabel} –`)) {
+                      const newLabel = translationRegistry[settings.language]?.["slicerImport.importedData"] || "Importált adat";
+                      const restOfHint = filament.multiColorHint.replace(new RegExp(`^${importedDataLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} –`), "").trim();
+                      return { ...filament, multiColorHint: `${newLabel} – ${restOfHint}` };
+                    }
+                  }
+                }
+                return filament;
+              });
+            }
+            
+            return updatedOffer;
+          });
+        }
+        
+        // 1b. Offers mentése (ha van titkosított adat, akkor a friss fordítással)
+        if (offersToSave.length > 0) {
+          await saveOffers(offersToSave, encryptedDataText);
+          if (import.meta.env.DEV) {
+            console.log("🔄 Nyelvváltozás: offers újra mentve (description és encrypted data lefordítva)");
+          }
+        }
+        
+        // 2. Customers mentése (ha van titkosítás)
+        if (customers.length > 0 && settings.encryptionEnabled) {
+          const encryptionPassword = settings.encryptionEnabled 
+            ? getEncryptionPassword(settings.useAppPasswordForEncryption ?? false)
+            : null;
+          await saveCustomers(customers, encryptionPassword);
+          if (import.meta.env.DEV) {
+            console.log("🔄 Nyelvváltozás: customers újra mentve");
+          }
+        }
+        
+        // 3. Settings mentése (a nyelv változás már benne van, de biztosítjuk, hogy mentve legyen)
+        await saveSettings(settings);
+        if (import.meta.env.DEV) {
+          console.log("🔄 Nyelvváltozás: settings újra mentve");
+        }
+        
+        // 4. Printers mentése (ha vannak)
+        if (printers.length > 0) {
+          await savePrinters(printers);
+          if (import.meta.env.DEV) {
+            console.log("🔄 Nyelvváltozás: printers újra mentve");
+          }
+        }
+        
+        // 5. Filaments mentése (ha vannak) - színeket fordítjuk
+        if (filaments.length > 0) {
+          const translatedFilaments = filaments.map(filament => {
+            if (filament.color) {
+              // Ellenőrizzük, hogy a color egy ismert színnév-e
+              const colorOption = findColorOptionByLabel(filament.color);
+              if (colorOption) {
+                // Ha igen, akkor lefordítjuk az új nyelvre
+                const translatedColor = getLocalizedColorLabel(colorOption, settings.language);
+                if (translatedColor) {
+                  return { ...filament, color: translatedColor };
+                }
+              }
+              // Ha nem található a presetekben, akkor keresünk minden nyelvben
+              // hogy van-e ilyen szín (pl. "kávé" nincs a presetekben, de lehet, hogy van másik nyelvű verziója)
+              const currentColor = filament.color;
+              if (currentColor) {
+                const allColorOptions = Object.values(COLOR_PRESETS).flat();
+                for (const option of allColorOptions) {
+                  // Ellenőrizzük, hogy az eredeti szín egyezik-e valamelyik nyelvű címkével
+                  const matchesOriginal = Object.values(option.labels).some(label => 
+                    label && label.toLowerCase() === currentColor.toLowerCase()
+                  );
+                  if (matchesOriginal) {
+                    // Ha igen, akkor lefordítjuk az új nyelvre
+                    const translatedColor = getLocalizedColorLabel(option, settings.language);
+                    if (translatedColor) {
+                      return { ...filament, color: translatedColor };
+                    }
+                  }
+                }
+              }
+            }
+            return filament;
+          });
+          await saveFilaments(translatedFilaments);
+          if (import.meta.env.DEV) {
+            console.log("🔄 Nyelvváltozás: filaments újra mentve (színek lefordítva)");
+          }
+        }
+        
+        // 6. Dashboard widget title-ek fordítása
+        if (settings.dashboardLayout?.widgets) {
+          const originalWidgets = settings.dashboardLayout.widgets;
+          
+          // Widget type -> translation key mapping
+          const widgetTypeToKey: Record<string, TranslationKey> = {
+            "period-comparison": "widget.title.periodComparison",
+            "stat-card-filament": "widget.title.totalFilament",
+            "stat-card-revenue": "widget.title.totalRevenue",
+            "stat-card-electricity": "widget.title.totalElectricity",
+            "stat-card-cost": "widget.title.totalCost",
+            "stat-card-profit": "widget.title.netProfit",
+            "stat-card-print-time": "widget.title.totalPrintTime",
+            "trend-chart": "widget.title.trends",
+            "filament-breakdown": "widget.title.filamentBreakdown",
+            "printer-breakdown": "widget.title.revenueByPrinter",
+            "summary": "widget.title.summary",
+            "print-time-chart": "widget.title.printTimeChart",
+            "customer-stats-chart": "widget.title.customerStatsChart",
+            "offer-status-chart": "widget.title.offerStatusChart",
+            "quick-actions": "widget.title.quickActions",
+            "recent-offers": "widget.title.recentOffers",
+            "filament-stock-alert": "widget.title.filamentStockAlert",
+            "financial-trends": "widget.title.financialTrends",
+            "active-projects": "widget.title.activeProjects",
+            "scheduled-tasks": "widget.title.scheduledTasks",
+            "backup-status": "widget.title.backupStatus",
+            "error-summary": "widget.title.errorSummary",
+            "log-viewer": "widget.title.logViewer",
+            "audit-log": "widget.title.auditLog",
+            "system-diagnostics": "widget.title.systemDiagnostics",
+            "performance-metrics": "widget.title.performanceMetrics",
+            "console": "widget.title.console",
+          };
+          
+          const translatedWidgets = originalWidgets.map(widget => {
+            // Widget title-ek fordítása - ha van widget.title.* kulcs, akkor azt használjuk
+            const translationKey = widgetTypeToKey[widget.type];
+            if (translationKey) {
+              const translatedTitle = translationRegistry[settings.language]?.[translationKey];
+              if (translatedTitle) {
+                // Mindig frissítjük a widget title-t, még akkor is, ha ugyanaz
+                return { ...widget, title: translatedTitle };
+              }
+            }
+            // Ha nincs fordítása, akkor is visszaadjuk (pl. egyedi widget-ek)
+            return widget;
+          });
+          
+          // Mindig frissítjük a settings-et, hogy biztosan leforduljon minden widget title
+          const updatedSettings = {
+            ...settings,
+            dashboardLayout: {
+              ...settings.dashboardLayout,
+              widgets: translatedWidgets
+            }
+          };
+          await saveSettings(updatedSettings);
+          if (import.meta.env.DEV) {
+            console.log("🔄 Nyelvváltozás: dashboard widget title-ek lefordítva");
+          }
+        }
+        
+        updateLastSaved();
+        if (import.meta.env.DEV) {
+          console.log("✅ Nyelvváltozás: összes adat újra mentve az új nyelven");
+        }
+      } catch (error) {
+        console.error("❌ Hiba az adatok újra mentésekor nyelvváltozás után:", error);
+      }
+    };
+    
+    // Csak akkor mentjük újra, ha már inicializálva van és van adat
+    if (isInitialized) {
+      saveAllDataWithNewLanguage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.language]);
 
   useEffect(() => {
     if (isInitialized && autosaveEnabled) {

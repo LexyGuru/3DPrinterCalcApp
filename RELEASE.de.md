@@ -393,3 +393,80 @@ Dieses Dokument enthält detaillierte Änderungsprotokolle für alle Versionen d
 **Zuletzt aktualisiert**: 1. Dezember 2025
 
 
+
+- **Automatisches Backup-System** - Eine Backup-Datei pro Tag (nur bei neuem Tag erstellt)
+- **Backup-Erinnerungs-Hook und UI-Komponente** - Benachrichtigung, wenn kein Backup existiert
+- **Backup-Historie-UI in Einstellungen** - Farbcodierte Liste (grün/gelb/rot/grau) für Backup-Datei-Alter und Lösch-Countdown
+- **Autosave-Modal-Fenster** - Erklärung, wenn Autosave aktiviert ist
+- **Autosave- und automatisches Backup-Synchronisation** - Automatisches Backup beim Autosave-Speichern
+- **Factory-Reset mit automatischer Backup-Datei-Löschung**
+- **Backup-Historie aktualisiert sich automatisch**, wenn Autosave aktiviert wird
+
+### 🔧 Backup-System-Backend-Optimierung
+- **Backend-Befehle hinzugefügt** zum Löschen alter Backups (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+- **Frontend-Bereinigungs-Funktionen aktualisiert, um Backend-Befehle zu verwenden**, wodurch "forbidden path"-Fehler eliminiert werden
+- **Alle Datei-Operationen (Erstellen, Löschen, Auflisten) erfolgen nun vom Backend**, um Tauri-Berechtigungsprobleme zu vermeiden
+
+### ⚡ Backup-System-Performance-Optimierung
+- `hasTodayBackup()` optimiert: verwendet `list_backup_files` Backend-Befehl, keine Notwendigkeit, alle Dateien zu lesen
+- **Sperr-Mechanismus hinzugefügt**, um parallele Backups zu verhindern
+- **Schnellere Operation** auch bei großer Anzahl von Backup-Dateien
+
+### 📁 Backup-Verzeichnis-Öffnen und Log-Historie
+- **Button hinzugefügt** im Bereich Einstellungen → Backup-Historie zum Öffnen des Backup-Ordners
+- **Neuer Log-Historie-Bereich** in Einstellungen - Log-Dateien auflisten und öffnen
+- **Automatische Log-Datei-Löschung** konfigurierbar nach Tagen
+- **Plattformübergreifende Unterstützung** (macOS, Windows, Linux)
+
+### 🎨 Vollständige Ladebildschirm-Überarbeitung
+- **App-Logo integriert** als Hintergrund mit Glassmorphismus-Effekt
+- **Festes Layout für Häkchen** - Automatisches Scrollen, nur 3 Module gleichzeitig sichtbar
+- **Shimmer-Effekt, pulsierende Punkte-Animationen**
+- **Scroll-Container** mit versteckter Scrollbar
+
+### ⚙️ Lade-Prozess-Verbesserungen
+- **Verlangsamtes Laden** (800ms Verzögerungen) - Lademeldungen sind lesbar
+- **Fehlerbehandlung für alle Module** (try-catch-Blöcke)
+- **Physische Log-Datei** für alle Status und Fehler
+- **Lade-Zusammenfassung** am Ende
+
+### 🎨 Filament-Bibliothek-Mehrsprachige-Unterstützung
+- **Filament-Farben werden angezeigt** in allen unterstützten Sprachen (nicht nur Ungarisch/Deutsch/Englisch)
+- **Fallback-Logik**: Englisch → Ungarisch → Deutsch → rohe Farbe/Name
+- Settings, GlobalSearch und Filaments-Komponenten aktualisiert
+
+### 🔄 Factory-Reset-Verbesserungen
+- **Physische Datei-Löschung** (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+- **Store-Instanz-Reset** ohne Neuladen
+- **Sprachauswahl-Anzeige** nach Factory-Reset
+
+### 🎓 Tutorial-Update mit v1.7.0-Neuerungen
+- Neue Schritte: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+- Demo-Daten erweitert: 6 Filamente → 11 Filamente, 3 Angebote → 5 Angebote
+- Übersetzungsschlüssel für alle Sprachen hinzugefügt
+
+---
+
+## v1.6.0 (2025) - 📊 Interaktive Widgets & große Tabellen-Performance-Optimierung
+
+### 🧠 Interaktive Diagramme und detaillierte Modal-Ansichten
+- **Haupt-Dashboard-Diagramme verwenden einheitliche `InteractiveChart`-Komponente** mit klickbaren Datenpunkten und animierter detaillierter Modal-Ansicht
+- **Tooltip und detaillierte Ansicht sind lokalisiert**, zeigen menschenlesbare Beschriftungen (Umsatz, Kosten, Netto-Gewinn, Angebotsanzahl)
+- **Zeitraum kann direkt aus Trend-Diagramm eingestellt werden** (wöchentlich / monatlich / jährlich) mit Brush, geschnittene Daten fließen zu Home → Dashboard
+
+### 🧵 Virtuelles Scrollen für große Listen
+- **Benutzerdefiniertes virtuelles Scrollen** für Angebotsliste und Filament-Tabelle – nur sichtbare Zeilen werden gerendert, was sanftes Scrollen auch bei 10k+ Datensätzen gewährleistet
+- **Einstellungen → Filament-Bibliothek** verwendet dasselbe Muster, hält die vollständige 12.000+ Farbpalette reaktionsfähig
+- **Scrollbar-Position/-Höhe bleibt korrekt** dank Spacer-Elementen oberhalb und unterhalb des sichtbaren Bereichs
+
+### 📋 Erweiterte Tabellen-Sortierung und -Filterung
+- **Mehrspalten-Sortierung** auf Filament- und Angebotsseiten (Klick: aufsteigend/absteigend, Shift+Klick: Sortierkette erstellen – z.B. "Marke ↑, dann Preis/kg ↓")
+- **Sortiereinstellungen in `settings` gespeichert**, sodass bevorzugte Reihenfolge nach Neustart erhalten bleibt
+- **Filamente**: Spaltenebene-Filter für Marke, Material/Typ und Farbe/HEX-Wert
+- **Angebote**: Betrags-Filter mit Min-/Max-Werten und Datumsbereich-Filter (von / bis)
+
+---
+
+**Zuletzt aktualisiert**: 1. Dezember 2025
+
+

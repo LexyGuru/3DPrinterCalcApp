@@ -4,6 +4,71 @@ This document contains detailed changelog for all versions of the 3D Printer Cal
 
 ---
 
+## v3.0.4 (2025) - 🔧 Hotfix: Translation and Language Change Fixes
+
+### 🐛 Bug Fixes
+
+#### Translation and Language Change Improvements
+- **Encrypted data text internationalization** - The hardcoded "TITKOSITOTT ADATOK" text now displays correctly in all languages using the `encryption.encryptedData` translation key
+- **Automatic data refresh after language change** - When the user changes the language, all data (offers, customers, settings, printers, filaments) is automatically saved in the new language to the data.json file
+- **Offers list real-time refresh** - The Offers list now updates immediately after language change, encrypted data text (e.g., "TITKOSITOTT ADATOK") always displays in the current language
+- **Filament colors language change fix** - Filament colors now automatically update when the language changes, both in the input field and in the filament list/table. Color labels always display in the current language
+
+#### Technical Changes
+
+- **`Filaments.tsx` modifications**:
+  - Added `useEffect` for automatic color label refresh on language change in the input field
+  - Updated filament list/table display so colors always show in the current language
+  - `displayName` calculation now uses localized color labels from library and preset colors
+
+- **`App.tsx` modifications**:
+  - Added `translations as translationRegistry` import
+  - `debouncedSaveOffers` function now created with `useMemo` to recreate when `settings.language` changes
+  - Added new `useEffect` that immediately saves all data (offers, customers, settings, printers, filaments) in the new language on language change
+  - `saveOffers` calls now pass the `t("encryption.encryptedData")` translation
+  - Added filament color translation after language change
+  - Added offer description translation (if "Importált fájl:" prefix exists)
+  - Added dashboard widget title translation after language change
+
+- **`Offers.tsx` modifications**:
+  - Added `translations as translationRegistry` import
+  - Added `getDisplayCustomerName` helper function that checks if `customerName` is a known encrypted data text and returns the current language translation
+  - Added `getDisplayCustomerNameForPDF` helper function for PDF generation
+  - Updated offer list display to use `getDisplayCustomerName` function
+  - Updated PDF generation to use `getDisplayCustomerNameForPDF` function
+
+- **`OfferSortControls.tsx` modifications**:
+  - Added `useTranslation` hook usage
+  - Added `settings` prop so it updates when language changes
+  - Hardcoded Hungarian texts ("Rendezés:", "Dátum", "Összeg", etc.) now use translation keys
+
+- **`BudgetManagement.tsx` modifications**:
+  - Added `translations as translationRegistry` import
+  - `saveOffers` call now uses `translationRegistry[settings.language]?.["encryption.encryptedData"]` translation
+
+- **Translation keys added to all language files**:
+  - `offers.sort.label`: "Rendezés:" / "Sort:" / etc.
+  - `offers.sort.date`: "Dátum" / "Date" / etc.
+  - `offers.sort.amount`: "Összeg" / "Amount" / etc.
+  - `offers.sort.status`: "Státusz" / "Status" / etc.
+  - `offers.sort.customer`: "Ügyfél" / "Customer" / etc.
+  - `offers.sort.id`: "ID" (all languages)
+  - `offers.sort.multiLevelHint`: "(Shift + kattintás: több szintű)" / "(Shift + click: multi-level)" / etc.
+  - `settings.showHelpInMenu`: Translated to all languages (previously only English, German, Hungarian)
+  - `settings.showHelpInMenuDescription`: Translated to all languages (previously only English, German, Hungarian)
+
+- **`index.html` and `main.tsx` modifications**:
+  - Diagnostic "⏳ HTML betöltve, React betöltése..." message now only appears in development mode
+  - In production build, this message does not appear, only diagnostic logs remain in console
+
+### 📝 Technical Details
+
+- **Version updated**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.4`
+- **Backward compatibility**: Old format offers (with hardcoded "TITKOSITOTT ADATOK" or "ENCRYPTED DATA" text) automatically update to the new format when saved again
+- **New format offers**: Work correctly in all languages
+
+---
+
 ## v3.0.3 (2025) - 🔧 Hotfix: Customer Data Encryption Fixes and UI Improvements
 
 ### 🐛 Bug Fixes
@@ -366,6 +431,44 @@ This document contains detailed changelog for all versions of the 3D Printer Cal
 ### 🎨 Filament Library Multilingual Support
 - **Filament colors displayed** in all supported languages (not just Hungarian/German/English)
 - **Fallback logic**: English → Hungarian → German → raw color/name
+- Settings, GlobalSearch, and Filaments components updated
+
+### 🔄 Factory Reset Improvements
+- **Physical file deletion** (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+- **Store instance reset** without reload
+- **Language selector display** after Factory Reset
+
+### 🎓 Tutorial Update with v1.7.0 New Features
+- New steps: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+- Demo data expanded: 6 filaments → 11 filaments, 3 offers → 5 offers
+- Translation keys added for all languages
+
+---
+
+## v1.6.0 (2025) - 📊 Interactive widgets & large table performance tuning
+
+### 🧠 Interactive Charts and Detailed Modal Views
+- **Main dashboard charts use unified `InteractiveChart` component** with clickable data points and animated detailed modal view
+- **Tooltip and detailed view are localized**, showing human-readable labels (revenue, cost, net profit, offer count)
+- **Time period can be set directly from trend chart** (weekly / monthly / yearly) using brush, sliced data flows to Home → Dashboard
+
+### 🧵 Virtual Scroll for Large Lists
+- **Custom virtual scroll** for Offers list and Filaments table – only visible rows are rendered, ensuring smooth scrolling even with 10k+ records
+- **Settings → Filament Library** uses the same pattern, keeping the full 12,000+ color palette responsive
+- **Scrollbar position/height remains correct** thanks to spacer elements above and below the visible range
+
+### 📋 Advanced Table Sorting and Filtering
+- **Multi-column sorting** on Filaments and Offers pages (click: ascending/descending, Shift+click: build sort chain – e.g., "Brand ↑, then Price/kg ↓")
+- **Sort settings saved in `settings`**, so preferred order persists after restart
+- **Filaments**: column-level filters for brand, material/type, and color/HEX value
+- **Offers**: amount filter with min/max values, and date range filters (from / to)
+
+---
+
+**Last updated**: December 1, 2025
+
+
+
 - Settings, GlobalSearch, and Filaments components updated
 
 ### 🔄 Factory Reset Improvements

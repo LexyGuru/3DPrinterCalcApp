@@ -263,3 +263,12 @@ For detailed version history and changelog, please see [RELEASE.en.md](RELEASE.e
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
 
+
+- Offer counter fix (counts by customerId as well)
+- Offers refresh after password entry
+- Status history list shows only ID
+- Toast messages improvements and redesign
+- New translation keys added to all languages
+
+If you have any questions or find a bug, please open an issue in the GitHub repository!
+

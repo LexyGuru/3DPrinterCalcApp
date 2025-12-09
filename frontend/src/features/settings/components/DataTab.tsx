@@ -730,7 +730,7 @@ export const DataTab: React.FC<DataTabProps> = ({
               color: theme.colors.text,
               marginBottom: "8px"
             }}>
-              🔐 {settings.language === "hu" ? "Audit Logok" : settings.language === "de" ? "Audit-Logs" : "Audit Logs"}
+              🔐 {t("settings.logs.auditLogs") || "Audit Logs"}
             </h3>
             
             {/* Audit log törlési beállítás */}

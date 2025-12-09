@@ -67,3 +67,12 @@ A részletes verziótörténetet a [RELEASE.hu.md](RELEASE.hu.md) fájlban talá
 
 Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
 
+
+- Árajánlat számláló javítása (customerId alapján is számol)
+- Árajánlatok frissítése jelszó megadása után
+- Státuszváltozások listájában csak ID megjelenítése
+- Toast üzenetek rendezése és újragondolása
+- Új fordítási kulcsok hozzáadása minden nyelvhez
+
+Ha bármilyen kérdésed van vagy hibát találsz, nyiss egy issue-t a GitHub repository-ban!
+

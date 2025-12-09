@@ -1046,3 +1046,18 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 **Version**: 1.6.0
 
 If you have any questions or find a bug, please open an issue in the GitHub repository!
+
+- ✨ **Loading States**: Loading spinner on application startup
+- ✨ **Error Boundary**: Application-level error handling
+- ✨ **Search and Filter**: Search filaments, printers and quotes
+- ✨ **Duplication**: Easy quote duplication
+- ✨ **Collapsible Forms**: Filament and printer add forms are collapsible
+- ✨ **Quote Extensions**: Customer name, contact and description fields added
+- 🐛 **Console.log Cleanup**: No console.logs in production build
+- 🐛 **Description Field Fix**: Long texts properly wrap.
+
+---
+
+**Version**: 1.6.0
+
+If you have any questions or find a bug, please open an issue in the GitHub repository!

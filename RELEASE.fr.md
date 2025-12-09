@@ -393,3 +393,80 @@ Ce document contient le journal des modifications détaillé pour toutes les ver
 **Dernière mise à jour** : 1er décembre 2025
 
 
+
+- **Système automatique de sauvegarde** - Un fichier de sauvegarde par jour (créé uniquement un nouveau jour)
+- **Hook de rappel de sauvegarde et composant UI** - Notification s'il n'y a pas de sauvegarde
+- **UI d'Historique de Sauvegarde dans Paramètres** - Liste codée par couleurs (vert/jaune/rouge/gris) pour l'ancienneté du fichier de sauvegarde et compte à rebours de suppression
+- **Fenêtre modale de sauvegarde automatique** - Explication lorsque la sauvegarde automatique est activée
+- **Synchronisation de sauvegarde automatique et sauvegarde automatique** - Sauvegarde automatique lors de l'enregistrement avec sauvegarde automatique
+- **Réinitialisation d'Usine avec suppression automatique des fichiers de sauvegarde**
+- **L'historique de sauvegarde se met à jour automatiquement** lorsque la sauvegarde automatique est activée
+
+### 🔧 Optimisation du Backend du Système de Sauvegarde
+- **Commandes backend ajoutées** pour supprimer les anciennes sauvegardes (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+- **Fonctions de nettoyage du frontend mises à jour pour utiliser les commandes backend**, éliminant les erreurs "forbidden path"
+- **Toutes les opérations sur fichiers (créer, supprimer, lister) se produisent maintenant depuis le backend**, évitant les problèmes d'autorisations Tauri
+
+### ⚡ Optimisation des Performances du Système de Sauvegarde
+- `hasTodayBackup()` optimisé : utilise la commande backend `list_backup_files`, pas besoin de lire tous les fichiers
+- **Mécanisme de verrouillage ajouté** pour prévenir les sauvegardes parallèles
+- **Opération plus rapide** même avec un grand nombre de fichiers de sauvegarde
+
+### 📁 Ouverture du Répertoire de Sauvegarde et Historique des Journaux
+- **Bouton ajouté** dans la section Paramètres → Historique de Sauvegarde pour ouvrir le dossier de sauvegarde
+- **Nouvelle section d'historique des journaux** dans Paramètres - lister et ouvrir les fichiers de journal
+- **Suppression automatique des fichiers de journal** configurable par jours
+- **Support multiplateforme** (macOS, Windows, Linux)
+
+### 🎨 Révision Complète de l'Écran de Chargement
+- **Logo de l'application intégré** comme arrière-plan avec effet glassmorphism
+- **Mise en page fixe pour les coches** - Défilement automatique, seulement 3 modules visibles à la fois
+- **Effet shimmer, animations de points pulsants**
+- **Conteneur de défilement** avec barre de défilement cachée
+
+### ⚙️ Améliorations du Processus de Chargement
+- **Chargement ralenti** (délais de 800ms) - les messages de chargement sont lisibles
+- **Gestion des erreurs pour tous les modules** (blocs try-catch)
+- **Fichier de journal physique** pour tous les états et erreurs
+- **Résumé de chargement** à la fin
+
+### 🎨 Support Multilingue de la Bibliothèque de Filaments
+- **Couleurs de filaments affichées** dans toutes les langues supportées (pas seulement Hongrois/Allemand/Anglais)
+- **Logique de repli** : Anglais → Hongrois → Allemand → couleur/nom brut
+- Composants Settings, GlobalSearch et Filaments mis à jour
+
+### 🔄 Améliorations de Réinitialisation d'Usine
+- **Suppression physique des fichiers** (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+- **Réinitialisation de l'instance Store** sans rechargement
+- **Affichage du sélecteur de langue** après Réinitialisation d'Usine
+
+### 🎓 Mise à Jour du Tutoriel avec les Nouvelles Fonctionnalités v1.7.0
+- Nouvelles étapes : widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+- Données de démonstration étendues : 6 filaments → 11 filaments, 3 offres → 5 offres
+- Clés de traduction ajoutées pour toutes les langues
+
+---
+
+## v1.6.0 (2025) - 📊 Widgets interactifs & optimisation des performances des grandes tableaux
+
+### 🧠 Graphiques Interactifs et Vues Modales Détaillées
+- **Les graphiques principaux du tableau de bord utilisent le composant unifié `InteractiveChart`** avec des points de données cliquables et une vue modale détaillée animée
+- **Le tooltip et la vue détaillée sont localisés**, affichant des étiquettes lisibles par l'homme (revenus, coût, bénéfice net, nombre d'offres)
+- **La période de temps peut être définie directement depuis le graphique de tendances** (hebdomadaire / mensuel / annuel) en utilisant le pinceau, les données tranchées s'écoulent vers Home → Dashboard
+
+### 🧵 Défilement Virtuel pour les Grandes Listes
+- **Défilement virtuel personnalisé** pour la liste des Offres et le tableau des Filaments – seules les lignes visibles sont rendues, assurant un défilement fluide même avec 10k+ enregistrements
+- **Paramètres → Bibliothèque de Filaments** utilise le même modèle, maintenant la palette complète de 12,000+ couleurs réactive
+- **La position/hauteur de la barre de défilement reste correcte** grâce aux éléments d'espacement au-dessus et en-dessous de la plage visible
+
+### 📋 Tri et Filtrage Avancés des Tableaux
+- **Tri multi-colonnes** sur les pages Filaments et Offres (clic : croissant/décroissant, Maj+clic : construire chaîne de tri – ex. "Marque ↑, puis Prix/kg ↓")
+- **Paramètres de tri enregistrés dans `settings`**, donc l'ordre préféré persiste après redémarrage
+- **Filaments** : filtres au niveau des colonnes pour marque, matériau/type et valeur couleur/HEX
+- **Offres** : filtre de montant avec valeurs min/max et filtres de plage de dates (de / à)
+
+---
+
+**Dernière mise à jour** : 1er décembre 2025
+
+

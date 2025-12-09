@@ -417,6 +417,56 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
     setSelectedFinish("all");
   }, [brand, type, color, normalizedSelectedHex, settings.language]);
 
+  // Frissíti a szín címkéjét nyelvváltozáskor
+  useEffect(() => {
+    if (useCustomColor || !color) {
+      return;
+    }
+
+    // Ha van kiválasztott szín opció, frissítsük a címkét az új nyelven
+    if (selectedColorOption) {
+      const newLabel = getLocalizedColorLabel(selectedColorOption, settings.language);
+      if (newLabel && newLabel !== color) {
+        setColor(newLabel);
+      }
+      // Ha multicolor módban vagyunk és a multiColorHint a szín címkéjét tartalmazza, frissítsük azt is
+      if (colorMode === "multicolor" && selectedColorOption.multiColorHint) {
+        const localized = getLocalizedColorLabel(selectedColorOption, settings.language);
+        setMultiColorHint(selectedColorOption.multiColorHint ?? localized ?? "");
+      }
+      return;
+    }
+
+    // Próbáljuk megkeresni a library színt
+    const libraryMatch = findLibraryColorByLabel(color, brand, type);
+    if (libraryMatch) {
+      const newLabel = getLocalizedLibraryColorLabel(libraryMatch, settings.language) || libraryMatch.rawColor || color;
+      if (newLabel && newLabel !== color) {
+        setColor(newLabel);
+      }
+      // Ha multicolor módban vagyunk, frissítsük a multiColorHint-et is
+      if (colorMode === "multicolor" && libraryMatch.multiColorHint) {
+        const localized = getLocalizedLibraryColorLabel(libraryMatch, settings.language) || libraryMatch.rawColor || color;
+        setMultiColorHint(libraryMatch.multiColorHint ?? localized ?? "");
+      }
+      return;
+    }
+
+    // Próbáljuk megkeresni a preset színt
+    const presetMatch = findColorOptionByLabel(color);
+    if (presetMatch) {
+      const newLabel = getLocalizedColorLabel(presetMatch, settings.language);
+      if (newLabel && newLabel !== color) {
+        setColor(newLabel);
+      }
+      // Ha multicolor módban vagyunk, frissítsük a multiColorHint-et is
+      if (colorMode === "multicolor" && presetMatch.multiColorHint) {
+        const localized = getLocalizedColorLabel(presetMatch, settings.language);
+        setMultiColorHint(presetMatch.multiColorHint ?? localized ?? "");
+      }
+    }
+  }, [settings.language, selectedColorOption, color, useCustomColor, brand, type, colorMode]);
+
   useEffect(() => {
     if (!color || useCustomColor) {
       return;
@@ -2919,8 +2969,25 @@ export const Filaments: React.FC<Props> = ({ filaments, setFilaments, settings, 
                 const hasUploadedImage = Boolean(f.imageBase64);
                 const multiLabel = multicolorLabel;
                 const swatchGradient = "linear-gradient(135deg, #F97316 0%, #EC4899 33%, #6366F1 66%, #22D3EE 100%)";
+                
+                // Lokalizált színnév keresése
+                let localizedColorName = f.color;
+                if (f.color) {
+                  // Először próbáljuk a library színt
+                  const libraryMatch = findLibraryColorByLabel(f.color, f.brand, f.type);
+                  if (libraryMatch) {
+                    localizedColorName = getLocalizedLibraryColorLabel(libraryMatch, settings.language) || libraryMatch.rawColor || f.color;
+                  } else {
+                    // Ha nincs library match, próbáljuk a preset színt
+                    const presetMatch = findColorOptionByLabel(f.color);
+                    if (presetMatch) {
+                      localizedColorName = getLocalizedColorLabel(presetMatch, settings.language);
+                    }
+                  }
+                }
+                
                 const displayName =
-                  f.color || (isMulticolor ? f.multiColorHint || multiLabel : displayHex);
+                  localizedColorName || (isMulticolor ? f.multiColorHint || multiLabel : displayHex);
                 const secondaryText = isMulticolor
                   ? f.multiColorHint
                     ? `${multiLabel} • ${f.multiColorHint}`

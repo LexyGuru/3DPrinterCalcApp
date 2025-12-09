@@ -120,7 +120,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
       default:
         return widget.title || "";
     }
-  }, [t, widget]);
+  }, [t, widget, settings.language]);
 
   // Frissítjük az editedTitle-t, ha a widget.title változik
   React.useEffect(() => {

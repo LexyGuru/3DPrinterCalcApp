@@ -11,7 +11,7 @@ import type {
   Customer,
 } from "../types";
 import type { Theme } from "../utils/themes";
-import { useTranslation, type TranslationKey } from "../utils/translations";
+import { useTranslation, translations as translationRegistry, type TranslationKey } from "../utils/translations";
 import { ConfirmDialog } from "../shared";
 import { useToast } from "./Toast";
 import { convertCurrencyFromTo, getCurrencyLabel } from "../utils/currency";
@@ -62,6 +62,56 @@ export const Offers: React.FC<Props> = ({
 }) => {
   const t = useTranslation(settings.language);
   const { showToast } = useToast();
+  
+  // Helper függvény, hogy a titkosított adatok szövegét mindig a jelenlegi nyelven jelenítse meg
+  const getDisplayCustomerName = (customerName: string | undefined, customerId: number | null | undefined): string => {
+    if (!customerName) {
+      if (customerId) {
+        return `${t("offers.details.customerId") || "Ügyfél ID"}: ${customerId}`;
+      }
+      return "";
+    }
+    
+    // Ellenőrizzük, hogy a customerName egy ismert titkosított adatok szöveg-e
+    // Összegyűjtjük az összes nyelv "encryption.encryptedData" fordítását
+    const allEncryptedDataTexts = Object.values(translationRegistry).map(
+      (lang) => lang["encryption.encryptedData"]
+    ).filter(Boolean);
+    
+    // Ha a customerName megegyezik bármelyik nyelv "encryption.encryptedData" fordításával,
+    // akkor a jelenlegi nyelvű fordítást használjuk
+    if (allEncryptedDataTexts.includes(customerName)) {
+      return t("encryption.encryptedData");
+    }
+    
+    return customerName;
+  };
+  
+  // Helper függvény, hogy az offer description-t mindig a jelenlegi nyelven jelenítse meg
+  const getDisplayDescription = (description: string | undefined): string | undefined => {
+    if (!description) return description;
+    
+    // Összegyűjtjük az összes nyelv "slicerImport.importedFilePrefix" fordítását
+    const allImportedFilePrefixes = Object.values(translationRegistry).map(
+      (lang) => lang["slicerImport.importedFilePrefix"]
+    ).filter(Boolean);
+    
+    // Keresünk minden prefix-et, hogy van-e egyezés
+    const matchingPrefix = allImportedFilePrefixes.find(prefix => 
+      description.startsWith(`${prefix}:`) || description.startsWith(`${prefix} `)
+    );
+    
+    if (matchingPrefix) {
+      const newPrefix = t("slicerImport.importedFilePrefix");
+      // Eltávolítjuk a régi prefix-et (akár ":" akár " " után jön)
+      const fileName = description
+        .replace(new RegExp(`^${matchingPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[:\\s]+`), "")
+        .trim();
+      return `${newPrefix}: ${fileName}`;
+    }
+    
+    return description;
+  };
   
   // Undo/Redo hook
   const {
@@ -973,6 +1023,28 @@ export const Offers: React.FC<Props> = ({
     setShowPrintPreview(true);
   };
 
+  // Helper függvény a PDF generáláshoz is
+  const getDisplayCustomerNameForPDF = (customerName: string | undefined, customerId: number | null | undefined, currentLanguage: Settings["language"]): string => {
+    if (!customerName) {
+      if (customerId) {
+        const customerIdLabel = translationRegistry[currentLanguage]?.["offers.details.customerId"] || "Ügyfél ID";
+        return `${customerIdLabel}: ${customerId}`;
+      }
+      return "";
+    }
+    
+    // Ellenőrizzük, hogy a customerName egy ismert titkosított adatok szöveg-e
+    const allEncryptedDataTexts = Object.values(translationRegistry).map(
+      (lang) => lang["encryption.encryptedData"]
+    ).filter(Boolean);
+    
+    if (allEncryptedDataTexts.includes(customerName)) {
+      return translationRegistry[currentLanguage]?.["encryption.encryptedData"] || "ENCRYPTED DATA";
+    }
+    
+    return customerName;
+  };
+
   const generatePDFContent = (
     offer: Offer,
     t: (key: TranslationKey) => string,
@@ -1187,9 +1259,9 @@ export const Offers: React.FC<Props> = ({
         
         <div class="info">
           <p><strong>${t("offers.date")}:</strong> ${formattedDate}</p>
-          ${offer.customerName ? `<p><strong>${t("offers.customerName")}:</strong> ${offer.customerName}</p>` : ""}
+          ${offer.customerName ? `<p><strong>${t("offers.customerName")}:</strong> ${getDisplayCustomerNameForPDF(offer.customerName, offer.customerId, settings.language)}</p>` : ""}
           ${offer.customerContact ? `<p><strong>${t("offers.customerContact")}:</strong> ${offer.customerContact}</p>` : ""}
-          ${offer.description ? `<p><strong>${t("offers.description")}:</strong> ${offer.description}</p>` : ""}
+          ${offer.description ? `<p><strong>${t("offers.description")}:</strong> ${getDisplayDescription(offer.description) || offer.description}</p>` : ""}
         </div>
 
         <div class="section">
@@ -1695,6 +1767,7 @@ export const Offers: React.FC<Props> = ({
                 sortConfig={offerSortConfig}
                 onSort={handleOfferSort}
                 theme={theme}
+                settings={settings}
               />
             </div>
           </div>
@@ -2237,9 +2310,8 @@ export const Offers: React.FC<Props> = ({
                                   overflow: "hidden",
                                 }}
                               >
-                                {offer.customerName
-                                  ? offer.customerName
-                                  : (offer.customerId
+                                {getDisplayCustomerName(offer.customerName, offer.customerId) || 
+                                  (offer.customerId
                                     ? `${t("offers.details.customerId") || "Ügyfél ID"}: ${offer.customerId}`
                                     : `${t("offers.label.quote")} #${offer.id}`)}
                               </strong>
@@ -2302,9 +2374,12 @@ export const Offers: React.FC<Props> = ({
                                   : theme.colors.textSecondary,
                               }}
                             >
-                              {offer.description.length > 160
-                                ? `${offer.description.slice(0, 160)}…`
-                                : offer.description}
+                              {(() => {
+                                const displayDescription = getDisplayDescription(offer.description);
+                                return displayDescription && displayDescription.length > 160
+                                  ? `${displayDescription.slice(0, 160)}…`
+                                  : displayDescription;
+                              })()}
                             </p>
                           )}
                         </div>
@@ -3255,7 +3330,7 @@ export const Offers: React.FC<Props> = ({
                             {selectedOffer.description && (
                               <div style={{ marginBottom: "12px" }}>
                                 <strong style={{ color: theme.colors.text }}>{t("offers.description")}:</strong> 
-                                <span style={{ marginLeft: "8px", color: theme.colors.text, wordWrap: "break-word", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{selectedOffer.description}</span>
+                                <span style={{ marginLeft: "8px", color: theme.colors.text, wordWrap: "break-word", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{getDisplayDescription(selectedOffer.description)}</span>
                               </div>
                             )}
                             <div style={{ marginBottom: "12px" }}>
@@ -3837,6 +3912,122 @@ export const Offers: React.FC<Props> = ({
           </div>
         </div>
       )}
+
+      {/* Print Preview Modal */}
+      {showPrintPreview && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.8)",
+          zIndex: 2000,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px"
+        }}>
+          <div style={{
+            backgroundColor: "white",
+            width: "100%",
+            maxWidth: "800px",
+            maxHeight: "90vh",
+            overflow: "auto",
+            padding: "20px",
+            borderRadius: "8px",
+            position: "relative"
+          }}>
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: "20px",
+              alignItems: "center"
+            }}>
+              <h2 style={{ margin: 0 }}>Nyomtatási előnézet</h2>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={handlePrintFromPreview}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#007bff",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px"
+                  }}
+                >
+                  {t("offers.print")}
+                </button>
+                {selectedOffer && (
+                  <button
+                    onClick={() => {
+                      exportAsPDF(selectedOffer);
+                      setShowPrintPreview(false);
+                    }}
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: "#28a745",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "14px"
+                    }}
+                  >
+                    {t("offers.downloadPDF")}
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowPrintPreview(false)}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: theme.colors.secondary,
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px"
+                  }}
+                >
+                  {t("common.close")}
+                </button>
+              </div>
+            </div>
+            <div 
+              dangerouslySetInnerHTML={{ __html: printContent }}
+              style={{
+                border: "1px solid #ddd",
+                padding: "20px",
+                backgroundColor: theme.colors.surface
+              }}
+            />
+          </div>
+        </div>
+      )}
+      
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        title={t("common.confirm")}
+        message={t("common.confirmDeleteOffer")}
+        theme={theme}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirmId(null)}
+        confirmText={t("common.yes")}
+        cancelText={t("common.cancel")}
+        type="danger"
+      />
+      
+      <ConfirmDialog
+        isOpen={bulkDeleteConfirm}
+        onCancel={() => setBulkDeleteConfirm(false)}
+        onConfirm={confirmBulkDelete}
+        title={t("offers.bulk.deleteConfirm.title")}
+        message={t("offers.bulk.deleteConfirm.message").replace("{{count}}", selectedOfferIds.size.toString())}
+        theme={theme}
+      />
 
       {/* Print Preview Modal */}
       {showPrintPreview && (

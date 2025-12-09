@@ -954,6 +954,13 @@ export const languageEn: TranslationMap = {
   "offers.filters.maxAmount": "Max. amount",
   "offers.filters.fromDate": "From date",
   "offers.filters.toDate": "To date",
+  "offers.sort.label": "Sort:",
+  "offers.sort.date": "Date",
+  "offers.sort.amount": "Amount",
+  "offers.sort.status": "Status",
+  "offers.sort.customer": "Customer",
+  "offers.sort.id": "ID",
+  "offers.sort.multiLevelHint": "(Shift + click: multi-level)",
   "offers.history.title": "History",
   "offers.history.version": "Version",
   "offers.history.customer": "Customer",
@@ -1157,6 +1164,10 @@ export const languageEn: TranslationMap = {
   "slicerImport.supportedFormats": "Supported formats: G-code and JSON metadata exports (PrusaSlicer, Cura, OrcaSlicer, Qidi Studio).",
   "slicerImport.actions.createDraft": "Create quote draft",
   "slicerImport.actions.createDraftDescription": "Creates a draft in the Offers section using the imported time and filament data.",
+  "slicerImport.progress.selectingFile": "Selecting file...",
+  "slicerImport.progress.readingFile": "Reading file...",
+  "slicerImport.progress.processingData": "Processing data...",
+  "slicerImport.progress.complete": "Complete!",
   // Sidebar
   "sidebar.menu": "Menu",
   "sidebar.section.main": "MAIN",
@@ -1409,6 +1420,7 @@ export const languageEn: TranslationMap = {
   "settings.logs.level.warn": "WARN (warnings and errors)",
   "settings.logs.level.error": "ERROR (errors only)",
   "settings.logs.auditLogManagement": "Log & Audit Log Management",
+  "settings.logs.auditLogs": "Audit Logs",
   "settings.logs.deleteOlderAuditLogs": "Delete older audit log files",
   "settings.logs.folderLocation": "Folder Location",
   "settings.logs.auditLogHistory": "Audit Log History",
@@ -1865,5 +1877,4 @@ export const languageEn: TranslationMap = {
   "encryption.encryptedData": "ENCRYPTED DATA",
   "common.processing": "Processing...",
   "common.ok": "OK"
-
 };

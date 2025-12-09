@@ -5,11 +5,14 @@
 
 import React from "react";
 import type { OfferSortKey, OfferSortConfigItem } from "../utils/sorting";
+import { useTranslation } from "../../../utils/translations";
+import type { Settings } from "../../../types";
 
 interface OfferSortControlsProps {
   sortConfig: OfferSortConfigItem[];
   onSort: (key: OfferSortKey, event?: React.MouseEvent<HTMLButtonElement>) => void;
   theme: import("../../../utils/themes").Theme;
+  settings: Settings;
 }
 
 /**
@@ -19,7 +22,9 @@ export const OfferSortControls: React.FC<OfferSortControlsProps> = ({
   sortConfig,
   onSort,
   theme,
+  settings,
 }) => {
+  const t = useTranslation(settings.language);
 
   const renderSortChip = (label: string, key: OfferSortKey) => {
     const idx = sortConfig.findIndex((cfg) => cfg.key === key);
@@ -89,13 +94,13 @@ export const OfferSortControls: React.FC<OfferSortControlsProps> = ({
           marginRight: "4px",
         }}
       >
-        Rendezés:
+        {t("offers.sort.label") || "Rendezés:"}
       </span>
-      {renderSortChip("Dátum", "date")}
-      {renderSortChip("Összeg", "amount")}
-      {renderSortChip("Státusz", "status")}
-      {renderSortChip("Ügyfél", "customer")}
-      {renderSortChip("ID", "id")}
+      {renderSortChip(t("offers.sort.date") || "Dátum", "date")}
+      {renderSortChip(t("offers.sort.amount") || "Összeg", "amount")}
+      {renderSortChip(t("offers.sort.status") || "Státusz", "status")}
+      {renderSortChip(t("offers.sort.customer") || "Ügyfél", "customer")}
+      {renderSortChip(t("offers.sort.id") || "ID", "id")}
       <span
         style={{
           fontSize: "11px",
@@ -103,7 +108,7 @@ export const OfferSortControls: React.FC<OfferSortControlsProps> = ({
           fontStyle: "italic",
         }}
       >
-        (Shift + kattintás: több szintű)
+        {t("offers.sort.multiLevelHint") || "(Shift + kattintás: több szintű)"}
       </span>
     </div>
   );

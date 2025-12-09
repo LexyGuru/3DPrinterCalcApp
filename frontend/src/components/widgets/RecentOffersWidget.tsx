@@ -2,7 +2,7 @@ import React from "react";
 import type { WidgetConfig } from "../../types/widgets";
 import type { Theme } from "../../utils/themes";
 import type { Settings, Offer } from "../../types";
-import { useTranslation } from "../../utils/translations";
+import { useTranslation, translations as translationRegistry } from "../../utils/translations";
 import { getCurrencyLabel } from "../../utils/currency";
 
 interface RecentOffersWidgetProps {
@@ -57,6 +57,56 @@ export const RecentOffersWidget: React.FC<RecentOffersWidgetProps> = ({
   
   const padding = isSmall ? "12px" : isMedium ? "16px" : "20px";
   const fontSize = isSmall ? "11px" : isMedium ? "13px" : "14px";
+
+  // Helper függvény, hogy a titkosított adatok szövegét mindig a jelenlegi nyelven jelenítse meg
+  const getDisplayCustomerName = (customerName: string | undefined, customerId: number | null | undefined): string => {
+    if (!customerName) {
+      if (customerId) {
+        return `${t("offers.details.customerId") || "Ügyfél ID"}: ${customerId}`;
+      }
+      return "";
+    }
+    
+    // Ellenőrizzük, hogy a customerName egy ismert titkosított adatok szöveg-e
+    // Összegyűjtjük az összes nyelv "encryption.encryptedData" fordítását
+    const allEncryptedDataTexts = Object.values(translationRegistry).map(
+      (lang) => lang["encryption.encryptedData"]
+    ).filter(Boolean);
+    
+    // Ha a customerName megegyezik bármelyik nyelv "encryption.encryptedData" fordításával,
+    // akkor a jelenlegi nyelvű fordítást használjuk
+    if (allEncryptedDataTexts.includes(customerName)) {
+      return t("encryption.encryptedData");
+    }
+    
+    return customerName;
+  };
+  
+  // Helper függvény, hogy az offer description-t mindig a jelenlegi nyelven jelenítse meg
+  const getDisplayDescription = (description: string | undefined): string | undefined => {
+    if (!description) return description;
+    
+    // Összegyűjtjük az összes nyelv "slicerImport.importedFilePrefix" fordítását
+    const allImportedFilePrefixes = Object.values(translationRegistry).map(
+      (lang) => lang["slicerImport.importedFilePrefix"]
+    ).filter(Boolean);
+    
+    // Keresünk minden prefix-et, hogy van-e egyezés
+    const matchingPrefix = allImportedFilePrefixes.find(prefix => 
+      description.startsWith(`${prefix}:`) || description.startsWith(`${prefix} `)
+    );
+    
+    if (matchingPrefix) {
+      const newPrefix = t("slicerImport.importedFilePrefix");
+      // Eltávolítjuk a régi prefix-et (akár ":" akár " " után jön)
+      const fileName = description
+        .replace(new RegExp(`^${matchingPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[:\\s]+`), "")
+        .trim();
+      return `${newPrefix}: ${fileName}`;
+    }
+    
+    return description;
+  };
 
   // Rendezzük dátum szerint (legújabb először) és csak az első maxItems-et
   const recentOffers = [...offers]
@@ -203,7 +253,7 @@ export const RecentOffersWidget: React.FC<RecentOffersWidgetProps> = ({
                       whiteSpace: "nowrap",
                       flex: 1,
                     }}>
-                      {offer.customerName || t("common.unknown") || "Unknown"}
+                      {getDisplayCustomerName(offer.customerName, offer.customerId) || t("common.unknown") || "Unknown"}
                     </div>
                   </div>
                   <div style={{
@@ -222,7 +272,7 @@ export const RecentOffersWidget: React.FC<RecentOffersWidgetProps> = ({
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                   }}>
-                    {offer.description}
+                    {getDisplayDescription(offer.description)}
                   </div>
                 )}
                 <div style={{

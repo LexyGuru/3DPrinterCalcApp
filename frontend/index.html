@@ -21,11 +21,12 @@
       console.log("🌐 [HTML] Document ready state:", document.readyState);
       console.log("🌐 [HTML] Location:", window.location.href);
       
-      // Fallback UI azonnali megjelenítése
+      // Fallback UI azonnali megjelenítése - csak development módban (diagnosztika)
       const root = document.getElementById('root');
-      if (root) {
+      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.port !== '';
+      if (root && isDev) {
         root.innerHTML = '<div id="html-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui; background: #1a1a1a; color: white; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999;"><div style="font-size: 24px; margin-bottom: 20px;">⏳ HTML betöltve, React betöltése...</div><div style="font-size: 12px; color: #888;" id="html-status">Várakozás main.tsx betöltésére...</div><div style="font-size: 10px; color: #666; margin-top: 20px;" id="html-error"></div></div>';
-        console.log("🌐 [HTML] Fallback UI megjelenítve");
+        console.log("🌐 [HTML] Fallback UI megjelenítve (DEV mód - diagnosztika)");
       }
       
       // Error handler

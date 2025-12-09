@@ -11,7 +11,7 @@ export interface VersionInfo {
   isBeta: boolean;
 }
 
-const BASE_VERSION = "3.0.3"; // Frissítsd ezt, amikor új verziót adsz ki
+const BASE_VERSION = "3.0.4"; // Frissítsd ezt, amikor új verziót adsz ki
 // Version suffix (rc1, rc2, vagy commit hash) - build-time environment variable-ból jön
 const VERSION_SUFFIX = import.meta.env.VITE_VERSION_SUFFIX || "";
 const CURRENT_VERSION = VERSION_SUFFIX ? `${BASE_VERSION}-${VERSION_SUFFIX}` : BASE_VERSION;

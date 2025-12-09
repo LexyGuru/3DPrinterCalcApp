@@ -254,6 +254,14 @@ export type TranslationKey =
   | "offers.filters.maxAmount"
   | "offers.filters.fromDate"
   | "offers.filters.toDate"
+  // Offers sort
+  | "offers.sort.label"
+  | "offers.sort.date"
+  | "offers.sort.amount"
+  | "offers.sort.status"
+  | "offers.sort.customer"
+  | "offers.sort.id"
+  | "offers.sort.multiLevelHint"
   // Printers
   | "printers.title"
   | "printers.addTitle"
@@ -1310,6 +1318,10 @@ export type TranslationKey =
   | "slicerImport.supportedFormats"
   | "slicerImport.actions.createDraft"
   | "slicerImport.actions.createDraftDescription"
+  | "slicerImport.progress.selectingFile"
+  | "slicerImport.progress.readingFile"
+  | "slicerImport.progress.processingData"
+  | "slicerImport.progress.complete"
   // Sidebar (cont.)
   | "sidebar.home"
   | "sidebar.filaments"
@@ -1752,6 +1764,7 @@ export type TranslationKey =
   | "settings.logs.level.warn"
   | "settings.logs.level.error"
   | "settings.logs.auditLogManagement"
+  | "settings.logs.auditLogs"
   | "settings.logs.deleteOlderAuditLogs"
   | "settings.logs.folderLocation"
   | "settings.logs.auditLogHistory"
@@ -1859,3 +1872,5 @@ export interface LanguageDefinition {
   translations: TranslationMap;
 }
 
+
+  

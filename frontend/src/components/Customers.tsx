@@ -1445,6 +1445,283 @@ export const Customers: React.FC<Props> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        onCancel={() => setDeleteConfirmId(null)}
+        onConfirm={confirmDelete}
+        title={t("customers.confirmDelete.title")}
+        message={t("customers.confirmDelete.message")}
+        theme={theme}
+      />
+      
+      <ConfirmDialog
+        isOpen={bulkDeleteConfirm}
+        onCancel={() => setBulkDeleteConfirm(false)}
+        onConfirm={confirmBulkDelete}
+        title={t("customers.bulk.deleteConfirm.title")}
+        message={t("customers.bulk.deleteConfirm.message").replace("{{count}}", selectedCustomerIds.size.toString())}
+        theme={theme}
+      />
+
+      {/* Ügyfél szerkesztés modal ablak */}
+      <AnimatePresence>
+        {showEditModal && editingCustomerId !== null && editingCustomer && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={cancelEdit}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              padding: "20px",
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: theme.colors.surface || "#fff",
+                borderRadius: "12px",
+                padding: "28px",
+                maxWidth: "600px",
+                width: "100%",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
+                border: `1px solid ${theme.colors.border || "#e0e0e0"}`,
+              }}
+            >
+              {/* Fejléc */}
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center",
+                marginBottom: "24px",
+                paddingBottom: "16px",
+                borderBottom: `2px solid ${theme.colors.border || "#e0e0e0"}`,
+              }}>
+                <h2 style={{ 
+                  margin: 0, 
+                  fontSize: "24px", 
+                  fontWeight: "600",
+                  color: theme.colors.text 
+                }}>
+                  ✏️ {t("common.edit") || "Ügyfél szerkesztése"}
+                </h2>
+                <button
+                  onClick={cancelEdit}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    color: theme.colors.textSecondary || "#666",
+                    padding: "0",
+                    width: "32px",
+                    height: "32px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "4px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.colors.surfaceHover || "#f5f5f5";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              
+              {/* Ügyfél ID megjelenítése (nem szerkeszthető) - felül, kiemelt */}
+              <div style={{ 
+                marginBottom: "20px",
+                padding: "12px",
+                backgroundColor: theme.colors.surfaceHover || "#f5f5f5",
+                borderRadius: "8px",
+                border: `1px solid ${theme.colors.border || "#e0e0e0"}`,
+              }}>
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "6px", 
+                  fontSize: "12px",
+                  fontWeight: "600", 
+                  color: theme.colors.textSecondary,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}>
+                  {t("customers.id")}
+                </label>
+                <div style={{
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  color: theme.colors.text,
+                }}>
+                  {editingCustomerId}
+                </div>
+              </div>
+
+              {/* Mezők grid elrendezésben */}
+              <div style={{ 
+                display: "grid", 
+                gridTemplateColumns: "1fr 1fr",
+                gap: "16px",
+                marginBottom: "20px",
+              }}>
+                {/* Név - teljes szélesség */}
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.text 
+                  }}>
+                    {t("customers.name")} *
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCustomer?.name || ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
+                    style={themeStyles.input}
+                    placeholder={t("customers.name")}
+                  />
+                </div>
+                
+                {/* Contact és Company két oszlopban */}
+                <div>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.text 
+                  }}>
+                    {t("customers.contact")}
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCustomer?.contact || ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, contact: e.target.value })}
+                    style={themeStyles.input}
+                    placeholder={t("customers.contact")}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.text 
+                  }}>
+                    {t("customers.company")}
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCustomer?.company || ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, company: e.target.value })}
+                    style={themeStyles.input}
+                    placeholder={t("customers.company")}
+                  />
+                </div>
+                
+                {/* Address - teljes szélesség */}
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.text 
+                  }}>
+                    {t("customers.address")}
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCustomer?.address || ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
+                    style={themeStyles.input}
+                    placeholder={t("customers.address")}
+                  />
+                </div>
+                
+                {/* Notes - teljes szélesség */}
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ 
+                    display: "block", 
+                    marginBottom: "8px", 
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    color: theme.colors.text 
+                  }}>
+                    {t("customers.notes")}
+                  </label>
+                  <textarea
+                    value={editingCustomer?.notes || ""}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, notes: e.target.value })}
+                    style={{
+                      ...themeStyles.input,
+                      minHeight: "100px",
+                      resize: "vertical",
+                    }}
+                    placeholder={t("customers.notes")}
+                  />
+                </div>
+              </div>
+              
+              {/* Gombok */}
+              <div style={{ 
+                display: "flex", 
+                gap: "12px", 
+                justifyContent: "flex-end",
+                marginTop: "24px",
+                paddingTop: "20px",
+                borderTop: `1px solid ${theme.colors.border || "#e0e0e0"}`,
+              }}>
+                <button 
+                  onClick={cancelEdit} 
+                  style={{
+                    ...themeStyles.buttonSecondary,
+                    minWidth: "100px",
+                  }}
+                >
+                  {t("common.cancel")}
+                </button>
+                <button 
+                  onClick={() => {
+                    if (editingCustomerId !== null) {
+                      saveCustomer(editingCustomerId);
+                      setShowEditModal(false);
+                    }
+                  }} 
+                  style={{
+                    ...themeStyles.buttonPrimary,
+                    minWidth: "100px",
+                  }}
+                >
+                  {t("common.save")}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

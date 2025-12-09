@@ -4,6 +4,71 @@ Ez a dokumentum tartalmazza a 3D Printer Calculator App verzióinak részletes v
 
 ---
 
+## v3.0.4 (2025) - 🔧 Hotfix: Fordítási és Nyelvváltozási Javítások
+
+### 🐛 Hibajavítások
+
+#### Fordítási és Nyelvváltozási Javítások
+- **Titkosított adatok szövegének internacionalizálása**: A hardcoded "TITKOSITOTT ADATOK" szöveg most már minden nyelven helyesen jelenik meg a `encryption.encryptedData` fordítási kulcs alapján
+- **Nyelvváltozás után automatikus adatfrissítés**: Amikor a felhasználó megváltoztatja a nyelvet, az összes adat (offers, customers, settings, printers, filaments) automatikusan újramentésre kerül az új nyelven a data.json fájlba
+- **Offers lista valós idejű frissítése**: Az Offers lista most azonnal frissül a nyelvváltozás után, a titkosított adatok szövege (pl. "TITKOSITOTT ADATOK") mindig a jelenlegi nyelven jelenik meg
+- **Filament színek nyelvváltozási javítás**: A filament színek most már automatikusan frissülnek nyelvváltozáskor mind az input mezőben, mind a filament listában/táblázatban. A színcímkék mindig a jelenlegi nyelven jelennek meg
+
+#### Technikai Változtatások
+
+- **`Filaments.tsx` módosítások**:
+  - Hozzáadva `useEffect` a színcímkék automatikus frissítéséhez nyelvváltozáskor az input mezőben
+  - Frissítve a filament lista/táblázat megjelenítése, hogy a színek mindig a jelenlegi nyelven jelenjenek meg
+  - A `displayName` kiszámítása most lokalizált színcímkéket használ a library és preset színekből
+
+- **`App.tsx` módosítások**:
+  - Hozzáadva `translations as translationRegistry` import
+  - A `debouncedSaveOffers` függvény most `useMemo`-val van létrehozva, hogy a `settings.language` változásakor újra létrejöjjön
+  - Hozzáadva egy új `useEffect`, amely a nyelvváltozásra azonnal újramenti az összes adatot (offers, customers, settings, printers, filaments) az új nyelven
+  - A `saveOffers` hívások most a `t("encryption.encryptedData")` fordítást adják át
+  - Hozzáadva filament színek fordítása nyelvváltozás után
+  - Hozzáadva offer description fordítása (ha "Importált fájl:" prefix van)
+  - Hozzáadva dashboard widget title-ek fordítása nyelvváltozás után
+
+- **`Offers.tsx` módosítások**:
+  - Hozzáadva `translations as translationRegistry` import
+  - Hozzáadva `getDisplayCustomerName` helper függvény, amely ellenőrzi, hogy a `customerName` egy ismert titkosított adatok szöveg-e, és ha igen, a jelenlegi nyelvű fordítást adja vissza
+  - Hozzáadva `getDisplayCustomerNameForPDF` helper függvény a PDF generáláshoz
+  - Frissítve az offer lista megjelenítése, hogy a `getDisplayCustomerName` függvényt használja
+  - Frissítve a PDF generálás, hogy a `getDisplayCustomerNameForPDF` függvényt használja
+
+- **`OfferSortControls.tsx` módosítások**:
+  - Hozzáadva `useTranslation` hook használata
+  - Hozzáadva `settings` prop, hogy a nyelv változásakor frissüljön
+  - A hardcoded magyar szövegek ("Rendezés:", "Dátum", "Összeg", stb.) most már fordított kulcsokat használnak
+
+- **`BudgetManagement.tsx` módosítások**:
+  - Hozzáadva `translations as translationRegistry` import
+  - A `saveOffers` hívás most a `translationRegistry[settings.language]?.["encryption.encryptedData"]` fordítást használja
+
+- **Fordítási kulcsok hozzáadva minden nyelvi fájlhoz**:
+  - `offers.sort.label`: "Rendezés:" / "Sort:" / stb.
+  - `offers.sort.date`: "Dátum" / "Date" / stb.
+  - `offers.sort.amount`: "Összeg" / "Amount" / stb.
+  - `offers.sort.status`: "Státusz" / "Status" / stb.
+  - `offers.sort.customer`: "Ügyfél" / "Customer" / stb.
+  - `offers.sort.id`: "ID" (minden nyelven)
+  - `offers.sort.multiLevelHint`: "(Shift + kattintás: több szintű)" / "(Shift + click: multi-level)" / stb.
+  - `settings.showHelpInMenu`: Minden nyelvre lefordítva (korábban csak angolul, németül, magyarul volt)
+  - `settings.showHelpInMenuDescription`: Minden nyelvre lefordítva (korábban csak angolul, németül, magyarul volt)
+
+- **`index.html` és `main.tsx` módosítások**:
+  - A diagnosztikai "⏳ HTML betöltve, React betöltése..." üzenet most már csak development módban jelenik meg
+  - Production build-ben nem jelenik meg ez az üzenet, csak a konzolban maradnak a diagnosztikai logok
+
+### 📝 Műszaki Részletek
+
+- **Verzió frissítve**: `Cargo.toml`, `tauri.conf.json`, `frontend/src/utils/version.ts` → `3.0.4`
+- **Visszafelé kompatibilitás**: A régi formátumú (hardcoded "TITKOSITOTT ADATOK" vagy "ENCRYPTED DATA" szöveggel) offers automatikusan frissülnek az új formátumra, amikor újramentésre kerülnek
+- **Új formátumú offers**: Helyesen működnek minden nyelven
+
+---
+
 ## v3.0.3 (2025) - 🔧 Hotfix: Ügyféladat Titkosítás Javítások és UI Fejlesztések
 
 ### 🐛 Hibajavítások

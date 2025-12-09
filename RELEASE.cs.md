@@ -354,3 +354,41 @@ Tento dokument obsahuje podrobný changelog pro všechny verze aplikace 3D Print
 **Poslední aktualizace**: 1. prosince 2025
 
 
+
+- Aktualizovány komponenty Settings, GlobalSearch a Filaments
+
+### 🔄 Vylepšení továrního resetu
+- **Fyzické mazání souborů** (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+- **Reset instance Store** bez opětovného načtení
+- **Zobrazení výběru jazyka** po továrním resetu
+
+### 🎓 Aktualizace tutoriálu s novými funkcemi v1.7.0
+- Nové kroky: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+- Rozšířená demo data: 6 filamentů → 11 filamentů, 3 nabídky → 5 nabídek
+- Přidány překladové klíče pro všechny jazyky
+
+---
+
+## v1.6.0 (2025) - 📊 Interaktivní widgety & optimalizace výkonu velkých tabulek
+
+### 🧠 Interaktivní grafy a podrobné modální zobrazení
+- **Hlavní grafy nástěnky používají sjednocenou komponentu `InteractiveChart`** s klikatelnými datovými body a animovaným podrobným modálním zobrazením
+- **Tooltip a podrobné zobrazení jsou lokalizovány**, zobrazují čitelné štítky (příjmy, náklady, čistý zisk, počet nabídek)
+- **Časové období lze nastavit přímo z grafu trendu** (týdenní / měsíční / roční) pomocí štětce, nakrájená data proudí do Home → Dashboard
+
+### 🧵 Virtuální scrollování pro velké seznamy
+- **Vlastní virtuální scrollování** pro seznam nabídek a tabulku filamentů – renderovány jsou pouze viditelné řádky, zajišťuje plynulé scrollování i při 10k+ záznamech
+- **Nastavení → Knihovna filamentů** používá stejný vzor, udržuje celou paletu 12,000+ barev responzivní
+- **Pozice/výška posuvníku zůstává správná** díky prvkům mezery nad a pod viditelným rozsahem
+
+### 📋 Pokročilé řazení a filtrování tabulek
+- **Vícesloupcové řazení** na stránkách Filamentů a Nabídek (klik: vzestupné/sestupné, Shift+klik: vytvoř řetězec řazení – např. "Značka ↑, poté Cena/kg ↓")
+- **Nastavení řazení uložena v `settings`**, takže preferované pořadí přetrvává po restartu
+- **Filamenty**: filtry na úrovni sloupce pro značku, materiál/typ a hodnotu barvy/HEX
+- **Nabídky**: filtr částky s hodnotami min/max a filtry rozsahu dat (od / do)
+
+---
+
+**Poslední aktualizace**: 1. prosince 2025
+
+

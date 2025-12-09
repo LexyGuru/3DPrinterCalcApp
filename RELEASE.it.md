@@ -393,3 +393,80 @@ Questo documento contiene il changelog dettagliato per tutte le versioni dell'ap
 **Ultimo aggiornamento**: 1 dicembre 2025
 
 
+
+- **Sistema backup automatico** - Un file backup al giorno (creato solo in nuovo giorno)
+- **Hook promemoria backup e componente UI** - Notifica se non esiste backup
+- **UI Cronologia Backup nelle Impostazioni** - Lista codificata colori (verde/giallo/rosso/grigio) per età file backup e countdown eliminazione
+- **Finestra modale autosave** - Spiegazione quando autosave è abilitato
+- **Sincronizzazione autosave e backup automatico** - Backup automatico al salvataggio autosave
+- **Reset di Fabbrica con eliminazione automatica file backup**
+- **Cronologia backup si aggiorna automaticamente** quando autosave è abilitato
+
+### 🔧 Ottimizzazione Backend Sistema Backup
+- **Comandi backend aggiunti** per eliminare backup vecchi (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+- **Funzioni pulizia frontend aggiornate per usare comandi backend**, eliminando errori "forbidden path"
+- **Tutte le operazioni file (crea, elimina, elenca) ora avvengono dal backend**, evitando problemi permessi Tauri
+
+### ⚡ Ottimizzazione Prestazioni Sistema Backup
+- `hasTodayBackup()` ottimizzato: usa comando backend `list_backup_files`, non è necessario leggere tutti i file
+- **Meccanismo lock aggiunto** per prevenire backup paralleli
+- **Operazione più veloce** anche con grande numero file backup
+
+### 📁 Apertura Directory Backup e Cronologia Log
+- **Pulsante aggiunto** nella sezione Impostazioni → Cronologia Backup per aprire cartella backup
+- **Nuova sezione cronologia log** nelle Impostazioni - elenca e apri file log
+- **Eliminazione automatica file log** configurabile per giorni
+- **Supporto multipiattaforma** (macOS, Windows, Linux)
+
+### 🎨 Revisione Completa Schermata Caricamento
+- **Logo app integrato** come sfondo con effetto glassmorphism
+- **Layout fisso per segni di spunta** - Scorrimento automatico, solo 3 moduli visibili alla volta
+- **Effetto shimmer, animazioni punti pulsanti**
+- **Contenitore scorrimento** con scrollbar nascosta
+
+### ⚙️ Miglioramenti Processo Caricamento
+- **Caricamento rallentato** (ritardi 800ms) - messaggi caricamento sono leggibili
+- **Gestione errori per tutti i moduli** (blocchi try-catch)
+- **File log fisico** per tutti gli stati e errori
+- **Riepilogo caricamento** alla fine
+
+### 🎨 Supporto Multilingue Biblioteca Filamenti
+- **Colori filamenti visualizzati** in tutte le lingue supportate (non solo Ungherese/Tedesco/Inglese)
+- **Logica fallback**: Inglese → Ungherese → Tedesco → colore/nome raw
+- Componenti Settings, GlobalSearch e Filaments aggiornati
+
+### 🔄 Miglioramenti Reset di Fabbrica
+- **Eliminazione fisica file** (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+- **Reset istanza Store** senza ricaricamento
+- **Visualizzazione selettore lingua** dopo Reset di Fabbrica
+
+### 🎓 Aggiornamento Tutorial con Nuove Funzionalità v1.7.0
+- Nuovi passi: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+- Dati demo espansi: 6 filamenti → 11 filamenti, 3 offerte → 5 offerte
+- Chiavi traduzione aggiunte per tutte le lingue
+
+---
+
+## v1.6.0 (2025) - 📊 Widget interattivi & ottimizzazione prestazioni tabelle grandi
+
+### 🧠 Grafici Interattivi e Viste Modali Dettagliate
+- **Grafici dashboard principale usano componente unificato `InteractiveChart`** con punti dati cliccabili e vista modale dettagliata animata
+- **Tooltip e vista dettagliata sono localizzati**, mostrando etichette leggibili (ricavi, costi, profitto netto, conteggio offerte)
+- **Periodo tempo può essere impostato direttamente da grafico tendenze** (settimanale / mensile / annuale) usando brush, dati affettati fluiscono a Home → Dashboard
+
+### 🧵 Scorrimento Virtuale per Liste Grandi
+- **Scorrimento virtuale personalizzato** per lista Offerte e tabella Filamenti – solo righe visibili vengono renderizzate, assicurando scorrimento fluido anche con 10k+ record
+- **Impostazioni → Biblioteca Filamenti** usa lo stesso pattern, mantenendo palette completa 12,000+ colori reattiva
+- **Posizione/altezza scrollbar rimane corretta** grazie a elementi spaziatore sopra e sotto intervallo visibile
+
+### 📋 Ordinamento e Filtraggio Avanzato Tabelle
+- **Ordinamento multi-colonna** su pagine Filamenti e Offerte (clic: ascendente/discendente, Maiusc+clic: costruisci catena ordinamento – es. "Marca ↑, poi Prezzo/kg ↓")
+- **Impostazioni ordinamento salvate in `settings`**, così ordine preferito persiste dopo riavvio
+- **Filamenti**: filtri livello colonna per marca, materiale/tipo e valore colore/HEX
+- **Offerte**: filtro importo con valori min/max e filtri intervallo date (da / a)
+
+---
+
+**Ultimo aggiornamento**: 1 dicembre 2025
+
+

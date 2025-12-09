@@ -480,3 +480,4 @@ export interface Task {
   recurringPattern?: string; // Opcionális: ismétlődési minta (daily, weekly, monthly, stb.)
   nextRecurrenceDate?: string; // Opcionális: következő ismétlődés dátuma
 }
+

@@ -354,3 +354,41 @@ Tento dokument obsahuje podrobný changelog pre všetky verzie aplikácie 3D Pri
 **Posledná aktualizácia**: 1. decembra 2025
 
 
+
+- Aktualizované komponenty Settings, GlobalSearch a Filaments
+
+### 🔄 Vylepšenia továrenskeho resetu
+- **Fyzické mazanie súborov** (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+- **Reset inštancie Store** bez opätovného načítania
+- **Zobrazenie výberu jazyka** po továrenskom resetu
+
+### 🎓 Aktualizácia tutoriálu s novými funkciami v1.7.0
+- Nové kroky: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+- Rozšírené demo dáta: 6 filamentov → 11 filamentov, 3 ponuky → 5 ponúk
+- Pridané prekladové kľúče pre všetky jazyky
+
+---
+
+## v1.6.0 (2025) - 📊 Interaktívne widgety & optimalizácia výkonu veľkých tabuliek
+
+### 🧠 Interaktívne grafy a podrobné modálne zobrazenia
+- **Hlavné grafy nástienky používajú zjednotenú komponentu `InteractiveChart`** s klikateľnými dátovými bodmi a animovaným podrobným modálnym zobrazením
+- **Tooltip a podrobné zobrazenie sú lokalizované**, zobrazujú čitateľné štítky (príjmy, náklady, čistý zisk, počet ponúk)
+- **Časové obdobie možno nastaviť priamo z grafu trendu** (týždenné / mesačné / ročné) pomocou štetca, nakrájané dáta prúdia do Home → Dashboard
+
+### 🧵 Virtuálne posúvanie pre veľké zoznamy
+- **Vlastné virtuálne posúvanie** pre zoznam ponúk a tabuľku filamentov – renderované sú len viditeľné riadky, zabezpečuje plynulé posúvanie aj pri 10k+ záznamoch
+- **Nastavenia → Knižnica filamentov** používa rovnaký vzor, udržiava celú paletu 12,000+ farieb responzívnu
+- **Pozícia/výška posúvača zostáva správna** vďaka prvkom medzery nad a pod viditeľným rozsahom
+
+### 📋 Pokročilé triedenie a filtrovanie tabuliek
+- **Viacstĺpcové triedenie** na stránkach Filamentov a Ponúk (klik: vzostupné/zostupné, Shift+klik: vytvor reťazec triedenia – napr. "Značka ↑, potom Cena/kg ↓")
+- **Nastavenia triedenia uložené v `settings`**, takže preferované poradie pretrváva po reštarte
+- **Filamenty**: filtre na úrovni stĺpca pre značku, materiál/typ a hodnotu farby/HEX
+- **Ponuky**: filter sumy s hodnotami min/max a filtre rozsahu dátumov (od / do)
+
+---
+
+**Posledná aktualizácia**: 1. decembra 2025
+
+

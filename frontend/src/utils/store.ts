@@ -209,7 +209,7 @@ export async function loadSettings(): Promise<Settings | null> {
 }
 
 // Offers
-export async function saveOffers(offers: Offer[]): Promise<void> {
+export async function saveOffers(offers: Offer[], encryptedDataLabel?: string): Promise<void> {
   try {
     if (import.meta.env.DEV) {
       console.log("💾 Árajánlatok mentése...", { count: offers.length });
@@ -247,6 +247,9 @@ export async function saveOffers(offers: Offer[]): Promise<void> {
       console.log("🔒 [saveOffers] Titkosítás ellenőrzés:", { hasEncryptedData, hasPasswordInMemory });
     }
     
+    // Használjuk a megadott fordítást, vagy az angol alapértelmezett értéket
+    const encryptedDataText = encryptedDataLabel || "ENCRYPTED DATA";
+    
     const sanitizedOffers = offers.map(offer => {
       // KRITIKUS JAVÍTÁS: Ha van titkosított customer data ÉS nincs jelszó memóriában, akkor sanitizáljuk
       // Ha van jelszó memóriában, akkor az adatok dekódolva vannak, ne sanitizáljuk
@@ -263,7 +266,7 @@ export async function saveOffers(offers: Offer[]): Promise<void> {
           }
           return {
             ...offer,
-            customerName: "TITKOSITOTT ADATOK",
+            customerName: encryptedDataText,
             customerContact: undefined, // Ne mentsük a contact-ot sem
           };
         }
@@ -279,16 +282,16 @@ export async function saveOffers(offers: Offer[]): Promise<void> {
           }
           return {
             ...offer,
-            customerName: "TITKOSITOTT ADATOK",
+            customerName: encryptedDataText,
             customerContact: undefined,
           };
         }
       }
-      // Ha van customerId de nincs customerName (régi formátum vagy már titkosított), akkor is "TITKOSITOTT ADATOK"
+      // Ha van customerId de nincs customerName (régi formátum vagy már titkosított), akkor is az encryptedDataText-et használjuk
       if (offer.customerId && !offer.customerName) {
         return {
           ...offer,
-          customerName: "TITKOSITOTT ADATOK",
+          customerName: encryptedDataText,
           customerContact: undefined,
         };
       }

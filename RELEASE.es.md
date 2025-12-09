@@ -393,3 +393,80 @@ Este documento contiene el registro detallado de cambios para todas las versione
 **Última actualización**: 1 de diciembre de 2025
 
 
+
+- **Sistema automático de respaldo** - Un archivo de respaldo por día (solo se crea en un día nuevo)
+- **Hook de recordatorio de respaldo y componente UI** - Notificación si no existe un respaldo
+- **UI de Historial de Respaldo en Configuración** - Lista codificada por colores (verde/amarillo/rojo/gris) para la antigüedad del archivo de respaldo y cuenta regresiva de eliminación
+- **Ventana modal de autoguardado** - Explicación cuando el autoguardado está habilitado
+- **Sincronización de autoguardado y respaldo automático** - Respaldo automático al guardar con autoguardado
+- **Restablecimiento de Fábrica con eliminación automática de archivos de respaldo**
+- **El historial de respaldo se actualiza automáticamente** cuando el autoguardado está habilitado
+
+### 🔧 Optimización del Backend del Sistema de Respaldo
+- **Comandos del backend agregados** para eliminar respaldos antiguos (`cleanup_old_backups_by_days`, `cleanup_old_backups_by_count`)
+- **Funciones de limpieza del frontend actualizadas para usar comandos del backend**, eliminando errores de "forbidden path"
+- **Todas las operaciones de archivos (crear, eliminar, listar) ahora ocurren desde el backend**, evitando problemas de permisos de Tauri
+
+### ⚡ Optimización de Rendimiento del Sistema de Respaldo
+- `hasTodayBackup()` optimizado: usa comando backend `list_backup_files`, no es necesario leer todos los archivos
+- **Mecanismo de bloqueo agregado** para prevenir respaldos paralelos
+- **Operación más rápida** incluso con un gran número de archivos de respaldo
+
+### 📁 Apertura del Directorio de Respaldo e Historial de Registros
+- **Botón agregado** en la sección Configuración → Historial de Respaldo para abrir la carpeta de respaldo
+- **Nueva sección de historial de registros** en Configuración - listar y abrir archivos de registro
+- **Eliminación automática de archivos de registro** configurable por días
+- **Soporte multiplataforma** (macOS, Windows, Linux)
+
+### 🎨 Revisión Completa de la Pantalla de Carga
+- **Logo de la aplicación integrado** como fondo con efecto de glassmorfismo
+- **Diseño fijo para marcas de verificación** - Desplazamiento automático, solo 3 módulos visibles a la vez
+- **Efecto shimmer, animaciones de puntos pulsantes**
+- **Contenedor de desplazamiento** con barra de desplazamiento oculta
+
+### ⚙️ Mejoras del Proceso de Carga
+- **Carga ralentizada** (retrasos de 800ms) - los mensajes de carga son legibles
+- **Manejo de errores para todos los módulos** (bloques try-catch)
+- **Archivo de registro físico** para todos los estados y errores
+- **Resumen de carga** al final
+
+### 🎨 Soporte Multilingüe de la Biblioteca de Filamentos
+- **Colores de filamentos mostrados** en todos los idiomas soportados (no solo Húngaro/Alemán/Inglés)
+- **Lógica de respaldo**: Inglés → Húngaro → Alemán → color/nombre sin procesar
+- Componentes Settings, GlobalSearch y Filaments actualizados
+
+### 🔄 Mejoras de Restablecimiento de Fábrica
+- **Eliminación física de archivos** (`data.json`, `filamentLibrary.json`, `update_filamentLibrary.json`)
+- **Restablecimiento de instancia de almacén** sin recarga
+- **Visualización del selector de idioma** después del Restablecimiento de Fábrica
+
+### 🎓 Actualización del Tutorial con Nuevas Características de v1.7.0
+- Nuevos pasos: widget-interactivity, table-sorting, autosave-backup, filament-library-multilang
+- Datos de demostración expandidos: 6 filamentos → 11 filamentos, 3 ofertas → 5 ofertas
+- Claves de traducción agregadas para todos los idiomas
+
+---
+
+## v1.6.0 (2025) - 📊 Widgets interactivos & optimización de rendimiento de tablas grandes
+
+### 🧠 Gráficos Interactivos y Vistas Modales Detalladas
+- **Los gráficos principales del panel utilizan el componente unificado `InteractiveChart`** con puntos de datos clicables y vista modal detallada animada
+- **El tooltip y la vista detallada están localizados**, mostrando etiquetas legibles para humanos (ingresos, costo, ganancia neta, cantidad de ofertas)
+- **El período de tiempo se puede establecer directamente desde el gráfico de tendencias** (semanal / mensual / anual) usando brush, datos segmentados fluyen a Home → Dashboard
+
+### 🧵 Desplazamiento Virtual para Listas Grandes
+- **Desplazamiento virtual personalizado** para la lista de Ofertas y la tabla de Filamentos – solo se renderizan las filas visibles, asegurando un desplazamiento suave incluso con 10k+ registros
+- **Configuración → Biblioteca de Filamentos** usa el mismo patrón, manteniendo la paleta completa de 12,000+ colores responsiva
+- **La posición/altura de la barra de desplazamiento permanece correcta** gracias a los elementos espaciadores arriba y debajo del rango visible
+
+### 📋 Ordenamiento y Filtrado Avanzado de Tablas
+- **Ordenamiento de múltiples columnas** en las páginas de Filamentos y Ofertas (clic: ascendente/descendente, Mayús+clic: construir cadena de ordenamiento – ej., "Marca ↑, luego Precio/kg ↓")
+- **Configuraciones de ordenamiento guardadas en `settings`**, por lo que el orden preferido persiste después del reinicio
+- **Filamentos**: filtros a nivel de columna para marca, material/tipo y valor de color/HEX
+- **Ofertas**: filtro de monto con valores min/máx y filtros de rango de fechas (desde / hasta)
+
+---
+
+**Última actualización**: 1 de diciembre de 2025
+
+
