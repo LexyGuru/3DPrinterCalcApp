@@ -283,22 +283,21 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
-## v3.0.4 (2025) - 🔧 Hotfix: Translation and Language Change Fixes
+For detailed version history and changelog, please see [RELEASE.en.md](RELEASE.en.md) or the language-specific RELEASE files:
+- [RELEASE.hu.md](RELEASE.hu.md) - Magyar
+- [RELEASE.de.md](RELEASE.de.md) - Deutsch
+- [RELEASE.es.md](RELEASE.es.md) - Español
+- [RELEASE.fr.md](RELEASE.fr.md) - Français
+- [RELEASE.it.md](RELEASE.it.md) - Italiano
+- [RELEASE.pl.md](RELEASE.pl.md) - Polski
+- [RELEASE.cs.md](RELEASE.cs.md) - Čeština
+- [RELEASE.sk.md](RELEASE.sk.md) - Slovenčina
+- [RELEASE.pt.md](RELEASE.pt.md) - Português
+- [RELEASE.ru.md](RELEASE.ru.md) - Русский
+- [RELEASE.uk.md](RELEASE.uk.md) - Українська
+- [RELEASE.zh.md](RELEASE.zh.md) - 中文
 
-### 🐛 Bug Fixes
-- **Encrypted data text internationalization** - The hardcoded "TITKOSITOTT ADATOK" text now displays correctly in all languages
-- **Automatic data refresh after language change** - All data is automatically saved in the new language when language changes
-- **Offers list real-time refresh** - Offers list updates immediately after language change
-- **Filament colors language change fix** - Filament colors now automatically update when language changes, both in input field and in list/table
-
-### 🌍 Translation Improvements
-- Added translation keys for offer sorting controls to all 13 languages
-- Settings help menu translations added to all languages
-- Filament color labels now use localized names from library and preset colors
-
----
-
-## v3.0.3 (2025) - 🔧 Hotfix: Customer Data Encryption Fixes and UI Improvements
+**Current Version**: 3.0.4
 
 ### 🐛 Bug Fixes
 - **Offer actions disabled for encrypted data** - If customer data is encrypted and no password is provided, offer editing, duplication, and status changes are now disabled

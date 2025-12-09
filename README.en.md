@@ -252,17 +252,7 @@ For detailed version history and changelog, please see [RELEASE.en.md](RELEASE.e
 
 **Version**: 3.0.4
 
-### v3.0.4 (2025) - 🔧 Hotfix: Translation and Language Change Fixes
-- Encrypted data text internationalization
-- Automatic data refresh after language change
-- Offers list real-time refresh
-- Filament colors now automatically update when language changes
-- Translation keys added for offer sorting controls
-- Settings help menu translations added to all languages
-
----
-
-### v3.0.3 (2025) - 🔧 Hotfix: Customer Data Encryption Fixes and UI Improvements
+For detailed version history and changelog, please see [RELEASE.en.md](RELEASE.en.md).
 - Offer actions disabled for encrypted data without password
 - Duplicate key issue fixed
 - Offer counter fix (counts by customerId as well)
