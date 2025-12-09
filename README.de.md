@@ -54,7 +54,7 @@ For detailed version history and changelog, please see [RELEASE.de.md](RELEASE.d
 
 ---
 
-**Version**: 3.0.2
+**Version**: 3.0.4
 
 Wenn Sie Fragen haben oder einen Fehler finden, öffnen Sie bitte ein Issue im GitHub-Repository!
 

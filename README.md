@@ -283,6 +283,21 @@ When pushing to the `beta` branch, the GitHub Actions workflow automatically run
 
 ## 📋 Version History
 
+## v3.0.4 (2025) - 🔧 Hotfix: Translation and Language Change Fixes
+
+### 🐛 Bug Fixes
+- **Encrypted data text internationalization** - The hardcoded "TITKOSITOTT ADATOK" text now displays correctly in all languages
+- **Automatic data refresh after language change** - All data is automatically saved in the new language when language changes
+- **Offers list real-time refresh** - Offers list updates immediately after language change
+- **Filament colors language change fix** - Filament colors now automatically update when language changes, both in input field and in list/table
+
+### 🌍 Translation Improvements
+- Added translation keys for offer sorting controls to all 13 languages
+- Settings help menu translations added to all languages
+- Filament color labels now use localized names from library and preset colors
+
+---
+
 ## v3.0.3 (2025) - 🔧 Hotfix: Customer Data Encryption Fixes and UI Improvements
 
 ### 🐛 Bug Fixes

@@ -53,7 +53,7 @@ For detailed version history and changelog, please see [RELEASE.zh.md](RELEASE.z
 
 ---
 
-**版本**: 1.6.0
+**版本**: 3.0.4
 
 如果您有任何问题或发现错误，请在 GitHub 存储库中打开一个问题！
 

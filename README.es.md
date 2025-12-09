@@ -53,7 +53,7 @@ For detailed version history and changelog, please see [RELEASE.es.md](RELEASE.e
 
 ---
 
-**Versión**: 1.6.0
+**Versión**: 3.0.4
 
 Si tienes alguna pregunta o encuentras un error, ¡por favor abre un issue en el repositorio de GitHub!
 

@@ -53,7 +53,7 @@ For detailed version history and changelog, please see [RELEASE.it.md](RELEASE.i
 
 ---
 
-**Versione**: 1.6.0
+**Versione**: 3.0.4
 
 Se hai domande o trovi un bug, per favore apri un issue nel repository GitHub!
 

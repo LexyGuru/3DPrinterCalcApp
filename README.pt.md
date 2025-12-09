@@ -52,7 +52,7 @@ For detailed version history and changelog, please see [RELEASE.pt.md](RELEASE.p
 
 ---
 
-**Versão**: 1.6.0
+**Versão**: 3.0.4
 
 Se você tiver alguma dúvida ou encontrar um bug, por favor abra uma issue no repositório GitHub!
 

@@ -51,7 +51,7 @@ For detailed version history and changelog, please see [RELEASE.cs.md](RELEASE.c
 
 ---
 
-**Verze**: 1.6.0
+**Verze**: 3.0.4
 
 Pokud máte nějaké dotazy nebo najdete chybu, prosím otevřete issue v repozitáři GitHub!
 

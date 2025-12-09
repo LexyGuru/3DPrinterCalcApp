@@ -53,7 +53,7 @@ For detailed version history and changelog, please see [RELEASE.sk.md](RELEASE.s
 
 ---
 
-**Verzia**: 1.6.0
+**Verzia**: 3.0.4
 
 Ak máte nejaké otázky alebo nájdete chybu, prosím otvorte issue v repozitári GitHub!
 

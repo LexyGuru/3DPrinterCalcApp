@@ -53,7 +53,7 @@ For detailed version history and changelog, please see [RELEASE.uk.md](RELEASE.u
 
 ---
 
-**Версія**: 1.6.0
+**Версія**: 3.0.4
 
 Якщо у вас є питання або ви знайшли помилку, будь ласка, відкрийте issue в репозиторії GitHub!
 

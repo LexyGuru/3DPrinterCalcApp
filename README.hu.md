@@ -54,7 +54,17 @@ A részletes verziótörténetet a [RELEASE.hu.md](RELEASE.hu.md) fájlban talá
 
 ---
 
-**Verzió**: 3.0.3
+**Verzió**: 3.0.4
+
+### v3.0.4 (2025) - 🔧 Hotfix: Fordítási és Nyelvváltozási Javítások
+- Titkosított adatok szövegének internacionalizálása
+- Nyelvváltozás után automatikus adatfrissítés
+- Offers lista valós idejű frissítése
+- Filament színek most már automatikusan frissülnek nyelvváltozáskor
+- Fordítási kulcsok hozzáadva az árajánlat rendezési vezérlőkhöz
+- Beállítások súgó menü fordítások hozzáadva minden nyelvhez
+
+---
 
 ### v3.0.3 (2025) - 🔧 Hotfix: Ügyféladat Titkosítás Javítások és UI Fejlesztések
 - Árajánlat műveletek letiltása titkosított adatok esetén jelszó nélkül

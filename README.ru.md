@@ -53,7 +53,7 @@ For detailed version history and changelog, please see [RELEASE.ru.md](RELEASE.r
 
 ---
 
-**Версия**: 1.6.0
+**Версия**: 3.0.4
 
 Если у вас есть вопросы или вы нашли ошибку, пожалуйста, откройте issue в репозитории GitHub!
 
